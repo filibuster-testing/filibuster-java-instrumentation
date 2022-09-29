@@ -1,0 +1,214 @@
+buildscript {
+    dependencies {
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.12'
+    }
+}
+
+plugins {
+    id 'java'
+    id "com.diffplug.spotless" version "5.0.0"
+    id "net.ltgt.errorprone" version "2.0.2"
+    id 'maven-publish'
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'eclipse'
+apply plugin: 'application'
+apply plugin: 'jacoco'
+apply plugin: 'com.diffplug.spotless'
+apply plugin: 'com.google.protobuf'
+
+compileJava {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    errorprone "com.google.errorprone:error_prone_core:latest.release"
+    errorproneJavac "com.google.errorprone:javac:9+181-r4173-1"
+
+    // Adjust the list as you need.
+    ['armeria',
+     'armeria-brave',
+     'armeria-grpc',
+     'armeria-jetty9',
+     'armeria-kafka',
+     'armeria-logback',
+     'armeria-retrofit2',
+     'armeria-rxjava3',
+     'armeria-saml',
+     'armeria-thrift0.13',
+     'armeria-tomcat9',
+     'armeria-zookeeper3'].each {
+        implementation "com.linecorp.armeria:${it}:1.16.0"
+    }
+
+    implementation "com.github.cliftonlabs:json-simple:2.1.2"
+    implementation "org.json:json:20210307"
+    implementation 'org.jetbrains:annotations:16.0.2'
+
+    implementation "io.grpc:grpc-netty-shaded:1.40.1"
+
+    // JUnit annotations
+    implementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+
+    // Logging
+    runtimeOnly 'ch.qos.logback:logback-classic:1.2.3'
+    runtimeOnly 'org.slf4j:log4j-over-slf4j:1.7.30'
+
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+
+    testImplementation 'io.opentelemetry:opentelemetry-api:1.6.0'
+    testImplementation 'io.opentelemetry:opentelemetry-extension-annotations:1.6.0'
+
+    testImplementation 'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:1.6.0-alpha'
+}
+
+test {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
+    maxParallelForks = 1
+    timeout = Duration.ofMinutes(45)
+    minHeapSize = "128m" // initial heap size
+    maxHeapSize = "2048m" // maximum heap size
+    jvmArgs '-XX:MaxPermSize=256m' // mem argument for the test JVM
+}
+
+jacocoTestReport {
+    dependsOn test
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs += '-parameters'
+    options.compilerArgs += '-Xlint:unchecked'
+    options.compilerArgs += '-Xlint:deprecation'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.forkOptions.jvmArgs.addAll(['--add-opens', 'jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED'])
+
+    // stolen from opentelemetry.
+    options.errorprone {
+        enabled = rootProject.findProperty("disableErrorProne") != "true"
+        disableWarningsInGeneratedCode = true
+        allDisabledChecksAsWarnings = true
+
+        excludedPaths = ".*/build/generated/.*"
+
+        // Doesn't work well with Java 8
+        disable("FutureReturnValueIgnored")
+
+        // Require Guava
+        disable("AutoValueImmutableFields")
+        disable("StringSplitter")
+        disable("ImmutableMemberCollection")
+
+        // Don't currently use this (to indicate a local variable that's mutated) but could
+        // consider for future.
+        disable("Var")
+
+        // Don't support Android without desugar
+        disable("AndroidJdkLibsChecker")
+        disable("Java7ApiChecker")
+        disable("StaticOrDefaultInterfaceMethod")
+
+        // Great check, but for bytecode manipulation it's too common to separate over
+        // onEnter / onExit
+        disable("MustBeClosedChecker")
+
+        // Common to avoid an allocation. Revisit if it's worth opt-in suppressing instead of
+        // disabling entirely.
+        disable("MixedMutabilityReturnType")
+
+        // We end up using obsolete types if a library we're instrumenting uses them.
+        disable("JdkObsolete")
+        disable("JavaUtilDate")
+
+        // Storing into a variable in onEnter triggers this unfortunately.
+        disable("UnusedVariable")
+
+        // some moving.
+        disable("DefaultPackage")
+
+        // var usage: potentially need to revert for opentelemetry integration.
+        disable("Varifier")
+
+        // wildcard import: potentially need to revert for opentelemetry integration.
+        disable("WildcardImport")
+
+        // address this.
+        disable("PrivateConstructorForUtilityClass")
+
+        // with older APIs.
+        disable("InconsistentOverloads")
+        disable("TypeParameterNaming")
+
+        // We don't use tools that recognize.
+        disable("InlineMeSuggester")
+        disable("DoNotCallSuggester")
+
+        if (name.contains("Jmh") || name.contains("Test")) {
+            disable("MemberName")
+        }
+    }
+}
+
+protobuf {
+    // Configure the protoc executable.
+    protoc {
+        // Download from the repository.
+        artifact = 'com.google.protobuf:protoc:3.12.0'
+    }
+
+    // Locate the codegen plugins.
+    plugins {
+        // Locate a plugin with name 'grpc'.
+        grpc {
+            // Download from the repository.
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.36.1'
+        }
+    }
+    generateProtoTasks {
+        ofSourceSet('main')*.plugins {
+            grpc {}
+        }
+    }
+}
+
+javadoc {
+    options {
+        links 'https://docs.oracle.com/javase/8/docs/api/'
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'cloud.filibuster'
+            artifactId = 'instrumentation'
+            version = "0.25-SNAPSHOT"
+            from components.java
+
+            pom {
+                name = 'Filibuster Java Instrumentation'
+                description = 'Filibuster instrumentation for the JVM'
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = "https://maven.pkg.github.com/filibuster-testing/filibuster-java-instrumentation"
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}

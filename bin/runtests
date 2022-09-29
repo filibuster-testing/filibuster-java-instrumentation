@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+clear; ./gradlew test -i --rerun-tasks
+

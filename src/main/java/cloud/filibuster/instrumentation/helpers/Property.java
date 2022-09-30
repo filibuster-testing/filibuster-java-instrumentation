@@ -1,10 +1,40 @@
 package cloud.filibuster.instrumentation.helpers;
 
+import cloud.filibuster.dei.DistributedExecutionIndexType;
+
 import javax.annotation.Nullable;
+
+import java.util.Objects;
+
+import static cloud.filibuster.dei.DistributedExecutionIndexType.V1;
 
 public class Property {
     private Property() {
 
+    }
+
+    private static boolean isPropertyNull(@Nullable String propertyValue) {
+        return Objects.equals(propertyValue, "null") || propertyValue == null;
+    }
+
+    /***********************************************************************************
+     ** filibuster.dei.version
+     ***********************************************************************************/
+
+    private final static String DEI_VERSION = "filibuster.dei.version";
+
+    public static void setDeiVersionProperty(DistributedExecutionIndexType value) {
+        System.setProperty(DEI_VERSION, String.valueOf(value));
+    }
+
+    public static DistributedExecutionIndexType getDeiVersionProperty() {
+        String propertyValue = System.getProperty(DEI_VERSION);
+
+        if (isPropertyNull(propertyValue)) {
+            return V1;
+        } else {
+            return DistributedExecutionIndexType.valueOf(propertyValue);
+        }
     }
 
     /***********************************************************************************
@@ -20,7 +50,7 @@ public class Property {
     public static boolean getInstrumentationEnabledProperty() {
         String propertyValue = System.getProperty(INSTRUMENTATION_ENABLED);
 
-        if (propertyValue == null) {
+        if (isPropertyNull(propertyValue)) {
             return false;
         } else {
             return Boolean.valueOf(propertyValue);
@@ -55,7 +85,7 @@ public class Property {
     public static boolean getInstrumentationServerCommunicationEnabledProperty() {
         String propertyValue = System.getProperty(INSTRUMENTATION_SERVER_COMMUNICATION_ENABLED);
 
-        if (propertyValue == null) {
+        if (isPropertyNull(propertyValue)) {
             return true;
         } else {
             return Boolean.valueOf(propertyValue);
@@ -90,7 +120,7 @@ public class Property {
     public static boolean getCallsiteRemoveImportsFromStackTraceProperty() {
         String propertyValue = System.getProperty(CALLSITE_REMOVE_IMPORTS_FROM_STACK_TRACE);
 
-        if (propertyValue == null) {
+        if (isPropertyNull(propertyValue)) {
             return false;
         } else {
             return Boolean.parseBoolean(propertyValue);
@@ -110,7 +140,7 @@ public class Property {
     public static boolean getClientInstrumentorUseOverrideRequestIdProperty() {
         String propertyValue = System.getProperty(CLIENT_INSTRUMENTOR_USE_OVERRIDE_REQUEST_ID);
 
-        if (propertyValue == null) {
+        if (isPropertyNull(propertyValue)) {
             return false;
         } else {
             return Boolean.parseBoolean(propertyValue);
@@ -130,7 +160,7 @@ public class Property {
     public static boolean getCallsiteLineNumberProperty() {
         String propertyValue = System.getProperty(CALLSITE_LINE_NUMBER);
 
-        if (propertyValue == null) {
+        if (isPropertyNull(propertyValue)) {
             return true;
         } else {
             return Boolean.parseBoolean(propertyValue);
@@ -150,7 +180,7 @@ public class Property {
     public static boolean getCallsiteHashCallsiteProperty() {
         String propertyValue = System.getProperty(CALLSITE_HASH_CALLSITE);
 
-        if (propertyValue == null) {
+        if (isPropertyNull(propertyValue)) {
             return true;
         } else {
             return Boolean.parseBoolean(propertyValue);
@@ -170,7 +200,7 @@ public class Property {
     public static boolean getCallsiteIncludePayloadProperty() {
         String propertyValue = System.getProperty(CALLSITE_INCLUDE_PAYLOAD);
 
-        if (propertyValue == null) {
+        if (isPropertyNull(propertyValue)) {
             return true;
         } else {
             return Boolean.parseBoolean(propertyValue);
@@ -190,7 +220,7 @@ public class Property {
     public static boolean getCallsiteHashIncludedPayloadProperty() {
         String propertyValue = System.getProperty(CALLSITE_HASH_INCLUDED_PAYLOAD);
 
-        if (propertyValue == null) {
+        if (isPropertyNull(propertyValue)) {
             return true;
         } else {
             return Boolean.parseBoolean(propertyValue);
@@ -210,7 +240,7 @@ public class Property {
     public static boolean getCallsiteIncludeStackTraceProperty() {
         String propertyValue = System.getProperty(CALLSITE_INCLUDE_STACK_TRACE);
 
-        if (propertyValue == null) {
+        if (isPropertyNull(propertyValue)) {
             return true;
         } else {
             return Boolean.parseBoolean(propertyValue);
@@ -230,7 +260,7 @@ public class Property {
     public static boolean getCallsiteHashIncludedStackTraceProperty() {
         String propertyValue = System.getProperty(CALLSITE_HASH_INCLUDED_STACK_TRACE);
 
-        if (propertyValue == null) {
+        if (isPropertyNull(propertyValue)) {
             return true;
         } else {
             return Boolean.parseBoolean(propertyValue);

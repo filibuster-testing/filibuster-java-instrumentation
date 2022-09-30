@@ -1,10 +1,34 @@
 package cloud.filibuster.instrumentation.helpers;
 
+import cloud.filibuster.dei.DistributedExecutionIndexType;
+
 import javax.annotation.Nullable;
+
+import static cloud.filibuster.dei.DistributedExecutionIndexType.V1;
 
 public class Property {
     private Property() {
 
+    }
+
+    /***********************************************************************************
+     ** filibuster.dei.version
+     ***********************************************************************************/
+
+    private final static String DEI_VERSION = "filibuster.dei.version";
+
+    public static void setDeiVersionProperty(DistributedExecutionIndexType value) {
+        System.setProperty(DEI_VERSION, String.valueOf(value));
+    }
+
+    public static DistributedExecutionIndexType getDeiVersionProperty() {
+        String propertyValue = System.getProperty(DEI_VERSION);
+
+        if (propertyValue == null) {
+            return V1;
+        } else {
+            return DistributedExecutionIndexType.valueOf(propertyValue);
+        }
     }
 
     /***********************************************************************************

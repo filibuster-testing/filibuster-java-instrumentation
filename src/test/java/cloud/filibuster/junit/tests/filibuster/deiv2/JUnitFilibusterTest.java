@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.tests.filibuster;
+package cloud.filibuster.junit.tests.filibuster.deiv2;
 
 import cloud.filibuster.dei.DistributedExecutionIndexType;
 import cloud.filibuster.examples.Hello;
@@ -7,6 +7,7 @@ import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.helpers.Property;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
+import cloud.filibuster.junit.tests.filibuster.JUnitBaseTest;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.AfterAll;
@@ -31,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterTestWithDeiV2 extends JUnitBaseTest {
+public class JUnitFilibusterTest extends JUnitBaseTest {
     private static int numberOfTestsExceptionsThrownFaultsInjected = 0;
 
     @BeforeAll
@@ -41,7 +42,7 @@ public class JUnitFilibusterTestWithDeiV2 extends JUnitBaseTest {
 
     @AfterAll
     public static void resetDeiVersion() {
-        Property.setDeiVersionProperty(null);
+        Property.setDeiVersionProperty(DistributedExecutionIndexType.V1);
     }
 
     /**

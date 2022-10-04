@@ -177,7 +177,7 @@ public class Property {
         System.setProperty(CALLSITE_HASH_CALLSITE, String.valueOf(value));
     }
 
-    public static boolean getCallsiteHashCallsiteProperty() {
+    public static boolean getDEIV1HashCallsiteProperty() {
         String propertyValue = System.getProperty(CALLSITE_HASH_CALLSITE);
 
         if (isPropertyNull(propertyValue)) {
@@ -197,28 +197,8 @@ public class Property {
         System.setProperty(CALLSITE_INCLUDE_PAYLOAD, String.valueOf(value));
     }
 
-    public static boolean getCallsiteIncludePayloadProperty() {
+    public static boolean getDEIV1IncludePayloadProperty() {
         String propertyValue = System.getProperty(CALLSITE_INCLUDE_PAYLOAD);
-
-        if (isPropertyNull(propertyValue)) {
-            return true;
-        } else {
-            return Boolean.parseBoolean(propertyValue);
-        }
-    }
-
-    /***********************************************************************************
-     ** filibuster.callsite.hash_included_payload
-     ***********************************************************************************/
-
-    private final static String CALLSITE_HASH_INCLUDED_PAYLOAD = "filibuster.callsite.hash_included_payload";
-
-    public static void setCallsiteHashIncludedPayloadProperty(boolean value) {
-        System.setProperty(CALLSITE_HASH_INCLUDED_PAYLOAD, String.valueOf(value));
-    }
-
-    public static boolean getCallsiteHashIncludedPayloadProperty() {
-        String propertyValue = System.getProperty(CALLSITE_HASH_INCLUDED_PAYLOAD);
 
         if (isPropertyNull(propertyValue)) {
             return true;
@@ -237,28 +217,8 @@ public class Property {
         System.setProperty(CALLSITE_INCLUDE_STACK_TRACE, String.valueOf(value));
     }
 
-    public static boolean getCallsiteIncludeStackTraceProperty() {
+    public static boolean getDEIV1IncludeStackTraceProperty() {
         String propertyValue = System.getProperty(CALLSITE_INCLUDE_STACK_TRACE);
-
-        if (isPropertyNull(propertyValue)) {
-            return true;
-        } else {
-            return Boolean.parseBoolean(propertyValue);
-        }
-    }
-
-    /***********************************************************************************
-     ** filibuster.callsite.hash_included_stack_trace
-     ***********************************************************************************/
-
-    private final static String CALLSITE_HASH_INCLUDED_STACK_TRACE = "filibuster.callsite.hash_included_stack_trace";
-
-    public static void setCallsiteHashIncludedStackTraceProperty(boolean value) {
-        System.setProperty(CALLSITE_HASH_INCLUDED_STACK_TRACE, String.valueOf(value));
-    }
-
-    public static boolean getCallsiteHashIncludedStackTraceProperty() {
-        String propertyValue = System.getProperty(CALLSITE_HASH_INCLUDED_STACK_TRACE);
 
         if (isPropertyNull(propertyValue)) {
             return true;

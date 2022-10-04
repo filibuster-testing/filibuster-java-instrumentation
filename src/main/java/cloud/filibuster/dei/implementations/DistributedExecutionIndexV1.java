@@ -8,8 +8,6 @@ import java.util.ArrayList;
 
 import static cloud.filibuster.instrumentation.helpers.Hashing.createDigest;
 import static cloud.filibuster.instrumentation.helpers.Property.getCallsiteHashCallsiteProperty;
-import static cloud.filibuster.instrumentation.helpers.Property.getCallsiteHashIncludedPayloadProperty;
-import static cloud.filibuster.instrumentation.helpers.Property.getCallsiteHashIncludedStackTraceProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getCallsiteIncludePayloadProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getCallsiteIncludeStackTraceProperty;
 
@@ -28,21 +26,12 @@ public class DistributedExecutionIndexV1 extends DistributedExecutionIndexBase i
 
         // TODO: rename to v1.
         if (getCallsiteIncludePayloadProperty()) {
-            if (getCallsiteHashIncludedPayloadProperty()) {
-                toStringResult.add(createDigest(callsite.getSerializedArguments()));
-            } else {
-                toStringResult.add(callsite.getSerializedArguments());
-            }
+            toStringResult.add(createDigest(callsite.getSerializedArguments()));
         }
 
         // TODO: rename to v1.
         if (getCallsiteIncludeStackTraceProperty()) {
-            // TODO: remove me.
-            if (getCallsiteHashIncludedStackTraceProperty()) {
-                toStringResult.add(createDigest(callsite.getSerializedStackTrace()));
-            } else {
-                toStringResult.add(callsite.getSerializedStackTrace());
-            }
+            toStringResult.add(createDigest(callsite.getSerializedStackTrace()));
         }
 
         // TODO: rename to v1.

@@ -14,6 +14,8 @@ import static cloud.filibuster.instrumentation.helpers.Property.getCallsiteInclu
 import static cloud.filibuster.instrumentation.helpers.Property.getCallsiteIncludeStackTraceProperty;
 
 public class DistributedExecutionIndexV1 extends DistributedExecutionIndexBase implements DistributedExecutionIndex {
+    // TODO: rename properties because they are DEI, not callsite, properties.
+
     @Override
     public void push(Callsite callsite) {
         ArrayList<String> toStringResult = new ArrayList<>();
@@ -24,6 +26,7 @@ public class DistributedExecutionIndexV1 extends DistributedExecutionIndexBase i
         toStringResult.add(callsite.getClassOrModuleName());
         toStringResult.add(callsite.getMethodOrFunctionName());
 
+        // TODO: rename to v1.
         if (getCallsiteIncludePayloadProperty()) {
             if (getCallsiteHashIncludedPayloadProperty()) {
                 toStringResult.add(createDigest(callsite.getSerializedArguments()));
@@ -32,7 +35,9 @@ public class DistributedExecutionIndexV1 extends DistributedExecutionIndexBase i
             }
         }
 
+        // TODO: rename to v1.
         if (getCallsiteIncludeStackTraceProperty()) {
+            // TODO: remove me.
             if (getCallsiteHashIncludedStackTraceProperty()) {
                 toStringResult.add(createDigest(callsite.getSerializedStackTrace()));
             } else {
@@ -40,7 +45,9 @@ public class DistributedExecutionIndexV1 extends DistributedExecutionIndexBase i
             }
         }
 
+        // TODO: rename to v1.
         if (getCallsiteHashCallsiteProperty()) {
+            // TODO: rename me.
             push(createDigest(String.join("-", toStringResult)));
         } else {
             push(String.join("-", toStringResult));

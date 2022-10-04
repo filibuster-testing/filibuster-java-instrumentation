@@ -174,6 +174,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
     static class FilibusterSystemProperties {
         public static void setSystemPropertiesForFilibusterInstrumentation(FilibusterConfiguration filibusterConfiguration) {
             if (filibusterConfiguration.getDataNondeterminism()) {
+                // TODO: this is a bug
                 Property.setCallsiteHashCallsiteProperty(false);
             }
 

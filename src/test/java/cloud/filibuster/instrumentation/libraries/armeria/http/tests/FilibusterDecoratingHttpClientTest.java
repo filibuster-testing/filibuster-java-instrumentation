@@ -14,26 +14,26 @@ import org.junit.jupiter.api.BeforeEach;
 import java.io.IOException;
 import java.util.HashMap;
 
+import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.setHashProperty;
+import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.setStackTraceIncludeProperty;
 import static cloud.filibuster.instrumentation.datatypes.RequestId.generateNewRequestId;
 
 import static cloud.filibuster.instrumentation.TestHelper.startExternalServerAndWaitUntilAvailable;
 import static cloud.filibuster.instrumentation.TestHelper.startMockFilibusterServerAndWaitUntilAvailable;
 import static cloud.filibuster.instrumentation.TestHelper.stopExternalServerAndWaitUntilUnavailable;
 import static cloud.filibuster.instrumentation.TestHelper.stopMockFilibusterServerAndWaitUntilUnavailable;
-import static cloud.filibuster.instrumentation.helpers.Property.setCallsiteHashCallsiteProperty;
-import static cloud.filibuster.instrumentation.helpers.Property.setCallsiteIncludeStackTraceProperty;
 
 public class FilibusterDecoratingHttpClientTest extends FilibusterDecoratingHttpTest {
     @BeforeAll
     public static void enablePrettyDistributedExecutionIndexes() {
-        setCallsiteHashCallsiteProperty(false);
-        setCallsiteIncludeStackTraceProperty(false);
+        setHashProperty(false);
+        setStackTraceIncludeProperty(false);
     }
 
     @AfterAll
     public static void disablePrettyDistributedExecutionIndexes() {
-        setCallsiteHashCallsiteProperty(true);
-        setCallsiteIncludeStackTraceProperty(true);
+        setHashProperty(true);
+        setStackTraceIncludeProperty(true);
     }
 
     @BeforeEach

@@ -79,7 +79,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTest extends Filibu
         assertEquals(assertVc.toString(), lastPayload.get("vclock").toString());
 
         DistributedExecutionIndex assertDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        assertDistributedExecutionIndex.push("hello-FilibusterDecoratingHttpClientToAvailableServiceTest.java-67-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
+        assertDistributedExecutionIndex.push("hello-FilibusterDecoratingHttpClientToAvailableServiceTest.java-67-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da-da39a3ee5e6b4b0d3255bfef95601890afd80709");
         assertEquals(assertDistributedExecutionIndex.toString(), lastPayload.getString("execution_index"));
 
         // Success values.
@@ -122,7 +122,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTest extends Filibu
 
         DistributedExecutionIndex assertDistributedExecutionIndex = createNewDistributedExecutionIndex();
         assertDistributedExecutionIndex.push("chris");
-        assertDistributedExecutionIndex.push("hello-FilibusterDecoratingHttpClientToAvailableServiceTest.java-109-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
+        assertDistributedExecutionIndex.push("hello-FilibusterDecoratingHttpClientToAvailableServiceTest.java-109-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da-da39a3ee5e6b4b0d3255bfef95601890afd80709");
         assertEquals(assertDistributedExecutionIndex.toString(), lastPayload.getString("execution_index"));
 
         // Success values.
@@ -194,7 +194,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTest extends Filibu
 
         DistributedExecutionIndex assertDistributedExecutionIndex = createNewDistributedExecutionIndex();
         assertDistributedExecutionIndex.push("chris");
-        assertDistributedExecutionIndex.push("hello-FilibusterDecoratingHttpClientToAvailableServiceTest.java-181-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
+        assertDistributedExecutionIndex.push("hello-FilibusterDecoratingHttpClientToAvailableServiceTest.java-181-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da-da39a3ee5e6b4b0d3255bfef95601890afd80709");
         assertEquals(assertDistributedExecutionIndex.toString(), lastPayload.getString("execution_index"));
 
         // Success values.
@@ -238,7 +238,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTest extends Filibu
 
         assertDistributedExecutionIndex = createNewDistributedExecutionIndex();
         assertDistributedExecutionIndex.push("chris");
-        assertDistributedExecutionIndex.push("hello-FilibusterDecoratingHttpClientToAvailableServiceTest.java-224-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
+        assertDistributedExecutionIndex.push("hello-FilibusterDecoratingHttpClientToAvailableServiceTest.java-224-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da-da39a3ee5e6b4b0d3255bfef95601890afd80709");
         assertEquals(assertDistributedExecutionIndex.toString(), lastPayload.getString("execution_index"));
 
         // Success values.
@@ -300,7 +300,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTest extends Filibu
 
         DistributedExecutionIndex assertDistributedExecutionIndex = createNewDistributedExecutionIndex();
         assertDistributedExecutionIndex.push("chris");
-        assertDistributedExecutionIndex.push("hello-FilibusterDecoratingHttpClientToAvailableServiceTest.java-287-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
+        assertDistributedExecutionIndex.push("hello-FilibusterDecoratingHttpClientToAvailableServiceTest.java-287-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da-da39a3ee5e6b4b0d3255bfef95601890afd80709");
         assertEquals(assertDistributedExecutionIndex.toString(), lastPayload.getString("execution_index"));
 
         // Success values.

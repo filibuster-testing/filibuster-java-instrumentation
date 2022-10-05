@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DistributedExecutionIndexBase implements Cloneable {
+public abstract class DistributedExecutionIndexBase implements Cloneable {
     protected HashMap<String, Integer> counters = new HashMap<>();
     protected ArrayList<Map.Entry<String, Integer>> callstack = new ArrayList<>();
 

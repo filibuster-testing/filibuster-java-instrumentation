@@ -97,7 +97,7 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerFaultTest extends He
         assertEquals("FAILED_PRECONDITION", re.getStatus().getCode().name());
 
         DistributedExecutionIndex firstRequestDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        firstRequestDistributedExecutionIndex.push("test-HelloGrpcServerTestWithHelloAndFilibusterServerFaultTest.java-91-cloud.filibuster.examples.HelloService-cloud.filibuster.examples.HelloService/Hello-146409d9c7d501362ce2f58ab555782fba01c7c6");
+        firstRequestDistributedExecutionIndex.push("test-HelloGrpcServerTestWithHelloAndFilibusterServerFaultTest.java-91-cloud.filibuster.examples.HelloService-cloud.filibuster.examples.HelloService/Hello-146409d9c7d501362ce2f58ab555782fba01c7c6-da39a3ee5e6b4b0d3255bfef95601890afd80709");
 
         VectorClock firstRequestVectorClock = generateAssertionClock();
 

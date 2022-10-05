@@ -16,7 +16,6 @@ import com.linecorp.armeria.client.grpc.GrpcClientBuilder;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -102,7 +101,7 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerFalseAbortTest exten
         assertEquals("FAILED_PRECONDITION", re.getMessage());
 
         DistributedExecutionIndex firstRequestDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        firstRequestDistributedExecutionIndex.push("test-HelloGrpcServerTestWithHelloAndFilibusterServerFalseAbortTest.java-96-cloud.filibuster.examples.HelloService-cloud.filibuster.examples.HelloService/Hello-146409d9c7d501362ce2f58ab555782fba01c7c6");
+        firstRequestDistributedExecutionIndex.push("test-HelloGrpcServerTestWithHelloAndFilibusterServerFalseAbortTest.java-95-cloud.filibuster.examples.HelloService-cloud.filibuster.examples.HelloService/Hello-146409d9c7d501362ce2f58ab555782fba01c7c6-da39a3ee5e6b4b0d3255bfef95601890afd80709");
 
         VectorClock firstRequestVectorClock = generateAssertionClock();
 

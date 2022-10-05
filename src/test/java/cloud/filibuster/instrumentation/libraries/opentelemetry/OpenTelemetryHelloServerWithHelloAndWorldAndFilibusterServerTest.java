@@ -72,11 +72,11 @@ public class OpenTelemetryHelloServerWithHelloAndWorldAndFilibusterServerTest ex
 
         // Assemble execution index.
         DistributedExecutionIndex firstRequestDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        firstRequestDistributedExecutionIndex.push("hello-HelloServer.java-554-WebClient-GET-0b2c7a3d6d82ede9ae2958a787ce2639af116476");
+        firstRequestDistributedExecutionIndex.push("hello-HelloServer.java-554-WebClient-GET-0b2c7a3d6d82ede9ae2958a787ce2639af116476-da39a3ee5e6b4b0d3255bfef95601890afd80709");
 
         DistributedExecutionIndex secondRequestDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        secondRequestDistributedExecutionIndex.push("hello-HelloServer.java-554-WebClient-GET-0b2c7a3d6d82ede9ae2958a787ce2639af116476");
-        secondRequestDistributedExecutionIndex.push("world-WorldServer.java-81-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
+        secondRequestDistributedExecutionIndex.push("hello-HelloServer.java-554-WebClient-GET-0b2c7a3d6d82ede9ae2958a787ce2639af116476-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        secondRequestDistributedExecutionIndex.push("world-WorldServer.java-81-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da-da39a3ee5e6b4b0d3255bfef95601890afd80709");
 
         // Assemble vector clocks.
         VectorClock firstRequestVectorClock = new VectorClock();
@@ -131,11 +131,11 @@ public class OpenTelemetryHelloServerWithHelloAndWorldAndFilibusterServerTest ex
 
         // Assemble execution index.
         DistributedExecutionIndex firstRequestDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        firstRequestDistributedExecutionIndex.push("hello-HelloServer.java-583-WebClient-GET-1a01d86894fc54286fb250d8dc0cf83a28aac139");
+        firstRequestDistributedExecutionIndex.push("hello-HelloServer.java-583-WebClient-GET-1a01d86894fc54286fb250d8dc0cf83a28aac139-da39a3ee5e6b4b0d3255bfef95601890afd80709");
 
         DistributedExecutionIndex secondRequestDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        secondRequestDistributedExecutionIndex.push("hello-HelloServer.java-583-WebClient-GET-1a01d86894fc54286fb250d8dc0cf83a28aac139");
-        secondRequestDistributedExecutionIndex.push("world-WorldServer.java-108-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
+        secondRequestDistributedExecutionIndex.push("hello-HelloServer.java-583-WebClient-GET-1a01d86894fc54286fb250d8dc0cf83a28aac139-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        secondRequestDistributedExecutionIndex.push("world-WorldServer.java-108-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da-da39a3ee5e6b4b0d3255bfef95601890afd80709");
 
         // Assemble vector clocks.
         VectorClock firstRequestVectorClock = new VectorClock();

@@ -6,8 +6,8 @@ import cloud.filibuster.instrumentation.helpers.Property;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 
-import static cloud.filibuster.instrumentation.helpers.Property.setCallsiteHashCallsiteProperty;
-import static cloud.filibuster.instrumentation.helpers.Property.setCallsiteIncludeStackTraceProperty;
+import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.setHashProperty;
+import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.setStackTraceIncludeProperty;
 
 public class FilibusterBaseTest {
     @BeforeAll
@@ -25,12 +25,12 @@ public class FilibusterBaseTest {
     }
 
     public static void setPrettyDistributedExecutionIndexes() {
-        setCallsiteHashCallsiteProperty(false);
-        setCallsiteIncludeStackTraceProperty(false);
+        setHashProperty(false);
+        setStackTraceIncludeProperty(false);
     }
 
     public static void unsetPrettyDistributedExecutionIndexes() {
-        setCallsiteHashCallsiteProperty(true);
-        setCallsiteIncludeStackTraceProperty(true);
+        setHashProperty(true);
+        setStackTraceIncludeProperty(true);
     }
 }

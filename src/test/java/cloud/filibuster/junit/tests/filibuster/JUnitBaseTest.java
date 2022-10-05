@@ -11,14 +11,14 @@ import org.junit.jupiter.api.BeforeEach;
 
 import java.io.IOException;
 
+import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.setHashProperty;
+import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.setStackTraceIncludeProperty;
 import static cloud.filibuster.instrumentation.TestHelper.startExternalServerAndWaitUntilAvailable;
 import static cloud.filibuster.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
 import static cloud.filibuster.instrumentation.TestHelper.startWorldServerAndWaitUntilAvailable;
 import static cloud.filibuster.instrumentation.TestHelper.stopExternalServerAndWaitUntilUnavailable;
 import static cloud.filibuster.instrumentation.TestHelper.stopHelloServerAndWaitUntilUnavailable;
 import static cloud.filibuster.instrumentation.TestHelper.stopWorldServerAndWaitUntilUnavailable;
-import static cloud.filibuster.instrumentation.helpers.Property.setCallsiteHashCallsiteProperty;
-import static cloud.filibuster.instrumentation.helpers.Property.setCallsiteIncludeStackTraceProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.setCallsiteLineNumberProperty;
 import static cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor.clearDistributedExecutionIndexForRequestId;
 import static cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor.clearVectorClockForRequestId;
@@ -57,15 +57,15 @@ public class JUnitBaseTest {
 
     @BeforeAll
     protected static void enablePrettyDistributedExecutionIndexes() {
-        setCallsiteHashCallsiteProperty(false);
-        setCallsiteIncludeStackTraceProperty(false);
+        setHashProperty(false);
+        setStackTraceIncludeProperty(false);
         setCallsiteLineNumberProperty(false);
     }
 
     @AfterAll
     protected static void disablePrettyDistributedExecutionIndexes() {
-        setCallsiteHashCallsiteProperty(true);
-        setCallsiteIncludeStackTraceProperty(true);
+        setHashProperty(true);
+        setStackTraceIncludeProperty(true);
         setCallsiteLineNumberProperty(true);
     }
 

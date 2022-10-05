@@ -26,6 +26,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.setHashProperty;
+
 /**
  * Invocation Interceptor for automatically running tests with Filibuster.
  */
@@ -175,7 +177,6 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
         public static void setSystemPropertiesForFilibusterInstrumentation(FilibusterConfiguration filibusterConfiguration) {
             if (filibusterConfiguration.getDataNondeterminism()) {
                 // TODO: this is a bug
-                Property.setCallsiteHashCallsiteProperty(false);
             }
 
             System.setProperty("kotlinx.coroutines.debug", "on");
@@ -183,7 +184,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
         }
 
         public static void unsetSystemPropertiesForFilibusterInstrumentation() {
-            Property.setCallsiteHashCallsiteProperty(true); // this should be the default value.
+            setHashProperty(true); // this should be the default value.
 
             System.setProperty("kotlinx.coroutines.debug", "off");
             System.setProperty("kotlinx.coroutines.stacktrace.recovery", "false");

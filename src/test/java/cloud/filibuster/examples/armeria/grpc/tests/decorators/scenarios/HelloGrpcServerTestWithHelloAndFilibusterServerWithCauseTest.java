@@ -106,7 +106,7 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerWithCauseTest extend
         assertEquals(assertVc.toString(), lastPayload.get("vclock").toString());
 
         DistributedExecutionIndex assertDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        assertDistributedExecutionIndex.push("test-HelloGrpcServerTestWithHelloAndFilibusterServerWithCauseTest.java-88-cloud.filibuster.examples.HelloService-cloud.filibuster.examples.HelloService/Hello-146409d9c7d501362ce2f58ab555782fba01c7c6-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        assertDistributedExecutionIndex.push("V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-761b26781a68feb38541541d41c2babcced60101-146409d9c7d501362ce2f58ab555782fba01c7c6");
         assertEquals(assertDistributedExecutionIndex.toString(), lastPayload.getString("execution_index"));
     }
 }

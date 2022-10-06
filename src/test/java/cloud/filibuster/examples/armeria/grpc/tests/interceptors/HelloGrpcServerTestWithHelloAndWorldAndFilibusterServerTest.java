@@ -209,10 +209,10 @@ public class HelloGrpcServerTestWithHelloAndWorldAndFilibusterServerTest extends
         // Assemble execution indexes.
 
         DistributedExecutionIndex firstRequestResolvedDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        firstRequestResolvedDistributedExecutionIndex.push("hello-MyHelloService.java-154-cloud.filibuster.examples.WorldService-cloud.filibuster.examples.WorldService/World-2ac0bec48de1a7dcae4633461bc34169923a7ae9-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        firstRequestResolvedDistributedExecutionIndex.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-91f4768eb4f3d4798f2f09ac4f87cb37fe351db7-0467af73e0837d51c48b70651c64b7e6537819d2");
 
         DistributedExecutionIndex secondRequestResolvedDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        secondRequestResolvedDistributedExecutionIndex.push("hello-MyHelloService.java-154-cloud.filibuster.examples.WorldService-cloud.filibuster.examples.WorldService/World-0467af73e0837d51c48b70651c64b7e6537819d2-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        secondRequestResolvedDistributedExecutionIndex.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-91f4768eb4f3d4798f2f09ac4f87cb37fe351db7-2ac0bec48de1a7dcae4633461bc34169923a7ae9");
 
         ArrayList<String> validDistributedExecutionIndexes = new ArrayList<>();
         validDistributedExecutionIndexes.add(firstRequestResolvedDistributedExecutionIndex.toString());
@@ -263,7 +263,7 @@ public class HelloGrpcServerTestWithHelloAndWorldAndFilibusterServerTest extends
         // Assemble execution indexes.
 
         DistributedExecutionIndex firstRequestResolvedDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        firstRequestResolvedDistributedExecutionIndex.push("hello-MyHelloService.java-61-cloud.filibuster.examples.WorldService-cloud.filibuster.examples.WorldService/World-0467af73e0837d51c48b70651c64b7e6537819d2-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        firstRequestResolvedDistributedExecutionIndex.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-61aae9b83e5cf6921c9ba4fa7b56d77ad8ad5768-0467af73e0837d51c48b70651c64b7e6537819d2");
 
         // Assemble vector clocks.
 
@@ -315,11 +315,11 @@ public class HelloGrpcServerTestWithHelloAndWorldAndFilibusterServerTest extends
         // Assemble execution indexes.
 
         DistributedExecutionIndex firstRequestResolvedDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        firstRequestResolvedDistributedExecutionIndex.push("hello-MyHelloService.java-238-cloud.filibuster.examples.WorldService-cloud.filibuster.examples.WorldService/WorldExternalHttp-0467af73e0837d51c48b70651c64b7e6537819d2-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        firstRequestResolvedDistributedExecutionIndex.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-07b1a0d6b1748a4e44384cce19bb13bb84b70289-9a173c2b79bd333b1d62172aa285f0de73381eae-0467af73e0837d51c48b70651c64b7e6537819d2");
 
         DistributedExecutionIndex secondRequestResolvedDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        secondRequestResolvedDistributedExecutionIndex.push("hello-MyHelloService.java-238-cloud.filibuster.examples.WorldService-cloud.filibuster.examples.WorldService/WorldExternalHttp-0467af73e0837d51c48b70651c64b7e6537819d2-da39a3ee5e6b4b0d3255bfef95601890afd80709");
-        secondRequestResolvedDistributedExecutionIndex.push("world-MyWorldService.java-58-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        secondRequestResolvedDistributedExecutionIndex.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-07b1a0d6b1748a4e44384cce19bb13bb84b70289-9a173c2b79bd333b1d62172aa285f0de73381eae-0467af73e0837d51c48b70651c64b7e6537819d2");
+        secondRequestResolvedDistributedExecutionIndex.push("V1-7c211433f02071597741e6ff5a8ea34789abbf43-bf801c417a24769c151e3729f35ee3e62e4e04d4-269101071ca2ab00c2e54805a51e078f15f10e10-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
 
         // Assemble vector clocks.
 
@@ -393,11 +393,11 @@ public class HelloGrpcServerTestWithHelloAndWorldAndFilibusterServerTest extends
         // Assemble execution indexes.
 
         DistributedExecutionIndex firstRequestResolvedDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        firstRequestResolvedDistributedExecutionIndex.push("hello-MyHelloService.java-279-cloud.filibuster.examples.WorldService-cloud.filibuster.examples.WorldService/WorldExternalGrpc-0467af73e0837d51c48b70651c64b7e6537819d2-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        firstRequestResolvedDistributedExecutionIndex.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-623ea48b2fcd64aa41a188f486cbce10d11817db-bdec7f481751bb0dd201919d7db331db637a5828-0467af73e0837d51c48b70651c64b7e6537819d2");
 
         DistributedExecutionIndex secondRequestResolvedDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        secondRequestResolvedDistributedExecutionIndex.push("hello-MyHelloService.java-279-cloud.filibuster.examples.WorldService-cloud.filibuster.examples.WorldService/WorldExternalGrpc-0467af73e0837d51c48b70651c64b7e6537819d2-da39a3ee5e6b4b0d3255bfef95601890afd80709");
-        secondRequestResolvedDistributedExecutionIndex.push("world-MyWorldService.java-94-cloud.filibuster.examples.HelloService-cloud.filibuster.examples.HelloService/Hello-0467af73e0837d51c48b70651c64b7e6537819d2-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        secondRequestResolvedDistributedExecutionIndex.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-623ea48b2fcd64aa41a188f486cbce10d11817db-bdec7f481751bb0dd201919d7db331db637a5828-0467af73e0837d51c48b70651c64b7e6537819d2");
+        secondRequestResolvedDistributedExecutionIndex.push("V1-7c211433f02071597741e6ff5a8ea34789abbf43-02be70093aa1244da10bd3b32514e8b3233ac30e-92f97188019251c3d4a8ef87a8e0fea28bddb475-0467af73e0837d51c48b70651c64b7e6537819d2");
 
         // Assemble vector clocks.
 

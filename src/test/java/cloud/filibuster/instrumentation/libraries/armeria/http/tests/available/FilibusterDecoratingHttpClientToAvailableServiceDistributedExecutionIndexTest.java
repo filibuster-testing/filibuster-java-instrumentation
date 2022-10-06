@@ -96,28 +96,28 @@ public class FilibusterDecoratingHttpClientToAvailableServiceDistributedExecutio
         JSONObject webClient1InvocationPayload = FilibusterServer.payloadsReceived.get(0);
         assertEquals("invocation", webClient1InvocationPayload.getString("instrumentation_type"));
         DistributedExecutionIndex assertDistributedExecutionIndexInvocationWebClient1 = createNewDistributedExecutionIndex();
-        assertDistributedExecutionIndexInvocationWebClient1.push("hello-FilibusterDecoratingHttpClientToAvailableServiceDistributedExecutionIndexTest.java-78-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        assertDistributedExecutionIndexInvocationWebClient1.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-f25bed509379434f03d62c7a78b1f33e950b86a0-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
         assertEquals(assertDistributedExecutionIndexInvocationWebClient1.toString(), webClient1InvocationPayload.getString("execution_index"));
 
         // Verify invocation for second request.
         JSONObject webClient2InvocationPayload = FilibusterServer.payloadsReceived.get(1);
         assertEquals("invocation", webClient2InvocationPayload.getString("instrumentation_type"));
         DistributedExecutionIndex assertDistributedExecutionIndexInvocationWebClient2 = createNewDistributedExecutionIndex();
-        assertDistributedExecutionIndexInvocationWebClient2.push("hello-FilibusterDecoratingHttpClientToAvailableServiceDistributedExecutionIndexTest.java-81-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        assertDistributedExecutionIndexInvocationWebClient2.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-bf2e9d84c7b21bfc9cab1620c54597e2738eb110-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
         assertEquals(assertDistributedExecutionIndexInvocationWebClient2.toString(), webClient2InvocationPayload.getString("execution_index"));
 
         // Verify invocation_complete for first request.
         JSONObject webClient1InvocationCompletePayload = FilibusterServer.payloadsReceived.get(2);
         assertEquals("invocation_complete", webClient1InvocationCompletePayload.getString("instrumentation_type"));
         DistributedExecutionIndex assertDistributedExecutionIndexInvocationCompleteWebClient1 = createNewDistributedExecutionIndex();
-        assertDistributedExecutionIndexInvocationCompleteWebClient1.push("hello-FilibusterDecoratingHttpClientToAvailableServiceDistributedExecutionIndexTest.java-78-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        assertDistributedExecutionIndexInvocationCompleteWebClient1.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-f25bed509379434f03d62c7a78b1f33e950b86a0-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
         assertEquals(assertDistributedExecutionIndexInvocationCompleteWebClient1.toString(), webClient1InvocationCompletePayload.getString("execution_index"));
 
         // Verify invocation_complete for second request.
         JSONObject webClient2InvocationCompletePayload = FilibusterServer.payloadsReceived.get(3);
         assertEquals("invocation_complete", webClient2InvocationCompletePayload.getString("instrumentation_type"));
         DistributedExecutionIndex assertDistributedExecutionIndexInvocationCompleteWebClient2 = createNewDistributedExecutionIndex();
-        assertDistributedExecutionIndexInvocationCompleteWebClient2.push("hello-FilibusterDecoratingHttpClientToAvailableServiceDistributedExecutionIndexTest.java-81-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        assertDistributedExecutionIndexInvocationCompleteWebClient2.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-bf2e9d84c7b21bfc9cab1620c54597e2738eb110-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
         assertEquals(assertDistributedExecutionIndexInvocationCompleteWebClient2.toString(), webClient2InvocationCompletePayload.getString("execution_index"));
     }
 
@@ -146,10 +146,10 @@ public class FilibusterDecoratingHttpClientToAvailableServiceDistributedExecutio
             assertEquals("invocation", webClient3InvocationPayload.getString("instrumentation_type"));
 
             DistributedExecutionIndex assertDistributedExecutionIndexForWebClient3 = createNewDistributedExecutionIndex();
-            assertDistributedExecutionIndexForWebClient3.push("hello-FilibusterDecoratingHttpClientToAvailableServiceDistributedExecutionIndexTest.java-138-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+            assertDistributedExecutionIndexForWebClient3.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-aecd0e34ab7486b22bcc6b5eb4cba7f4bfd331b9-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
             if (i == 1) {
                 assertDistributedExecutionIndexForWebClient3.pop();
-                assertDistributedExecutionIndexForWebClient3.push("hello-FilibusterDecoratingHttpClientToAvailableServiceDistributedExecutionIndexTest.java-138-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+                assertDistributedExecutionIndexForWebClient3.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-aecd0e34ab7486b22bcc6b5eb4cba7f4bfd331b9-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
             }
             assertEquals(assertDistributedExecutionIndexForWebClient3.toString(), webClient3InvocationPayload.getString("execution_index"));
 
@@ -202,28 +202,28 @@ public class FilibusterDecoratingHttpClientToAvailableServiceDistributedExecutio
         JSONObject webClient1InvocationPayload = FilibusterServer.payloadsReceived.get(0);
         assertEquals("invocation", webClient1InvocationPayload.getString("instrumentation_type"));
         DistributedExecutionIndex assertDistributedExecutionIndexInvocationWebClient1 = (DistributedExecutionIndex) startingExecutionIndex.clone();
-        assertDistributedExecutionIndexInvocationWebClient1.push("hello-FilibusterDecoratingHttpClientToAvailableServiceDistributedExecutionIndexTest.java-184-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        assertDistributedExecutionIndexInvocationWebClient1.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-5fc8161f610a6d83ed0e3d8abe8d8de935bb41ec-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
         assertEquals(assertDistributedExecutionIndexInvocationWebClient1.toString(), webClient1InvocationPayload.getString("execution_index"));
 
         // Verify invocation for second request.
         JSONObject webClient2InvocationPayload = FilibusterServer.payloadsReceived.get(1);
         assertEquals("invocation", webClient2InvocationPayload.getString("instrumentation_type"));
         DistributedExecutionIndex assertDistributedExecutionIndexInvocationWebClient2 = (DistributedExecutionIndex) startingExecutionIndex.clone();
-        assertDistributedExecutionIndexInvocationWebClient2.push("hello-FilibusterDecoratingHttpClientToAvailableServiceDistributedExecutionIndexTest.java-187-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        assertDistributedExecutionIndexInvocationWebClient2.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-8de910896d933b92106517d38b8da6f1bf29a5ec-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
         assertEquals(assertDistributedExecutionIndexInvocationWebClient2.toString(), webClient2InvocationPayload.getString("execution_index"));
 
         // Verify invocation_complete for first request.
         JSONObject webClient1InvocationCompletePayload = FilibusterServer.payloadsReceived.get(2);
         assertEquals("invocation_complete", webClient1InvocationCompletePayload.getString("instrumentation_type"));
         DistributedExecutionIndex assertDistributedExecutionIndexInvocationCompleteWebClient1 = (DistributedExecutionIndex) startingExecutionIndex.clone();
-        assertDistributedExecutionIndexInvocationCompleteWebClient1.push("hello-FilibusterDecoratingHttpClientToAvailableServiceDistributedExecutionIndexTest.java-184-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        assertDistributedExecutionIndexInvocationCompleteWebClient1.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-5fc8161f610a6d83ed0e3d8abe8d8de935bb41ec-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
         assertEquals(assertDistributedExecutionIndexInvocationCompleteWebClient1.toString(), webClient1InvocationCompletePayload.getString("execution_index"));
 
         // Verify invocation_complete for second request.
         JSONObject webClient2InvocationCompletePayload = FilibusterServer.payloadsReceived.get(3);
         assertEquals("invocation_complete", webClient2InvocationCompletePayload.getString("instrumentation_type"));
         DistributedExecutionIndex assertDistributedExecutionIndexInvocationCompleteWebClient2 = (DistributedExecutionIndex) startingExecutionIndex.clone();
-        assertDistributedExecutionIndexInvocationCompleteWebClient2.push("hello-FilibusterDecoratingHttpClientToAvailableServiceDistributedExecutionIndexTest.java-187-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        assertDistributedExecutionIndexInvocationCompleteWebClient2.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-8de910896d933b92106517d38b8da6f1bf29a5ec-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
         assertEquals(assertDistributedExecutionIndexInvocationCompleteWebClient2.toString(), webClient2InvocationCompletePayload.getString("execution_index"));
     }
 
@@ -255,10 +255,10 @@ public class FilibusterDecoratingHttpClientToAvailableServiceDistributedExecutio
             assertEquals("invocation", webClient3InvocationPayload.getString("instrumentation_type"));
 
             DistributedExecutionIndex assertDistributedExecutionIndexForWebClient3 = (DistributedExecutionIndex) startingDistributedExecutionIndex.clone();
-            assertDistributedExecutionIndexForWebClient3.push("hello-FilibusterDecoratingHttpClientToAvailableServiceDistributedExecutionIndexTest.java-247-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+            assertDistributedExecutionIndexForWebClient3.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-0ffe16cbfc93643544ddf4f173cae84370155355-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
             if (i == 1) {
                 assertDistributedExecutionIndexForWebClient3.pop();
-                assertDistributedExecutionIndexForWebClient3.push("hello-FilibusterDecoratingHttpClientToAvailableServiceDistributedExecutionIndexTest.java-247-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+                assertDistributedExecutionIndexForWebClient3.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-0ffe16cbfc93643544ddf4f173cae84370155355-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
             }
             assertEquals(assertDistributedExecutionIndexForWebClient3.toString(), webClient3InvocationPayload.getString("execution_index"));
 

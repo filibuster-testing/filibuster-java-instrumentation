@@ -1,8 +1,6 @@
 package cloud.filibuster.examples.armeria.http.tests;
 
 import cloud.filibuster.instrumentation.FilibusterBaseTest;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 
 import java.io.IOException;
 
@@ -16,16 +14,6 @@ import static cloud.filibuster.instrumentation.TestHelper.stopHelloServerAndWait
 import static cloud.filibuster.instrumentation.TestHelper.stopWorldServerAndWaitUntilUnavailable;
 
 public class HelloServerTest extends FilibusterBaseTest {
-    @BeforeAll
-    public static void configurePrettyDistributedExecutionIndexes() {
-        setPrettyDistributedExecutionIndexes();
-    }
-
-    @AfterAll
-    public static void configureNormalDistributedExecutionIndexes() {
-        unsetPrettyDistributedExecutionIndexes();
-    }
-
     public void startFilibuster() throws InterruptedException, IOException {
         startMockFilibusterServerAndWaitUntilAvailable();
     }

@@ -1,5 +1,6 @@
 package cloud.filibuster.dei;
 
+import cloud.filibuster.instrumentation.datatypes.Callsite;
 import cloud.filibuster.instrumentation.datatypes.Pair;
 
 import java.util.ArrayList;
@@ -10,9 +11,10 @@ public abstract class DistributedExecutionIndexBase implements Cloneable {
     protected HashMap<String, Integer> counters = new HashMap<>();
     protected ArrayList<Map.Entry<String, Integer>> callstack = new ArrayList<>();
 
-    public void pop() {
-        int lastIndex = callstack.size() - 1;
-        callstack.remove(lastIndex);
+    public void push(Callsite callsite) {
+        DistributedExecutionIndex dei = (DistributedExecutionIndex) this;
+        String serializedCallsite = dei.serializeCallsite(callsite);
+        push(serializedCallsite);
     }
 
     public void push(String entry) {
@@ -26,6 +28,11 @@ public abstract class DistributedExecutionIndexBase implements Cloneable {
         }
 
         callstack.add(Pair.of(entry, currentValue + 1));
+    }
+
+    public void pop() {
+        int lastIndex = callstack.size() - 1;
+        callstack.remove(lastIndex);
     }
 
     public DistributedExecutionIndex deserialize(String serialized) {
@@ -70,6 +77,23 @@ public abstract class DistributedExecutionIndexBase implements Cloneable {
         return (DistributedExecutionIndex) this;
     }
 
+    private String serialize() {
+        ArrayList<String> entryList = new ArrayList<>();
+
+        for (Map.Entry<String, Integer> stringIntegerEntry : callstack) {
+            ArrayList<String> innerOutput = new ArrayList<>();
+            innerOutput.add("[\"");
+            innerOutput.add(stringIntegerEntry.getKey());
+            innerOutput.add("\", ");
+            innerOutput.add(String.valueOf(stringIntegerEntry.getValue()));
+            innerOutput.add("]");
+            String innerOutputString = String.join("", innerOutput);
+            entryList.add(innerOutputString);
+        }
+
+        return "[" + String.join(", ", entryList) + "]";
+    }
+
     @Override
     public Object clone() {
         DistributedExecutionIndexBase newDistributedExecutionIndex;
@@ -90,22 +114,5 @@ public abstract class DistributedExecutionIndexBase implements Cloneable {
     @Override
     public String toString() {
         return serialize();
-    }
-
-    private String serialize() {
-        ArrayList<String> entryList = new ArrayList<>();
-
-        for (Map.Entry<String, Integer> stringIntegerEntry : callstack) {
-            ArrayList<String> innerOutput = new ArrayList<>();
-            innerOutput.add("[\"");
-            innerOutput.add(stringIntegerEntry.getKey());
-            innerOutput.add("\", ");
-            innerOutput.add(String.valueOf(stringIntegerEntry.getValue()));
-            innerOutput.add("]");
-            String innerOutputString = String.join("", innerOutput);
-            entryList.add(innerOutputString);
-        }
-
-        return "[" + String.join(", ", entryList) + "]";
     }
 }

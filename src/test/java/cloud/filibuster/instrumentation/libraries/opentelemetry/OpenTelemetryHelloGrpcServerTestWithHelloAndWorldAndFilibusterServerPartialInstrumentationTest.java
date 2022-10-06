@@ -116,7 +116,7 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
 
         // Assemble execution index.
         DistributedExecutionIndex firstRequestDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        firstRequestDistributedExecutionIndex.push("hello-MyHelloService.java-61-cloud.filibuster.examples.WorldService-cloud.filibuster.examples.WorldService/World-0467af73e0837d51c48b70651c64b7e6537819d2-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        firstRequestDistributedExecutionIndex.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-61aae9b83e5cf6921c9ba4fa7b56d77ad8ad5768-0467af73e0837d51c48b70651c64b7e6537819d2");
 
         // Assemble vector clocks.
         VectorClock firstRequestVectorClock = new VectorClock();
@@ -177,7 +177,7 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
 
         // Assemble execution index.
         DistributedExecutionIndex firstRequestDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        firstRequestDistributedExecutionIndex.push("hello-MyHelloService.java-61-cloud.filibuster.examples.WorldService-cloud.filibuster.examples.WorldService/World-0467af73e0837d51c48b70651c64b7e6537819d2-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        firstRequestDistributedExecutionIndex.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-61aae9b83e5cf6921c9ba4fa7b56d77ad8ad5768-0467af73e0837d51c48b70651c64b7e6537819d2");
 
         // Assemble vector clocks.
         VectorClock firstRequestVectorClock = new VectorClock();
@@ -234,7 +234,7 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
 
         // Assemble execution index.
         DistributedExecutionIndex firstRequestDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        firstRequestDistributedExecutionIndex.push("hello-MyHelloService.java-61-cloud.filibuster.examples.WorldService-cloud.filibuster.examples.WorldService/World-0467af73e0837d51c48b70651c64b7e6537819d2-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        firstRequestDistributedExecutionIndex.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-61aae9b83e5cf6921c9ba4fa7b56d77ad8ad5768-0467af73e0837d51c48b70651c64b7e6537819d2");
 
         // Assemble vector clocks.
         VectorClock firstRequestVectorClock = new VectorClock();

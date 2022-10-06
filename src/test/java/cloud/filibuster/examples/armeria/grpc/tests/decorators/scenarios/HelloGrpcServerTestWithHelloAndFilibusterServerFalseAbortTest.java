@@ -101,7 +101,7 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerFalseAbortTest exten
         assertEquals("FAILED_PRECONDITION", re.getMessage());
 
         DistributedExecutionIndex firstRequestDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        firstRequestDistributedExecutionIndex.push("test-HelloGrpcServerTestWithHelloAndFilibusterServerFalseAbortTest.java-95-cloud.filibuster.examples.HelloService-cloud.filibuster.examples.HelloService/Hello-146409d9c7d501362ce2f58ab555782fba01c7c6-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        firstRequestDistributedExecutionIndex.push("V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-5d06ab97c95040ab64772a06f37d5216274fd55f-146409d9c7d501362ce2f58ab555782fba01c7c6");
 
         VectorClock firstRequestVectorClock = generateAssertionClock();
 

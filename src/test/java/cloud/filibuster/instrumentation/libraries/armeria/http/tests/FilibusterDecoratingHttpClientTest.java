@@ -8,14 +8,11 @@ import cloud.filibuster.instrumentation.libraries.armeria.http.FilibusterDecorat
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.io.IOException;
 import java.util.HashMap;
 
-import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.setHashProperty;
-import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.setStackTraceIncludeProperty;
 import static cloud.filibuster.instrumentation.datatypes.RequestId.generateNewRequestId;
 
 import static cloud.filibuster.instrumentation.TestHelper.startExternalServerAndWaitUntilAvailable;
@@ -24,18 +21,6 @@ import static cloud.filibuster.instrumentation.TestHelper.stopExternalServerAndW
 import static cloud.filibuster.instrumentation.TestHelper.stopMockFilibusterServerAndWaitUntilUnavailable;
 
 public class FilibusterDecoratingHttpClientTest extends FilibusterDecoratingHttpTest {
-    @BeforeAll
-    public static void enablePrettyDistributedExecutionIndexes() {
-        setHashProperty(false);
-        setStackTraceIncludeProperty(false);
-    }
-
-    @AfterAll
-    public static void disablePrettyDistributedExecutionIndexes() {
-        setHashProperty(true);
-        setStackTraceIncludeProperty(true);
-    }
-
     @BeforeEach
     public void reEnableInstrumentation() {
         FilibusterDecoratingHttpClient.disableServerCommunication = false;

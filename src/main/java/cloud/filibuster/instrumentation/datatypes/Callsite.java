@@ -103,7 +103,7 @@ public class Callsite {
     }
 
     public String getParameterList() {
-        return "()";
+        return "[]";
     }
 
     /**

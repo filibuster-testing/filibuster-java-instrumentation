@@ -26,8 +26,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.setHashProperty;
-
 /**
  * Invocation Interceptor for automatically running tests with Filibuster.
  */
@@ -184,7 +182,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
         }
 
         public static void unsetSystemPropertiesForFilibusterInstrumentation() {
-            setHashProperty(true); // this should be the default value.
+            // TODO: do something here?
 
             System.setProperty("kotlinx.coroutines.debug", "off");
             System.setProperty("kotlinx.coroutines.stacktrace.recovery", "false");

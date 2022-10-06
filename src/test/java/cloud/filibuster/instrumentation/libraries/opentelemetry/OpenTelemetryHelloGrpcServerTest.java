@@ -1,13 +1,9 @@
 package cloud.filibuster.instrumentation.libraries.opentelemetry;
 
 import cloud.filibuster.instrumentation.FilibusterBaseTest;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 
 import java.io.IOException;
 
-import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.setHashProperty;
-import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.setStackTraceIncludeProperty;
 import static cloud.filibuster.instrumentation.TestHelper.startExternalServerAndWaitUntilAvailable;
 import static cloud.filibuster.instrumentation.TestHelper.startMockFilibusterServerAndWaitUntilAvailable;
 import static cloud.filibuster.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
@@ -19,18 +15,6 @@ import static cloud.filibuster.instrumentation.TestHelper.stopWorldServerAndWait
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class OpenTelemetryHelloGrpcServerTest extends FilibusterBaseTest {
-    @BeforeAll
-    public static void enablePrettyDistributedExecutionIndexes() {
-        setHashProperty(false);
-        setStackTraceIncludeProperty(false);
-    }
-
-    @AfterAll
-    public static void disablePrettyDistributedExecutionIndexes() {
-        setHashProperty(true);
-        setStackTraceIncludeProperty(true);
-    }
-
     public void startHello() throws InterruptedException, IOException {
         startHelloServerAndWaitUntilAvailable();
     }

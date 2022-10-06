@@ -79,7 +79,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTest extends Filibu
         assertEquals(assertVc.toString(), lastPayload.get("vclock").toString());
 
         DistributedExecutionIndex assertDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        assertDistributedExecutionIndex.push("hello-FilibusterDecoratingHttpClientToAvailableServiceTest.java-67-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        assertDistributedExecutionIndex.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-d1c9f8139a5537d2ae64244b134b64b7e724a1d4-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
         assertEquals(assertDistributedExecutionIndex.toString(), lastPayload.getString("execution_index"));
 
         // Success values.
@@ -122,7 +122,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTest extends Filibu
 
         DistributedExecutionIndex assertDistributedExecutionIndex = createNewDistributedExecutionIndex();
         assertDistributedExecutionIndex.push("chris");
-        assertDistributedExecutionIndex.push("hello-FilibusterDecoratingHttpClientToAvailableServiceTest.java-109-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        assertDistributedExecutionIndex.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-3789ff526b8c0bbac429fe3ba34e8b5168c631c6-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
         assertEquals(assertDistributedExecutionIndex.toString(), lastPayload.getString("execution_index"));
 
         // Success values.
@@ -194,7 +194,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTest extends Filibu
 
         DistributedExecutionIndex assertDistributedExecutionIndex = createNewDistributedExecutionIndex();
         assertDistributedExecutionIndex.push("chris");
-        assertDistributedExecutionIndex.push("hello-FilibusterDecoratingHttpClientToAvailableServiceTest.java-181-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        assertDistributedExecutionIndex.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-19b117ab7ca8bd92ff8a169c71e4b607b66d8727-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
         assertEquals(assertDistributedExecutionIndex.toString(), lastPayload.getString("execution_index"));
 
         // Success values.
@@ -238,7 +238,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTest extends Filibu
 
         assertDistributedExecutionIndex = createNewDistributedExecutionIndex();
         assertDistributedExecutionIndex.push("chris");
-        assertDistributedExecutionIndex.push("hello-FilibusterDecoratingHttpClientToAvailableServiceTest.java-224-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        assertDistributedExecutionIndex.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-5016436fffa36244e6f967cae5dd85f7277f00ff-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
         assertEquals(assertDistributedExecutionIndex.toString(), lastPayload.getString("execution_index"));
 
         // Success values.
@@ -300,7 +300,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTest extends Filibu
 
         DistributedExecutionIndex assertDistributedExecutionIndex = createNewDistributedExecutionIndex();
         assertDistributedExecutionIndex.push("chris");
-        assertDistributedExecutionIndex.push("hello-FilibusterDecoratingHttpClientToAvailableServiceTest.java-287-WebClient-GET-0a33c850b8b1834c9e7ec64a7afa9982c6f092da-da39a3ee5e6b4b0d3255bfef95601890afd80709");
+        assertDistributedExecutionIndex.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-cd01419e6c8dcb30f07c8f05f652874763abe4bb-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
         assertEquals(assertDistributedExecutionIndex.toString(), lastPayload.getString("execution_index"));
 
         // Success values.

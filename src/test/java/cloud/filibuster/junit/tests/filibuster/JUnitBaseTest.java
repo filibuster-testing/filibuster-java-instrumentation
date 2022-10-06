@@ -11,8 +11,6 @@ import org.junit.jupiter.api.BeforeEach;
 
 import java.io.IOException;
 
-import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.setHashProperty;
-import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.setStackTraceIncludeProperty;
 import static cloud.filibuster.instrumentation.TestHelper.startExternalServerAndWaitUntilAvailable;
 import static cloud.filibuster.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
 import static cloud.filibuster.instrumentation.TestHelper.startWorldServerAndWaitUntilAvailable;
@@ -57,15 +55,11 @@ public class JUnitBaseTest {
 
     @BeforeAll
     protected static void enablePrettyDistributedExecutionIndexes() {
-        setHashProperty(false);
-        setStackTraceIncludeProperty(false);
         setCallsiteLineNumberProperty(false);
     }
 
     @AfterAll
     protected static void disablePrettyDistributedExecutionIndexes() {
-        setHashProperty(true);
-        setStackTraceIncludeProperty(true);
         setCallsiteLineNumberProperty(true);
     }
 

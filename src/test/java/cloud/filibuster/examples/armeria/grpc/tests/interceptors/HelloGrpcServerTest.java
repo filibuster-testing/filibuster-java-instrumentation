@@ -2,8 +2,6 @@ package cloud.filibuster.examples.armeria.grpc.tests.interceptors;
 
 import cloud.filibuster.instrumentation.FilibusterBaseTest;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.io.IOException;
@@ -20,16 +18,6 @@ import static cloud.filibuster.instrumentation.instrumentors.FilibusterClientIns
 import static cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor.clearVectorClockForRequestId;
 
 public class HelloGrpcServerTest extends FilibusterBaseTest {
-    @BeforeAll
-    public static void configurePrettyDistributedExecutionIndexes() {
-        setPrettyDistributedExecutionIndexes();
-    }
-
-    @AfterAll
-    public static void configureNormalDistributedExecutionIndexes() {
-        unsetPrettyDistributedExecutionIndexes();
-    }
-
     @BeforeEach
     protected void clearStateFromLastExecution() {
         clearDistributedExecutionIndexForRequestId();

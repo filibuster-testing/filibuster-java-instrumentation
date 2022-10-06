@@ -1,7 +1,5 @@
 package cloud.filibuster.instrumentation.datatypes;
 
-import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;

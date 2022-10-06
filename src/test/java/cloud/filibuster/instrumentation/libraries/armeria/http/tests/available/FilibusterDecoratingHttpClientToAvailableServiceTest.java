@@ -78,9 +78,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTest extends Filibu
         assertVc.incrementClock("hello");
         assertEquals(assertVc.toString(), lastPayload.get("vclock").toString());
 
-        DistributedExecutionIndex assertDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        assertDistributedExecutionIndex.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-d1c9f8139a5537d2ae64244b134b64b7e724a1d4-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
-        assertEquals(assertDistributedExecutionIndex.toString(), lastPayload.getString("execution_index"));
+        assertEquals("[[\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-d1c9f8139a5537d2ae64244b134b64b7e724a1d4-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", lastPayload.getString("execution_index"));
 
         // Success values.
         JSONObject returnValue = lastPayload.getJSONObject("return_value");
@@ -120,10 +118,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTest extends Filibu
         assertVc.incrementClock("hello");
         assertEquals(assertVc.toString(), lastPayload.get("vclock").toString());
 
-        DistributedExecutionIndex assertDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        assertDistributedExecutionIndex.push("chris");
-        assertDistributedExecutionIndex.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-3789ff526b8c0bbac429fe3ba34e8b5168c631c6-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
-        assertEquals(assertDistributedExecutionIndex.toString(), lastPayload.getString("execution_index"));
+        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-aebcf693fd84bff1c4cfd4ca1a67d29a2f930ccc-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-c3f5a81e8c15870736d0e8f39e2abe89349ee537-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", lastPayload.getString("execution_index"));
 
         // Success values.
         JSONObject returnValue = lastPayload.getJSONObject("return_value");
@@ -192,10 +187,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTest extends Filibu
         assertVc.incrementClock(serviceName);
         assertEquals(assertVc.toString(), lastPayload.get("vclock").toString());
 
-        DistributedExecutionIndex assertDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        assertDistributedExecutionIndex.push("chris");
-        assertDistributedExecutionIndex.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-19b117ab7ca8bd92ff8a169c71e4b607b66d8727-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
-        assertEquals(assertDistributedExecutionIndex.toString(), lastPayload.getString("execution_index"));
+        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-aebcf693fd84bff1c4cfd4ca1a67d29a2f930ccc-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-f773f31031e82927ca201c7b59c9cd7fc367b291-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", lastPayload.getString("execution_index"));
 
         // Success values.
         JSONObject returnValue = lastPayload.getJSONObject("return_value");
@@ -236,10 +228,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTest extends Filibu
         assertVc.incrementClock(serviceName);
         assertEquals(assertVc.toString(), lastPayload.get("vclock").toString());
 
-        assertDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        assertDistributedExecutionIndex.push("chris");
-        assertDistributedExecutionIndex.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-5016436fffa36244e6f967cae5dd85f7277f00ff-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
-        assertEquals(assertDistributedExecutionIndex.toString(), lastPayload.getString("execution_index"));
+        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-aebcf693fd84bff1c4cfd4ca1a67d29a2f930ccc-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-9c09040cdf2bfe6139fd846fb1e326af9e51de67-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", lastPayload.getString("execution_index"));
 
         // Success values.
         returnValue = lastPayload.getJSONObject("return_value");
@@ -298,10 +287,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTest extends Filibu
         assertVc.incrementClock("hello");
         assertEquals(assertVc.toString(), lastPayload.get("vclock").toString());
 
-        DistributedExecutionIndex assertDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        assertDistributedExecutionIndex.push("chris");
-        assertDistributedExecutionIndex.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-cd01419e6c8dcb30f07c8f05f652874763abe4bb-0a33c850b8b1834c9e7ec64a7afa9982c6f092da");
-        assertEquals(assertDistributedExecutionIndex.toString(), lastPayload.getString("execution_index"));
+        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-aebcf693fd84bff1c4cfd4ca1a67d29a2f930ccc-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-af46661ec1ff30d34200ce13d4597745ed8ed0e1-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", lastPayload.getString("execution_index"));
 
         // Success values.
         JSONObject returnValue = lastPayload.getJSONObject("return_value");

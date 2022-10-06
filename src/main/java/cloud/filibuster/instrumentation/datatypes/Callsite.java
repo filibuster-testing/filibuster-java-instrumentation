@@ -1,5 +1,7 @@
 package cloud.filibuster.instrumentation.datatypes;
 
+import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -9,6 +11,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,6 +24,8 @@ import static cloud.filibuster.instrumentation.helpers.Property.getCallsiteStack
  * Generate a callsite that is used to in the generation of a distributed execution index.
  */
 public class Callsite {
+    private static final Logger logger = Logger.getLogger(Callsite.class.getName());
+
     private final static ArrayList<String> standardImportedLibraries = new ArrayList<>();
     private final static ArrayList<String> importedLibrariesFromGradle = new ArrayList<>();
 
@@ -34,6 +40,7 @@ public class Callsite {
     private final ArrayList<Map.Entry<String, String>> filteredStackTrace = new ArrayList<>();
 
     static {
+        standardImportedLibraries.add("jdk.internal");
         standardImportedLibraries.add("java.base");
         standardImportedLibraries.add("org.junit");
         standardImportedLibraries.add("org.gradle");
@@ -84,7 +91,19 @@ public class Callsite {
         // Get last element and compute callsite file name and line number.
         Map.Entry<String, String> lastStackTraceElement = filteredStackTrace.get(0);
         String lastStackTraceElementString = lastStackTraceElement.getValue();
-        this.fileName = lastStackTraceElementString.substring(lastStackTraceElementString.indexOf('(') + 1, lastStackTraceElementString.indexOf(':'));
+
+        try {
+            this.fileName = lastStackTraceElementString.substring(lastStackTraceElementString.indexOf('(') + 1, lastStackTraceElementString.indexOf(':'));
+        } catch (StringIndexOutOfBoundsException e) {
+            for (Map.Entry<String, String> filteredStackTraceElement : filteredStackTrace) {
+                logger.log(Level.WARNING, filteredStackTraceElement.getValue());
+            }
+
+            logger.log(Level.SEVERE, "lastStackTraceElementString: " + lastStackTraceElementString);
+
+            throw e;
+        }
+
 
         if (getCallsiteLineNumberProperty()) {
             this.lineNumber = lastStackTraceElementString.substring(lastStackTraceElementString.indexOf(':') + 1, lastStackTraceElementString.indexOf(')'));

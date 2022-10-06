@@ -8,26 +8,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class DistributedExecutionIndexBase implements Cloneable {
-    protected HashMap<String, Integer> counters = new HashMap<>();
-    protected ArrayList<Map.Entry<String, Integer>> callstack = new ArrayList<>();
+    protected HashMap<DistributedExecutionIndexKey, Integer> counters = new HashMap<>();
+    protected ArrayList<Map.Entry<DistributedExecutionIndexKey, Integer>> callstack = new ArrayList<>();
 
     public void push(Callsite callsite) {
         DistributedExecutionIndex dei = (DistributedExecutionIndex) this;
-        String serializedCallsite = dei.serializeCallsite(callsite);
-        push(serializedCallsite);
-    }
+        DistributedExecutionIndexKey key = dei.convertCallsiteToDistributedExecutionIndexKey(callsite);
 
-    public void push(String entry) {
         int currentValue = 0;
 
-        if(counters.containsKey(entry)) {
-            currentValue = counters.get(entry);
-            counters.replace(entry, currentValue + 1);
+        if(counters.containsKey(key)) {
+            currentValue = counters.get(key);
+            counters.replace(key, currentValue + 1);
         } else {
-            counters.put(entry, currentValue + 1);
+            counters.put(key, currentValue + 1);
         }
 
-        callstack.add(Pair.of(entry, currentValue + 1));
+        callstack.add(Pair.of(key, currentValue + 1));
     }
 
     public void pop() {
@@ -68,7 +65,7 @@ public abstract class DistributedExecutionIndexBase implements Cloneable {
                     String value = parts[counter].substring(0, parts[counter].length() - 1);
                     // Remove leading space.
                     value = value.substring(1);
-                    callstack.add(Pair.of(key, Integer.valueOf(value)));
+                    callstack.add(Pair.of(DistributedExecutionIndexKey.deserialize(key), Integer.valueOf(value)));
                     key = null;
                 }
             }
@@ -80,10 +77,10 @@ public abstract class DistributedExecutionIndexBase implements Cloneable {
     private String serialize() {
         ArrayList<String> entryList = new ArrayList<>();
 
-        for (Map.Entry<String, Integer> stringIntegerEntry : callstack) {
+        for (Map.Entry<DistributedExecutionIndexKey, Integer> stringIntegerEntry : callstack) {
             ArrayList<String> innerOutput = new ArrayList<>();
             innerOutput.add("[\"");
-            innerOutput.add(stringIntegerEntry.getKey());
+            innerOutput.add(stringIntegerEntry.getKey().serialize());
             innerOutput.add("\", ");
             innerOutput.add(String.valueOf(stringIntegerEntry.getValue()));
             innerOutput.add("]");

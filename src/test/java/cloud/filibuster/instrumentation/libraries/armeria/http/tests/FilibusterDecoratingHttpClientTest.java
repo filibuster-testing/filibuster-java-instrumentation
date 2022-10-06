@@ -2,6 +2,7 @@ package cloud.filibuster.instrumentation.libraries.armeria.http.tests;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.instrumentation.FilibusterServer;
+import cloud.filibuster.instrumentation.datatypes.Callsite;
 import cloud.filibuster.instrumentation.datatypes.VectorClock;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.libraries.armeria.http.FilibusterDecoratingHttpClient;
@@ -68,11 +69,20 @@ public class FilibusterDecoratingHttpClientTest extends FilibusterDecoratingHttp
         setInitialVectorClock(new VectorClock());
         setInitialOriginVectorClock(new VectorClock());
 
+        Callsite callsite = new Callsite("service", "class", "moduleName", "deadbeef");
         DistributedExecutionIndex ei = createNewDistributedExecutionIndex();
-        ei.push("chris");
+        ei.push(callsite);
         setInitialDistributedExecutionIndex(ei.toString());
 
         setInitialRequestId(generateNewRequestId().toString());
+    }
+
+    @AfterEach
+    public void resetContextConfiguration() {
+        resetInitialRequestId();
+        resetInitialDistributedExecutionIndex();
+        resetInitialOriginVectorClock();
+        resetInitialVectorClock();
     }
 
     public void startFilibuster() throws InterruptedException, IOException {

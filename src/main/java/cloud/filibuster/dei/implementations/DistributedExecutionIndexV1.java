@@ -4,12 +4,18 @@ import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.dei.DistributedExecutionIndexBase;
 import cloud.filibuster.dei.DistributedExecutionIndexKey;
 import cloud.filibuster.dei.DistributedExecutionIndexType;
+import cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Key.Builder;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 
 import java.util.ArrayList;
 import java.util.Objects;
 
 import static cloud.filibuster.dei.DistributedExecutionIndexType.V1;
+import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Components.generateRpcAsynchronousComponentFromCallsite;
+import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Components.generateRpcSignatureFromCallsite;
+import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Components.generateRpcSourceFromCallsite;
+import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Components.generateRpcSynchronousComponentFromCallsite;
 import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.Asynchronous.getAsynchronousDigest;
 import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.Asynchronous.getAsynchronousInclude;
 import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.Signature.getSignatureDigest;
@@ -22,6 +28,8 @@ import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.P
 import static cloud.filibuster.instrumentation.helpers.Hashing.createDigest;
 
 public class DistributedExecutionIndexV1 extends DistributedExecutionIndexBase implements DistributedExecutionIndex {
+    public static final DistributedExecutionIndexType VERSION = V1;
+
     public static class Properties {
         public static class Source {
             /***********************************************************************************
@@ -193,44 +201,80 @@ public class DistributedExecutionIndexV1 extends DistributedExecutionIndexBase i
     }
 
     public static class Key implements DistributedExecutionIndexKey {
-        private final DistributedExecutionIndexType version;
-        private final String rpcSource;
-        private final String rpcSignature;
-        private final String rpcSynchronous;
-        private final String rpcAsynchronous;
+        private final String source;
+        private final String signature;
+        private final String synchronous;
+        private final String asynchronous;
 
         public Key(Builder builder) {
-            this.version = builder.version;
-            this.rpcSource = builder.rpcSource;
-            this.rpcSignature = builder.rpcSignature;
-            this.rpcSynchronous = builder.rpcSynchronous;
-            this.rpcAsynchronous = builder.rpcAsynchronous;
+            this.source = builder.source;
+            this.signature = builder.signature;
+            this.synchronous = builder.synchronous;
+            this.asynchronous = builder.asynchronous;
+        }
+
+        @Override
+        public String toString() {
+            return serialize();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null) {
+                return false;
+            }
+
+            if (!(o instanceof Key)) {
+                return false; }
+
+            Key k = (Key) o;
+            return Objects.equals(this.source, k.source) && Objects.equals(this.signature, k.signature) && Objects.equals(this.synchronous, k.synchronous) && Objects.equals(this.asynchronous, k.asynchronous);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(VERSION, source, signature, synchronous, asynchronous);
+        }
+
+        @Override
+        public String serialize() {
+            ArrayList<String> deiElements = new ArrayList<>();
+            deiElements.add(VERSION.name());
+            deiElements.add(source);
+            deiElements.add(signature);
+            deiElements.add(synchronous);
+            deiElements.add(asynchronous);
+            return String.join("-", deiElements);
         }
 
         public static class Builder {
-            private DistributedExecutionIndexType version = V1;
-            private String rpcSource;
-            private String rpcSignature;
-            private String rpcSynchronous;
-            private String rpcAsynchronous;
+            private static final DistributedExecutionIndexType version = V1;
+            private String source;
+            private String signature;
+            private String synchronous;
+            private String asynchronous;
 
-            public Builder rpcSourceService(String rpcSource) {
-                this.rpcSource = rpcSource;
+            @CanIgnoreReturnValue
+            public Builder source(String source) {
+                this.source = source;
                 return this;
             }
 
-            public Builder rpcSignature(String rpcSignature) {
-                this.rpcSignature = rpcSignature;
+            @CanIgnoreReturnValue
+            public Builder signature(String signature) {
+                this.signature = signature;
                 return this;
             }
 
-            public Builder rpcSynchronous(String rpcSynchronous) {
-                this.rpcSynchronous = rpcSynchronous;
+            @CanIgnoreReturnValue
+            public Builder synchronous(String synchronous) {
+                this.synchronous = synchronous;
                 return this;
             }
 
-            public Builder rpcAsynchronous(String rpcAsynchronous) {
-                this.rpcAsynchronous = rpcAsynchronous;
+            @CanIgnoreReturnValue
+            public Builder asynchronous(String asynchronous) {
+                this.asynchronous = asynchronous;
                 return this;
             }
 
@@ -240,83 +284,82 @@ public class DistributedExecutionIndexV1 extends DistributedExecutionIndexBase i
         }
     }
 
-    public static final DistributedExecutionIndexType VERSION = V1;
+    public static class Components {
+        public static String generateRpcSourceFromCallsite(Callsite callsite) {
+            String rpcSource = "";
 
-    public String generateRpcSourceFromCallsite(Callsite callsite) {
-        String rpcSource = "";
+            if (getSourceInclude()) {
+                rpcSource = callsite.getServiceName();
+            }
 
-        if (getSourceInclude()) {
-            rpcSource = callsite.getServiceName();
+            if (getSourceDigest()) {
+                return createDigest(rpcSource);
+            } else {
+                return '[' + rpcSource + ']';
+            }
         }
 
-        if (getSourceDigest()) {
-            return createDigest(rpcSource);
-        } else {
-            return '[' + rpcSource + ']';
-        }
-    }
+        public static String generateRpcSignatureFromCallsite(Callsite callsite) {
+            ArrayList<String> rpcSignatureElements = new ArrayList<>();
+            rpcSignatureElements.add(callsite.getClassOrModuleName());
+            rpcSignatureElements.add(callsite.getMethodOrFunctionName());
+            rpcSignatureElements.add(callsite.getParameterList());
+            String rpcSignature = "";
 
-    public String generateRpcSignatureFromCallsite(Callsite callsite) {
-        ArrayList<String> rpcSignatureElements = new ArrayList<>();
-        rpcSignatureElements.add(callsite.getClassOrModuleName());
-        rpcSignatureElements.add(callsite.getMethodOrFunctionName());
-        rpcSignatureElements.add(callsite.getParameterList());
-        String rpcSignature = "";
+            if (getSignatureInclude()) {
+                rpcSignature = String.join(",", rpcSignatureElements);
+            }
 
-        if (getSignatureInclude()) {
-            rpcSignature = String.join(",", rpcSignatureElements);
-        }
-
-        if (getSignatureDigest()) {
-            return createDigest(rpcSignature);
-        } else {
-            return '[' + rpcSignature + ']';
-        }
-    }
-
-    public String generateRpcSynchronousComponentFromCallsite(Callsite callsite) {
-        ArrayList<String> rpcSynchronousElements = new ArrayList<>();
-        rpcSynchronousElements.add(callsite.getFileName());
-        rpcSynchronousElements.add(callsite.getLineNumber());
-        rpcSynchronousElements.add(callsite.getSerializedStackTrace());
-        String rpcSynchronous = "";
-
-        if (getSynchronousInclude()) {
-            rpcSynchronous = String.join(",", rpcSynchronousElements);
+            if (getSignatureDigest()) {
+                return createDigest(rpcSignature);
+            } else {
+                return '[' + rpcSignature + ']';
+            }
         }
 
-        if (getSynchronousDigest()) {
-            return createDigest(rpcSynchronous);
-        } else {
-            return '[' + rpcSynchronous + ']';
+        public static String generateRpcSynchronousComponentFromCallsite(Callsite callsite) {
+            ArrayList<String> rpcSynchronousElements = new ArrayList<>();
+            rpcSynchronousElements.add(callsite.getFileName());
+            rpcSynchronousElements.add(callsite.getLineNumber());
+            rpcSynchronousElements.add(callsite.getSerializedStackTrace());
+            String rpcSynchronous = "";
+
+            if (getSynchronousInclude()) {
+                rpcSynchronous = String.join(",", rpcSynchronousElements);
+            }
+
+            if (getSynchronousDigest()) {
+                return createDigest(rpcSynchronous);
+            } else {
+                return '[' + rpcSynchronous + ']';
+            }
         }
-    }
 
-    public String generateRpcAsynchronousComponentFromCallsite(Callsite callsite) {
-        ArrayList<String> rpcAsynchronousElements = new ArrayList<>();
-        rpcAsynchronousElements.add(callsite.getSerializedArguments());
-        String rpcAsynchronous = "";
+        public static String generateRpcAsynchronousComponentFromCallsite(Callsite callsite) {
+            ArrayList<String> rpcAsynchronousElements = new ArrayList<>();
+            rpcAsynchronousElements.add(callsite.getSerializedArguments());
+            String rpcAsynchronous = "";
 
-        if (getAsynchronousInclude()) {
-            rpcAsynchronous = String.join(",", rpcAsynchronousElements);
-        }
+            if (getAsynchronousInclude()) {
+                rpcAsynchronous = String.join(",", rpcAsynchronousElements);
+            }
 
-        if (getAsynchronousDigest()) {
-            return createDigest(rpcAsynchronous);
-        } else {
-            return '[' + rpcAsynchronous + ']';
+            if (getAsynchronousDigest()) {
+                return createDigest(rpcAsynchronous);
+            } else {
+                return '[' + rpcAsynchronous + ']';
+            }
         }
     }
 
     @Override
-    public String serializeCallsite(Callsite callsite) {
-        ArrayList<String> deiElements = new ArrayList<>();
-        deiElements.add(VERSION.name());
-        deiElements.add(generateRpcSourceFromCallsite(callsite));
-        deiElements.add(generateRpcSignatureFromCallsite(callsite));
-        deiElements.add(generateRpcSynchronousComponentFromCallsite(callsite));
-        deiElements.add(generateRpcAsynchronousComponentFromCallsite(callsite));
-        String result = String.join("-", deiElements);
-        return result;
+    public DistributedExecutionIndexKey convertCallsiteToDistributedExecutionIndexKey(Callsite callsite) {
+        Key key = new Builder()
+                .source(generateRpcSourceFromCallsite(callsite))
+                .signature(generateRpcSignatureFromCallsite(callsite))
+                .synchronous(generateRpcSynchronousComponentFromCallsite(callsite))
+                .asynchronous(generateRpcAsynchronousComponentFromCallsite(callsite))
+                .build();
+        return key;
     }
 }

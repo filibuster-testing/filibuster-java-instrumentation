@@ -1,6 +1,5 @@
 package cloud.filibuster.instrumentation.libraries.opentelemetry;
 
-import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.examples.test_servers.HelloServer;
@@ -114,26 +113,22 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
         // Very proper number of Filibuster records.
         assertEquals(3, FilibusterServer.payloadsReceived.size());
 
-        // Assemble execution index.
-        DistributedExecutionIndex firstRequestDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        firstRequestDistributedExecutionIndex.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-61aae9b83e5cf6921c9ba4fa7b56d77ad8ad5768-0467af73e0837d51c48b70651c64b7e6537819d2");
-
         // Assemble vector clocks.
         VectorClock firstRequestVectorClock = new VectorClock();
         firstRequestVectorClock.incrementClock("hello");
 
         JSONObject firstInvocationPayload = FilibusterServer.payloadsReceived.get(0);
         assertEquals("invocation", firstInvocationPayload.getString("instrumentation_type"));
-        assertEquals(firstRequestDistributedExecutionIndex.toString(), firstInvocationPayload.getString("execution_index"));
+        assertEquals("[[\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-61aae9b83e5cf6921c9ba4fa7b56d77ad8ad5768-0467af73e0837d51c48b70651c64b7e6537819d2\", 1]]", firstInvocationPayload.getString("execution_index"));
         assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationPayload.getJSONObject("vclock").toString());
 
         JSONObject firstRequestReceivedPayload = FilibusterServer.payloadsReceived.get(1);
         assertEquals("request_received", firstRequestReceivedPayload.getString("instrumentation_type"));
-        assertEquals(firstRequestDistributedExecutionIndex.toString(), firstRequestReceivedPayload.getString("execution_index"));
+        assertEquals("[[\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-61aae9b83e5cf6921c9ba4fa7b56d77ad8ad5768-0467af73e0837d51c48b70651c64b7e6537819d2\", 1]]", firstRequestReceivedPayload.getString("execution_index"));
 
         JSONObject firstInvocationCompletePayload = FilibusterServer.payloadsReceived.get(2);
         assertEquals("invocation_complete", firstInvocationCompletePayload.getString("instrumentation_type"));
-        assertEquals(firstRequestDistributedExecutionIndex.toString(), firstInvocationCompletePayload.getString("execution_index"));
+        assertEquals("[[\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-61aae9b83e5cf6921c9ba4fa7b56d77ad8ad5768-0467af73e0837d51c48b70651c64b7e6537819d2\", 1]]", firstInvocationCompletePayload.getString("execution_index"));
         assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationCompletePayload.getJSONObject("vclock").toString());
 
         helloChannel.shutdownNow();
@@ -175,10 +170,6 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
 
         assertEquals("DATA_LOSS: io.grpc.StatusRuntimeException: UNAVAILABLE", re.getMessage());
 
-        // Assemble execution index.
-        DistributedExecutionIndex firstRequestDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        firstRequestDistributedExecutionIndex.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-61aae9b83e5cf6921c9ba4fa7b56d77ad8ad5768-0467af73e0837d51c48b70651c64b7e6537819d2");
-
         // Assemble vector clocks.
         VectorClock firstRequestVectorClock = new VectorClock();
         firstRequestVectorClock.incrementClock("hello");
@@ -187,12 +178,12 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
 
         JSONObject firstInvocationPayload = FilibusterServer.payloadsReceived.get(0);
         assertEquals("invocation", firstInvocationPayload.getString("instrumentation_type"));
-        assertEquals(firstRequestDistributedExecutionIndex.toString(), firstInvocationPayload.getString("execution_index"));
+        assertEquals("[[\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-61aae9b83e5cf6921c9ba4fa7b56d77ad8ad5768-0467af73e0837d51c48b70651c64b7e6537819d2\", 1]]", firstInvocationPayload.getString("execution_index"));
         assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationPayload.getJSONObject("vclock").toString());
 
         JSONObject firstInvocationCompletePayload = FilibusterServer.payloadsReceived.get(1);
         assertEquals("invocation_complete", firstInvocationCompletePayload.getString("instrumentation_type"));
-        assertEquals(firstRequestDistributedExecutionIndex.toString(), firstInvocationCompletePayload.getString("execution_index"));
+        assertEquals("[[\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-61aae9b83e5cf6921c9ba4fa7b56d77ad8ad5768-0467af73e0837d51c48b70651c64b7e6537819d2\", 1]]", firstInvocationCompletePayload.getString("execution_index"));
         assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationCompletePayload.getJSONObject("vclock").toString());
 
         helloChannel.shutdownNow();
@@ -232,10 +223,6 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
 
         assertEquals("DATA_LOSS: io.grpc.StatusRuntimeException: NOT_FOUND", re.getMessage());
 
-        // Assemble execution index.
-        DistributedExecutionIndex firstRequestDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        firstRequestDistributedExecutionIndex.push("V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-61aae9b83e5cf6921c9ba4fa7b56d77ad8ad5768-0467af73e0837d51c48b70651c64b7e6537819d2");
-
         // Assemble vector clocks.
         VectorClock firstRequestVectorClock = new VectorClock();
         firstRequestVectorClock.incrementClock("hello");
@@ -243,12 +230,12 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
 
         JSONObject firstInvocationPayload = FilibusterServer.payloadsReceived.get(0);
         assertEquals("invocation", firstInvocationPayload.getString("instrumentation_type"));
-        assertEquals(firstRequestDistributedExecutionIndex.toString(), firstInvocationPayload.getString("execution_index"));
+        assertEquals("[[\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-61aae9b83e5cf6921c9ba4fa7b56d77ad8ad5768-0467af73e0837d51c48b70651c64b7e6537819d2\", 1]]", firstInvocationPayload.getString("execution_index"));
         assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationPayload.getJSONObject("vclock").toString());
 
         JSONObject firstInvocationCompletePayload = FilibusterServer.payloadsReceived.get(1);
         assertEquals("invocation_complete", firstInvocationCompletePayload.getString("instrumentation_type"));
-        assertEquals(firstRequestDistributedExecutionIndex.toString(), firstInvocationCompletePayload.getString("execution_index"));
+        assertEquals("[[\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-61aae9b83e5cf6921c9ba4fa7b56d77ad8ad5768-0467af73e0837d51c48b70651c64b7e6537819d2\", 1]]", firstInvocationCompletePayload.getString("execution_index"));
         assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationCompletePayload.getJSONObject("vclock").toString());
 
         helloChannel.shutdownNow();

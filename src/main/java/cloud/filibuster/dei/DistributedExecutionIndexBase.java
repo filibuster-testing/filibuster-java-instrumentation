@@ -1,31 +1,35 @@
 package cloud.filibuster.dei;
 
+import cloud.filibuster.instrumentation.datatypes.Callsite;
 import cloud.filibuster.instrumentation.datatypes.Pair;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DistributedExecutionIndexBase implements Cloneable {
-    protected HashMap<String, Integer> counters = new HashMap<>();
-    protected ArrayList<Map.Entry<String, Integer>> callstack = new ArrayList<>();
+public abstract class DistributedExecutionIndexBase implements Cloneable {
+    protected HashMap<DistributedExecutionIndexKey, Integer> counters = new HashMap<>();
+    protected ArrayList<Map.Entry<DistributedExecutionIndexKey, Integer>> callstack = new ArrayList<>();
+
+    public void push(Callsite callsite) {
+        DistributedExecutionIndex dei = (DistributedExecutionIndex) this;
+        DistributedExecutionIndexKey key = dei.convertCallsiteToDistributedExecutionIndexKey(callsite);
+
+        int currentValue = 0;
+
+        if(counters.containsKey(key)) {
+            currentValue = counters.get(key);
+            counters.replace(key, currentValue + 1);
+        } else {
+            counters.put(key, currentValue + 1);
+        }
+
+        callstack.add(Pair.of(key, currentValue + 1));
+    }
 
     public void pop() {
         int lastIndex = callstack.size() - 1;
         callstack.remove(lastIndex);
-    }
-
-    public void push(String entry) {
-        int currentValue = 0;
-
-        if(counters.containsKey(entry)) {
-            currentValue = counters.get(entry);
-            counters.replace(entry, currentValue + 1);
-        } else {
-            counters.put(entry, currentValue + 1);
-        }
-
-        callstack.add(Pair.of(entry, currentValue + 1));
     }
 
     public DistributedExecutionIndex deserialize(String serialized) {
@@ -61,13 +65,30 @@ public class DistributedExecutionIndexBase implements Cloneable {
                     String value = parts[counter].substring(0, parts[counter].length() - 1);
                     // Remove leading space.
                     value = value.substring(1);
-                    callstack.add(Pair.of(key, Integer.valueOf(value)));
+                    callstack.add(Pair.of(DistributedExecutionIndexKey.deserialize(key), Integer.valueOf(value)));
                     key = null;
                 }
             }
         }
 
         return (DistributedExecutionIndex) this;
+    }
+
+    private String serialize() {
+        ArrayList<String> entryList = new ArrayList<>();
+
+        for (Map.Entry<DistributedExecutionIndexKey, Integer> stringIntegerEntry : callstack) {
+            ArrayList<String> innerOutput = new ArrayList<>();
+            innerOutput.add("[\"");
+            innerOutput.add(stringIntegerEntry.getKey().serialize());
+            innerOutput.add("\", ");
+            innerOutput.add(String.valueOf(stringIntegerEntry.getValue()));
+            innerOutput.add("]");
+            String innerOutputString = String.join("", innerOutput);
+            entryList.add(innerOutputString);
+        }
+
+        return "[" + String.join(", ", entryList) + "]";
     }
 
     @Override
@@ -90,22 +111,5 @@ public class DistributedExecutionIndexBase implements Cloneable {
     @Override
     public String toString() {
         return serialize();
-    }
-
-    private String serialize() {
-        ArrayList<String> entryList = new ArrayList<>();
-
-        for (Map.Entry<String, Integer> stringIntegerEntry : callstack) {
-            ArrayList<String> innerOutput = new ArrayList<>();
-            innerOutput.add("[\"");
-            innerOutput.add(stringIntegerEntry.getKey());
-            innerOutput.add("\", ");
-            innerOutput.add(String.valueOf(stringIntegerEntry.getValue()));
-            innerOutput.add("]");
-            String innerOutputString = String.join("", innerOutput);
-            entryList.add(innerOutputString);
-        }
-
-        return "[" + String.join(", ", entryList) + "]";
     }
 }

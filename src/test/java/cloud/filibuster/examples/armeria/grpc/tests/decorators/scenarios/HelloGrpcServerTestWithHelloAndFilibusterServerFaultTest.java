@@ -1,6 +1,5 @@
 package cloud.filibuster.examples.armeria.grpc.tests.decorators.scenarios;
 
-import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.examples.armeria.grpc.tests.decorators.HelloGrpcServerTest;
@@ -96,21 +95,18 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerFaultTest extends He
 
         assertEquals("FAILED_PRECONDITION", re.getStatus().getCode().name());
 
-        DistributedExecutionIndex firstRequestDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        firstRequestDistributedExecutionIndex.push("test-HelloGrpcServerTestWithHelloAndFilibusterServerFaultTest.java-91-cloud.filibuster.examples.HelloService-cloud.filibuster.examples.HelloService/Hello-146409d9c7d501362ce2f58ab555782fba01c7c6");
-
         VectorClock firstRequestVectorClock = generateAssertionClock();
 
         assertEquals(2, FilibusterServer.payloadsReceived.size());
 
         JSONObject firstInvocationPayload = FilibusterServer.payloadsReceived.get(0);
         assertEquals("invocation", firstInvocationPayload.getString("instrumentation_type"));
-        assertEquals(firstRequestDistributedExecutionIndex.toString(), firstInvocationPayload.getString("execution_index"));
+        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-f6a939b3054b862be68d089c35d63547e522555a-146409d9c7d501362ce2f58ab555782fba01c7c6\", 1]]", firstInvocationPayload.getString("execution_index"));
         assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationPayload.getJSONObject("vclock").toString());
 
         JSONObject firstInvocationCompletePayload = FilibusterServer.payloadsReceived.get(1);
         assertEquals("invocation_complete", firstInvocationCompletePayload.getString("instrumentation_type"));
-        assertEquals(firstRequestDistributedExecutionIndex.toString(), firstInvocationCompletePayload.getString("execution_index"));
+        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-f6a939b3054b862be68d089c35d63547e522555a-146409d9c7d501362ce2f58ab555782fba01c7c6\", 1]]", firstInvocationCompletePayload.getString("execution_index"));
         assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationCompletePayload.getJSONObject("vclock").toString());
     }
 }

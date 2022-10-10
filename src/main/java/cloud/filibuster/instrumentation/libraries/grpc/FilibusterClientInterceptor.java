@@ -255,6 +255,8 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                             filibusterClientInstrumentor.getDistributedExecutionIndex().toString()
                     );
 
+                    String x = filibusterClientInstrumentor.getDistributedExecutionIndex().toString();
+
                     // ******************************************************************************************
                     // Get failure information.
                     // ******************************************************************************************

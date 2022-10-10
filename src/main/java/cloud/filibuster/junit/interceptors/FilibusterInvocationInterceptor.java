@@ -1,5 +1,6 @@
 package cloud.filibuster.junit.interceptors;
 
+import cloud.filibuster.dei.implementations.DistributedExecutionIndexV1;
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.exceptions.FilibusterServerUnavailabilityException;
 import cloud.filibuster.instrumentation.helpers.Property;
@@ -174,7 +175,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
     static class FilibusterSystemProperties {
         public static void setSystemPropertiesForFilibusterInstrumentation(FilibusterConfiguration filibusterConfiguration) {
             if (filibusterConfiguration.getDataNondeterminism()) {
-                Property.setCallsiteHashCallsiteProperty(false);
+                DistributedExecutionIndexV1.Properties.Asynchronous.setAsynchronousInclude(false);
             }
 
             System.setProperty("kotlinx.coroutines.debug", "on");
@@ -182,7 +183,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
         }
 
         public static void unsetSystemPropertiesForFilibusterInstrumentation() {
-            Property.setCallsiteHashCallsiteProperty(true); // this should be the default value.
+            DistributedExecutionIndexV1.Properties.Asynchronous.setAsynchronousInclude(true);
 
             System.setProperty("kotlinx.coroutines.debug", "off");
             System.setProperty("kotlinx.coroutines.stacktrace.recovery", "false");

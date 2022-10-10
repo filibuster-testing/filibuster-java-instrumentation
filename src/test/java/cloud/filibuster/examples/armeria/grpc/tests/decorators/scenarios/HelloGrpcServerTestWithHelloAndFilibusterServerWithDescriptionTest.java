@@ -1,6 +1,5 @@
 package cloud.filibuster.examples.armeria.grpc.tests.decorators.scenarios;
 
-import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.examples.armeria.grpc.test_services.MyHelloService;
@@ -101,8 +100,6 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerWithDescriptionTest 
         VectorClock assertVc = generateAssertionClock();
         assertEquals(assertVc.toString(), lastPayload.get("vclock").toString());
 
-        DistributedExecutionIndex assertDistributedExecutionIndex = createNewDistributedExecutionIndex();
-        assertDistributedExecutionIndex.push("test-HelloGrpcServerTestWithHelloAndFilibusterServerWithDescriptionTest.java-84-cloud.filibuster.examples.HelloService-cloud.filibuster.examples.HelloService/Hello-146409d9c7d501362ce2f58ab555782fba01c7c6");
-        assertEquals(assertDistributedExecutionIndex.toString(), lastPayload.getString("execution_index"));
+        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-bc320c981542731fd26dcd71a21491351333ef1d-146409d9c7d501362ce2f58ab555782fba01c7c6\", 1]]", lastPayload.getString("execution_index"));
     }
 }

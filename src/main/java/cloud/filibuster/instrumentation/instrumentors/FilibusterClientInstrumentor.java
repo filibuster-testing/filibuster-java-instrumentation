@@ -291,7 +291,7 @@ final public class FilibusterClientInstrumentor {
             DistributedExecutionIndex incrementedDistributedExecutionIndex = FilibusterClientInstrumentor.getDistributedExecutionIndexForServiceNameAndRequestId(serviceName, getRequestId(), DistributedExecutionIndexType.getImplType().createImpl());
 
             // Now, we increment the execution index to reflect the request we're about to make.
-            incrementedDistributedExecutionIndex.push(callsite.toString());
+            incrementedDistributedExecutionIndex.push(callsite);
 
             // Clone, and store in this object, so we have the EI associated with this request
             // and can then issue a request to Filibuster server when the call completes.

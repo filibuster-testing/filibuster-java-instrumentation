@@ -15,6 +15,7 @@ import org.apiguardian.api.API;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Isolated;
 
 /**
  * Filibuster test annotation for JUnit 5.
@@ -36,6 +37,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @API(status = API.Status.STABLE, since = "5.0")
 @ExtendWith(FilibusterTestExtension.class)
 @TestTemplate
+@Isolated
 public @interface FilibusterTest {
     /**
      * Placeholder variable for the test name.

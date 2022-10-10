@@ -2,13 +2,13 @@ package cloud.filibuster.instrumentation.libraries.armeria.http.tests;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.instrumentation.FilibusterServer;
+import cloud.filibuster.instrumentation.datatypes.Callsite;
 import cloud.filibuster.instrumentation.datatypes.VectorClock;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.libraries.armeria.http.FilibusterDecoratingHttpClient;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.io.IOException;
@@ -20,22 +20,8 @@ import static cloud.filibuster.instrumentation.TestHelper.startExternalServerAnd
 import static cloud.filibuster.instrumentation.TestHelper.startMockFilibusterServerAndWaitUntilAvailable;
 import static cloud.filibuster.instrumentation.TestHelper.stopExternalServerAndWaitUntilUnavailable;
 import static cloud.filibuster.instrumentation.TestHelper.stopMockFilibusterServerAndWaitUntilUnavailable;
-import static cloud.filibuster.instrumentation.helpers.Property.setCallsiteHashCallsiteProperty;
-import static cloud.filibuster.instrumentation.helpers.Property.setCallsiteIncludeStackTraceProperty;
 
 public class FilibusterDecoratingHttpClientTest extends FilibusterDecoratingHttpTest {
-    @BeforeAll
-    public static void enablePrettyDistributedExecutionIndexes() {
-        setCallsiteHashCallsiteProperty(false);
-        setCallsiteIncludeStackTraceProperty(false);
-    }
-
-    @AfterAll
-    public static void disablePrettyDistributedExecutionIndexes() {
-        setCallsiteHashCallsiteProperty(true);
-        setCallsiteIncludeStackTraceProperty(true);
-    }
-
     @BeforeEach
     public void reEnableInstrumentation() {
         FilibusterDecoratingHttpClient.disableServerCommunication = false;
@@ -83,11 +69,20 @@ public class FilibusterDecoratingHttpClientTest extends FilibusterDecoratingHttp
         setInitialVectorClock(new VectorClock());
         setInitialOriginVectorClock(new VectorClock());
 
+        Callsite callsite = new Callsite("service", "class", "moduleName", "deadbeef");
         DistributedExecutionIndex ei = createNewDistributedExecutionIndex();
-        ei.push("chris");
+        ei.push(callsite);
         setInitialDistributedExecutionIndex(ei.toString());
 
         setInitialRequestId(generateNewRequestId().toString());
+    }
+
+    @AfterEach
+    public void resetContextConfiguration() {
+        resetInitialRequestId();
+        resetInitialDistributedExecutionIndex();
+        resetInitialOriginVectorClock();
+        resetInitialVectorClock();
     }
 
     public void startFilibuster() throws InterruptedException, IOException {

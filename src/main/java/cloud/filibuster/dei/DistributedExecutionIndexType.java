@@ -1,7 +1,6 @@
 package cloud.filibuster.dei;
 
 import cloud.filibuster.dei.implementations.DistributedExecutionIndexV1;
-import cloud.filibuster.dei.implementations.DistributedExecutionIndexV2;
 
 import static cloud.filibuster.instrumentation.helpers.Property.getDeiVersionProperty;
 
@@ -10,13 +9,6 @@ public enum DistributedExecutionIndexType {
         @Override
         public DistributedExecutionIndex createImpl() {
             return new DistributedExecutionIndexV1();
-        }
-    },
-
-    V2 {
-        @Override
-        public DistributedExecutionIndex createImpl() {
-            return new DistributedExecutionIndexV2();
         }
     };
 

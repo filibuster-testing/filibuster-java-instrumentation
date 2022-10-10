@@ -4,7 +4,7 @@ import cloud.filibuster.instrumentation.datatypes.Callsite;
 
 public interface DistributedExecutionIndex extends Cloneable {
 
-    void push(String entry);
+    DistributedExecutionIndexKey convertCallsiteToDistributedExecutionIndexKey(Callsite callsite);
 
     void push(Callsite callsite);
 

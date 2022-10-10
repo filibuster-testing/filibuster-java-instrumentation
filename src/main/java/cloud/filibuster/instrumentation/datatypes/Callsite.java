@@ -205,7 +205,7 @@ public class Callsite {
 
             boolean notFilibusterOrFilibusterTest =
                     !stringStackTraceElement.contains("cloud.filibuster") ||
-                    (stringStackTraceElement.contains("cloud.filibuster") && stringStackTraceElement.contains("test"));
+                    (stringStackTraceElement.contains("cloud.filibuster") && (stringStackTraceElement.contains("test") || stringStackTraceElement.contains("tutorial")));
 
             if (! foundInStandardImportedLibraries && ! foundInImportedLibrariesFromGradle && notFilibusterOrFilibusterTest) {
                 filteredStackTrace.add(Pair.of(String.valueOf(hashCode), stringStackTraceElement));

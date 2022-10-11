@@ -29,6 +29,8 @@ public class JUnitFilibusterTestWithBasicAnalysisFileByAnnotation extends JUnitB
     static {
         basicGrpcErrorCodeList.add("DEADLINE_EXCEEDED");
         basicGrpcErrorCodeList.add("UNAVAILABLE");
+        basicGrpcErrorCodeList.add("INTERNAL");
+        basicGrpcErrorCodeList.add("UNIMPLEMENTED");
     }
 
     private static int numberOfTestsExceptionsThrownFaultsInjected = 0;
@@ -78,6 +80,6 @@ public class JUnitFilibusterTestWithBasicAnalysisFileByAnnotation extends JUnitB
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(2, numberOfTestsExceptionsThrownFaultsInjected);
+        assertEquals(4, numberOfTestsExceptionsThrownFaultsInjected);
     }
 }

@@ -16,7 +16,15 @@ public class FilibusterAnalysisConfiguration {
     public FilibusterAnalysisConfiguration(Builder builder) {
         this.name = builder.name;
         configurationObject.put("pattern", builder.pattern);
-        configurationObject.put("exceptions", builder.exceptions);
+
+        if (builder.exceptions.size() > 0) {
+            configurationObject.put("exceptions", builder.exceptions);
+        }
+
+        if (builder.errors.size() > 0) {
+            configurationObject.put("errors", builder.errors);
+        }
+
         analysisConfiguration.put(builder.name, configurationObject);
     }
 
@@ -34,6 +42,8 @@ public class FilibusterAnalysisConfiguration {
         private String pattern;
         private final List<JSONObject> exceptions = new ArrayList<>();
 
+        private final List<JSONObject> errors = new ArrayList<>();
+
         @CanIgnoreReturnValue
         public Builder name(String name) {
             this.name = name;
@@ -43,6 +53,15 @@ public class FilibusterAnalysisConfiguration {
         @CanIgnoreReturnValue
         public Builder pattern(String pattern) {
             this.pattern = pattern;
+            return this;
+        }
+
+        @CanIgnoreReturnValue
+        public Builder error(String serviceName, List<JSONObject> types) {
+            JSONObject error = new JSONObject();
+            error.put("service_name", serviceName);
+            error.put("types", types);
+            errors.add(error);
             return this;
         }
 

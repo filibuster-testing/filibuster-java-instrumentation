@@ -7,6 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.FilibusterDefaultAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterGrpcBasicAnalysisConfigurationFile;
 import cloud.filibuster.junit.extensions.FilibusterTestExtension;
 
@@ -150,5 +151,5 @@ public @interface FilibusterTest {
      *
      * @return custom analysis configuration file.
      */
-    Class<? extends FilibusterAnalysisConfigurationFile> analysisConfigurationFile() default FilibusterGrpcBasicAnalysisConfigurationFile.class;
+    Class<? extends FilibusterAnalysisConfigurationFile> analysisConfigurationFile() default FilibusterDefaultAnalysisConfigurationFile.class;
 }

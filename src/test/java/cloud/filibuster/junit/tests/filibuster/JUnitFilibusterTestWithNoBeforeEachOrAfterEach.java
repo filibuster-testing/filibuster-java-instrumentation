@@ -91,6 +91,14 @@ public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
                     expected = true;
                 }
 
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: INTERNAL")) {
+                    expected = true;
+                }
+
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED")) {
+                    expected = true;
+                }
+
                 if (! expected) {
                     throw t;
                 }
@@ -115,6 +123,6 @@ public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(2, numberOfTestsExceptionsThrownFaultsInjected);
+        assertEquals(4, numberOfTestsExceptionsThrownFaultsInjected);
     }
 }

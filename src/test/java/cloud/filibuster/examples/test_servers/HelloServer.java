@@ -408,7 +408,7 @@ public class HelloServer {
             }
         }.decorate(delegate -> new FilibusterDecoratingHttpService(delegate, serviceName)));
 
-        sb.service("/test", new AbstractHttpService() {
+        sb.service("/external", new AbstractHttpService() {
             @Override
             protected @NotNull HttpResponse doGet(@NotNull ServiceRequestContext ctx, @NotNull HttpRequest req) {
                 String baseURI = "http://" + Networking.getHost("external") + ":" + Networking.getPort("external") + "/";
@@ -419,8 +419,15 @@ public class HelloServer {
 
                 return HttpResponse.from(webClient1.execute(getHeaders1).aggregate().thenApply(aggregatedHttpResponse -> {
                     logger.log(Level.INFO, "/request completed.");
-                    // Return a response as long as we don't throw.
-                    return HttpResponse.of("Hello, world!");
+
+                    ResponseHeaders headers = aggregatedHttpResponse.headers();
+                    String statusCode = headers.get(HttpHeaderNames.STATUS);
+
+                    if (statusCode.equals("200")) {
+                        return HttpResponse.of("Hello, world!");
+                    } else {
+                        return HttpResponse.of(HttpStatus.FAILED_DEPENDENCY);
+                    }
                 }));
             }
           }.decorate(delegate -> new FilibusterDecoratingHttpService(delegate, serviceName)));

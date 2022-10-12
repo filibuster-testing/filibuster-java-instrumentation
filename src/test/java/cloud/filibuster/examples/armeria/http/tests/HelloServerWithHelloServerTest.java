@@ -113,12 +113,12 @@ public class HelloServerWithHelloServerTest extends HelloServerTest {
     }
 
     @Test
-    @DisplayName("Test hello server test route.")
-    public void testTest() {
+    @DisplayName("Test hello server external route.")
+    public void testExternal() {
         // Get remote resource.
         String baseURI = "http://" + Networking.getHost("hello") + ":" + Networking.getPort("hello") + "/";
         WebClient webClient = TestHelper.getTestWebClient(baseURI);
-        RequestHeaders getHeaders = RequestHeaders.of(HttpMethod.GET, "/test", HttpHeaderNames.ACCEPT, "application/json");
+        RequestHeaders getHeaders = RequestHeaders.of(HttpMethod.GET, "/external", HttpHeaderNames.ACCEPT, "application/json");
         AggregatedHttpResponse response = webClient.execute(getHeaders).aggregate().join();
 
         // Get headers and verify a 200 response.

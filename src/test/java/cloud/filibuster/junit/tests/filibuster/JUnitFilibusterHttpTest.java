@@ -40,8 +40,6 @@ public class JUnitFilibusterHttpTest extends JUnitBaseTest {
     @FilibusterTest
     @Order(1)
     public void testHelloAndWorldServiceWithFilibuster() {
-        boolean expected = false;
-
         try {
             String baseURI = "http://" + Networking.getHost("hello") + ":" + Networking.getPort("hello") + "/";
             WebClient webClient = TestHelper.getTestWebClient(baseURI);

@@ -225,7 +225,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
 
         public static void teardownsCompleted(WebClient webClient, int currentIteration) throws ExecutionException, InterruptedException {
             CompletableFuture<Void> teardownsCompletedFuture = CompletableFuture.supplyAsync(() -> {
-                RequestHeaders postJson = RequestHeaders.of(
+                RequestHeaders getJson = RequestHeaders.of(
                         HttpMethod.GET,
                         "/filibuster/teardowns-completed/" + currentIteration,
                         HttpHeaderNames.CONTENT_TYPE,

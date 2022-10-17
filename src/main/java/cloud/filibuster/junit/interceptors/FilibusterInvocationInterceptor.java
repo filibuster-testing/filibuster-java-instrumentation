@@ -222,7 +222,17 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
                         "application/json",
                         "X-Filibuster-Instrumentation",
                         "true");
-                webClient.execute(postJson, new JSONObject().toString()).aggregate().join();
+                AggregatedHttpResponse response = webClient.execute(getJson).aggregate().join();
+                ResponseHeaders headers = response.headers();
+                String statusCode = headers.get(HttpHeaderNames.STATUS);
+
+                if (statusCode == null) {
+                    FilibusterServerBadResponseException.logAndThrow("teardownsCompleted, statusCode: null");
+                }
+
+                if (!statusCode.equals("200")) {
+                    FilibusterServerBadResponseException.logAndThrow("teardownsCompleted, statusCode: " + statusCode);
+                }
 
                 return null;
             }, FilibusterExecutor.getExecutorService());

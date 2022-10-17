@@ -257,32 +257,26 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
         public static boolean hasNextIteration(WebClient webClient, int currentIteration, String caller) throws ExecutionException, InterruptedException {
             CompletableFuture<Boolean> hasNextIteration = CompletableFuture.supplyAsync(() -> {
                 try {
-                    RequestHeaders postJson = RequestHeaders.of(
+                    RequestHeaders getJson = RequestHeaders.of(
                             HttpMethod.GET,
                             "/filibuster/has-next-iteration/" + currentIteration + "/" + caller,
                             HttpHeaderNames.ACCEPT,
                             "application/json",
                             "X-Filibuster-Instrumentation",
                             "true");
-                    AggregatedHttpResponse response = webClient.execute(postJson).aggregate().join();
-
+                    AggregatedHttpResponse response = webClient.execute(getJson).aggregate().join();
                     ResponseHeaders headers = response.headers();
                     String statusCode = headers.get(HttpHeaderNames.STATUS);
 
                     if (statusCode == null) {
-                        // TODO: handle better, change exception type.
-                        logger.log(Level.SEVERE, "hasNextIteration, statusCode: null");
-                        throw new UnsupportedOperationException();
+                        FilibusterServerBadResponseException.logAndThrow("hasNextIteration, statusCode: null");
                     }
 
                     if (!statusCode.equals("200")) {
-                        // TODO: handle better, change exception type.
-                        logger.log(Level.SEVERE, "hasNextIteration, statusCode: " + statusCode);
-                        throw new UnsupportedOperationException();
+                        FilibusterServerBadResponseException.logAndThrow("hasNextIteration, statusCode: " + statusCode);
                     }
 
                     JSONObject jsonObject = Response.aggregatedHttpResponseToJsonObject(response);
-
                     return jsonObject.getBoolean("has-next-iteration");
                 } catch (RuntimeException e) {
                     logger.log(Level.SEVERE,"cannot connect to the Filibuster server: " + e);

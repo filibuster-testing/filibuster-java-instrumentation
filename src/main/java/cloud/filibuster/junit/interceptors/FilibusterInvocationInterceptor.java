@@ -6,6 +6,7 @@ import cloud.filibuster.instrumentation.exceptions.FilibusterServerUnavailabilit
 import cloud.filibuster.instrumentation.helpers.Property;
 import cloud.filibuster.instrumentation.helpers.Response;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
+import cloud.filibuster.junit.exceptions.FilibusterServerBadResponseException;
 import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.AggregatedHttpResponse;
 import com.linecorp.armeria.common.HttpHeaderNames;

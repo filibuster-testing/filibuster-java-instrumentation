@@ -2,7 +2,14 @@ package cloud.filibuster.junit.configuration;
 
 import cloud.filibuster.instrumentation.helpers.Networking;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import io.micrometer.core.instrument.util.IOUtils;
+import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +51,23 @@ public class FilibusterConfiguration {
      */
     public String getFilibusterBaseUri() {
         return "http://" + filibusterHost + ":" + filibusterPort + "/";
+    }
+
+    public JSONObject readAnalysisFile() throws FileNotFoundException {
+        if (analysisFile != null) {
+            File f = new File(analysisFile);
+
+            if (f.exists()) {
+                InputStream is = new FileInputStream(f);
+                String jsonTxt = IOUtils.toString(is, Charset.defaultCharset());
+                return new JSONObject(jsonTxt);
+            } else {
+                return new JSONObject();
+            }
+
+        } else {
+            return new JSONObject();
+        }
     }
 
     /**

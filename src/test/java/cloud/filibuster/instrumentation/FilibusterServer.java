@@ -304,6 +304,15 @@ public class FilibusterServer {
         });
 
         sb.annotatedService(new Object() {
+            @Post("/filibuster/complete-iteration/{current_iteration}/exception/{exception_occurred}")
+            @ProducesJson
+            @ConsumesJson
+            public HttpResponse completeIteration(@Param("current_iteration") String currentIteration, @Param("exception_occurred") int exceptionOccurred) {
+                return HttpResponse.of(HttpStatus.OK);
+            }
+        });
+
+        sb.annotatedService(new Object() {
             @Get("/filibuster/fault-injected")
             @ProducesJson
             @ConsumesJson

@@ -275,7 +275,7 @@ public class FilibusterServer {
         });
 
         sb.annotatedService(new Object() {
-            @Get("/teardowns-completed/{current_iteration}")
+            @Get("/filibuster/teardowns-completed/{current_iteration}")
             @ProducesJson
             @ConsumesJson
             public HttpResponse teardownsCompleted() {
@@ -285,7 +285,7 @@ public class FilibusterServer {
         });
 
         sb.annotatedService(new Object() {
-            @Get("/terminate")
+            @Get("/filibuster/terminate")
             @ProducesJson
             @ConsumesJson
             public HttpResponse terminate() {

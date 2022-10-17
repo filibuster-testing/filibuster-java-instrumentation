@@ -197,14 +197,14 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
     static class FilibusterServerAPI {
         public static void terminate(WebClient webClient) throws ExecutionException, InterruptedException {
             CompletableFuture<Void> terminateFuture = CompletableFuture.supplyAsync(() -> {
-                RequestHeaders postJson = RequestHeaders.of(
+                RequestHeaders getJson = RequestHeaders.of(
                         HttpMethod.GET,
                         "/filibuster/terminate",
                         HttpHeaderNames.CONTENT_TYPE,
                         "application/json",
                         "X-Filibuster-Instrumentation",
                         "true");
-                webClient.execute(postJson, new JSONObject().toString()).aggregate().join();
+                webClient.execute(getJson, new JSONObject().toString()).aggregate().join();
 
                 return null;
             }, FilibusterExecutor.getExecutorService());

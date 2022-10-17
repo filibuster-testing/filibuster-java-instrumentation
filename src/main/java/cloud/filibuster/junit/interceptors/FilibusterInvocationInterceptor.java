@@ -199,7 +199,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             CompletableFuture<Void> terminateFuture = CompletableFuture.supplyAsync(() -> {
                 RequestHeaders postJson = RequestHeaders.of(
                         HttpMethod.GET,
-                        "terminate",
+                        "/filibuster/terminate",
                         HttpHeaderNames.CONTENT_TYPE,
                         "application/json",
                         "X-Filibuster-Instrumentation",
@@ -216,7 +216,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             CompletableFuture<Void> teardownsCompletedFuture = CompletableFuture.supplyAsync(() -> {
                 RequestHeaders postJson = RequestHeaders.of(
                         HttpMethod.GET,
-                        "teardowns-completed/" + currentIteration,
+                        "/filibuster/teardowns-completed/" + currentIteration,
                         HttpHeaderNames.CONTENT_TYPE,
                         "application/json",
                         "X-Filibuster-Instrumentation",

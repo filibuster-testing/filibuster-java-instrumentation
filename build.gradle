@@ -191,7 +191,7 @@ publishing {
         maven(MavenPublication) {
             groupId = 'cloud.filibuster'
             artifactId = 'instrumentation'
-            version = "0.30-SNAPSHOT"
+            version = "0.31-SNAPSHOT"
             from components.java
 
             pom {

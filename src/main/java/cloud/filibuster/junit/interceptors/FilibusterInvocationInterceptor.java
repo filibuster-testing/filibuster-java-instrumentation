@@ -196,6 +196,33 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
      */
 
     static class FilibusterServerAPI {
+        public static void analysisFile(WebClient webClient, JSONObject jsonAnalysisConfiguration) throws ExecutionException, InterruptedException {
+            CompletableFuture<Void> analysisFileFuture = CompletableFuture.supplyAsync(() -> {
+                RequestHeaders postJson = RequestHeaders.of(
+                        HttpMethod.POST,
+                        "/filibuster/analysis-file",
+                        HttpHeaderNames.CONTENT_TYPE,
+                        "application/json",
+                        "X-Filibuster-Instrumentation",
+                        "true");
+                AggregatedHttpResponse response = webClient.execute(postJson, jsonAnalysisConfiguration.toString()).aggregate().join();
+                ResponseHeaders headers = response.headers();
+                String statusCode = headers.get(HttpHeaderNames.STATUS);
+
+                if (statusCode == null) {
+                    FilibusterServerBadResponseException.logAndThrow("analysisFile, statusCode: null");
+                }
+
+                if (!statusCode.equals("200")) {
+                    FilibusterServerBadResponseException.logAndThrow("analysisFile, statusCode: " + statusCode);
+                }
+
+                return null;
+            }, FilibusterExecutor.getExecutorService());
+
+            analysisFileFuture.get();
+        }
+
         public static void terminate(WebClient webClient) throws ExecutionException, InterruptedException {
             CompletableFuture<Void> terminateFuture = CompletableFuture.supplyAsync(() -> {
                 RequestHeaders getJson = RequestHeaders.of(
@@ -390,6 +417,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
 
             if (shouldInitializeFilibusterServer) {
                 FilibusterServerLifecycle.startServer(filibusterServerProcessBuilder, webClient);
+                FilibusterServerAPI.analysisFile(webClient, filibusterConfiguration.readAnalysisFile());
             }
         }
 

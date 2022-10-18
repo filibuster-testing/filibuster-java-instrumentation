@@ -88,11 +88,6 @@ public class FilibusterConfiguration {
             commands.add("--should-suppress-combinations");
         }
 
-        if (analysisFile != null) {
-            commands.add("--analysis-file");
-            commands.add(analysisFile);
-        }
-
         return commands;
     }
 

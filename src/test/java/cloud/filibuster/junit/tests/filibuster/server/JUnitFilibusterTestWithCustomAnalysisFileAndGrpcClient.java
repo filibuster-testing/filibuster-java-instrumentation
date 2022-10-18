@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.tests.filibuster;
+package cloud.filibuster.junit.tests.filibuster.server;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
@@ -8,6 +8,7 @@ import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
+import cloud.filibuster.junit.tests.filibuster.JUnitBaseTest;
 import com.linecorp.armeria.client.grpc.GrpcClientBuilder;
 
 import org.junit.jupiter.api.BeforeEach;

@@ -275,7 +275,7 @@ public class FilibusterServer {
         });
 
         sb.annotatedService(new Object() {
-            @Get("/teardowns-completed/{current_iteration}")
+            @Get("/filibuster/teardowns-completed/{current_iteration}")
             @ProducesJson
             @ConsumesJson
             public HttpResponse teardownsCompleted() {
@@ -285,7 +285,7 @@ public class FilibusterServer {
         });
 
         sb.annotatedService(new Object() {
-            @Get("/terminate")
+            @Get("/filibuster/terminate")
             @ProducesJson
             @ConsumesJson
             public HttpResponse terminate() {
@@ -299,6 +299,15 @@ public class FilibusterServer {
             @ProducesJson
             @ConsumesJson
             public HttpResponse completeIteration(@Param("current_iteration") String currentIteration) {
+                return HttpResponse.of(HttpStatus.OK);
+            }
+        });
+
+        sb.annotatedService(new Object() {
+            @Post("/filibuster/complete-iteration/{current_iteration}/exception/{exception_occurred}")
+            @ProducesJson
+            @ConsumesJson
+            public HttpResponse completeIteration(@Param("current_iteration") String currentIteration, @Param("exception_occurred") int exceptionOccurred) {
                 return HttpResponse.of(HttpStatus.OK);
             }
         });

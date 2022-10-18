@@ -8,7 +8,6 @@ import java.lang.annotation.Target;
 
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterDefaultAnalysisConfigurationFile;
-import cloud.filibuster.junit.configuration.FilibusterGrpcBasicAnalysisConfigurationFile;
 import cloud.filibuster.junit.extensions.FilibusterTestExtension;
 
 import org.apiguardian.api.API;

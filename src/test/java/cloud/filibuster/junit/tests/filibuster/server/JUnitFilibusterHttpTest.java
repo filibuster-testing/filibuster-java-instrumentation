@@ -1,9 +1,10 @@
-package cloud.filibuster.junit.tests.filibuster;
+package cloud.filibuster.junit.tests.filibuster.server;
 
 import cloud.filibuster.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
+import cloud.filibuster.junit.tests.filibuster.JUnitBaseTest;
 import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.AggregatedHttpResponse;
 import com.linecorp.armeria.common.HttpHeaderNames;
@@ -40,8 +41,6 @@ public class JUnitFilibusterHttpTest extends JUnitBaseTest {
     @FilibusterTest
     @Order(1)
     public void testHelloAndWorldServiceWithFilibuster() {
-        boolean expected = false;
-
         try {
             String baseURI = "http://" + Networking.getHost("hello") + ":" + Networking.getPort("hello") + "/";
             WebClient webClient = TestHelper.getTestWebClient(baseURI);

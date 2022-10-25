@@ -107,7 +107,7 @@ public class FilibusterDecoratingHttpClientTest extends FilibusterDecoratingHttp
         // takes much longer because of a slower machine with fewer JVM threads.
 
         if (System.getenv("GITHUB_ACTIONS") != null) {
-            Thread.sleep(20);
+            Thread.sleep(30);
         } else {
             Thread.sleep(10);
         }

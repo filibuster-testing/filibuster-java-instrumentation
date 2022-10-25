@@ -123,6 +123,6 @@ public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(4, numberOfTestsExceptionsThrownFaultsInjected);
+        assertEquals(5, numberOfTestsExceptionsThrownFaultsInjected);
     }
 }

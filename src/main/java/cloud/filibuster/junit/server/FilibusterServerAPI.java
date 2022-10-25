@@ -134,31 +134,27 @@ public class FilibusterServerAPI {
 
     public static boolean hasNextIteration(WebClient webClient, int currentIteration, String caller) throws ExecutionException, InterruptedException {
         CompletableFuture<Boolean> hasNextIteration = CompletableFuture.supplyAsync(() -> {
-            try {
-                RequestHeaders getJson = RequestHeaders.of(
-                        HttpMethod.GET,
-                        "/filibuster/has-next-iteration/" + currentIteration + "/" + caller,
-                        HttpHeaderNames.ACCEPT,
-                        "application/json",
-                        "X-Filibuster-Instrumentation",
-                        "true");
-                AggregatedHttpResponse response = webClient.execute(getJson).aggregate().join();
-                ResponseHeaders headers = response.headers();
-                String statusCode = headers.get(HttpHeaderNames.STATUS);
+            RequestHeaders getJson = RequestHeaders.of(
+                    HttpMethod.GET,
+                    "/filibuster/has-next-iteration/" + currentIteration + "/" + caller,
+                    HttpHeaderNames.ACCEPT,
+                    "application/json",
+                    "X-Filibuster-Instrumentation",
+                    "true");
+            AggregatedHttpResponse response = webClient.execute(getJson).aggregate().join();
+            ResponseHeaders headers = response.headers();
+            String statusCode = headers.get(HttpHeaderNames.STATUS);
 
-                if (statusCode == null) {
-                    FilibusterServerBadResponseException.logAndThrow("hasNextIteration, statusCode: null");
-                }
-
-                if (!Objects.equals(statusCode, "200")) {
-                    FilibusterServerBadResponseException.logAndThrow("hasNextIteration, statusCode: " + statusCode);
-                }
-
-                JSONObject jsonObject = Response.aggregatedHttpResponseToJsonObject(response);
-                return jsonObject.getBoolean("has-next-iteration");
-            } catch (RuntimeException e) { // TODO: do we need this?
-                return false;
+            if (statusCode == null) {
+                FilibusterServerBadResponseException.logAndThrow("hasNextIteration, statusCode: null");
             }
+
+            if (!Objects.equals(statusCode, "200")) {
+                FilibusterServerBadResponseException.logAndThrow("hasNextIteration, statusCode: " + statusCode);
+            }
+
+            JSONObject jsonObject = Response.aggregatedHttpResponseToJsonObject(response);
+            return jsonObject.getBoolean("has-next-iteration");
         }, FilibusterExecutor.getExecutorService());
 
         return hasNextIteration.get();

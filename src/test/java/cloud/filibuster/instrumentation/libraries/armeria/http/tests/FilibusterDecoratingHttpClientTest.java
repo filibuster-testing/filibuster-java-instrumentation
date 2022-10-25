@@ -97,6 +97,15 @@ public class FilibusterDecoratingHttpClientTest extends FilibusterDecoratingHttp
         // race condition: join() completes at the same point that response.whenComplete() finishes
         // this is where we pop the EI, this could be a potential problem, probably need to enforce a mutex.
         // for now, hack it and sleep.
+
+        // this also impacts waiting for the invocation_complete in certain tests:
+        // for example, FilibusterDecoratingHttpClientTest where the invocation_complete record
+        // might not be written and race with the join: therefore, wait until we are certain
+        // the join has completed and the record has been written.
+
+        // really, need something better than this because it races and in the CI environment
+        // takes much longer because of a slower machine with fewer JVM threads.
+
         if (System.getenv("GITHUB_ACTIONS") != null) {
             Thread.sleep(20);
         } else {

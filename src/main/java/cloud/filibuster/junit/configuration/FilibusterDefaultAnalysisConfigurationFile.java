@@ -29,8 +29,10 @@ public class FilibusterDefaultAnalysisConfigurationFile implements FilibusterAna
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
         // Google's gRPC exception types.
+        // Taken from: https://grpc.github.io/grpc/core/md_doc_statuscodes.html
         exhaustiveGrpcErrorCodeList.add("DEADLINE_EXCEEDED");
         exhaustiveGrpcErrorCodeList.add("UNAVAILABLE");
+        exhaustiveGrpcErrorCodeList.add("INTERNAL");
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderGrpcExceptions = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc.exceptions")

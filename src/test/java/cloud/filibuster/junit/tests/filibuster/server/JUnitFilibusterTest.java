@@ -102,6 +102,6 @@ public class JUnitFilibusterTest extends JUnitBaseTest {
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(4, numberOfTestsExceptionsThrownFaultsInjected);
+        assertEquals(5, numberOfTestsExceptionsThrownFaultsInjected);
     }
 }

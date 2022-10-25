@@ -97,7 +97,7 @@ public class FilibusterDecoratingHttpClientTest extends FilibusterDecoratingHttp
         // race condition: join() completes at the same point that response.whenComplete() finishes
         // this is where we pop the EI, this could be a potential problem, probably need to enforce a mutex.
         // for now, hack it and sleep.
-        Thread.sleep(20);
+        Thread.sleep(15);
     }
 
     public void startExternalServer() throws InterruptedException, IOException {

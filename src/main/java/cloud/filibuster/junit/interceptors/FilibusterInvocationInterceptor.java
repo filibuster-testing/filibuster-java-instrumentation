@@ -5,6 +5,7 @@ import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.exceptions.FilibusterServerUnavailabilityException;
 import cloud.filibuster.instrumentation.helpers.Property;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
+import cloud.filibuster.junit.interceptors.FilibusterInvocationInterceptor.FilibusterServerLifecycle;
 import cloud.filibuster.junit.server.FilibusterServerAPI;
 import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.AggregatedHttpResponse;
@@ -24,6 +25,8 @@ import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static cloud.filibuster.junit.server.FilibusterServerAPI.healthCheck;
 
 /**
  * Invocation Interceptor for automatically running tests with Filibuster.
@@ -93,24 +96,12 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
                     logger.log(Level.INFO, "Waiting for FilibusterServer to come online...");
 
                     try {
-                        // Get remote resource.
-                        RequestHeaders getHeaders = RequestHeaders.of(
-                                HttpMethod.GET, "/health-check", HttpHeaderNames.ACCEPT, "application/json");
-                        AggregatedHttpResponse response = webClient.execute(getHeaders).aggregate().join();
-
-                        // Get headers and verify a 200 OK response.
-                        ResponseHeaders headers = response.headers();
-                        String statusCode = headers.get(HttpHeaderNames.STATUS);
-
-                        if (Objects.equals(statusCode, "200")) {
-                            logger.log(Level.INFO, "Available!");
-                            online = true;
+                        online = healthCheck(webClient);
+                        if (online) {
                             break;
-                        } else {
-                            logger.log(Level.INFO, "Didn't get proper response, status code: " + statusCode);
                         }
-                    } catch (RuntimeException e) {
-                        // Nothing, we'll try again.
+                    } catch (RuntimeException | ExecutionException e) {
+                        // Nothing, try again.
                     }
 
                     logger.log(Level.INFO, "Sleeping one second...");
@@ -137,21 +128,8 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
                     logger.log(Level.INFO, "Waiting for FilibusterServer to stop...");
 
                     try {
-                        // Get remote resource.
-                        RequestHeaders getHeaders = RequestHeaders.of(
-                                HttpMethod.GET, "/health-check", HttpHeaderNames.ACCEPT, "application/json");
-                        AggregatedHttpResponse response = webClient.execute(getHeaders).aggregate().join();
-
-                        // Get headers and verify a 200 OK response.
-                        ResponseHeaders headers = response.headers();
-                        String statusCode = headers.get(HttpHeaderNames.STATUS);
-
-                        if (Objects.equals(statusCode, "200")) {
-                            logger.log(Level.INFO, "Still available!");
-                        } else {
-                            logger.log(Level.INFO, "Status code: " + statusCode);
-                        }
-                    } catch (RuntimeException e) {
+                        healthCheck(webClient);
+                    } catch (RuntimeException | ExecutionException e) {
                         break;
                     }
 

@@ -16,6 +16,39 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class FilibusterServerAPI {
+    public static boolean healthCheck(WebClient webClient) throws ExecutionException, InterruptedException {
+        CompletableFuture<Boolean> healthCheck = CompletableFuture.supplyAsync(() -> {
+            RequestHeaders getJson = RequestHeaders.of(
+                    HttpMethod.GET,
+                    "/health-check",
+                    HttpHeaderNames.ACCEPT,
+                    "application/json",
+                    "X-Filibuster-Instrumentation",
+                    "true");
+            AggregatedHttpResponse response = webClient.execute(getJson).aggregate().join();
+            ResponseHeaders headers = response.headers();
+            String statusCode = headers.get(HttpHeaderNames.STATUS);
+
+            if (statusCode == null) {
+                FilibusterServerBadResponseException.logAndThrow("healthCheck, statusCode: null");
+                return false;
+            }
+
+            if (!Objects.equals(statusCode, "200")) {
+                FilibusterServerBadResponseException.logAndThrow("healthCheck, statusCode: " + statusCode);
+                return false;
+            }
+
+            if (statusCode.equals("200")) {
+                return true;
+            }
+
+            return false;
+        }, FilibusterExecutor.getExecutorService());
+
+        return healthCheck.get();
+    }
+
     public static void analysisFile(WebClient webClient, JSONObject jsonAnalysisConfiguration) throws ExecutionException, InterruptedException {
         CompletableFuture<Void> analysisFileFuture = CompletableFuture.supplyAsync(() -> {
             RequestHeaders postJson = RequestHeaders.of(

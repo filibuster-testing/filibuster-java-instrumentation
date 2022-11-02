@@ -265,3 +265,4 @@ Build-time: ${java.time.LocalDateTime.now()}
 }
 
 sourceSets.main.output.dir genOutputDir, builtBy: generateVersionTxt
+

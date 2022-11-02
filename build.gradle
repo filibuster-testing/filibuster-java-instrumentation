@@ -8,7 +8,9 @@ plugins {
     id 'java'
     id "com.diffplug.spotless" version "5.0.0"
     id "net.ltgt.errorprone" version "2.0.2"
+    id 'signing'
     id 'maven-publish'
+    id('io.github.gradle-nexus.publish-plugin') version '1.1.0'
 }
 
 apply plugin: 'java'
@@ -186,29 +188,80 @@ javadoc {
     }
 }
 
+// Publishing
+// adapted from: https://selectfrom.dev/publishing-your-first-open-source-library-with-gradle-50bd0b1cd3af
+
+group = "cloud.filibuster"
+archivesBaseName = "instrumentation"
+version = "0.32"
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+nexusPublishing {
+    repositories {
+        sonatype {  //only for users registered in Sonatype after 24 Feb 2021
+            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+        }
+    }
+}
+
 publishing {
     publications {
-        maven(MavenPublication) {
-            groupId = 'cloud.filibuster'
-            artifactId = 'instrumentation'
-            version = "0.32-SNAPSHOT"
+        mavenJava(MavenPublication) {
             from components.java
 
             pom {
-                name = 'Filibuster Java Instrumentation'
-                description = 'Filibuster instrumentation for the JVM'
-            }
-        }
-    }
+                name = 'Filibuster instrumentation for the JVM'
+                artifactId = 'cloud.filibuster.instrumentation'
+                packaging = 'jar'
+                description = 'Instrumtation for the JVM to enable the Filibuster testing utility.'
+                url = 'https://github.com/filibuster-testing/filibuster-java-instrumentation'
 
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = "https://maven.pkg.github.com/filibuster-testing/filibuster-java-instrumentation"
-            credentials {
-                username = System.getenv("GITHUB_ACTOR")
-                password = System.getenv("GITHUB_TOKEN")
+                scm {
+                    connection = 'scm:git:git://github.com/filibuster-testing/filibuster-java-instrumentation.git'
+                    developerConnection = 'scm:git:ssh://github.com/filibuster-testing/filibuster-java-instrumentation.git'
+                    url = 'https://github.com/filibuster-testing/filibuster-java-instrumentation'
+                }
+
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'cmeiklejohn'
+                        name = 'Christopher S. Meiklejohn'
+                        email = 'christopher.meiklejohn@gmail.com'
+                    }
+                }
             }
         }
     }
 }
+
+signing {
+    sign publishing.publications.mavenJava
+}
+
+ext.genOutputDir = file("$buildDir/generated-resources")
+
+task generateVersionTxt()  {
+    ext.outputFile = file("$genOutputDir/version.txt")
+    outputs.file(outputFile)
+    doLast {
+        outputFile.text = """GroupId: ${project.group}
+Name: ${project.name}
+Version: $version
+Build-time: ${java.time.LocalDateTime.now()}
+"""
+    }
+}
+
+sourceSets.main.output.dir genOutputDir, builtBy: generateVersionTxt

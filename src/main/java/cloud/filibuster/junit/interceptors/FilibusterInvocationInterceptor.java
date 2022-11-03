@@ -2,31 +2,20 @@ package cloud.filibuster.junit.interceptors;
 
 import cloud.filibuster.dei.implementations.DistributedExecutionIndexV1;
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
-import cloud.filibuster.instrumentation.exceptions.FilibusterServerUnavailabilityException;
 import cloud.filibuster.instrumentation.helpers.Property;
+import cloud.filibuster.junit.server.FilibusterServerLifecycle;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
-import cloud.filibuster.junit.interceptors.FilibusterInvocationInterceptor.FilibusterServerLifecycle;
 import cloud.filibuster.junit.server.FilibusterServerAPI;
 import com.linecorp.armeria.client.WebClient;
-import com.linecorp.armeria.common.AggregatedHttpResponse;
-import com.linecorp.armeria.common.HttpHeaderNames;
-import com.linecorp.armeria.common.HttpMethod;
-import com.linecorp.armeria.common.RequestHeaders;
-import com.linecorp.armeria.common.ResponseHeaders;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.InvocationInterceptor;
 import org.junit.jupiter.api.extension.ReflectiveInvocationContext;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
-import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static cloud.filibuster.junit.server.FilibusterServerAPI.healthCheck;
 
 /**
  * Invocation Interceptor for automatically running tests with Filibuster.
@@ -36,14 +25,9 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
 
     public static boolean shouldInitializeFilibusterServer = true;
 
-    private final ProcessBuilder filibusterServerProcessBuilder;
-
     private final FilibusterConfiguration filibusterConfiguration;
 
     private final HashMap<Integer, Boolean> invocationCompletionMap;
-
-    @Nullable
-    private static Process filibusterServerProcess;
 
     private final int currentIteration;
 
@@ -73,75 +57,9 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
 
         this.filibusterConfiguration = filibusterConfiguration;
 
-        this.filibusterServerProcessBuilder = new ProcessBuilder()
-                .command(filibusterConfiguration.toExecutableCommand());
-
         this.webClient = WebClient.builder(filibusterConfiguration.getFilibusterBaseUri())
                 .factory(FilibusterExecutor.getNewClientFactory(1))
                 .build();
-    }
-
-    /****************************************************************************************************************
-     * Filibuster lifecycle.
-     */
-
-    static class FilibusterServerLifecycle {
-        private static synchronized void startServer(ProcessBuilder filibusterServerProcessBuilder, WebClient webClient) throws InterruptedException, IOException {
-            if (filibusterServerProcess == null) {
-                filibusterServerProcess = filibusterServerProcessBuilder.start();
-
-                boolean online = false;
-
-                for (int i = 0; i < 10; i++) {
-                    logger.log(Level.INFO, "Waiting for FilibusterServer to come online...");
-
-                    try {
-                        online = healthCheck(webClient);
-                        if (online) {
-                            break;
-                        }
-                    } catch (RuntimeException | ExecutionException e) {
-                        // Nothing, try again.
-                    }
-
-                    logger.log(Level.INFO, "Sleeping one second...");
-                    Thread.sleep(1000);
-                }
-
-                if (!online) {
-                    logger.log(Level.INFO, "FilibusterServer never came online!");
-                    throw new FilibusterServerUnavailabilityException();
-                }
-            }
-        }
-
-        @SuppressWarnings("BusyWait")
-        private static synchronized void stopServer(WebClient webClient) throws InterruptedException {
-            if (filibusterServerProcess != null) {
-                filibusterServerProcess.destroyForcibly();
-
-                logger.log(Level.WARNING, "Waiting for Filibuster server to exit.");
-                int exitCode = filibusterServerProcess.waitFor();
-                logger.log(Level.WARNING, "Exit code for Filibuster:: " + exitCode);
-
-                while (true) {
-                    logger.log(Level.INFO, "Waiting for FilibusterServer to stop...");
-
-                    try {
-                        healthCheck(webClient);
-                    } catch (RuntimeException | ExecutionException e) {
-                        break;
-                    }
-
-                    logger.log(Level.INFO, "Sleeping one second until offline.");
-                    Thread.sleep(1000);
-                }
-
-                logger.log(Level.INFO, "Filibuster server stopped!");
-
-                filibusterServerProcess = null;
-            }
-        }
     }
 
     /****************************************************************************************************************
@@ -236,7 +154,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             FilibusterSystemProperties.setSystemPropertiesForFilibusterInstrumentation(filibusterConfiguration);
 
             if (shouldInitializeFilibusterServer) {
-                FilibusterServerLifecycle.startServer(filibusterServerProcessBuilder, webClient);
+                FilibusterServerLifecycle.startServer(filibusterConfiguration, webClient);
                 FilibusterServerAPI.analysisFile(webClient, filibusterConfiguration.readAnalysisFile());
             }
         }

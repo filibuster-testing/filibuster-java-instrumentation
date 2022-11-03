@@ -9,14 +9,15 @@ public class FilibusterDockerServerBackend implements FilibusterServerBackend {
     private GenericContainer<?> container;
 
     @Override
-    public boolean start(FilibusterConfiguration filibusterConfiguration) throws Throwable {
+    public synchronized boolean start(FilibusterConfiguration filibusterConfiguration) throws Throwable {
         this.container = new GenericContainer<>(DockerImageName.parse("redis:3.0.6"))
                 .withExposedPorts(6379);
+        this.container.start();
         return true;
     }
 
     @Override
-    public boolean stop(FilibusterConfiguration filibusterConfiguration) {
+    public synchronized boolean stop(FilibusterConfiguration filibusterConfiguration) {
         container.stop();
         return true;
     }

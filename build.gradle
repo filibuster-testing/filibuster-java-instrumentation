@@ -59,13 +59,17 @@ dependencies {
     // JUnit annotations
     implementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
 
+    // Test Containers
+    implementation "org.testcontainers:testcontainers:1.17.5"
+
     // Logging
     runtimeOnly 'ch.qos.logback:logback-classic:1.2.3'
     runtimeOnly 'org.slf4j:log4j-over-slf4j:1.7.30'
 
+    // Test dependencies are used for testing Filibuster.  Any jUnit, etc. have to be main dependencies
+    // with the assumption that Filibuster is only pulled in as a test dependency in the application that
+    // uses it.
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
-
-    testImplementation "org.testcontainers:testcontainers:1.17.5"
 
     testImplementation 'io.opentelemetry:opentelemetry-api:1.6.0'
     testImplementation 'io.opentelemetry:opentelemetry-extension-annotations:1.6.0'

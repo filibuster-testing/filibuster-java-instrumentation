@@ -20,7 +20,9 @@ public class FilibusterDebugServerBackend {
     }
 
     public static boolean stop() throws InterruptedException {
-        filibusterServerProcess.destroyForcibly();
+        if (filibusterServerProcess != null) {
+            filibusterServerProcess.destroyForcibly();
+        }
 
         logger.log(Level.WARNING, "Waiting for Filibuster server to exit.");
         int exitCode = filibusterServerProcess.waitFor();

@@ -1,6 +1,8 @@
 package cloud.filibuster.junit.configuration;
 
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.junit.server.FilibusterDebugServerBackend;
+import cloud.filibuster.junit.server.FilibusterServerBackend;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import io.micrometer.core.instrument.util.IOUtils;
 import org.json.JSONObject;
@@ -17,6 +19,7 @@ public class FilibusterConfiguration {
     private static final String filibusterExecutable = "/usr/local/bin/filibuster";
 
     private final boolean dynamicReduction;
+
     private final boolean suppressCombinations;
 
     private final String filibusterHost;
@@ -26,6 +29,8 @@ public class FilibusterConfiguration {
 
     private final String analysisFile;
 
+    private final FilibusterServerBackend filibusterServerBackend;
+
     private FilibusterConfiguration(Builder builder) {
         this.dynamicReduction = builder.dynamicReduction;
         this.suppressCombinations = builder.suppressCombinations;
@@ -33,6 +38,11 @@ public class FilibusterConfiguration {
         this.filibusterPort = builder.filibusterPort;
         this.dataNondeterminism = builder.dataNondeterminism;
         this.analysisFile = builder.analysisFile;
+        this.filibusterServerBackend = builder.filibusterServerBackend;
+    }
+
+    public FilibusterServerBackend getFilibusterServerBackend() {
+        return this.filibusterServerBackend;
     }
 
     /**
@@ -100,6 +110,8 @@ public class FilibusterConfiguration {
         private int filibusterPort = Networking.getFilibusterPort();
 
         private String analysisFile;
+
+        private FilibusterServerBackend filibusterServerBackend = new FilibusterDebugServerBackend();
 
         /**
          * Should this configuration use dynamic reduction?
@@ -172,6 +184,12 @@ public class FilibusterConfiguration {
         @CanIgnoreReturnValue
         public Builder analysisFile(String analysisFile) {
             this.analysisFile = analysisFile;
+            return this;
+        }
+
+        @CanIgnoreReturnValue
+        public Builder filibusterServerBackend(FilibusterServerBackend filibusterServerBackend) {
+            this.filibusterServerBackend = filibusterServerBackend;
             return this;
         }
 

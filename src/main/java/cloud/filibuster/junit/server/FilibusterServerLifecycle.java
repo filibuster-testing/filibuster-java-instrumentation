@@ -4,7 +4,6 @@ import cloud.filibuster.instrumentation.exceptions.FilibusterServerUnavailabilit
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import com.linecorp.armeria.client.WebClient;
 
-import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,11 +15,12 @@ public class FilibusterServerLifecycle {
 
     private static final Logger logger = Logger.getLogger(FilibusterServerLifecycle.class.getName());
 
-    public static synchronized void startServer(FilibusterConfiguration filibusterConfiguration, WebClient webClient) throws InterruptedException, IOException {
+    public static synchronized void startServer(FilibusterConfiguration filibusterConfiguration, WebClient webClient) throws Throwable {
         if (!started) {
             started = true;
 
-            FilibusterDebugServerBackend.start(filibusterConfiguration);
+            FilibusterServerBackend filibusterServerBackend = filibusterConfiguration.getFilibusterServerBackend();
+            filibusterServerBackend.start(filibusterConfiguration);
 
             boolean online = false;
 
@@ -48,9 +48,11 @@ public class FilibusterServerLifecycle {
     }
 
     @SuppressWarnings("BusyWait")
-    public static synchronized void stopServer(WebClient webClient) throws InterruptedException {
+    public static synchronized void stopServer(FilibusterConfiguration filibusterConfiguration, WebClient webClient) throws Throwable {
         if (started) {
-            FilibusterDebugServerBackend.stop();
+
+            FilibusterServerBackend filibusterServerBackend = filibusterConfiguration.getFilibusterServerBackend();
+            filibusterServerBackend.stop(filibusterConfiguration);
 
             while (true) {
                 logger.log(Level.INFO, "Waiting for FilibusterServer to stop...");

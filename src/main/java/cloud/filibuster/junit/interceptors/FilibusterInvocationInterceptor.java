@@ -189,7 +189,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             FilibusterServerAPI.terminate(webClient);
 
             if (shouldInitializeFilibusterServer) {
-                FilibusterServerLifecycle.stopServer(webClient);
+                FilibusterServerLifecycle.stopServer(filibusterConfiguration, webClient);
             }
         }
     }

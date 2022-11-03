@@ -65,6 +65,8 @@ dependencies {
 
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
 
+    testImplementation "org.testcontainers:testcontainers:1.17.5"
+
     testImplementation 'io.opentelemetry:opentelemetry-api:1.6.0'
     testImplementation 'io.opentelemetry:opentelemetry-extension-annotations:1.6.0'
 
@@ -193,7 +195,7 @@ javadoc {
 
 group = "cloud.filibuster"
 archivesBaseName = "instrumentation"
-version = "0.32.3"
+version = "0.33"
 
 java {
     withJavadocJar()

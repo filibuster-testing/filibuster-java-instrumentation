@@ -10,9 +10,19 @@ public class FilibusterDockerServerBackend implements FilibusterServerBackend {
 
     @Override
     public synchronized boolean start(FilibusterConfiguration filibusterConfiguration) throws Throwable {
-        this.container = new GenericContainer<>(DockerImageName.parse("redis:3.0.6"))
-                .withExposedPorts(6379);
+        this.container = new GenericContainer<>(DockerImageName.parse("filibuster:0.33"))
+                .withExposedPorts(5005);
+
+        if (filibusterConfiguration.getSuppressCombinations()) {
+            this.container = this.container.withEnv("SHOULD_SUPPRESS_COMBINATIONS", "True");
+        }
+
+        if (!filibusterConfiguration.getDynamicReduction()) {
+            this.container = this.container.withEnv("DISABLE_DYNAMIC_REDUCTION", "True");
+        }
+
         this.container.start();
+
         return true;
     }
 

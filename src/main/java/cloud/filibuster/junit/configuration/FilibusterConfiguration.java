@@ -23,6 +23,7 @@ public class FilibusterConfiguration {
     private final boolean suppressCombinations;
 
     private final String filibusterHost;
+
     private final int filibusterPort;
 
     private final boolean dataNondeterminism;
@@ -52,6 +53,14 @@ public class FilibusterConfiguration {
      */
     public boolean getDataNondeterminism() {
         return this.dataNondeterminism;
+    }
+
+    public boolean getDynamicReduction() {
+        return this.dynamicReduction;
+    }
+
+    public boolean getSuppressCombinations() {
+        return this.suppressCombinations;
     }
 
     /**

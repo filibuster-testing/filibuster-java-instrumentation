@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.tests.filibuster.server;
+package cloud.filibuster.junit.tests.filibuster.server.basic;
 
 import cloud.filibuster.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.helpers.Networking;

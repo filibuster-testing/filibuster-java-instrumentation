@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.tests.filibuster.server;
+package cloud.filibuster.junit.tests.filibuster.server.exhaustive;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;

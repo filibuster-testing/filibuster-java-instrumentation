@@ -103,7 +103,7 @@ public class FilibusterConfiguration {
 
         private String analysisFile;
 
-        private FilibusterServerBackend filibusterServerBackend = new FilibusterLocalProcessServerBackend();
+        private FilibusterServerBackend filibusterServerBackend = new FilibusterDockerServerBackend();
 
         /**
          * Should this configuration use dynamic reduction?

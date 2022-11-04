@@ -1,6 +1,8 @@
 package cloud.filibuster.junit.server;
 
+import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.exceptions.FilibusterServerUnavailabilityException;
+import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import com.linecorp.armeria.client.WebClient;
 
@@ -15,7 +17,14 @@ public class FilibusterServerLifecycle {
 
     private static final Logger logger = Logger.getLogger(FilibusterServerLifecycle.class.getName());
 
-    public static synchronized void startServer(FilibusterConfiguration filibusterConfiguration, WebClient webClient) throws Throwable {
+    private final static WebClient getNewWebClient() {
+        String filibusterBaseUri =  "http://" + Networking.getFilibusterHost() + ":" + Networking.getFilibusterPort() + "/";
+
+        return WebClient.builder(filibusterBaseUri)
+                .factory(FilibusterExecutor.getNewClientFactory(1))
+                .build();
+    }
+
     public static synchronized WebClient startServer(FilibusterConfiguration filibusterConfiguration) throws Throwable {
         if (!started) {
             started = true;

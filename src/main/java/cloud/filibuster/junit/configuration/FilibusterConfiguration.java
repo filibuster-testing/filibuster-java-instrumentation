@@ -1,6 +1,7 @@
 package cloud.filibuster.junit.configuration;
 
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.junit.server.backends.FilibusterDockerServerBackend;
 import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
 import cloud.filibuster.junit.server.FilibusterServerBackend;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
@@ -22,10 +23,6 @@ public class FilibusterConfiguration {
 
     private final boolean suppressCombinations;
 
-    private final String filibusterHost;
-
-    private final int filibusterPort;
-
     private final boolean dataNondeterminism;
 
     private final String analysisFile;
@@ -35,8 +32,6 @@ public class FilibusterConfiguration {
     private FilibusterConfiguration(Builder builder) {
         this.dynamicReduction = builder.dynamicReduction;
         this.suppressCombinations = builder.suppressCombinations;
-        this.filibusterHost = builder.filibusterHost;
-        this.filibusterPort = builder.filibusterPort;
         this.dataNondeterminism = builder.dataNondeterminism;
         this.analysisFile = builder.analysisFile;
         this.filibusterServerBackend = builder.filibusterServerBackend;

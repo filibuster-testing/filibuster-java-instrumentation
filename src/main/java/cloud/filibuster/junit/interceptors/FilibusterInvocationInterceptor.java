@@ -33,7 +33,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
 
     private final int maxIterations;
 
-    private final WebClient webClient;
+    private static WebClient webClient;
 
     /**
      * Invocation interceptor for running tests with Filibuster.
@@ -54,10 +54,6 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
         this.maxIterations = maxIterations;
         this.invocationCompletionMap = invocationCompletionMap;
         this.filibusterConfiguration = filibusterConfiguration;
-
-        this.webClient = WebClient.builder(filibusterConfiguration.getFilibusterBaseUri())
-                .factory(FilibusterExecutor.getNewClientFactory(1))
-                .build();
     }
 
     /****************************************************************************************************************
@@ -152,7 +148,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             FilibusterSystemProperties.setSystemPropertiesForFilibusterInstrumentation(filibusterConfiguration);
 
             if (shouldInitializeFilibusterServer) {
-                FilibusterServerLifecycle.startServer(filibusterConfiguration, webClient);
+                this.webClient = FilibusterServerLifecycle.startServer(filibusterConfiguration);
                 FilibusterServerAPI.analysisFile(webClient, filibusterConfiguration.readAnalysisFile());
             }
         }
@@ -187,7 +183,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             FilibusterServerAPI.terminate(webClient);
 
             if (shouldInitializeFilibusterServer) {
-                FilibusterServerLifecycle.stopServer(filibusterConfiguration, webClient);
+                this.webClient = FilibusterServerLifecycle.stopServer(filibusterConfiguration, webClient);
             }
         }
     }

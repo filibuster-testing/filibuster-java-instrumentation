@@ -20,10 +20,11 @@ import java.util.logging.Logger;
  * Assertions provided by Filibuster for writing conditional, fault-based assertions.
  */
 public class Assertions {
-    private static final Logger logger = Logger.getLogger(FilibusterClientInstrumentor.class.getName());
-    private static final String filibusterHost = Networking.getFilibusterHost();
-    private static final int filibusterPort = Networking.getFilibusterPort();
-    private static final String filibusterBaseUri = "http://" + filibusterHost + ":" + filibusterPort + "/";
+    private static final Logger logger = Logger.getLogger(Assertions.class.getName());
+
+    private static String getFilibusterBaseUri() {
+        return "http://" + Networking.getFilibusterHost() + ":" + Networking.getFilibusterPort() + "/";
+    }
 
     /**
      * Determine if a fault was injected during the current test execution.
@@ -35,6 +36,7 @@ public class Assertions {
     }
 
     private static boolean wasFaultInjected(String uri) {
+        String filibusterBaseUri = getFilibusterBaseUri();
         WebClient webClient = FilibusterExecutor.getWebClient(filibusterBaseUri);
         RequestHeaders getHeaders = RequestHeaders.of(HttpMethod.GET, uri, HttpHeaderNames.ACCEPT, "application/json");
         AggregatedHttpResponse response = webClient.execute(getHeaders).aggregate().join();

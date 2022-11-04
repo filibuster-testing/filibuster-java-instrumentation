@@ -5,6 +5,7 @@ import cloud.filibuster.instrumentation.exceptions.FilibusterServerUnavailabilit
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import com.linecorp.armeria.client.WebClient;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
@@ -64,6 +65,7 @@ public class FilibusterServerLifecycle {
     }
 
     @SuppressWarnings("BusyWait")
+    @Nullable
     public static synchronized WebClient stopServer(FilibusterConfiguration filibusterConfiguration, WebClient webClient) throws Throwable {
         if (started) {
 

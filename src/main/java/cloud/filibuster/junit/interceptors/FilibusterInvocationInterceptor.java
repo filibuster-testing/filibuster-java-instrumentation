@@ -1,7 +1,6 @@
 package cloud.filibuster.junit.interceptors;
 
 import cloud.filibuster.dei.implementations.DistributedExecutionIndexV1;
-import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.helpers.Property;
 import cloud.filibuster.junit.server.FilibusterServerLifecycle;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;

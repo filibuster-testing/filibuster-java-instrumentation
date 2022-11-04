@@ -48,7 +48,7 @@ public class FilibusterServerLifecycle {
     }
 
     @SuppressWarnings("BusyWait")
-    public static synchronized void stopServer(FilibusterConfiguration filibusterConfiguration, WebClient webClient) throws Throwable {
+    public static synchronized WebClient stopServer(FilibusterConfiguration filibusterConfiguration, WebClient webClient) throws Throwable {
         if (started) {
 
             FilibusterServerBackend filibusterServerBackend = filibusterConfiguration.getFilibusterServerBackend();
@@ -71,5 +71,7 @@ public class FilibusterServerLifecycle {
 
             started = false;
         }
+
+        return null;
     }
 }

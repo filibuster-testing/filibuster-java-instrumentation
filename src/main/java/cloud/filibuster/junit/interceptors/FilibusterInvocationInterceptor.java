@@ -78,10 +78,10 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             FilibusterSystemProperties.setSystemPropertiesForFilibusterInstrumentation(filibusterConfiguration);
 
             if (shouldInitializeFilibusterServer) {
-                this.webClient = FilibusterServerLifecycle.startServer(filibusterConfiguration);
+                webClient = FilibusterServerLifecycle.startServer(filibusterConfiguration);
                 FilibusterServerAPI.analysisFile(webClient, filibusterConfiguration.readAnalysisFile());
             } else {
-                this.webClient = getNewWebClient();
+                webClient = getNewWebClient();
             }
         }
 
@@ -115,9 +115,9 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             FilibusterServerAPI.terminate(webClient);
 
             if (shouldInitializeFilibusterServer) {
-                this.webClient = FilibusterServerLifecycle.stopServer(filibusterConfiguration, webClient);
+                webClient = FilibusterServerLifecycle.stopServer(filibusterConfiguration, webClient);
             } else {
-                this.webClient = null;
+                webClient = null;
             }
         }
     }

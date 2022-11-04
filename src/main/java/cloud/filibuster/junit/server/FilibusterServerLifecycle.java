@@ -16,11 +16,14 @@ public class FilibusterServerLifecycle {
     private static final Logger logger = Logger.getLogger(FilibusterServerLifecycle.class.getName());
 
     public static synchronized void startServer(FilibusterConfiguration filibusterConfiguration, WebClient webClient) throws Throwable {
+    public static synchronized WebClient startServer(FilibusterConfiguration filibusterConfiguration) throws Throwable {
         if (!started) {
             started = true;
 
             FilibusterServerBackend filibusterServerBackend = filibusterConfiguration.getFilibusterServerBackend();
             filibusterServerBackend.start(filibusterConfiguration);
+
+            WebClient webClient = getNewWebClient();
 
             boolean online = false;
 
@@ -44,6 +47,10 @@ public class FilibusterServerLifecycle {
                 logger.log(Level.INFO, "FilibusterServer never came online!");
                 throw new FilibusterServerUnavailabilityException();
             }
+
+            return webClient;
+        } else {
+            return getNewWebClient();
         }
     }
 

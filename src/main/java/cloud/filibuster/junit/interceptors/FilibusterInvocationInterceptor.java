@@ -1,9 +1,9 @@
 package cloud.filibuster.junit.interceptors;
 
-import cloud.filibuster.dei.implementations.DistributedExecutionIndexV1;
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.helpers.Property;
+import cloud.filibuster.junit.FilibusterSystemProperties;
 import cloud.filibuster.junit.server.FilibusterServerLifecycle;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.junit.server.FilibusterServerAPI;
@@ -14,8 +14,6 @@ import org.junit.jupiter.api.extension.ReflectiveInvocationContext;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -66,85 +64,6 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
     }
 
     /****************************************************************************************************************
-     * Filibuster system properties.
-     */
-
-    static class FilibusterSystemProperties {
-        public static void setSystemPropertiesForFilibusterInstrumentation(FilibusterConfiguration filibusterConfiguration) {
-            if (filibusterConfiguration.getDataNondeterminism()) {
-                DistributedExecutionIndexV1.Properties.Asynchronous.setAsynchronousInclude(false);
-            }
-
-            System.setProperty("kotlinx.coroutines.debug", "on");
-            System.setProperty("kotlinx.coroutines.stacktrace.recovery", "true");
-        }
-
-        public static void unsetSystemPropertiesForFilibusterInstrumentation() {
-            DistributedExecutionIndexV1.Properties.Asynchronous.setAsynchronousInclude(true);
-
-            System.setProperty("kotlinx.coroutines.debug", "off");
-            System.setProperty("kotlinx.coroutines.stacktrace.recovery", "false");
-        }
-    }
-
-    /****************************************************************************************************************
-     * Helpers.
-     */
-
-    static class Helpers {
-        @SuppressWarnings("InterruptedExceptionSwallowed")
-        private static boolean shouldBypassExecution(WebClient webClient, int currentIteration, String caller) {
-            try {
-                return !FilibusterServerAPI.hasNextIteration(webClient, currentIteration, caller);
-            } catch (Exception e) {
-                // TODO: fix me: in event server is unavailable, skip all executions except the first one.
-                return true;
-            }
-        }
-
-        @SuppressWarnings("InterruptedExceptionSwallowed")
-        private static void proceedAndLogException(InvocationInterceptor.Invocation<Void> invocation,
-                                                   int currentIteration,
-                                                   WebClient webClient) throws Throwable {
-            try {
-                invocation.proceed();
-                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */false);
-            } catch (Throwable t) {
-                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */true);
-                throw t;
-            }
-        }
-
-        /**
-         * Conditionally mark the teardown for a given test iteration complete.
-         *
-         * There is a significant amount of nuance in this function.  The Filibuster server needs to know when a particular
-         * test iteration is done and all the teardown is complete.  This is non-trivial because test functions might contain
-         * and arbitrary number of afterEach methods (or, none at all.)  Therefore, the only way to ensure that we capture this is to do the following.
-         *
-         * First, instrument the beforeEach and the testTemplate method.  Record a boolean in a map to indicate that the previous test is
-         * complete when we reach the start of a new test.  However, some tests might have a beforeEach executed in the first iteration,
-         * therefore, we also need to prevent notifying the server on the first iteration (iteration 0, the start of the first actual test.)
-         *
-         * @param invocationCompletionMap tracks the invocations that have completed and all teardowns have finished.
-         * @param currentIteration the iteration we are currently in, not the iteration that's been completed (current - 1).
-         * @param webClient a web client to use to talk to the Filibuster Server.
-         */
-        private static void conditionallyMarkTeardownComplete(HashMap<Integer, Boolean> invocationCompletionMap, int currentIteration, WebClient webClient) {
-            int previousIteration = currentIteration - 1;
-
-            if (! invocationCompletionMap.containsKey(previousIteration) && (previousIteration != 0)) {
-                try {
-                    FilibusterServerAPI.teardownsCompleted(webClient, previousIteration);
-                } catch (ExecutionException | InterruptedException e) {
-                    logger.log(Level.SEVERE, "Could not notify Filibuster of teardown completed; this is fatal error: " + e);
-                }
-                invocationCompletionMap.put(previousIteration, true);
-            }
-        }
-    }
-
-    /****************************************************************************************************************
      * Invocation callbacks.
      */
 
@@ -164,14 +83,14 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             }
         }
 
-        Helpers.conditionallyMarkTeardownComplete(invocationCompletionMap, currentIteration, webClient);
+        FilibusterInvocationInterceptorHelpers.conditionallyMarkTeardownComplete(invocationCompletionMap, currentIteration, webClient);
 
         Property.setInstrumentationEnabledProperty(true);
 
         // Test handling.
         if (currentIteration == 1) {
             // First iteration always runs because it's the fault free execution.
-            Helpers.proceedAndLogException(invocation, currentIteration, webClient);
+            FilibusterInvocationInterceptorHelpers.proceedAndLogException(invocation, currentIteration, webClient);
         } else if (currentIteration == maxIterations) {
             // Last iteration never runs.
             invocation.skip();
@@ -179,10 +98,10 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             // Otherwise:
             // (A) Conditionally mark teardown of the previous iteration complete, if not done yet.
             // (B) Ask the server if we have a test iteration to run and run it if so.
-            if (Helpers.shouldBypassExecution(webClient, currentIteration, "testTemplate")) {
+            if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(webClient, currentIteration, "testTemplate")) {
                 invocation.skip();
             } else {
-                Helpers.proceedAndLogException(invocation, currentIteration, webClient);
+                FilibusterInvocationInterceptorHelpers.proceedAndLogException(invocation, currentIteration, webClient);
             }
         }
 
@@ -215,9 +134,9 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             // Otherwise:
             // (A) Conditionally mark teardown of the previous iteration complete, if not done yet.
             // (B) Ask the server if we have a test iteration to run and run it if so.
-            Helpers.conditionallyMarkTeardownComplete(invocationCompletionMap, currentIteration, webClient);
+            FilibusterInvocationInterceptorHelpers.conditionallyMarkTeardownComplete(invocationCompletionMap, currentIteration, webClient);
 
-            if (Helpers.shouldBypassExecution(webClient, currentIteration, "beforeEach")) {
+            if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(webClient, currentIteration, "beforeEach")) {
                 invocation.skip();
             } else {
                 invocation.proceed();
@@ -238,7 +157,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
         } else {
             // Otherwise:
             // (A) Ask the server if we have a test iteration to run and run it if so.
-            if (Helpers.shouldBypassExecution(webClient, currentIteration, "afterEach")) {
+            if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(webClient, currentIteration, "afterEach")) {
                 invocation.skip();
             } else {
                 invocation.proceed();

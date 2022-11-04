@@ -1,6 +1,8 @@
 package cloud.filibuster.junit.interceptors;
 
 import cloud.filibuster.dei.implementations.DistributedExecutionIndexV1;
+import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
+import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.helpers.Property;
 import cloud.filibuster.junit.server.FilibusterServerLifecycle;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
@@ -33,6 +35,14 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
     private final int maxIterations;
 
     private static WebClient webClient;
+
+    private final static WebClient getNewWebClient() {
+        String filibusterBaseUri =  "http://" + Networking.getFilibusterHost() + ":" + Networking.getFilibusterPort() + "/";
+
+        return WebClient.builder(filibusterBaseUri)
+                .factory(FilibusterExecutor.getNewClientFactory(1))
+                .build();
+    }
 
     /**
      * Invocation interceptor for running tests with Filibuster.
@@ -149,6 +159,8 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             if (shouldInitializeFilibusterServer) {
                 this.webClient = FilibusterServerLifecycle.startServer(filibusterConfiguration);
                 FilibusterServerAPI.analysisFile(webClient, filibusterConfiguration.readAnalysisFile());
+            } else {
+                this.webClient = getNewWebClient();
             }
         }
 
@@ -183,6 +195,8 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
 
             if (shouldInitializeFilibusterServer) {
                 this.webClient = FilibusterServerLifecycle.stopServer(filibusterConfiguration, webClient);
+            } else {
+                this.webClient = null;
             }
         }
     }

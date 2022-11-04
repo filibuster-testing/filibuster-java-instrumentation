@@ -58,15 +58,6 @@ public class FilibusterConfiguration {
         return this.suppressCombinations;
     }
 
-    /**
-     * Return URI for Filibuster server given current configuration.
-     *
-     * @return URI (as String)
-     */
-    public String getFilibusterBaseUri() {
-        return "http://" + filibusterHost + ":" + filibusterPort + "/";
-    }
-
     public JSONObject readAnalysisFile() throws FileNotFoundException {
         if (analysisFile != null) {
             File f = new File(analysisFile);
@@ -110,9 +101,6 @@ public class FilibusterConfiguration {
         private boolean suppressCombinations = false;
         private boolean dataNondeterminism = false;
 
-        private String filibusterHost = Networking.getFilibusterHost();
-        private int filibusterPort = Networking.getFilibusterPort();
-
         private String analysisFile;
 
         private FilibusterServerBackend filibusterServerBackend = new FilibusterLocalProcessServerBackend();
@@ -150,32 +138,6 @@ public class FilibusterConfiguration {
         @CanIgnoreReturnValue
         public Builder dataNondeterminism(boolean dataNondeterminism) {
             this.dataNondeterminism = dataNondeterminism;
-            return this;
-        }
-
-        /**
-         * Specify the host name that the Filibuster server is running on.
-         *
-         * @param filibusterHost host name of the Filibuster server.
-         * @return builder
-         */
-        @SuppressWarnings("unused")
-        @CanIgnoreReturnValue
-        public Builder filibusterHost(String filibusterHost) {
-            this.filibusterHost = filibusterHost;
-            return this;
-        }
-
-        /**
-         * Specify the port that the Filibuster server is running on.
-         *
-         * @param filibusterPort port number of Filibuster server.
-         * @return builder
-         */
-        @SuppressWarnings("unused")
-        @CanIgnoreReturnValue
-        public Builder filibusterPort(int filibusterPort) {
-            this.filibusterPort = filibusterPort;
             return this;
         }
 

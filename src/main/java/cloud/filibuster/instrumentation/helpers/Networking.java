@@ -41,8 +41,6 @@ public class Networking {
                     return 5003;
                 case "external":
                     return 5004;
-                case "filibuster":
-                    return 5005;
                 default:
                     RuntimeException re = new MissingServiceSpecificationException();
                     re.initCause(e);
@@ -64,11 +62,11 @@ public class Networking {
     }
 
     public static String getFilibusterHost() {
-        return getHost("filibuster");
+        return Property.getServerHostProperty();
     }
 
     public static int getFilibusterPort() {
-        return getPort("filibuster");
+        return Property.getServerPortProperty();
     }
 
     public static Map.Entry<String, String> extractHostnameAndPortFromURI(String uri) {

@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.InvocationInterceptor;
 import org.junit.jupiter.api.extension.ReflectiveInvocationContext;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.logging.Logger;
@@ -32,6 +33,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
 
     private final int maxIterations;
 
+    @Nullable
     private static WebClient webClient;
 
     private final static WebClient getNewWebClient() {

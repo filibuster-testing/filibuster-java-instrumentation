@@ -52,9 +52,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             HashMap<Integer, Boolean> invocationCompletionMap) {
         this.currentIteration = currentIteration;
         this.maxIterations = maxIterations;
-
         this.invocationCompletionMap = invocationCompletionMap;
-
         this.filibusterConfiguration = filibusterConfiguration;
 
         this.webClient = WebClient.builder(filibusterConfiguration.getFilibusterBaseUri())

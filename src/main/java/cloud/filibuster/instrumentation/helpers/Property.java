@@ -23,6 +23,8 @@ public class Property {
 
     private final static String SERVER_PORT = "filibuster.server.port";
 
+    public final static int SERVER_PORT_DEFAULT = 5005;
+
     public static void setServerPortProperty(int port) {
         System.setProperty(SERVER_PORT, String.valueOf(port));
     }
@@ -31,7 +33,7 @@ public class Property {
         String propertyValue = System.getProperty(SERVER_PORT);
 
         if (isPropertyNull(propertyValue)) {
-            return 5005;
+            return SERVER_PORT_DEFAULT;
         } else {
             return Integer.valueOf(propertyValue);
         }
@@ -43,6 +45,8 @@ public class Property {
 
     private final static String SERVER_HOST = "filibuster.server.host";
 
+    public final static String SERVER_HOST_DEFAULT = "localhost";
+
     public static void setServerHostProperty(String host) {
         System.setProperty(SERVER_HOST, host);
     }
@@ -51,7 +55,7 @@ public class Property {
         String propertyValue = System.getProperty(SERVER_HOST);
 
         if (isPropertyNull(propertyValue)) {
-            return "localhost";
+            return SERVER_HOST_DEFAULT;
         } else {
             return propertyValue;
         }

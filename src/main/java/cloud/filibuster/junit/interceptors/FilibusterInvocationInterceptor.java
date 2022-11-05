@@ -1,6 +1,7 @@
 package cloud.filibuster.junit.interceptors;
 
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
+import cloud.filibuster.instrumentation.exceptions.MissingWebClientException;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.helpers.Property;
 import cloud.filibuster.junit.FilibusterSystemProperties;
@@ -34,10 +35,23 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
     private final int maxIterations;
 
     @Nullable
-    private static WebClient webClient;
+    private static WebClient privateWebClient;
 
-    private final static WebClient getNewWebClient() {
-        String filibusterBaseUri =  "http://" + Networking.getFilibusterHost() + ":" + Networking.getFilibusterPort() + "/";
+    @Nullable
+    public static WebClient getWebClient() {
+        if (privateWebClient == null) {
+            throw new MissingWebClientException();
+        } else {
+            return privateWebClient;
+        }
+    }
+
+    private static void setWebClient(@Nullable WebClient webClient) {
+        privateWebClient = webClient;
+    }
+
+    private static WebClient getNewWebClient() {
+        String filibusterBaseUri = "http://" + Networking.getFilibusterHost() + ":" + Networking.getFilibusterPort() + "/";
 
         return WebClient.builder(filibusterBaseUri)
                 .factory(FilibusterExecutor.getNewClientFactory(1))
@@ -78,21 +92,21 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             FilibusterSystemProperties.setSystemPropertiesForFilibusterInstrumentation(filibusterConfiguration);
 
             if (shouldInitializeFilibusterServer) {
-                webClient = FilibusterServerLifecycle.startServer(filibusterConfiguration);
-                FilibusterServerAPI.analysisFile(webClient, filibusterConfiguration.readAnalysisFile());
+                setWebClient(FilibusterServerLifecycle.startServer(filibusterConfiguration));
+                FilibusterServerAPI.analysisFile(getWebClient(), filibusterConfiguration.readAnalysisFile());
             } else {
-                webClient = getNewWebClient();
+                setWebClient(getNewWebClient());
             }
         }
 
-        FilibusterInvocationInterceptorHelpers.conditionallyMarkTeardownComplete(invocationCompletionMap, currentIteration, webClient);
+        FilibusterInvocationInterceptorHelpers.conditionallyMarkTeardownComplete(invocationCompletionMap, currentIteration, getWebClient());
 
         Property.setInstrumentationEnabledProperty(true);
 
         // Test handling.
         if (currentIteration == 1) {
             // First iteration always runs because it's the fault free execution.
-            FilibusterInvocationInterceptorHelpers.proceedAndLogException(invocation, currentIteration, webClient);
+            FilibusterInvocationInterceptorHelpers.proceedAndLogException(invocation, currentIteration, getWebClient());
         } else if (currentIteration == maxIterations) {
             // Last iteration never runs.
             invocation.skip();
@@ -100,10 +114,10 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             // Otherwise:
             // (A) Conditionally mark teardown of the previous iteration complete, if not done yet.
             // (B) Ask the server if we have a test iteration to run and run it if so.
-            if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(webClient, currentIteration, "testTemplate")) {
+            if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(getWebClient(), currentIteration, "testTemplate")) {
                 invocation.skip();
             } else {
-                FilibusterInvocationInterceptorHelpers.proceedAndLogException(invocation, currentIteration, webClient);
+                FilibusterInvocationInterceptorHelpers.proceedAndLogException(invocation, currentIteration, getWebClient());
             }
         }
 
@@ -112,12 +126,12 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
         // Terminate on the last iteration.
         if ((currentIteration == maxIterations)) {
             FilibusterSystemProperties.unsetSystemPropertiesForFilibusterInstrumentation();
-            FilibusterServerAPI.terminate(webClient);
+            FilibusterServerAPI.terminate(getWebClient());
 
             if (shouldInitializeFilibusterServer) {
-                webClient = FilibusterServerLifecycle.stopServer(filibusterConfiguration, webClient);
+                setWebClient(FilibusterServerLifecycle.stopServer(filibusterConfiguration, getWebClient()));
             } else {
-                webClient = null;
+                setWebClient(null);
             }
         }
     }
@@ -136,9 +150,9 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             // Otherwise:
             // (A) Conditionally mark teardown of the previous iteration complete, if not done yet.
             // (B) Ask the server if we have a test iteration to run and run it if so.
-            FilibusterInvocationInterceptorHelpers.conditionallyMarkTeardownComplete(invocationCompletionMap, currentIteration, webClient);
+            FilibusterInvocationInterceptorHelpers.conditionallyMarkTeardownComplete(invocationCompletionMap, currentIteration, getWebClient());
 
-            if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(webClient, currentIteration, "beforeEach")) {
+            if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(getWebClient(), currentIteration, "beforeEach")) {
                 invocation.skip();
             } else {
                 invocation.proceed();
@@ -159,7 +173,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
         } else {
             // Otherwise:
             // (A) Ask the server if we have a test iteration to run and run it if so.
-            if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(webClient, currentIteration, "afterEach")) {
+            if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(getWebClient(), currentIteration, "afterEach")) {
                 invocation.skip();
             } else {
                 invocation.proceed();

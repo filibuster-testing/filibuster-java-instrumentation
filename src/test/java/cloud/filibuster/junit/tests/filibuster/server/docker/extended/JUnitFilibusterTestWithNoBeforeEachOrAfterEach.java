@@ -44,7 +44,6 @@ public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
      * @throws IOException thrown when trying to start up dependent servers.
      */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @FilibusterTest
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException, IOException {
@@ -119,7 +118,6 @@ public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
      * Verify that Filibuster generates the correct number of tests.
      */
     @DisplayName("Verify correct number of generated Filibuster tests.")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Test
     @Order(2)
     public void testNumAssertions() {

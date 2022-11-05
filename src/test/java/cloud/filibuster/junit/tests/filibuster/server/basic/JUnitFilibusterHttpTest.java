@@ -37,7 +37,6 @@ public class JUnitFilibusterHttpTest extends JUnitBaseTest {
      * Inject faults between Hello and World using Filibuster and assert proper faults are injected.
      */
     @DisplayName("Test world route with Filibuster.")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @FilibusterTest
     @Order(1)
     public void testHelloAndWorldServiceWithFilibuster() {
@@ -65,7 +64,6 @@ public class JUnitFilibusterHttpTest extends JUnitBaseTest {
      * Verify that Filibuster generated the correct number of fault injections.
      */
     @DisplayName("Verify correct number of generated Filibuster tests.")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Test
     @Order(2)
     public void testNumAssertions() {

@@ -6,6 +6,7 @@ import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.configuration.FilibusterGrpcExhaustiveAnalysisConfigurationFile;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
+import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
 import cloud.filibuster.junit.tests.filibuster.JUnitBaseTest;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -52,7 +53,7 @@ public class JUnitFilibusterTestWithExhaustiveAnalysisFileByAnnotation extends J
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
-    @FilibusterTest(analysisConfigurationFile=FilibusterGrpcExhaustiveAnalysisConfigurationFile.class)
+    @FilibusterTest(analysisConfigurationFile=FilibusterGrpcExhaustiveAnalysisConfigurationFile.class, serverBackend=FilibusterLocalProcessServerBackend.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder

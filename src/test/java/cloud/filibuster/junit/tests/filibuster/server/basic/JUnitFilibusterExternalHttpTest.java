@@ -4,6 +4,7 @@ import cloud.filibuster.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
+import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
 import cloud.filibuster.junit.tests.filibuster.JUnitBaseTest;
 import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.AggregatedHttpResponse;
@@ -37,7 +38,7 @@ public class JUnitFilibusterExternalHttpTest extends JUnitBaseTest {
      */
     @DisplayName("Test world route with Filibuster.")
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
-    @FilibusterTest
+    @FilibusterTest(serverBackend=FilibusterLocalProcessServerBackend.class)
     @Order(1)
     public void testHelloAndExternalServiceWithFilibuster() {
         boolean expected = false;

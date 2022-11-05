@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.tests.filibuster.server.exhaustive;
+package cloud.filibuster.junit.tests.filibuster.server.docker.exhaustive;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("Java8ApiChecker")
-public class JUnitFilibusterTestWithExhaustiveAnalysisFile extends JUnitBaseTest {
+public class JUnitFilibusterTestWithExhaustiveAnalysisFileMaxIterationsNotEnough extends JUnitBaseTest {
     private static final String analysisFilePath = "/tmp/filibuster-exhaustive-analysis-file";
     private static final List<String> exhaustiveGrpcErrorCodeList = new ArrayList<>();
 
@@ -71,7 +71,7 @@ public class JUnitFilibusterTestWithExhaustiveAnalysisFile extends JUnitBaseTest
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
-    @FilibusterTest(analysisFile=analysisFilePath)
+    @FilibusterTest(analysisFile=analysisFilePath, maxIterations=3)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -114,6 +114,6 @@ public class JUnitFilibusterTestWithExhaustiveAnalysisFile extends JUnitBaseTest
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(16, numberOfTestsExceptionsThrownFaultsInjected);
+        assertEquals(2, numberOfTestsExceptionsThrownFaultsInjected);
     }
 }

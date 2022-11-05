@@ -1,8 +1,9 @@
-package cloud.filibuster.junit.tests.filibuster.server.basic;
+package cloud.filibuster.junit.tests.filibuster.server.docker.extended;
 
 import cloud.filibuster.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
+import cloud.filibuster.junit.configuration.FilibusterWorldExtendedDefaultAnalysisConfigurationFile;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
 import cloud.filibuster.junit.tests.filibuster.JUnitBaseTest;
 import com.linecorp.armeria.client.WebClient;
@@ -28,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterHttpTest extends JUnitBaseTest {
+public class JUnitFilibusterWorldExtendedHttpTest extends JUnitBaseTest {
     private static int numberOfTestsExceptionsThrownFaultsInjected = 0;
 
     private final List<String> validErrorCodes = Arrays.asList("404", "503");
@@ -37,7 +38,8 @@ public class JUnitFilibusterHttpTest extends JUnitBaseTest {
      * Inject faults between Hello and World using Filibuster and assert proper faults are injected.
      */
     @DisplayName("Test world route with Filibuster.")
-    @FilibusterTest
+    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
+    @FilibusterTest(analysisConfigurationFile = FilibusterWorldExtendedDefaultAnalysisConfigurationFile.class)
     @Order(1)
     public void testHelloAndWorldServiceWithFilibuster() {
         try {
@@ -64,9 +66,10 @@ public class JUnitFilibusterHttpTest extends JUnitBaseTest {
      * Verify that Filibuster generated the correct number of fault injections.
      */
     @DisplayName("Verify correct number of generated Filibuster tests.")
+    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(4, numberOfTestsExceptionsThrownFaultsInjected);
+        assertEquals(5, numberOfTestsExceptionsThrownFaultsInjected);
     }
 }

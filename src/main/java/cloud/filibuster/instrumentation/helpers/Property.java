@@ -18,6 +18,50 @@ public class Property {
     }
 
     /***********************************************************************************
+     ** filibuster.server.port
+     ***********************************************************************************/
+
+    private final static String SERVER_PORT = "filibuster.server.port";
+
+    public final static int SERVER_PORT_DEFAULT = 5005;
+
+    public static void setServerPortProperty(int port) {
+        System.setProperty(SERVER_PORT, String.valueOf(port));
+    }
+
+    public static int getServerPortProperty() {
+        String propertyValue = System.getProperty(SERVER_PORT);
+
+        if (isPropertyNull(propertyValue)) {
+            return SERVER_PORT_DEFAULT;
+        } else {
+            return Integer.valueOf(propertyValue);
+        }
+    }
+
+    /***********************************************************************************
+     ** filibuster.server.host
+     ***********************************************************************************/
+
+    private final static String SERVER_HOST = "filibuster.server.host";
+
+    public final static String SERVER_HOST_DEFAULT = "localhost";
+
+    public static void setServerHostProperty(String host) {
+        System.setProperty(SERVER_HOST, host);
+    }
+
+    public static String getServerHostProperty() {
+        String propertyValue = System.getProperty(SERVER_HOST);
+
+        if (isPropertyNull(propertyValue)) {
+            return SERVER_HOST_DEFAULT;
+        } else {
+            return propertyValue;
+        }
+    }
+
+    /***********************************************************************************
      ** filibuster.dei.version
      ***********************************************************************************/
 

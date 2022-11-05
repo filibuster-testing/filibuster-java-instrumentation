@@ -1,31 +1,21 @@
 package cloud.filibuster.junit.interceptors;
 
-import cloud.filibuster.dei.implementations.DistributedExecutionIndexV1;
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
-import cloud.filibuster.instrumentation.exceptions.FilibusterServerUnavailabilityException;
+import cloud.filibuster.instrumentation.exceptions.MissingWebClientException;
+import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.helpers.Property;
-import cloud.filibuster.instrumentation.helpers.Response;
+import cloud.filibuster.junit.FilibusterSystemProperties;
+import cloud.filibuster.junit.server.FilibusterServerLifecycle;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
-import cloud.filibuster.junit.exceptions.FilibusterServerBadResponseException;
+import cloud.filibuster.junit.server.FilibusterServerAPI;
 import com.linecorp.armeria.client.WebClient;
-import com.linecorp.armeria.common.AggregatedHttpResponse;
-import com.linecorp.armeria.common.HttpHeaderNames;
-import com.linecorp.armeria.common.HttpMethod;
-import com.linecorp.armeria.common.RequestHeaders;
-import com.linecorp.armeria.common.ResponseHeaders;
-import org.json.JSONObject;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.InvocationInterceptor;
 import org.junit.jupiter.api.extension.ReflectiveInvocationContext;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -36,20 +26,37 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
 
     public static boolean shouldInitializeFilibusterServer = true;
 
-    private final ProcessBuilder filibusterServerProcessBuilder;
-
     private final FilibusterConfiguration filibusterConfiguration;
 
     private final HashMap<Integer, Boolean> invocationCompletionMap;
-
-    @Nullable
-    private static Process filibusterServerProcess;
 
     private final int currentIteration;
 
     private final int maxIterations;
 
-    private final WebClient webClient;
+    @Nullable
+    private static WebClient privateWebClient;
+
+    @Nullable
+    public static WebClient getWebClient() {
+        if (privateWebClient == null) {
+            throw new MissingWebClientException();
+        } else {
+            return privateWebClient;
+        }
+    }
+
+    private static void setWebClient(@Nullable WebClient webClient) {
+        privateWebClient = webClient;
+    }
+
+    private static WebClient getNewWebClient() {
+        String filibusterBaseUri = "http://" + Networking.getFilibusterHost() + ":" + Networking.getFilibusterPort() + "/";
+
+        return WebClient.builder(filibusterBaseUri)
+                .factory(FilibusterExecutor.getNewClientFactory(1))
+                .build();
+    }
 
     /**
      * Invocation interceptor for running tests with Filibuster.
@@ -68,339 +75,8 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             HashMap<Integer, Boolean> invocationCompletionMap) {
         this.currentIteration = currentIteration;
         this.maxIterations = maxIterations;
-
         this.invocationCompletionMap = invocationCompletionMap;
-
         this.filibusterConfiguration = filibusterConfiguration;
-
-        this.filibusterServerProcessBuilder = new ProcessBuilder()
-                .command(filibusterConfiguration.toExecutableCommand());
-
-        this.webClient = WebClient.builder(filibusterConfiguration.getFilibusterBaseUri())
-                .factory(FilibusterExecutor.getNewClientFactory(1))
-                .build();
-    }
-
-    /****************************************************************************************************************
-     * Filibuster lifecycle.
-     */
-
-    static class FilibusterServerLifecycle {
-        private static synchronized void startServer(ProcessBuilder filibusterServerProcessBuilder, WebClient webClient) throws InterruptedException, IOException {
-            if (filibusterServerProcess == null) {
-                filibusterServerProcess = filibusterServerProcessBuilder.start();
-
-                boolean online = false;
-
-                for (int i = 0; i < 10; i++) {
-                    logger.log(Level.INFO, "Waiting for FilibusterServer to come online...");
-
-                    try {
-                        // Get remote resource.
-                        RequestHeaders getHeaders = RequestHeaders.of(
-                                HttpMethod.GET, "/health-check", HttpHeaderNames.ACCEPT, "application/json");
-                        AggregatedHttpResponse response = webClient.execute(getHeaders).aggregate().join();
-
-                        // Get headers and verify a 200 OK response.
-                        ResponseHeaders headers = response.headers();
-                        String statusCode = headers.get(HttpHeaderNames.STATUS);
-
-                        if (Objects.equals(statusCode, "200")) {
-                            logger.log(Level.INFO, "Available!");
-                            online = true;
-                            break;
-                        } else {
-                            logger.log(Level.INFO, "Didn't get proper response, status code: " + statusCode);
-                        }
-                    } catch (RuntimeException e) {
-                        // Nothing, we'll try again.
-                    }
-
-                    logger.log(Level.INFO, "Sleeping one second...");
-                    Thread.sleep(1000);
-                }
-
-                if (!online) {
-                    logger.log(Level.INFO, "FilibusterServer never came online!");
-                    throw new FilibusterServerUnavailabilityException();
-                }
-            }
-        }
-
-        @SuppressWarnings("BusyWait")
-        private static synchronized void stopServer(WebClient webClient) throws InterruptedException {
-            if (filibusterServerProcess != null) {
-                filibusterServerProcess.destroyForcibly();
-
-                logger.log(Level.WARNING, "Waiting for Filibuster server to exit.");
-                int exitCode = filibusterServerProcess.waitFor();
-                logger.log(Level.WARNING, "Exit code for Filibuster:: " + exitCode);
-
-                while (true) {
-                    logger.log(Level.INFO, "Waiting for FilibusterServer to stop...");
-
-                    try {
-                        // Get remote resource.
-                        RequestHeaders getHeaders = RequestHeaders.of(
-                                HttpMethod.GET, "/health-check", HttpHeaderNames.ACCEPT, "application/json");
-                        AggregatedHttpResponse response = webClient.execute(getHeaders).aggregate().join();
-
-                        // Get headers and verify a 200 OK response.
-                        ResponseHeaders headers = response.headers();
-                        String statusCode = headers.get(HttpHeaderNames.STATUS);
-
-                        if (Objects.equals(statusCode, "200")) {
-                            logger.log(Level.INFO, "Still available!");
-                        } else {
-                            logger.log(Level.INFO, "Status code: " + statusCode);
-                        }
-                    } catch (RuntimeException e) {
-                        break;
-                    }
-
-                    logger.log(Level.INFO, "Sleeping one second until offline.");
-                    Thread.sleep(1000);
-                }
-
-                logger.log(Level.INFO, "Filibuster server stopped!");
-
-                filibusterServerProcess = null;
-            }
-        }
-    }
-
-    /****************************************************************************************************************
-     * Filibuster system properties.
-     */
-
-    static class FilibusterSystemProperties {
-        public static void setSystemPropertiesForFilibusterInstrumentation(FilibusterConfiguration filibusterConfiguration) {
-            if (filibusterConfiguration.getDataNondeterminism()) {
-                DistributedExecutionIndexV1.Properties.Asynchronous.setAsynchronousInclude(false);
-            }
-
-            System.setProperty("kotlinx.coroutines.debug", "on");
-            System.setProperty("kotlinx.coroutines.stacktrace.recovery", "true");
-        }
-
-        public static void unsetSystemPropertiesForFilibusterInstrumentation() {
-            DistributedExecutionIndexV1.Properties.Asynchronous.setAsynchronousInclude(true);
-
-            System.setProperty("kotlinx.coroutines.debug", "off");
-            System.setProperty("kotlinx.coroutines.stacktrace.recovery", "false");
-        }
-    }
-
-    /****************************************************************************************************************
-     * Filibuster server interactions.
-     */
-
-    static class FilibusterServerAPI {
-        public static void analysisFile(WebClient webClient, JSONObject jsonAnalysisConfiguration) throws ExecutionException, InterruptedException {
-            CompletableFuture<Void> analysisFileFuture = CompletableFuture.supplyAsync(() -> {
-                RequestHeaders postJson = RequestHeaders.of(
-                        HttpMethod.POST,
-                        "/filibuster/analysis-file",
-                        HttpHeaderNames.CONTENT_TYPE,
-                        "application/json",
-                        "X-Filibuster-Instrumentation",
-                        "true");
-                AggregatedHttpResponse response = webClient.execute(postJson, jsonAnalysisConfiguration.toString()).aggregate().join();
-                ResponseHeaders headers = response.headers();
-                String statusCode = headers.get(HttpHeaderNames.STATUS);
-
-                if (statusCode == null) {
-                    FilibusterServerBadResponseException.logAndThrow("analysisFile, statusCode: null");
-                }
-
-                if (!statusCode.equals("200")) {
-                    FilibusterServerBadResponseException.logAndThrow("analysisFile, statusCode: " + statusCode);
-                }
-
-                return null;
-            }, FilibusterExecutor.getExecutorService());
-
-            analysisFileFuture.get();
-        }
-
-        public static void terminate(WebClient webClient) throws ExecutionException, InterruptedException {
-            CompletableFuture<Void> terminateFuture = CompletableFuture.supplyAsync(() -> {
-                RequestHeaders getJson = RequestHeaders.of(
-                        HttpMethod.GET,
-                        "/filibuster/terminate",
-                        HttpHeaderNames.CONTENT_TYPE,
-                        "application/json",
-                        "X-Filibuster-Instrumentation",
-                        "true");
-                AggregatedHttpResponse response = webClient.execute(getJson).aggregate().join();
-                ResponseHeaders headers = response.headers();
-                String statusCode = headers.get(HttpHeaderNames.STATUS);
-
-                if (statusCode == null) {
-                    FilibusterServerBadResponseException.logAndThrow("terminate, statusCode: null");
-                }
-
-                if (!statusCode.equals("200")) {
-                    FilibusterServerBadResponseException.logAndThrow("terminate, statusCode: " + statusCode);
-                }
-
-                return null;
-            }, FilibusterExecutor.getExecutorService());
-
-            terminateFuture.get();
-        }
-
-        public static void teardownsCompleted(WebClient webClient, int currentIteration) throws ExecutionException, InterruptedException {
-            CompletableFuture<Void> teardownsCompletedFuture = CompletableFuture.supplyAsync(() -> {
-                RequestHeaders getJson = RequestHeaders.of(
-                        HttpMethod.GET,
-                        "/filibuster/teardowns-completed/" + currentIteration,
-                        HttpHeaderNames.CONTENT_TYPE,
-                        "application/json",
-                        "X-Filibuster-Instrumentation",
-                        "true");
-                AggregatedHttpResponse response = webClient.execute(getJson).aggregate().join();
-                ResponseHeaders headers = response.headers();
-                String statusCode = headers.get(HttpHeaderNames.STATUS);
-
-                if (statusCode == null) {
-                    FilibusterServerBadResponseException.logAndThrow("teardownsCompleted, statusCode: null");
-                }
-
-                if (!statusCode.equals("200")) {
-                    FilibusterServerBadResponseException.logAndThrow("teardownsCompleted, statusCode: " + statusCode);
-                }
-
-                return null;
-            }, FilibusterExecutor.getExecutorService());
-
-            teardownsCompletedFuture.get();
-        }
-
-        public static void recordIterationComplete(WebClient webClient, int currentIteration, boolean exceptionOccurred) throws ExecutionException, InterruptedException {
-            int exceptionOccurredInt;
-
-            if (exceptionOccurred) {
-                exceptionOccurredInt = 1;
-            } else {
-                exceptionOccurredInt = 0;
-            }
-
-            CompletableFuture<Void> updateFuture = CompletableFuture.supplyAsync(() -> {
-                RequestHeaders postJson = RequestHeaders.of(
-                        HttpMethod.POST,
-                        "/filibuster/complete-iteration/" + currentIteration + "/exception/" + exceptionOccurredInt,
-                        HttpHeaderNames.CONTENT_TYPE,
-                        "application/json",
-                        "X-Filibuster-Instrumentation",
-                        "true");
-                AggregatedHttpResponse response = webClient.execute(postJson).aggregate().join();
-                ResponseHeaders headers = response.headers();
-                String statusCode = headers.get(HttpHeaderNames.STATUS);
-
-                if (statusCode == null) {
-                    FilibusterServerBadResponseException.logAndThrow("recordIterationComplete, statusCode: null");
-                }
-
-                if (!statusCode.equals("200")) {
-                    FilibusterServerBadResponseException.logAndThrow("recordIterationComplete, statusCode: " + statusCode);
-                }
-
-                return null;
-            }, FilibusterExecutor.getExecutorService());
-
-            updateFuture.get();
-        }
-
-        public static boolean hasNextIteration(WebClient webClient, int currentIteration, String caller) throws ExecutionException, InterruptedException {
-            CompletableFuture<Boolean> hasNextIteration = CompletableFuture.supplyAsync(() -> {
-                try {
-                    RequestHeaders getJson = RequestHeaders.of(
-                            HttpMethod.GET,
-                            "/filibuster/has-next-iteration/" + currentIteration + "/" + caller,
-                            HttpHeaderNames.ACCEPT,
-                            "application/json",
-                            "X-Filibuster-Instrumentation",
-                            "true");
-                    AggregatedHttpResponse response = webClient.execute(getJson).aggregate().join();
-                    ResponseHeaders headers = response.headers();
-                    String statusCode = headers.get(HttpHeaderNames.STATUS);
-
-                    if (statusCode == null) {
-                        FilibusterServerBadResponseException.logAndThrow("hasNextIteration, statusCode: null");
-                    }
-
-                    if (!statusCode.equals("200")) {
-                        FilibusterServerBadResponseException.logAndThrow("hasNextIteration, statusCode: " + statusCode);
-                    }
-
-                    JSONObject jsonObject = Response.aggregatedHttpResponseToJsonObject(response);
-                    return jsonObject.getBoolean("has-next-iteration");
-                } catch (RuntimeException e) {
-                    logger.log(Level.SEVERE,"cannot connect to the Filibuster server: " + e);
-                    return false;
-                }
-            }, FilibusterExecutor.getExecutorService());
-
-            return hasNextIteration.get();
-        }
-    }
-
-    /****************************************************************************************************************
-     * Helpers.
-     */
-
-    static class Helpers {
-        @SuppressWarnings("InterruptedExceptionSwallowed")
-        private static boolean shouldBypassExecution(WebClient webClient, int currentIteration, String caller) {
-            try {
-                return !FilibusterServerAPI.hasNextIteration(webClient, currentIteration, caller);
-            } catch (Exception e) {
-                // TODO: fix me: in event server is unavailable, skip all executions except the first one.
-                return true;
-            }
-        }
-
-        @SuppressWarnings("InterruptedExceptionSwallowed")
-        private static void proceedAndLogException(InvocationInterceptor.Invocation<Void> invocation,
-                                                   int currentIteration,
-                                                   WebClient webClient) throws Throwable {
-            try {
-                invocation.proceed();
-                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */false);
-            } catch (Throwable t) {
-                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */true);
-                throw t;
-            }
-        }
-
-        /**
-         * Conditionally mark the teardown for a given test iteration complete.
-         *
-         * There is a significant amount of nuance in this function.  The Filibuster server needs to know when a particular
-         * test iteration is done and all the teardown is complete.  This is non-trivial because test functions might contain
-         * and arbitrary number of afterEach methods (or, none at all.)  Therefore, the only way to ensure that we capture this is to do the following.
-         *
-         * First, instrument the beforeEach and the testTemplate method.  Record a boolean in a map to indicate that the previous test is
-         * complete when we reach the start of a new test.  However, some tests might have a beforeEach executed in the first iteration,
-         * therefore, we also need to prevent notifying the server on the first iteration (iteration 0, the start of the first actual test.)
-         *
-         * @param invocationCompletionMap tracks the invocations that have completed and all teardowns have finished.
-         * @param currentIteration the iteration we are currently in, not the iteration that's been completed (current - 1).
-         * @param webClient a web client to use to talk to the Filibuster Server.
-         */
-        private static void conditionallyMarkTeardownComplete(HashMap<Integer, Boolean> invocationCompletionMap, int currentIteration, WebClient webClient) {
-            int previousIteration = currentIteration - 1;
-
-            if (! invocationCompletionMap.containsKey(previousIteration) && (previousIteration != 0)) {
-                try {
-                    FilibusterServerAPI.teardownsCompleted(webClient, previousIteration);
-                } catch (ExecutionException | InterruptedException e) {
-                    logger.log(Level.SEVERE, "Could not notify Filibuster of teardown completed; this is fatal error: " + e);
-                }
-                invocationCompletionMap.put(previousIteration, true);
-            }
-        }
     }
 
     /****************************************************************************************************************
@@ -416,19 +92,21 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             FilibusterSystemProperties.setSystemPropertiesForFilibusterInstrumentation(filibusterConfiguration);
 
             if (shouldInitializeFilibusterServer) {
-                FilibusterServerLifecycle.startServer(filibusterServerProcessBuilder, webClient);
-                FilibusterServerAPI.analysisFile(webClient, filibusterConfiguration.readAnalysisFile());
+                setWebClient(FilibusterServerLifecycle.startServer(filibusterConfiguration));
+                FilibusterServerAPI.analysisFile(getWebClient(), filibusterConfiguration.readAnalysisFile());
+            } else {
+                setWebClient(getNewWebClient());
             }
         }
 
-        Helpers.conditionallyMarkTeardownComplete(invocationCompletionMap, currentIteration, webClient);
+        FilibusterInvocationInterceptorHelpers.conditionallyMarkTeardownComplete(invocationCompletionMap, currentIteration, getWebClient());
 
         Property.setInstrumentationEnabledProperty(true);
 
         // Test handling.
         if (currentIteration == 1) {
             // First iteration always runs because it's the fault free execution.
-            Helpers.proceedAndLogException(invocation, currentIteration, webClient);
+            FilibusterInvocationInterceptorHelpers.proceedAndLogException(invocation, currentIteration, getWebClient());
         } else if (currentIteration == maxIterations) {
             // Last iteration never runs.
             invocation.skip();
@@ -436,10 +114,10 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             // Otherwise:
             // (A) Conditionally mark teardown of the previous iteration complete, if not done yet.
             // (B) Ask the server if we have a test iteration to run and run it if so.
-            if (Helpers.shouldBypassExecution(webClient, currentIteration, "testTemplate")) {
+            if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(getWebClient(), currentIteration, "testTemplate")) {
                 invocation.skip();
             } else {
-                Helpers.proceedAndLogException(invocation, currentIteration, webClient);
+                FilibusterInvocationInterceptorHelpers.proceedAndLogException(invocation, currentIteration, getWebClient());
             }
         }
 
@@ -448,10 +126,12 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
         // Terminate on the last iteration.
         if ((currentIteration == maxIterations)) {
             FilibusterSystemProperties.unsetSystemPropertiesForFilibusterInstrumentation();
-            FilibusterServerAPI.terminate(webClient);
+            FilibusterServerAPI.terminate(getWebClient());
 
             if (shouldInitializeFilibusterServer) {
-                FilibusterServerLifecycle.stopServer(webClient);
+                setWebClient(FilibusterServerLifecycle.stopServer(filibusterConfiguration, getWebClient()));
+            } else {
+                setWebClient(null);
             }
         }
     }
@@ -470,9 +150,9 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             // Otherwise:
             // (A) Conditionally mark teardown of the previous iteration complete, if not done yet.
             // (B) Ask the server if we have a test iteration to run and run it if so.
-            Helpers.conditionallyMarkTeardownComplete(invocationCompletionMap, currentIteration, webClient);
+            FilibusterInvocationInterceptorHelpers.conditionallyMarkTeardownComplete(invocationCompletionMap, currentIteration, getWebClient());
 
-            if (Helpers.shouldBypassExecution(webClient, currentIteration, "beforeEach")) {
+            if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(getWebClient(), currentIteration, "beforeEach")) {
                 invocation.skip();
             } else {
                 invocation.proceed();
@@ -493,7 +173,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
         } else {
             // Otherwise:
             // (A) Ask the server if we have a test iteration to run and run it if so.
-            if (Helpers.shouldBypassExecution(webClient, currentIteration, "afterEach")) {
+            if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(getWebClient(), currentIteration, "afterEach")) {
                 invocation.skip();
             } else {
                 invocation.proceed();

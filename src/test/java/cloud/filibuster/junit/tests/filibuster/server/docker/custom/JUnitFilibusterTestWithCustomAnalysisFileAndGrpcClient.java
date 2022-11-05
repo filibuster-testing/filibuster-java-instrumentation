@@ -78,7 +78,6 @@ public class JUnitFilibusterTestWithCustomAnalysisFileAndGrpcClient extends JUni
      * @throws InterruptedException thrown when the gRPC channel fails to terminate.
      */
     @DisplayName("Test partial hello server grpc route with Filibuster with instrumented test client. (MyHelloService, MyWorldService)")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @FilibusterTest(analysisFile=analysisFilePath)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
@@ -143,7 +142,6 @@ public class JUnitFilibusterTestWithCustomAnalysisFileAndGrpcClient extends JUni
      * Verify the correct number of Filibuster tests are executed.
      */
     @DisplayName("Verify correct number of generated Filibuster tests.")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Test
     @Order(2)
     public void testNumAssertions() {

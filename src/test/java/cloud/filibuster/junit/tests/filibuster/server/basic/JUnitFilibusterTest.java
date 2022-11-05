@@ -37,7 +37,6 @@ public class JUnitFilibusterTest extends JUnitBaseTest {
      * @throws InterruptedException if teardown of gRPC channel fails.
      */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @FilibusterTest
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
@@ -98,7 +97,6 @@ public class JUnitFilibusterTest extends JUnitBaseTest {
      * Verify that Filibuster generated the correct number of fault injections.
      */
     @DisplayName("Verify correct number of generated Filibuster tests.")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Test
     @Order(2)
     public void testNumAssertions() {

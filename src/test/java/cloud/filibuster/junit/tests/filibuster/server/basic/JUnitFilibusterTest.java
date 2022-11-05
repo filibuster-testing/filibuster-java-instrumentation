@@ -1,10 +1,11 @@
-package cloud.filibuster.junit.tests.filibuster.server.docker.extended;
+package cloud.filibuster.junit.tests.filibuster.server.basic;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
+import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
 import cloud.filibuster.junit.tests.filibuster.JUnitBaseTest;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -15,29 +16,30 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
+import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
+import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Test simple annotation usage.
+ */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@SuppressWarnings("Java8ApiChecker")
-public class JUnitFilibusterTestWithBasicAnalysisFileByAnnotation extends JUnitBaseTest {
-    private static final List<String> basicGrpcErrorCodeList = new ArrayList<>();
-
-    static {
-        basicGrpcErrorCodeList.add("DEADLINE_EXCEEDED");
-        basicGrpcErrorCodeList.add("UNAVAILABLE");
-        basicGrpcErrorCodeList.add("INTERNAL");
-        basicGrpcErrorCodeList.add("UNIMPLEMENTED");
-    }
-
+public class JUnitFilibusterTest extends JUnitBaseTest {
     private static int numberOfTestsExceptionsThrownFaultsInjected = 0;
 
+    /**
+     * Inject faults between Hello and World using Filibuster and assert proper faults are injected.
+     *
+     * @throws InterruptedException if teardown of gRPC channel fails.
+     */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest
+    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
+    @FilibusterTest(serverBackend=FilibusterLocalProcessServerBackend.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -45,25 +47,43 @@ public class JUnitFilibusterTestWithBasicAnalysisFileByAnnotation extends JUnitB
                 .usePlaintext()
                 .build();
 
+        boolean expected = false;
+
         try {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
             Hello.HelloReply reply = blockingStub.partialHello(request);
             assertEquals("Hello, Armerian World!!", reply.getMessage());
+            assertFalse(wasFaultInjected());
         } catch (Throwable t) {
-            if (wasFaultInjected()) {
+            boolean wasFaultInjected = wasFaultInjected();
+
+            if (wasFaultInjected) {
                 numberOfTestsExceptionsThrownFaultsInjected++;
 
-                boolean found = false;
-
-                for (String errorCode: basicGrpcErrorCodeList) {
-                    String expectedString = "DATA_LOSS: io.grpc.StatusRuntimeException: " + errorCode;
-                    if(t.getMessage().equals(expectedString)) {
-                        found = true;
-                    }
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
+                    expected = true;
                 }
 
-                if (! found) {
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNAVAILABLE")) {
+                    expected = true;
+                }
+
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED")) {
+                    expected = true;
+                }
+
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: INTERNAL")) {
+                    expected = true;
+                }
+
+                boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("world");
+                assertTrue(wasFaultInjectedOnWorldService);
+
+                boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World");
+                assertTrue(wasFaultInjectedOnWorldMethod);
+
+                if (! expected) {
                     throw t;
                 }
             } else {
@@ -75,7 +95,11 @@ public class JUnitFilibusterTestWithBasicAnalysisFileByAnnotation extends JUnitB
         helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
     }
 
+    /**
+     * Verify that Filibuster generated the correct number of fault injections.
+     */
     @DisplayName("Verify correct number of generated Filibuster tests.")
+    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Test
     @Order(2)
     public void testNumAssertions() {

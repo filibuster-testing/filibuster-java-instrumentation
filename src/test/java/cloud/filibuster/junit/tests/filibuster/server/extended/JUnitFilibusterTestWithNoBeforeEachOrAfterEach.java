@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.tests.filibuster.server.docker.extended;
+package cloud.filibuster.junit.tests.filibuster.server.extended;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
@@ -9,6 +9,7 @@ import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientIntercept
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterServerInterceptor;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
+import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.DisplayName;
@@ -44,7 +45,8 @@ public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
      * @throws IOException thrown when trying to start up dependent servers.
      */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest
+    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
+    @FilibusterTest(serverBackend=FilibusterLocalProcessServerBackend.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException, IOException {
         MyHelloService.shouldReturnRuntimeExceptionWithCause = false;
@@ -118,6 +120,7 @@ public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
      * Verify that Filibuster generates the correct number of tests.
      */
     @DisplayName("Verify correct number of generated Filibuster tests.")
+    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Test
     @Order(2)
     public void testNumAssertions() {

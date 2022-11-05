@@ -1,9 +1,11 @@
-package cloud.filibuster.junit.tests.filibuster.server.docker.basic;
+package cloud.filibuster.junit.tests.filibuster.server.docker;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
+import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
+import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
 import cloud.filibuster.junit.tests.filibuster.JUnitBaseTest;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -12,6 +14,7 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.concurrent.TimeUnit;
 
@@ -26,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterTest extends JUnitBaseTest {
+public class JUnitFilibusterDockerBackendTest extends JUnitBaseTest {
     private static int numberOfTestsExceptionsThrownFaultsInjected = 0;
 
     /**
@@ -35,6 +38,7 @@ public class JUnitFilibusterTest extends JUnitBaseTest {
      * @throws InterruptedException if teardown of gRPC channel fails.
      */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
+    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @FilibusterTest
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
@@ -95,6 +99,7 @@ public class JUnitFilibusterTest extends JUnitBaseTest {
      * Verify that Filibuster generated the correct number of fault injections.
      */
     @DisplayName("Verify correct number of generated Filibuster tests.")
+    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Test
     @Order(2)
     public void testNumAssertions() {

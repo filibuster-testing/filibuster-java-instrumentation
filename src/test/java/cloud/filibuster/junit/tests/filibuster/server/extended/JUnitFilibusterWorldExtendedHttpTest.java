@@ -1,8 +1,11 @@
-package cloud.filibuster.junit.tests.filibuster.server.docker.basic;
+package cloud.filibuster.junit.tests.filibuster.server.extended;
 
 import cloud.filibuster.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
+import cloud.filibuster.junit.configuration.FilibusterWorldExtendedDefaultAnalysisConfigurationFile;
+import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
+import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
 import cloud.filibuster.junit.tests.filibuster.JUnitBaseTest;
 import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.AggregatedHttpResponse;
@@ -15,6 +18,7 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterHttpTest extends JUnitBaseTest {
+public class JUnitFilibusterWorldExtendedHttpTest extends JUnitBaseTest {
     private static int numberOfTestsExceptionsThrownFaultsInjected = 0;
 
     private final List<String> validErrorCodes = Arrays.asList("404", "503");
@@ -35,7 +39,8 @@ public class JUnitFilibusterHttpTest extends JUnitBaseTest {
      * Inject faults between Hello and World using Filibuster and assert proper faults are injected.
      */
     @DisplayName("Test world route with Filibuster.")
-    @FilibusterTest
+    @FilibusterTest(analysisConfigurationFile=FilibusterWorldExtendedDefaultAnalysisConfigurationFile.class, serverBackend=FilibusterLocalProcessServerBackend.class)
+    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Order(1)
     public void testHelloAndWorldServiceWithFilibuster() {
         try {
@@ -62,9 +67,10 @@ public class JUnitFilibusterHttpTest extends JUnitBaseTest {
      * Verify that Filibuster generated the correct number of fault injections.
      */
     @DisplayName("Verify correct number of generated Filibuster tests.")
+    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(4, numberOfTestsExceptionsThrownFaultsInjected);
+        assertEquals(5, numberOfTestsExceptionsThrownFaultsInjected);
     }
 }

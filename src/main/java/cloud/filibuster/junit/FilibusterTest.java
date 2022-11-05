@@ -10,6 +10,8 @@ import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterDefaultAnalysisConfigurationFile;
 import cloud.filibuster.junit.extensions.FilibusterTestExtension;
 
+import cloud.filibuster.junit.server.FilibusterServerBackend;
+import cloud.filibuster.junit.server.backends.FilibusterDockerServerBackend;
 import org.apiguardian.api.API;
 
 import org.junit.jupiter.api.Test;
@@ -151,4 +153,9 @@ public @interface FilibusterTest {
      * @return custom analysis configuration file.
      */
     Class<? extends FilibusterAnalysisConfigurationFile> analysisConfigurationFile() default FilibusterDefaultAnalysisConfigurationFile.class;
+
+    /**
+     * Server backend to use for Filibuster.
+     */
+    Class<? extends FilibusterServerBackend> serverBackend() default FilibusterDockerServerBackend.class;
 }

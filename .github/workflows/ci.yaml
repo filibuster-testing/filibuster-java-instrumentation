@@ -22,4 +22,4 @@ jobs:
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
       - name: Test with Gradle
-        run: ./gradlew test --tests 'cloud.filibuster.junit.tests.filibuster.server.docker.*'
+        run: ./gradlew -i test --tests 'cloud.filibuster.junit.tests.filibuster.server.docker.*'

@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -151,9 +152,24 @@ public class FilibusterConfiguration {
             return this;
         }
 
+        /**
+         * Server backend to use.
+         *
+         * @param clazz class.
+         * @return builder
+         */
         @CanIgnoreReturnValue
-        public Builder filibusterServerBackend(FilibusterServerBackend filibusterServerBackend) {
-            this.filibusterServerBackend = filibusterServerBackend;
+        public Builder filibusterServerBackend(Class<? extends FilibusterServerBackend> clazz) {
+            FilibusterServerBackend serverBackend;
+
+            try {
+                serverBackend = clazz.getDeclaredConstructor().newInstance();
+            } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                // TODO: something better.
+                throw new UnsupportedOperationException(e);
+            }
+
+            this.filibusterServerBackend = serverBackend;
             return this;
         }
 

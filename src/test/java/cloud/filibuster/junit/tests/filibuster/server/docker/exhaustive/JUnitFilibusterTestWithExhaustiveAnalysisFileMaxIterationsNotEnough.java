@@ -70,6 +70,7 @@ public class JUnitFilibusterTestWithExhaustiveAnalysisFileMaxIterationsNotEnough
     private static int numberOfTestsExceptionsThrownFaultsInjected = 0;
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
+    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @FilibusterTest(analysisFile=analysisFilePath, maxIterations=3)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
@@ -109,6 +110,7 @@ public class JUnitFilibusterTestWithExhaustiveAnalysisFileMaxIterationsNotEnough
     }
 
     @DisplayName("Verify correct number of generated Filibuster tests.")
+    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Test
     @Order(2)
     public void testNumAssertions() {

@@ -222,7 +222,7 @@ publishing {
 
             pom {
                 name = 'Filibuster instrumentation for the JVM'
-                artifactId = 'cloud.filibuster.instrumentation'
+                artifactId = 'instrumentation'
                 packaging = 'jar'
                 description = 'Instrumtation for the JVM to enable the Filibuster testing utility.'
                 url = 'https://github.com/filibuster-testing/filibuster-java-instrumentation'

@@ -30,9 +30,10 @@ public class FilibusterDefaultAnalysisConfigurationFile implements FilibusterAna
 
         // Google's gRPC exception types.
         // Taken from: https://grpc.github.io/grpc/core/md_doc_statuscodes.html
-        exhaustiveGrpcErrorCodeList.add("DEADLINE_EXCEEDED");
-        exhaustiveGrpcErrorCodeList.add("UNAVAILABLE");
+        exhaustiveGrpcErrorCodeList.add("UNIMPLEMENTED");
         exhaustiveGrpcErrorCodeList.add("INTERNAL");
+        exhaustiveGrpcErrorCodeList.add("UNAVAILABLE");
+        exhaustiveGrpcErrorCodeList.add("DEADLINE_EXCEEDED");
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderGrpcExceptions = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc.exceptions")
@@ -47,9 +48,14 @@ public class FilibusterDefaultAnalysisConfigurationFile implements FilibusterAna
                 .name("java.grpc.errors")
                 .pattern("(.*Service/.*)");
 
+        // Specification of error code without specification of the exception types
+        // that will encapsulate the error codes.
+        //
+        // This should only be used when testing other languages where we need to raise
+        // but don't know the target implementation.
+        //
         List<String> grpcErrorCodes = new ArrayList<>();
-        grpcErrorCodes.add("UNIMPLEMENTED");
-        grpcErrorCodes.add("INTERNAL");
+//        grpcErrorCodes.add("NOT_FOUND");
 
         List<JSONObject> grpcErrorTypes = new ArrayList<>();
         for (String errorCode : grpcErrorCodes) {

@@ -103,6 +103,6 @@ public class JUnitFilibusterDockerBackendTest extends JUnitBaseTest {
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(5, numberOfTestsExceptionsThrownFaultsInjected);
+        assertEquals(4, numberOfTestsExceptionsThrownFaultsInjected);
     }
 }

@@ -82,6 +82,6 @@ public class JUnitFilibusterTestWithBasicAnalysisFileByAnnotation extends JUnitB
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(5, numberOfTestsExceptionsThrownFaultsInjected);
+        assertEquals(4, numberOfTestsExceptionsThrownFaultsInjected);
     }
 }

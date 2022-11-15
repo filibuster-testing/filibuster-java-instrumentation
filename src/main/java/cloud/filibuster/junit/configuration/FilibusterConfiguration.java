@@ -28,16 +28,23 @@ public class FilibusterConfiguration {
 
     private final FilibusterServerBackend filibusterServerBackend;
 
+    private final String dockerImageName;
+
     private FilibusterConfiguration(Builder builder) {
         this.dynamicReduction = builder.dynamicReduction;
         this.suppressCombinations = builder.suppressCombinations;
         this.dataNondeterminism = builder.dataNondeterminism;
         this.analysisFile = builder.analysisFile;
         this.filibusterServerBackend = builder.filibusterServerBackend;
+        this.dockerImageName = builder.dockerImageName;
     }
 
     public FilibusterServerBackend getFilibusterServerBackend() {
         return this.filibusterServerBackend;
+    }
+
+    public String getDockerImageName() {
+        return this.dockerImageName;
     }
 
     /**
@@ -103,6 +110,8 @@ public class FilibusterConfiguration {
         private String analysisFile;
 
         private FilibusterServerBackend filibusterServerBackend = new FilibusterDockerServerBackend();
+
+        private String dockerImageName;
 
         /**
          * Should this configuration use dynamic reduction?
@@ -170,6 +179,18 @@ public class FilibusterConfiguration {
             }
 
             this.filibusterServerBackend = serverBackend;
+            return this;
+        }
+
+        /**
+         * Docker image to use.
+         *
+         * @param dockerImageName string of the fully qualified docker image name.
+         * @return builder
+         */
+        @CanIgnoreReturnValue
+        public Builder dockerImageName(String dockerImageName) {
+            this.dockerImageName = dockerImageName;
             return this;
         }
 

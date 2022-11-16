@@ -19,7 +19,9 @@ public class FilibusterDockerServerBackend implements FilibusterServerBackend {
 
     @Override
     public synchronized boolean start(FilibusterConfiguration filibusterConfiguration) throws Throwable {
-        this.container = new GenericContainer<>(DockerImageName.parse("cmeiklejohn/filibuster:0.34"))
+        String fullImageName = filibusterConfiguration.getDockerImageName();
+
+        this.container = new GenericContainer<>(DockerImageName.parse(fullImageName))
                 .withExposedPorts(EXPOSED_PORT)
                 .waitingFor(new HttpWaitStrategy().forPort(EXPOSED_PORT))
                 .withStartupTimeout(Duration.ofMinutes(5));

@@ -156,6 +156,15 @@ public @interface FilibusterTest {
 
     /**
      * Server backend to use for Filibuster.
+     *
+     * @return server backend module.
      */
     Class<? extends FilibusterServerBackend> serverBackend() default FilibusterDockerServerBackend.class;
+
+    /**
+     * Docker image to use for the Docker server backend.
+     *
+     * @return string of image name
+     */
+    String dockerImageName() default "filibustertesting/filibuster:0.34";
 }

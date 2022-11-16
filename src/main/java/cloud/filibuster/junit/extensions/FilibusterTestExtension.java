@@ -18,6 +18,8 @@ import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider;
 import org.junit.platform.commons.util.AnnotationUtils;
 import org.junit.platform.commons.util.Preconditions;
 
+import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendDockerImageNameProperty;
+
 @SuppressWarnings("JavaDoc")
 public class FilibusterTestExtension implements TestTemplateInvocationContextProvider {
     @Override
@@ -50,12 +52,22 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
             classToCustomAnalysisConfigurationFile(filibusterTest, analysisFile);
         }
 
+        // If the docker image has been specified as part of the annotation, we use it.
+        // Otherwise, we use the one taken from the system property.
+        String dockerImageName;
+
+        if (! filibusterTest.dockerImageName().isEmpty()) {
+            dockerImageName = filibusterTest.dockerImageName();
+        } else {
+            dockerImageName = getServerBackendDockerImageNameProperty();
+        }
+
         FilibusterConfiguration filibusterConfiguration = new FilibusterConfiguration.Builder()
                 .dynamicReduction(filibusterTest.dynamicReduction())
                 .suppressCombinations(filibusterTest.suppressCombinations())
                 .dataNondeterminism(filibusterTest.dataNondeterminism())
                 .filibusterServerBackend(filibusterTest.serverBackend())
-                .dockerImageName(filibusterTest.dockerImageName())
+                .dockerImageName(dockerImageName)
                 .analysisFile(analysisFile)
                 .build();
 

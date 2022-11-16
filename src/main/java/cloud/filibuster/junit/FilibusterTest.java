@@ -166,5 +166,5 @@ public @interface FilibusterTest {
      *
      * @return string of image name
      */
-    String dockerImageName() default "filibustertesting/filibuster:0.34";
+    String dockerImageName() default "";
 }

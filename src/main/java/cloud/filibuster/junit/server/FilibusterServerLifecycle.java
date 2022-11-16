@@ -16,9 +16,23 @@ import static cloud.filibuster.junit.server.FilibusterServerAPI.healthCheck;
 public class FilibusterServerLifecycle {
     private static boolean started = false;
 
+    private static boolean initializationFailed = false;
+
+    public static boolean didServerInitializationFail() {
+        return initializationFailed;
+    }
+
+    @Nullable
+    @SuppressWarnings("StaticAssignmentOfThrowable")
+    private static Throwable initializationFailedException = null;
+
+    public static Throwable getInitializationFailedException() {
+        return initializationFailedException;
+    }
+
     private static final Logger logger = Logger.getLogger(FilibusterServerLifecycle.class.getName());
 
-    private final static WebClient getNewWebClient() {
+    private static WebClient getNewWebClient() {
         String filibusterBaseUri =  "http://" + Networking.getFilibusterHost() + ":" + Networking.getFilibusterPort() + "/";
 
         return WebClient.builder(filibusterBaseUri)
@@ -26,39 +40,48 @@ public class FilibusterServerLifecycle {
                 .build();
     }
 
-    public static synchronized WebClient startServer(FilibusterConfiguration filibusterConfiguration) throws Throwable {
+    @Nullable
+    @SuppressWarnings({"StaticAssignmentOfThrowable", "InterruptedExceptionSwallowed"})
+    public static synchronized WebClient startServer(FilibusterConfiguration filibusterConfiguration) {
         if (!started) {
             started = true;
 
             FilibusterServerBackend filibusterServerBackend = filibusterConfiguration.getFilibusterServerBackend();
-            filibusterServerBackend.start(filibusterConfiguration);
 
-            WebClient webClient = getNewWebClient();
+            try {
+                filibusterServerBackend.start(filibusterConfiguration);
 
-            boolean online = false;
+                WebClient webClient = getNewWebClient();
 
-            for (int i = 0; i < 10; i++) {
-                logger.log(Level.INFO, "Waiting for FilibusterServer to come online...");
+                boolean online = false;
 
-                try {
-                    online = healthCheck(webClient);
-                    if (online) {
-                        break;
+                for (int i = 0; i < 10; i++) {
+                    logger.log(Level.INFO, "Waiting for FilibusterServer to come online...");
+
+                    try {
+                        online = healthCheck(webClient);
+                        if (online) {
+                            break;
+                        }
+                    } catch (RuntimeException | ExecutionException e) {
+                        // Nothing, try again.
                     }
-                } catch (RuntimeException | ExecutionException e) {
-                    // Nothing, try again.
+
+                    logger.log(Level.INFO, "Sleeping one second...");
+                    Thread.sleep(1000);
                 }
 
-                logger.log(Level.INFO, "Sleeping one second...");
-                Thread.sleep(1000);
-            }
+                if (!online) {
+                    logger.log(Level.INFO, "FilibusterServer never came online!");
+                    throw new FilibusterServerUnavailabilityException();
+                }
 
-            if (!online) {
-                logger.log(Level.INFO, "FilibusterServer never came online!");
-                throw new FilibusterServerUnavailabilityException();
+                return webClient;
+            } catch (Throwable t) {
+                initializationFailed = true;
+                initializationFailedException = t;
+                return null;
             }
-
-            return webClient;
         } else {
             return getNewWebClient();
         }

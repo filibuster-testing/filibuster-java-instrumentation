@@ -18,6 +18,28 @@ public class Property {
     }
 
     /***********************************************************************************
+     ** filibuster.server.backend.docker_image
+     ***********************************************************************************/
+
+    private final static String SERVER_BACKEND_DOCKER_IMAGE_NAME = "filibuster.server.backend.docker_image_name";
+
+    public final static String SERVER_BACKEND_DOCKER_IMAGE_NAME_DEFAULT = "filibustertesting/filibuster:0.34";
+
+    public static void setServerBackendDockerImageNameProperty(String dockerImageName) {
+        System.setProperty(SERVER_BACKEND_DOCKER_IMAGE_NAME, dockerImageName);
+    }
+
+    public static String getServerBackendDockerImageNameProperty() {
+        String propertyValue = System.getProperty(SERVER_BACKEND_DOCKER_IMAGE_NAME);
+
+        if (isPropertyNull(propertyValue)) {
+            return SERVER_BACKEND_DOCKER_IMAGE_NAME_DEFAULT;
+        } else {
+            return propertyValue;
+        }
+    }
+
+    /***********************************************************************************
      ** filibuster.server.port
      ***********************************************************************************/
 

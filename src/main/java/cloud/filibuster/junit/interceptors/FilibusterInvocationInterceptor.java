@@ -38,9 +38,13 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
     private static WebClient privateWebClient;
 
     @Nullable
-    public static WebClient getWebClient() {
+    public static WebClient getWebClient() throws Throwable {
         if (privateWebClient == null) {
-            throw new MissingWebClientException();
+            if (FilibusterServerLifecycle.didServerInitializationFail()) {
+                throw FilibusterServerLifecycle.getInitializationFailedException();
+            } else {
+                throw new MissingWebClientException();
+            }
         } else {
             return privateWebClient;
         }

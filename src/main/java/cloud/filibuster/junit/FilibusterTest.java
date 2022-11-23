@@ -167,4 +167,11 @@ public @interface FilibusterTest {
      * @return string of image name
      */
     String dockerImageName() default "";
+
+    /**
+     * Should a Docker failure fail the test or just ignore it?
+     *
+     * @return boolean
+     */
+    boolean failTestOnDockerFailure() default true;
 }

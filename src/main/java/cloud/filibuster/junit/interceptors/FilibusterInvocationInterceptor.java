@@ -93,14 +93,14 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
                                             ExtensionContext extensionContext) throws Throwable {
         // Start on the first iteration.
         if (currentIteration == 1) {
-            FilibusterSystemProperties.setSystemPropertiesForFilibusterInstrumentation(filibusterConfiguration);
-
             if (shouldInitializeFilibusterServer) {
                 setWebClient(FilibusterServerLifecycle.startServer(filibusterConfiguration));
                 FilibusterServerAPI.analysisFile(getWebClient(), filibusterConfiguration.readAnalysisFile());
             } else {
                 setWebClient(getNewWebClient());
             }
+
+            FilibusterSystemProperties.setSystemPropertiesForFilibusterInstrumentation(filibusterConfiguration);
         }
 
         FilibusterInvocationInterceptorHelpers.conditionallyMarkTeardownComplete(invocationCompletionMap, currentIteration, getWebClient());

@@ -30,6 +30,8 @@ public class FilibusterConfiguration {
 
     private final String dockerImageName;
 
+    private final boolean failTestOnDockerFailure;
+
     private FilibusterConfiguration(Builder builder) {
         this.dynamicReduction = builder.dynamicReduction;
         this.suppressCombinations = builder.suppressCombinations;
@@ -37,6 +39,7 @@ public class FilibusterConfiguration {
         this.analysisFile = builder.analysisFile;
         this.filibusterServerBackend = builder.filibusterServerBackend;
         this.dockerImageName = builder.dockerImageName;
+        this.failTestOnDockerFailure = builder.failTestOnDockerFailure;
     }
 
     public FilibusterServerBackend getFilibusterServerBackend() {
@@ -62,6 +65,10 @@ public class FilibusterConfiguration {
 
     public boolean getSuppressCombinations() {
         return this.suppressCombinations;
+    }
+
+    public boolean getFailTestOnDockerFailure() {
+        return this.failTestOnDockerFailure;
     }
 
     public JSONObject readAnalysisFile() throws FileNotFoundException {
@@ -112,6 +119,8 @@ public class FilibusterConfiguration {
         private FilibusterServerBackend filibusterServerBackend = new FilibusterDockerServerBackend();
 
         private String dockerImageName;
+
+        private boolean failTestOnDockerFailure = true;
 
         /**
          * Should this configuration use dynamic reduction?
@@ -191,6 +200,12 @@ public class FilibusterConfiguration {
         @CanIgnoreReturnValue
         public Builder dockerImageName(String dockerImageName) {
             this.dockerImageName = dockerImageName;
+            return this;
+        }
+
+        @CanIgnoreReturnValue
+        public Builder failTestOnDockerFailure(boolean failTestOnDockerFailure) {
+            this.failTestOnDockerFailure = failTestOnDockerFailure;
             return this;
         }
 

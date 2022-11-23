@@ -30,7 +30,7 @@ public class FilibusterConfiguration {
 
     private final String dockerImageName;
 
-    private final boolean failTestOnDockerFailure;
+    private final boolean degradeWhenServerInitializationFails;
 
     private FilibusterConfiguration(Builder builder) {
         this.dynamicReduction = builder.dynamicReduction;
@@ -39,7 +39,7 @@ public class FilibusterConfiguration {
         this.analysisFile = builder.analysisFile;
         this.filibusterServerBackend = builder.filibusterServerBackend;
         this.dockerImageName = builder.dockerImageName;
-        this.failTestOnDockerFailure = builder.failTestOnDockerFailure;
+        this.degradeWhenServerInitializationFails = builder.degradeWhenServerInitializationFails;
     }
 
     public FilibusterServerBackend getFilibusterServerBackend() {
@@ -67,8 +67,8 @@ public class FilibusterConfiguration {
         return this.suppressCombinations;
     }
 
-    public boolean getFailTestOnDockerFailure() {
-        return this.failTestOnDockerFailure;
+    public boolean getDegradeWhenServerInitializationFails() {
+        return this.degradeWhenServerInitializationFails;
     }
 
     public JSONObject readAnalysisFile() throws FileNotFoundException {
@@ -120,7 +120,7 @@ public class FilibusterConfiguration {
 
         private String dockerImageName;
 
-        private boolean failTestOnDockerFailure = true;
+        private boolean degradeWhenServerInitializationFails = false;
 
         /**
          * Should this configuration use dynamic reduction?
@@ -204,8 +204,8 @@ public class FilibusterConfiguration {
         }
 
         @CanIgnoreReturnValue
-        public Builder failTestOnDockerFailure(boolean failTestOnDockerFailure) {
-            this.failTestOnDockerFailure = failTestOnDockerFailure;
+        public Builder degradeWhenServerInitializationFails(boolean degradeWhenServerInitializationFails) {
+            this.degradeWhenServerInitializationFails = degradeWhenServerInitializationFails;
             return this;
         }
 

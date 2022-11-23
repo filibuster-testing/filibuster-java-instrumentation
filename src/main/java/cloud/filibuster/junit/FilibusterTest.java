@@ -169,9 +169,9 @@ public @interface FilibusterTest {
     String dockerImageName() default "";
 
     /**
-     * Should a Docker failure fail the test or just ignore it?
+     * If the Filibuster server is unavailable, should the system degrade to just running fault-free tests?
      *
      * @return boolean
      */
-    boolean failTestOnDockerFailure() default true;
+    boolean degradeWhenServerInitializationFails() default false;
 }

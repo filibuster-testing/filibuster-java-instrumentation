@@ -88,23 +88,9 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
      */
 
     @Override
-    public void interceptTestTemplateMethod(InvocationInterceptor.Invocation<Void> invocation,
-                                            ReflectiveInvocationContext<Method> invocationContext,
-                                            ExtensionContext extensionContext) throws Throwable {
-        // Start on the first iteration.
-        if (currentIteration == 1) {
-            if (shouldInitializeFilibusterServer) {
-                setWebClient(FilibusterServerLifecycle.startServer(filibusterConfiguration));
-                FilibusterServerAPI.analysisFile(getWebClient(), filibusterConfiguration.readAnalysisFile());
-            } else {
-                setWebClient(getNewWebClient());
-            }
-
-            FilibusterSystemProperties.setSystemPropertiesForFilibusterInstrumentation(filibusterConfiguration);
-        }
-
-        FilibusterInvocationInterceptorHelpers.conditionallyMarkTeardownComplete(invocationCompletionMap, currentIteration, getWebClient());
-
+    public void interceptTestMethod(InvocationInterceptor.Invocation<Void> invocation,
+                                    ReflectiveInvocationContext<Method> invocationContext,
+                                    ExtensionContext extensionContext) throws Throwable {
         Property.setInstrumentationEnabledProperty(true);
 
         // Test handling.
@@ -126,17 +112,69 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
         }
 
         Property.setInstrumentationEnabledProperty(false);
+    }
 
-        // Terminate on the last iteration.
+    @Override
+    public void interceptTestTemplateMethod(InvocationInterceptor.Invocation<Void> invocation,
+                                            ReflectiveInvocationContext<Method> invocationContext,
+                                            ExtensionContext extensionContext) throws Throwable {
+
+        // **************************************************************************************************
+        // 1. Start handling specific to the first iteration.
+        // **************************************************************************************************
+
+        if (currentIteration == 1) {
+
+            // First iteration always needs to start the server unless we are reusing an external server process.
+            if (shouldInitializeFilibusterServer) {
+                setWebClient(FilibusterServerLifecycle.startServer(filibusterConfiguration));
+            } else {
+                setWebClient(getNewWebClient());
+            }
+
+            // Remotely load analysis file configuration in for fault selection.
+            FilibusterServerAPI.analysisFile(getWebClient(), filibusterConfiguration.readAnalysisFile());
+
+            // Configure DEI algorithm and enable Kotlin debugging.
+            FilibusterSystemProperties.setSystemPropertiesForFilibusterInstrumentation(filibusterConfiguration);
+
+        }
+
+        // **************************************************************************************************
+        // 2. Start handling specific to the first iteration.
+        // **************************************************************************************************
+
+        // Conditionally mark the last test as completed.
+        //
+        // This is necessary when the previous test finished, but we didn't have a beforeEach or afterEach
+        // for the previous test (or this test), and we enter this function without having marked
+        // the previous iteration complete.
+        //
+        // Therefore, mark it finished before we start this iteration.
+        FilibusterInvocationInterceptorHelpers.conditionallyMarkTeardownComplete(invocationCompletionMap, currentIteration, getWebClient());
+
+        // Invoke the test.
+        interceptTestMethod(invocation, invocationContext, extensionContext);
+
+        // **************************************************************************************************
+        // 3. Start handling specific to the last iteration.
+        // **************************************************************************************************
+
         if ((currentIteration == maxIterations)) {
+
+            // Reset debugging system properties and DEI algorithm configuration.
             FilibusterSystemProperties.unsetSystemPropertiesForFilibusterInstrumentation();
+
+            // Terminate the Filibuster server.
             FilibusterServerAPI.terminate(getWebClient());
 
+            // Last iteration always needs to stop the server unless we are reusing an external server process.
             if (shouldInitializeFilibusterServer) {
                 setWebClient(FilibusterServerLifecycle.stopServer(filibusterConfiguration, getWebClient()));
             } else {
                 setWebClient(null);
             }
+
         }
     }
 

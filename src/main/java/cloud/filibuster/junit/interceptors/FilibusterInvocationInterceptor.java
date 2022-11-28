@@ -49,9 +49,9 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             } else {
                 throw new MissingWebClientException();
             }
-        } else {
-            return privateWebClient;
         }
+
+        return privateWebClient;
     }
 
     private static void setWebClient(@Nullable WebClient webClient) {

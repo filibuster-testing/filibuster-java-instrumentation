@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterDockerBackendTest extends JUnitBaseTest {
+public class JUnitFilibusterDockerBackendTestCorrectImage extends JUnitBaseTest {
     private static int numberOfTestsExceptionsThrownFaultsInjected = 0;
 
     /**

@@ -137,7 +137,9 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             }
 
             // Remotely load analysis file configuration in for fault selection.
-            FilibusterServerAPI.analysisFile(getWebClient(), filibusterConfiguration.readAnalysisFile());
+            if (hasWebClient()) {
+                FilibusterServerAPI.analysisFile(getWebClient(), filibusterConfiguration.readAnalysisFile());
+            }
 
             // Configure DEI algorithm and enable Kotlin debugging.
             FilibusterSystemProperties.setSystemPropertiesForFilibusterInstrumentation(filibusterConfiguration);
@@ -155,7 +157,9 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
         // the previous iteration complete.
         //
         // Therefore, mark it finished before we start this iteration.
-        FilibusterInvocationInterceptorHelpers.conditionallyMarkTeardownComplete(invocationCompletionMap, currentIteration, getWebClient());
+        if (hasWebClient()) {
+            FilibusterInvocationInterceptorHelpers.conditionallyMarkTeardownComplete(invocationCompletionMap, currentIteration, getWebClient());
+        }
 
         // Invoke the test.
         interceptTestMethod(invocation, invocationContext, extensionContext);
@@ -170,11 +174,15 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             FilibusterSystemProperties.unsetSystemPropertiesForFilibusterInstrumentation();
 
             // Terminate the Filibuster server.
-            FilibusterServerAPI.terminate(getWebClient());
+            if (hasWebClient()) {
+                FilibusterServerAPI.terminate(getWebClient());
+            }
 
             // Last iteration always needs to stop the server unless we are reusing an external server process.
             if (shouldInitializeFilibusterServer) {
-                setWebClient(FilibusterServerLifecycle.stopServer(filibusterConfiguration, getWebClient()));
+                if (hasWebClient()) {
+                    setWebClient(FilibusterServerLifecycle.stopServer(filibusterConfiguration, getWebClient()));
+                }
             } else {
                 setWebClient(null);
             }

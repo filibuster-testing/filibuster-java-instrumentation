@@ -1,5 +1,6 @@
 package cloud.filibuster.junit.interceptors;
 
+import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.junit.server.FilibusterServerAPI;
 import com.linecorp.armeria.client.WebClient;
 import org.junit.jupiter.api.extension.InvocationInterceptor;
@@ -28,8 +29,9 @@ public class FilibusterInvocationInterceptorHelpers {
 
     @SuppressWarnings("InterruptedExceptionSwallowed")
     public static void proceedAndLogException(InvocationInterceptor.Invocation<Void> invocation,
-                                               int currentIteration,
-                                               WebClient webClient) throws Throwable {
+                                              int currentIteration,
+                                              WebClient webClient,
+                                              FilibusterConfiguration filibusterConfiguration) throws Throwable {
         try {
             invocation.proceed();
             FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */false);

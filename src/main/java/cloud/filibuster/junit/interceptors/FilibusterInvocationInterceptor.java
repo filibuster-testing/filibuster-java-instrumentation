@@ -121,7 +121,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             // Test handling.
             if (currentIteration == 1) {
                 // First iteration always runs because it's the fault free execution.
-                FilibusterInvocationInterceptorHelpers.proceedAndLogException(invocation, currentIteration, getWebClient());
+                FilibusterInvocationInterceptorHelpers.proceedAndLogException(invocation, currentIteration, getWebClient(), filibusterConfiguration);
             } else if (currentIteration == maxIterations) {
                 // Last iteration never runs.
                 invocation.skip();
@@ -132,7 +132,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
                 if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(getWebClient(), currentIteration, "testTemplate")) {
                     invocation.skip();
                 } else {
-                    FilibusterInvocationInterceptorHelpers.proceedAndLogException(invocation, currentIteration, getWebClient());
+                    FilibusterInvocationInterceptorHelpers.proceedAndLogException(invocation, currentIteration, getWebClient(), filibusterConfiguration);
                 }
             }
 

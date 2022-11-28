@@ -42,10 +42,20 @@ public class FilibusterConfiguration {
         this.degradeWhenServerInitializationFails = builder.degradeWhenServerInitializationFails;
     }
 
+    /**
+     * Return the backend implementation that should be used for running the Filibuster server.
+     *
+     * @return server backend.
+     */
     public FilibusterServerBackend getFilibusterServerBackend() {
         return this.filibusterServerBackend;
     }
 
+    /**
+     * Name of the docker image containing the Filibuster server.
+     *
+     * @return string
+     */
     public String getDockerImageName() {
         return this.dockerImageName;
     }
@@ -59,14 +69,29 @@ public class FilibusterConfiguration {
         return this.dataNondeterminism;
     }
 
+    /**
+     * Should dynamic reduction be used?
+     *
+     * @return boolean
+     */
     public boolean getDynamicReduction() {
         return this.dynamicReduction;
     }
 
+    /**
+     * Should combinations of faults be suppressed?
+     *
+     * @return boolean
+     */
     public boolean getSuppressCombinations() {
         return this.suppressCombinations;
     }
 
+    /**
+     * Should the jUnit suite degrade and run the tests without faults only when the server is unavailable?
+     *
+     * @return boolean
+     */
     public boolean getDegradeWhenServerInitializationFails() {
         return this.degradeWhenServerInitializationFails;
     }
@@ -203,6 +228,12 @@ public class FilibusterConfiguration {
             return this;
         }
 
+        /**
+         * Should the test suite degrade when the Filibuster server is unavailable (rather than fail the test completely?)
+         *
+         * @param degradeWhenServerInitializationFails boolean
+         * @return builder
+         */
         @CanIgnoreReturnValue
         public Builder degradeWhenServerInitializationFails(boolean degradeWhenServerInitializationFails) {
             this.degradeWhenServerInitializationFails = degradeWhenServerInitializationFails;

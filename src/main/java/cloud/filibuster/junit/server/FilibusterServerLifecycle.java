@@ -43,6 +43,9 @@ public class FilibusterServerLifecycle {
     @Nullable
     @SuppressWarnings({"StaticAssignmentOfThrowable", "InterruptedExceptionSwallowed"})
     public static synchronized WebClient startServer(FilibusterConfiguration filibusterConfiguration) {
+        initializationFailed = false;
+        initializationFailedException = null;
+
         if (!started) {
             FilibusterServerBackend filibusterServerBackend = filibusterConfiguration.getFilibusterServerBackend();
 

@@ -8,6 +8,7 @@ import java.lang.annotation.Target;
 
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterDefaultAnalysisConfigurationFile;
+import cloud.filibuster.junit.exceptions.NoopException;
 import cloud.filibuster.junit.extensions.FilibusterTestExtension;
 
 import cloud.filibuster.junit.server.FilibusterServerBackend;
@@ -174,4 +175,11 @@ public @interface FilibusterTest {
      * @return boolean
      */
     boolean degradeWhenServerInitializationFails() default false;
+
+    /**
+     * Whether we expect this all generated tests to throw this exception.
+     *
+     * @return throwable or runtime exception
+     */
+    Class<? extends RuntimeException> expected() default NoopException.class;
 }

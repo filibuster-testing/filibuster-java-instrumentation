@@ -5,6 +5,7 @@ import cloud.filibuster.instrumentation.exceptions.MissingWebClientException;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.helpers.Property;
 import cloud.filibuster.junit.FilibusterSystemProperties;
+import cloud.filibuster.junit.exceptions.NoopException;
 import cloud.filibuster.junit.server.FilibusterServerLifecycle;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.junit.server.FilibusterServerAPI;
@@ -107,8 +108,16 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
                 }
             } else {
                 if (currentIteration == 1) {
-                    // Throw exception for the first Filibuster test to alert developer that Filibuster server didn't start.
-                    throw FilibusterServerLifecycle.getInitializationFailedException();
+                    Throwable t = FilibusterServerLifecycle.getInitializationFailedException();
+                    Class<? extends RuntimeException> expectedExceptionClass = filibusterConfiguration.getExpected();
+
+                    if (expectedExceptionClass != NoopException.class && expectedExceptionClass.isInstance(t)) {
+                        // We expected a failure.
+                        invocation.skip();
+                    } else {
+                        // Throw exception for the first Filibuster test to alert developer that Filibuster server didn't start.
+                        throw FilibusterServerLifecycle.getInitializationFailedException();
+                    }
                 } else {
                     // No point in throwing exceptions for every generated test, it's too noisy.
                     // Throw only on the first generated test.

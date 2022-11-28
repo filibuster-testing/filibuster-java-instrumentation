@@ -119,7 +119,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
                             invocation.skip();
                         } else {
                             // ...and it was *not* what we expected.
-                            throw new AssertionFailedError("Expected instance of " + expectedExceptionClass + ", but received " + t.toString());
+                            throw new AssertionFailedError("Expected instance of " + expectedExceptionClass + ", but received " + t);
                         }
                     } else {
                         // Throw exception for the first Filibuster test to alert developer that Filibuster server didn't start.

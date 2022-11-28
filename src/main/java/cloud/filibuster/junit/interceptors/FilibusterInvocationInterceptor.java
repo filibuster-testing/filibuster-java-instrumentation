@@ -95,27 +95,49 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
     public void interceptTestMethod(InvocationInterceptor.Invocation<Void> invocation,
                                     ReflectiveInvocationContext<Method> invocationContext,
                                     ExtensionContext extensionContext) throws Throwable {
-        Property.setInstrumentationEnabledProperty(true);
-
-        // Test handling.
-        if (currentIteration == 1) {
-            // First iteration always runs because it's the fault free execution.
-            FilibusterInvocationInterceptorHelpers.proceedAndLogException(invocation, currentIteration, getWebClient());
-        } else if (currentIteration == maxIterations) {
-            // Last iteration never runs.
-            invocation.skip();
+        if (FilibusterServerLifecycle.didServerInitializationFail()) {
+            if (filibusterConfiguration.getDegradeWhenServerInitializationFails()) {
+                if (currentIteration == 1) {
+                    // In degraded mode, we default to standard jUnit behavior.
+                    // We run the test without enabling instrumentation to simulate the normal jUnit behavior.
+                    invocation.proceed();
+                } else {
+                    // We do not run any other tests because there is no Filibuster server to give us any information about what to run.
+                    invocation.skip();
+                }
+            } else {
+                if (currentIteration == 1) {
+                    // Throw exception for the first Filibuster test to alert developer that Filibuster server didn't start.
+                    throw FilibusterServerLifecycle.getInitializationFailedException();
+                } else {
+                    // No point in throwing exceptions for every generated test, it's too noisy.
+                    // Throw only on the first generated test.
+                    invocation.skip();
+                }
+            }
         } else {
-            // Otherwise:
-            // (A) Conditionally mark teardown of the previous iteration complete, if not done yet.
-            // (B) Ask the server if we have a test iteration to run and run it if so.
-            if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(getWebClient(), currentIteration, "testTemplate")) {
+            Property.setInstrumentationEnabledProperty(true);
+
+            // Test handling.
+            if (currentIteration == 1) {
+                // First iteration always runs because it's the fault free execution.
+                FilibusterInvocationInterceptorHelpers.proceedAndLogException(invocation, currentIteration, getWebClient());
+            } else if (currentIteration == maxIterations) {
+                // Last iteration never runs.
                 invocation.skip();
             } else {
-                FilibusterInvocationInterceptorHelpers.proceedAndLogException(invocation, currentIteration, getWebClient());
+                // Otherwise:
+                // (A) Conditionally mark teardown of the previous iteration complete, if not done yet.
+                // (B) Ask the server if we have a test iteration to run and run it if so.
+                if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(getWebClient(), currentIteration, "testTemplate")) {
+                    invocation.skip();
+                } else {
+                    FilibusterInvocationInterceptorHelpers.proceedAndLogException(invocation, currentIteration, getWebClient());
+                }
             }
-        }
 
-        Property.setInstrumentationEnabledProperty(false);
+            Property.setInstrumentationEnabledProperty(false);
+        }
     }
 
     @Override
@@ -194,22 +216,42 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
     public void interceptBeforeEachMethod(InvocationInterceptor.Invocation<Void> invocation,
                                           ReflectiveInvocationContext<Method> invocationContext,
                                           ExtensionContext extensionContext) throws Throwable {
-        if (currentIteration == 1) {
-            // First iteration always runs because it's the fault free execution.
-            invocation.proceed();
-        } else if (currentIteration == maxIterations) {
-            // Last iteration never runs.
-            invocation.skip();
+        if (FilibusterServerLifecycle.didServerInitializationFail()) {
+            if (filibusterConfiguration.getDegradeWhenServerInitializationFails()) {
+                if (currentIteration == 1) {
+                    // First test in degraded mode is the normal jUnit test: run it.
+                    invocation.proceed();
+                } else {
+                    // Degraded behavior only runs the first test: these are all noops, so skip.
+                    invocation.skip();
+                }
+            } else {
+                if (currentIteration == 1) {
+                    // Even if the Filibuster server failed to start, it's the fault-free execution, so run it anyway.
+                    invocation.proceed();
+                } else {
+                    // No point in running tests that the Filibuster server can't provide information for.
+                    invocation.skip();
+                }
+            }
         } else {
-            // Otherwise:
-            // (A) Conditionally mark teardown of the previous iteration complete, if not done yet.
-            // (B) Ask the server if we have a test iteration to run and run it if so.
-            FilibusterInvocationInterceptorHelpers.conditionallyMarkTeardownComplete(invocationCompletionMap, currentIteration, getWebClient());
-
-            if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(getWebClient(), currentIteration, "beforeEach")) {
+            if (currentIteration == 1) {
+                // First iteration always runs because it's the fault free execution.
+                invocation.proceed();
+            } else if (currentIteration == maxIterations) {
+                // Last iteration never runs.
                 invocation.skip();
             } else {
-                invocation.proceed();
+                // Otherwise:
+                // (A) Conditionally mark teardown of the previous iteration complete, if not done yet.
+                // (B) Ask the server if we have a test iteration to run and run it if so.
+                FilibusterInvocationInterceptorHelpers.conditionallyMarkTeardownComplete(invocationCompletionMap, currentIteration, getWebClient());
+
+                if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(getWebClient(), currentIteration, "beforeEach")) {
+                    invocation.skip();
+                } else {
+                    invocation.proceed();
+                }
             }
         }
     }
@@ -218,19 +260,39 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
     public void interceptAfterEachMethod(InvocationInterceptor.Invocation<Void> invocation,
                                          ReflectiveInvocationContext<Method> invocationContext,
                                          ExtensionContext extensionContext) throws Throwable {
-        if (currentIteration == 1) {
-            // First iteration always runs because it's the fault free execution.
-            invocation.proceed();
-        } else if (currentIteration == maxIterations) {
-            // Last iteration never runs.
-            invocation.skip();
+        if (FilibusterServerLifecycle.didServerInitializationFail()) {
+            if (filibusterConfiguration.getDegradeWhenServerInitializationFails()) {
+                if (currentIteration == 1) {
+                    // First test in degraded mode is the normal jUnit test: run it.
+                    invocation.proceed();
+                } else {
+                    // Degraded behavior only runs the first test: these are all noops, so skip.
+                    invocation.skip();
+                }
+            } else {
+                if (currentIteration == 1) {
+                    // Even if the Filibuster server failed to start, it's the fault-free execution, so run it anyway.
+                    invocation.proceed();
+                } else {
+                    // No point in running tests that the Filibuster server can't provide information for.
+                    invocation.skip();
+                }
+            }
         } else {
-            // Otherwise:
-            // (A) Ask the server if we have a test iteration to run and run it if so.
-            if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(getWebClient(), currentIteration, "afterEach")) {
+            if (currentIteration == 1) {
+                // First iteration always runs because it's the fault free execution.
+                invocation.proceed();
+            } else if (currentIteration == maxIterations) {
+                // Last iteration never runs.
                 invocation.skip();
             } else {
-                invocation.proceed();
+                // Otherwise:
+                // (A) Ask the server if we have a test iteration to run and run it if so.
+                if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(getWebClient(), currentIteration, "afterEach")) {
+                    invocation.skip();
+                } else {
+                    invocation.proceed();
+                }
             }
         }
     }

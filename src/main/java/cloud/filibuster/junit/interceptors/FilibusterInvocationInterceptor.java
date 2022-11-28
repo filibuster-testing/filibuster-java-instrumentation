@@ -37,6 +37,10 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
     @Nullable
     private static WebClient privateWebClient;
 
+    private static boolean hasWebClient() {
+        return privateWebClient != null;
+    }
+
     @Nullable
     public static WebClient getWebClient() throws Throwable {
         if (privateWebClient == null) {

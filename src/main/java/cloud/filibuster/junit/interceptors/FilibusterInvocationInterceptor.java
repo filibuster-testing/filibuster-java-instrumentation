@@ -10,6 +10,7 @@ import cloud.filibuster.junit.server.FilibusterServerLifecycle;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.junit.server.FilibusterServerAPI;
 import com.linecorp.armeria.client.WebClient;
+import junit.framework.AssertionFailedError;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.InvocationInterceptor;
 import org.junit.jupiter.api.extension.ReflectiveInvocationContext;
@@ -111,9 +112,15 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
                     Throwable t = FilibusterServerLifecycle.getInitializationFailedException();
                     Class<? extends RuntimeException> expectedExceptionClass = filibusterConfiguration.getExpected();
 
-                    if (expectedExceptionClass != NoopException.class && expectedExceptionClass.isInstance(t)) {
-                        // We expected a failure.
-                        invocation.skip();
+                    if (expectedExceptionClass != NoopException.class) {
+                        // We expected a failure...
+                        if (expectedExceptionClass.isInstance(t)) {
+                            // ...and it was what we expected.
+                            invocation.skip();
+                        } else {
+                            // ...and it was *not* what we expected.
+                            throw new AssertionFailedError("Expected instance of " + expectedExceptionClass + ", but received " + t.toString());
+                        }
                     } else {
                         // Throw exception for the first Filibuster test to alert developer that Filibuster server didn't start.
                         throw FilibusterServerLifecycle.getInitializationFailedException();

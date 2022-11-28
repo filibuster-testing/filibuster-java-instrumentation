@@ -1,8 +1,7 @@
-package cloud.filibuster.junit.tests.filibuster.local_process.custom;
+package cloud.filibuster.junit.tests.filibuster.smoke.local_process.custom;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
-import cloud.filibuster.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
@@ -10,9 +9,8 @@ import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfiguratio
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
 import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
 import cloud.filibuster.junit.tests.filibuster.JUnitBaseTest;
-import com.linecorp.armeria.client.grpc.GrpcClientBuilder;
-
-import org.junit.jupiter.api.BeforeEach;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -21,17 +19,17 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Verify, using instrumented GrpcClient, fault injections between test and Hello and Hello and World using
- * a custom analysis file generated for Filibuster.
+ * Verify that the Filibuster analysis can be configured to use a custom set of faults.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("Java8ApiChecker")
-public class JUnitFilibusterTestWithCustomAnalysisFileAndGrpcClient extends JUnitBaseTest {
+public class JUnitFilibusterTestWithCustomAnalysisFile extends JUnitBaseTest {
     private static final String analysisFilePath = "/tmp/filibuster-custom-analysis-file";
 
     static {
@@ -56,38 +54,33 @@ public class JUnitFilibusterTestWithCustomAnalysisFileAndGrpcClient extends JUni
                         "code", "NOT_FOUND"
                 ))
                 .build();
-        FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile = new FilibusterCustomAnalysisConfigurationFile.Builder()
+        FilibusterCustomAnalysisConfigurationFile filibusterAnalysisConfigurationFile = new FilibusterCustomAnalysisConfigurationFile.Builder()
                 .analysisConfiguration(filibusterAnalysisConfiguration)
                 .build();
-        filibusterCustomAnalysisConfigurationFile.writeToDisk(analysisFilePath);
+        filibusterAnalysisConfigurationFile.writeToDisk(analysisFilePath);
     }
 
     private static int numberOfTestsExceptionsThrownFaultsInjected = 0;
 
-    private GrpcClientBuilder grpcClientBuilder;
-
-    @BeforeEach
-    protected void setupGrpcClientBuilder() {
-        String baseURI = "http://" + Networking.getHost("hello") + ":" + Networking.getPort("hello") + "/";
-        grpcClientBuilder = TestHelper.getGrpcClientBuilder(baseURI, "junit");
-    }
-
     /**
-     * Verify, using instrumented GrpcClient, fault injections between test and Hello and Hello and World using
-     * a custom analysis file generated for Filibuster.
+     * Inject faults between Hello and World service and verify that all faults that are injected are supposed to be.
      *
-     * @throws InterruptedException thrown when the gRPC channel fails to terminate.
+     * @throws InterruptedException thrown if the gRPC channel fails to terminate.
      */
-    @DisplayName("Test partial hello server grpc route with Filibuster with instrumented test client. (MyHelloService, MyWorldService)")
+    @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @FilibusterTest(analysisFile=analysisFilePath, serverBackend=FilibusterLocalProcessServerBackend.class)
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
+        ManagedChannel helloChannel = ManagedChannelBuilder
+                .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
+                .usePlaintext()
+                .build();
+
         boolean expected = false;
 
         try {
-            HelloServiceGrpc.HelloServiceBlockingStub blockingStub = grpcClientBuilder
-                    .build(HelloServiceGrpc.HelloServiceBlockingStub.class);
+            HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
             Hello.HelloReply reply = blockingStub.partialHello(request);
             assertEquals("Hello, Armerian World!!", reply.getMessage());
@@ -95,31 +88,7 @@ public class JUnitFilibusterTestWithCustomAnalysisFileAndGrpcClient extends JUni
             if (wasFaultInjected()) {
                 numberOfTestsExceptionsThrownFaultsInjected++;
 
-                // Errors from the client to the Hello Service.
-
-                if (t.getMessage().equals("NOT_FOUND: Injected fault from Filibuster, status code: 5")) {
-                    expected = true;
-                }
-
-                if (t.getMessage().equals("INVALID_ARGUMENT: Injected fault from Filibuster, status code: 3")) {
-                    expected = true;
-                }
-
-                if (t.getMessage().contains("DEADLINE_EXCEEDED: Injected fault from Filibuster, status code: 4")) {
-                    expected = true;
-                }
-
-                if (t.getMessage().equals("UNAVAILABLE: Injected fault from Filibuster, status code: 14")) {
-                    expected = true;
-                }
-
-                // Errors from the Hello to the World service.
-
                 if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: NOT_FOUND")) {
-                    expected = true;
-                }
-
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: INVALID_ARGUMENT")) {
                     expected = true;
                 }
 
@@ -131,6 +100,10 @@ public class JUnitFilibusterTestWithCustomAnalysisFileAndGrpcClient extends JUni
                     expected = true;
                 }
 
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: INVALID_ARGUMENT")) {
+                    expected = true;
+                }
+
                 if (! expected) {
                     throw t;
                 }
@@ -138,16 +111,19 @@ public class JUnitFilibusterTestWithCustomAnalysisFileAndGrpcClient extends JUni
                 throw t;
             }
         }
+
+        helloChannel.shutdownNow();
+        helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
     }
 
     /**
-     * Verify the correct number of Filibuster tests are executed.
+     * Verify that the correct number of Filibuster tests are generated.
      */
     @DisplayName("Verify correct number of generated Filibuster tests.")
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(8, numberOfTestsExceptionsThrownFaultsInjected);
+        assertEquals(4, numberOfTestsExceptionsThrownFaultsInjected);
     }
 }

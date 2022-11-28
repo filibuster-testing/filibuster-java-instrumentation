@@ -1,9 +1,8 @@
-package cloud.filibuster.junit.tests.filibuster.local_process.extended;
+package cloud.filibuster.junit.tests.filibuster.smoke.local_process.basic;
 
 import cloud.filibuster.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
-import cloud.filibuster.junit.configuration.FilibusterWorldExtendedDefaultAnalysisConfigurationFile;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
 import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
 import cloud.filibuster.junit.tests.filibuster.JUnitBaseTest;
@@ -30,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterWorldExtendedHttpTest extends JUnitBaseTest {
+public class JUnitFilibusterHttpTest extends JUnitBaseTest {
     private static int numberOfTestsExceptionsThrownFaultsInjected = 0;
 
     private final List<String> validErrorCodes = Arrays.asList("404", "503");
@@ -39,8 +38,8 @@ public class JUnitFilibusterWorldExtendedHttpTest extends JUnitBaseTest {
      * Inject faults between Hello and World using Filibuster and assert proper faults are injected.
      */
     @DisplayName("Test world route with Filibuster.")
-    @FilibusterTest(analysisConfigurationFile=FilibusterWorldExtendedDefaultAnalysisConfigurationFile.class, serverBackend=FilibusterLocalProcessServerBackend.class)
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
+    @FilibusterTest(serverBackend=FilibusterLocalProcessServerBackend.class)
     @Order(1)
     public void testHelloAndWorldServiceWithFilibuster() {
         try {
@@ -71,6 +70,6 @@ public class JUnitFilibusterWorldExtendedHttpTest extends JUnitBaseTest {
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(5, numberOfTestsExceptionsThrownFaultsInjected);
+        assertEquals(4, numberOfTestsExceptionsThrownFaultsInjected);
     }
 }

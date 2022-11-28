@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.tests.filibuster.local_process.exhaustive;
+package cloud.filibuster.junit.tests.filibuster.full.local_process.exhaustive;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("Java8ApiChecker")
-public class JUnitFilibusterTestWithExhaustiveAnalysisFileMaxIterationsNotEnough extends JUnitBaseTest {
+public class JUnitFilibusterTestWithExhaustiveAnalysisFile extends JUnitBaseTest {
     private static final String analysisFilePath = "/tmp/filibuster-exhaustive-analysis-file";
     private static final List<String> exhaustiveGrpcErrorCodeList = new ArrayList<>();
 
@@ -72,7 +72,7 @@ public class JUnitFilibusterTestWithExhaustiveAnalysisFileMaxIterationsNotEnough
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
-    @FilibusterTest(analysisFile=analysisFilePath, maxIterations=3, serverBackend=FilibusterLocalProcessServerBackend.class)
+    @FilibusterTest(analysisFile=analysisFilePath, serverBackend=FilibusterLocalProcessServerBackend.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -115,6 +115,6 @@ public class JUnitFilibusterTestWithExhaustiveAnalysisFileMaxIterationsNotEnough
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(2, numberOfTestsExceptionsThrownFaultsInjected);
+        assertEquals(16, numberOfTestsExceptionsThrownFaultsInjected);
     }
 }

@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.tests.filibuster.local_process.basic;
+package cloud.filibuster.junit.tests.filibuster.smoke.local_process.basic;
 
 import cloud.filibuster.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.helpers.Networking;

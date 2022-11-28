@@ -70,6 +70,7 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
                 .dockerImageName(dockerImageName)
                 .analysisFile(analysisFile)
                 .degradeWhenServerInitializationFails(filibusterTest.degradeWhenServerInitializationFails())
+                .expected(filibusterTest.expected())
                 .build();
 
         HashMap<Integer, Boolean> invocationCompletionMap = new HashMap<>();

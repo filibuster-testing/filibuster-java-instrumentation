@@ -33,6 +33,8 @@ public class FilibusterConfiguration {
 
     private final boolean degradeWhenServerInitializationFails;
 
+    private final Class<? extends RuntimeException> expected;
+
     private FilibusterConfiguration(Builder builder) {
         this.dynamicReduction = builder.dynamicReduction;
         this.suppressCombinations = builder.suppressCombinations;
@@ -41,6 +43,7 @@ public class FilibusterConfiguration {
         this.filibusterServerBackend = builder.filibusterServerBackend;
         this.dockerImageName = builder.dockerImageName;
         this.degradeWhenServerInitializationFails = builder.degradeWhenServerInitializationFails;
+        this.expected = builder.expected;
     }
 
     /**
@@ -50,6 +53,15 @@ public class FilibusterConfiguration {
      */
     public FilibusterServerBackend getFilibusterServerBackend() {
         return this.filibusterServerBackend;
+    }
+
+    /**
+     * Return expected exception.
+     *
+     * @return throwable
+     */
+    public Class<? extends RuntimeException> getExpected() {
+        return this.expected;
     }
 
     /**
@@ -154,6 +166,8 @@ public class FilibusterConfiguration {
 
         private boolean degradeWhenServerInitializationFails = false;
 
+        private Class<? extends RuntimeException> expected;
+
         /**
          * Should this configuration use dynamic reduction?
          *
@@ -220,6 +234,18 @@ public class FilibusterConfiguration {
             }
 
             this.filibusterServerBackend = serverBackend;
+            return this;
+        }
+
+        /**
+         * Expected exception thrown.
+         *
+         * @param clazz class of the exception thrown
+         * @return builder
+         */
+        @CanIgnoreReturnValue
+        public Builder expected(Class<? extends RuntimeException> clazz) {
+            this.expected = clazz;
             return this;
         }
 

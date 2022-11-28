@@ -96,12 +96,18 @@ public class FilibusterConfiguration {
         return this.degradeWhenServerInitializationFails;
     }
 
-    public JSONObject readAnalysisFile() throws FileNotFoundException {
+    /**
+     * Returns the analysis file content as JSON, read from either file or annotation-based configuration.
+     *
+     * @return json object.
+     * @throws FileNotFoundException when the analysis file cannot be found.
+     */
+    public JSONObject readAnalysisFile() throws IOException {
         if (analysisFile != null) {
             File f = new File(analysisFile);
 
             if (f.exists()) {
-                InputStream is = new FileInputStream(f);
+                InputStream is = Files.newInputStream(f.toPath());
                 String jsonTxt = IOUtils.toString(is, Charset.defaultCharset());
                 return new JSONObject(jsonTxt);
             } else {

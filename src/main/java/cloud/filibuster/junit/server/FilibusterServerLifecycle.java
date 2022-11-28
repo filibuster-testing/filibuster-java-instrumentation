@@ -44,8 +44,6 @@ public class FilibusterServerLifecycle {
     @SuppressWarnings({"StaticAssignmentOfThrowable", "InterruptedExceptionSwallowed"})
     public static synchronized WebClient startServer(FilibusterConfiguration filibusterConfiguration) {
         if (!started) {
-            started = true;
-
             FilibusterServerBackend filibusterServerBackend = filibusterConfiguration.getFilibusterServerBackend();
 
             try {
@@ -75,6 +73,8 @@ public class FilibusterServerLifecycle {
                     logger.log(Level.INFO, "FilibusterServer never came online!");
                     throw new FilibusterServerUnavailabilityException();
                 }
+
+                started = true;
 
                 return webClient;
             } catch (Throwable t) {

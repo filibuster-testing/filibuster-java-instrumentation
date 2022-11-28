@@ -110,6 +110,8 @@ public class FilibusterServerLifecycle {
 
             logger.log(Level.INFO, "Filibuster server stopped!");
 
+            initializationFailedException = null;
+            initializationFailed = false;
             started = false;
         }
 

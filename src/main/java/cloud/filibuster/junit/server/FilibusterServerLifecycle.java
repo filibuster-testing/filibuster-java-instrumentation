@@ -87,8 +87,8 @@ public class FilibusterServerLifecycle {
         }
     }
 
-    @SuppressWarnings("BusyWait")
     @Nullable
+    @SuppressWarnings({"BusyWait", "StaticAssignmentOfThrowable"})
     public static synchronized WebClient stopServer(FilibusterConfiguration filibusterConfiguration, WebClient webClient) throws Throwable {
         if (started) {
 

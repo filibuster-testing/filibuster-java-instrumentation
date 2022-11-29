@@ -1,23 +1,27 @@
-package cloud.filibuster.junit.tests.filibuster.server.basic;
+package cloud.filibuster.junit.tests.filibuster.smoke.fake;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
+import cloud.filibuster.instrumentation.FilibusterServer;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
-import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
-import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
+import cloud.filibuster.junit.interceptors.FilibusterInvocationInterceptor;
 import cloud.filibuster.junit.tests.filibuster.JUnitBaseTest;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import static cloud.filibuster.instrumentation.TestHelper.startMockFilibusterServerAndWaitUntilAvailable;
+import static cloud.filibuster.instrumentation.TestHelper.stopMockFilibusterServerAndWaitUntilUnavailable;
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
@@ -29,8 +33,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterTest extends JUnitBaseTest {
+public class JUnitFilibusterTestWithServerFake extends JUnitBaseTest {
     private static int numberOfTestsExceptionsThrownFaultsInjected = 0;
+
+    @BeforeAll
+    protected static void disableFilibusterServerInitialization() throws IOException, InterruptedException {
+        FilibusterInvocationInterceptor.shouldInitializeFilibusterServer = false;
+        startMockFilibusterServerAndWaitUntilAvailable();
+        FilibusterServer.shouldInjectGrpcMetadataFault = true;
+    }
+
+    @AfterAll
+    protected static void enableFilibusterServerInitialization() throws InterruptedException {
+        FilibusterInvocationInterceptor.shouldInitializeFilibusterServer = true;
+        stopMockFilibusterServerAndWaitUntilUnavailable();
+        FilibusterServer.shouldInjectGrpcMetadataFault = false;
+    }
 
     /**
      * Inject faults between Hello and World using Filibuster and assert proper faults are injected.
@@ -38,8 +56,7 @@ public class JUnitFilibusterTest extends JUnitBaseTest {
      * @throws InterruptedException if teardown of gRPC channel fails.
      */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
-    @FilibusterTest(serverBackend=FilibusterLocalProcessServerBackend.class)
+    @FilibusterTest
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -61,19 +78,7 @@ public class JUnitFilibusterTest extends JUnitBaseTest {
             if (wasFaultInjected) {
                 numberOfTestsExceptionsThrownFaultsInjected++;
 
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
-                    expected = true;
-                }
-
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNAVAILABLE")) {
-                    expected = true;
-                }
-
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED")) {
-                    expected = true;
-                }
-
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: INTERNAL")) {
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: NOT_FOUND")) {
                     expected = true;
                 }
 
@@ -99,10 +104,10 @@ public class JUnitFilibusterTest extends JUnitBaseTest {
      * Verify that Filibuster generated the correct number of fault injections.
      */
     @DisplayName("Verify correct number of generated Filibuster tests.")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(4, numberOfTestsExceptionsThrownFaultsInjected);
+        // 3, because with the fake we inject the same fault three times
+        assertEquals(3, numberOfTestsExceptionsThrownFaultsInjected);
     }
 }

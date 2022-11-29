@@ -1,14 +1,15 @@
-package cloud.filibuster.junit.tests.filibuster.server.custom;
+package cloud.filibuster.junit.tests.filibuster.full.local_process.extended;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
+import cloud.filibuster.examples.armeria.grpc.test_services.MyHelloService;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
+import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
+import cloud.filibuster.instrumentation.libraries.grpc.FilibusterServerInterceptor;
 import cloud.filibuster.junit.FilibusterTest;
-import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
-import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
 import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
-import cloud.filibuster.junit.tests.filibuster.JUnitBaseTest;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.DisplayName;
@@ -18,60 +19,51 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.util.Map;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import static cloud.filibuster.instrumentation.TestHelper.startExternalServerAndWaitUntilAvailable;
+import static cloud.filibuster.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
+import static cloud.filibuster.instrumentation.TestHelper.startWorldServerAndWaitUntilAvailable;
+import static cloud.filibuster.instrumentation.TestHelper.stopExternalServerAndWaitUntilUnavailable;
+import static cloud.filibuster.instrumentation.TestHelper.stopHelloServerAndWaitUntilUnavailable;
+import static cloud.filibuster.instrumentation.TestHelper.stopWorldServerAndWaitUntilUnavailable;
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Verify that the Filibuster analysis can be configured to use a custom set of faults.
+ * Verify that fault injection works with Filibuster when no beforeEach or afterEach is present.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@SuppressWarnings("Java8ApiChecker")
-public class JUnitFilibusterTestWithCustomAnalysisFile extends JUnitBaseTest {
-    private static final String analysisFilePath = "/tmp/filibuster-custom-analysis-file";
-
-    static {
-        @SuppressWarnings("Java8ApiChecker")
-        FilibusterAnalysisConfiguration filibusterAnalysisConfiguration = new FilibusterAnalysisConfiguration.Builder()
-                .name("java.grpc")
-                .pattern("(.*Service/.*)")
-                .exception("io.grpc.StatusRuntimeException", Map.of(
-                        "cause", "",
-                        "code", "UNAVAILABLE"
-                ))
-                .exception("io.grpc.StatusRuntimeException", Map.of(
-                        "cause", "",
-                        "code", "DEADLINE_EXCEEDED"
-                ))
-                .exception("io.grpc.StatusRuntimeException", Map.of(
-                        "cause", "",
-                        "code", "INVALID_ARGUMENT"
-                ))
-                .exception("io.grpc.StatusRuntimeException", Map.of(
-                        "cause", "",
-                        "code", "NOT_FOUND"
-                ))
-                .build();
-        FilibusterCustomAnalysisConfigurationFile filibusterAnalysisConfigurationFile = new FilibusterCustomAnalysisConfigurationFile.Builder()
-                .analysisConfiguration(filibusterAnalysisConfiguration)
-                .build();
-        filibusterAnalysisConfigurationFile.writeToDisk(analysisFilePath);
-    }
-
+public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
     private static int numberOfTestsExceptionsThrownFaultsInjected = 0;
 
     /**
-     * Inject faults between Hello and World service and verify that all faults that are injected are supposed to be.
+     * Verify that fault injection works with Filibuster when no beforeEach or afterEach is present.
      *
-     * @throws InterruptedException thrown if the gRPC channel fails to terminate.
+     * @throws InterruptedException thrown when channel teardown or server fails to initialize or shutdown.
+     * @throws IOException thrown when trying to start up dependent servers.
      */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest(analysisFile=analysisFilePath, serverBackend=FilibusterLocalProcessServerBackend.class)
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
+    @FilibusterTest(serverBackend=FilibusterLocalProcessServerBackend.class)
     @Order(1)
-    public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
+    public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException, IOException {
+        MyHelloService.shouldReturnRuntimeExceptionWithCause = false;
+        MyHelloService.shouldReturnRuntimeExceptionWithDescription = false;
+        MyHelloService.shouldReturnExceptionWithDescription = false;
+        MyHelloService.shouldReturnExceptionWithCause = false;
+
+        startHelloServerAndWaitUntilAvailable();
+        startWorldServerAndWaitUntilAvailable();
+        startExternalServerAndWaitUntilAvailable();
+
+        FilibusterClientInstrumentor.clearDistributedExecutionIndexForRequestId();
+        FilibusterClientInstrumentor.clearVectorClockForRequestId();
+
+        FilibusterClientInterceptor.disableInstrumentation = false;
+        FilibusterServerInterceptor.disableInstrumentation = false;
+
         ManagedChannel helloChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
                 .usePlaintext()
@@ -88,10 +80,6 @@ public class JUnitFilibusterTestWithCustomAnalysisFile extends JUnitBaseTest {
             if (wasFaultInjected()) {
                 numberOfTestsExceptionsThrownFaultsInjected++;
 
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: NOT_FOUND")) {
-                    expected = true;
-                }
-
                 if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
                     expected = true;
                 }
@@ -101,6 +89,14 @@ public class JUnitFilibusterTestWithCustomAnalysisFile extends JUnitBaseTest {
                 }
 
                 if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: INVALID_ARGUMENT")) {
+                    expected = true;
+                }
+
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: INTERNAL")) {
+                    expected = true;
+                }
+
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED")) {
                     expected = true;
                 }
 
@@ -114,10 +110,14 @@ public class JUnitFilibusterTestWithCustomAnalysisFile extends JUnitBaseTest {
 
         helloChannel.shutdownNow();
         helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
+
+        stopHelloServerAndWaitUntilUnavailable();
+        stopWorldServerAndWaitUntilUnavailable();
+        stopExternalServerAndWaitUntilUnavailable();
     }
 
     /**
-     * Verify that the correct number of Filibuster tests are generated.
+     * Verify that Filibuster generates the correct number of tests.
      */
     @DisplayName("Verify correct number of generated Filibuster tests.")
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)

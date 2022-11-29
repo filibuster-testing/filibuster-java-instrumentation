@@ -7,11 +7,12 @@ import io.micrometer.core.instrument.util.IOUtils;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +31,10 @@ public class FilibusterConfiguration {
 
     private final String dockerImageName;
 
+    private final boolean degradeWhenServerInitializationFails;
+
+    private final Class<? extends RuntimeException> expected;
+
     private FilibusterConfiguration(Builder builder) {
         this.dynamicReduction = builder.dynamicReduction;
         this.suppressCombinations = builder.suppressCombinations;
@@ -37,12 +42,33 @@ public class FilibusterConfiguration {
         this.analysisFile = builder.analysisFile;
         this.filibusterServerBackend = builder.filibusterServerBackend;
         this.dockerImageName = builder.dockerImageName;
+        this.degradeWhenServerInitializationFails = builder.degradeWhenServerInitializationFails;
+        this.expected = builder.expected;
     }
 
+    /**
+     * Return the backend implementation that should be used for running the Filibuster server.
+     *
+     * @return server backend.
+     */
     public FilibusterServerBackend getFilibusterServerBackend() {
         return this.filibusterServerBackend;
     }
 
+    /**
+     * Return expected exception.
+     *
+     * @return throwable
+     */
+    public Class<? extends RuntimeException> getExpected() {
+        return this.expected;
+    }
+
+    /**
+     * Name of the docker image containing the Filibuster server.
+     *
+     * @return string
+     */
     public String getDockerImageName() {
         return this.dockerImageName;
     }
@@ -56,20 +82,45 @@ public class FilibusterConfiguration {
         return this.dataNondeterminism;
     }
 
+    /**
+     * Should dynamic reduction be used?
+     *
+     * @return boolean
+     */
     public boolean getDynamicReduction() {
         return this.dynamicReduction;
     }
 
+    /**
+     * Should combinations of faults be suppressed?
+     *
+     * @return boolean
+     */
     public boolean getSuppressCombinations() {
         return this.suppressCombinations;
     }
 
-    public JSONObject readAnalysisFile() throws FileNotFoundException {
+    /**
+     * Should the jUnit suite degrade and run the tests without faults only when the server is unavailable?
+     *
+     * @return boolean
+     */
+    public boolean getDegradeWhenServerInitializationFails() {
+        return this.degradeWhenServerInitializationFails;
+    }
+
+    /**
+     * Returns the analysis file content as JSON, read from either file or annotation-based configuration.
+     *
+     * @return json object.
+     * @throws FileNotFoundException when the analysis file cannot be found.
+     */
+    public JSONObject readAnalysisFile() throws IOException {
         if (analysisFile != null) {
             File f = new File(analysisFile);
 
             if (f.exists()) {
-                InputStream is = new FileInputStream(f);
+                InputStream is = Files.newInputStream(f.toPath());
                 String jsonTxt = IOUtils.toString(is, Charset.defaultCharset());
                 return new JSONObject(jsonTxt);
             } else {
@@ -112,6 +163,10 @@ public class FilibusterConfiguration {
         private FilibusterServerBackend filibusterServerBackend = new FilibusterDockerServerBackend();
 
         private String dockerImageName;
+
+        private boolean degradeWhenServerInitializationFails = false;
+
+        private Class<? extends RuntimeException> expected;
 
         /**
          * Should this configuration use dynamic reduction?
@@ -183,6 +238,18 @@ public class FilibusterConfiguration {
         }
 
         /**
+         * Expected exception thrown.
+         *
+         * @param clazz class of the exception thrown
+         * @return builder
+         */
+        @CanIgnoreReturnValue
+        public Builder expected(Class<? extends RuntimeException> clazz) {
+            this.expected = clazz;
+            return this;
+        }
+
+        /**
          * Docker image to use.
          *
          * @param dockerImageName string of the fully qualified docker image name.
@@ -191,6 +258,18 @@ public class FilibusterConfiguration {
         @CanIgnoreReturnValue
         public Builder dockerImageName(String dockerImageName) {
             this.dockerImageName = dockerImageName;
+            return this;
+        }
+
+        /**
+         * Should the test suite degrade when the Filibuster server is unavailable (rather than fail the test completely?)
+         *
+         * @param degradeWhenServerInitializationFails boolean
+         * @return builder
+         */
+        @CanIgnoreReturnValue
+        public Builder degradeWhenServerInitializationFails(boolean degradeWhenServerInitializationFails) {
+            this.degradeWhenServerInitializationFails = degradeWhenServerInitializationFails;
             return this;
         }
 

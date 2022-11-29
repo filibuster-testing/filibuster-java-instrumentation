@@ -38,10 +38,9 @@ public class Assertions {
         String filibusterBaseUri = getFilibusterBaseUri();
         WebClient webClient = FilibusterExecutor.getWebClient(filibusterBaseUri);
         RequestHeaders getHeaders = RequestHeaders.of(HttpMethod.GET, uri, HttpHeaderNames.ACCEPT, "application/json");
-        AggregatedHttpResponse response = webClient.execute(getHeaders).aggregate().join();
 
         try {
-            // Get headers and verify a 200 OK response.
+            AggregatedHttpResponse response = webClient.execute(getHeaders).aggregate().join();
             ResponseHeaders headers = response.headers();
             String statusCode = headers.get(HttpHeaderNames.STATUS);
 

@@ -1,15 +1,12 @@
-package cloud.filibuster.junit.tests.filibuster.server.extended;
+package cloud.filibuster.junit.tests.filibuster.smoke.local_process.basic;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
-import cloud.filibuster.examples.armeria.grpc.test_services.MyHelloService;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
-import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
-import cloud.filibuster.instrumentation.libraries.grpc.FilibusterServerInterceptor;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
 import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
+import cloud.filibuster.junit.tests.filibuster.JUnitBaseTest;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.DisplayName;
@@ -19,51 +16,32 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import static cloud.filibuster.instrumentation.TestHelper.startExternalServerAndWaitUntilAvailable;
-import static cloud.filibuster.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
-import static cloud.filibuster.instrumentation.TestHelper.startWorldServerAndWaitUntilAvailable;
-import static cloud.filibuster.instrumentation.TestHelper.stopExternalServerAndWaitUntilUnavailable;
-import static cloud.filibuster.instrumentation.TestHelper.stopHelloServerAndWaitUntilUnavailable;
-import static cloud.filibuster.instrumentation.TestHelper.stopWorldServerAndWaitUntilUnavailable;
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
+import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
+import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Verify that fault injection works with Filibuster when no beforeEach or afterEach is present.
+ * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
+public class JUnitFilibusterTest extends JUnitBaseTest {
     private static int numberOfTestsExceptionsThrownFaultsInjected = 0;
 
     /**
-     * Verify that fault injection works with Filibuster when no beforeEach or afterEach is present.
+     * Inject faults between Hello and World using Filibuster and assert proper faults are injected.
      *
-     * @throws InterruptedException thrown when channel teardown or server fails to initialize or shutdown.
-     * @throws IOException thrown when trying to start up dependent servers.
+     * @throws InterruptedException if teardown of gRPC channel fails.
      */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @FilibusterTest(serverBackend=FilibusterLocalProcessServerBackend.class)
     @Order(1)
-    public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException, IOException {
-        MyHelloService.shouldReturnRuntimeExceptionWithCause = false;
-        MyHelloService.shouldReturnRuntimeExceptionWithDescription = false;
-        MyHelloService.shouldReturnExceptionWithDescription = false;
-        MyHelloService.shouldReturnExceptionWithCause = false;
-
-        startHelloServerAndWaitUntilAvailable();
-        startWorldServerAndWaitUntilAvailable();
-        startExternalServerAndWaitUntilAvailable();
-
-        FilibusterClientInstrumentor.clearDistributedExecutionIndexForRequestId();
-        FilibusterClientInstrumentor.clearVectorClockForRequestId();
-
-        FilibusterClientInterceptor.disableInstrumentation = false;
-        FilibusterServerInterceptor.disableInstrumentation = false;
-
+    public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
                 .usePlaintext()
@@ -76,8 +54,11 @@ public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
             Hello.HelloReply reply = blockingStub.partialHello(request);
             assertEquals("Hello, Armerian World!!", reply.getMessage());
+            assertFalse(wasFaultInjected());
         } catch (Throwable t) {
-            if (wasFaultInjected()) {
+            boolean wasFaultInjected = wasFaultInjected();
+
+            if (wasFaultInjected) {
                 numberOfTestsExceptionsThrownFaultsInjected++;
 
                 if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
@@ -88,7 +69,7 @@ public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
                     expected = true;
                 }
 
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: INVALID_ARGUMENT")) {
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED")) {
                     expected = true;
                 }
 
@@ -96,9 +77,11 @@ public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
                     expected = true;
                 }
 
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED")) {
-                    expected = true;
-                }
+                boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("world");
+                assertTrue(wasFaultInjectedOnWorldService);
+
+                boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World");
+                assertTrue(wasFaultInjectedOnWorldMethod);
 
                 if (! expected) {
                     throw t;
@@ -110,14 +93,10 @@ public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
 
         helloChannel.shutdownNow();
         helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
-
-        stopHelloServerAndWaitUntilUnavailable();
-        stopWorldServerAndWaitUntilUnavailable();
-        stopExternalServerAndWaitUntilUnavailable();
     }
 
     /**
-     * Verify that Filibuster generates the correct number of tests.
+     * Verify that Filibuster generated the correct number of fault injections.
      */
     @DisplayName("Verify correct number of generated Filibuster tests.")
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)

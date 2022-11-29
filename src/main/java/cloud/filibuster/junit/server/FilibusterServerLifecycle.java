@@ -43,9 +43,10 @@ public class FilibusterServerLifecycle {
     @Nullable
     @SuppressWarnings({"StaticAssignmentOfThrowable", "InterruptedExceptionSwallowed"})
     public static synchronized WebClient startServer(FilibusterConfiguration filibusterConfiguration) {
-        if (!started) {
-            started = true;
+        initializationFailed = false;
+        initializationFailedException = null;
 
+        if (!started) {
             FilibusterServerBackend filibusterServerBackend = filibusterConfiguration.getFilibusterServerBackend();
 
             try {
@@ -76,6 +77,8 @@ public class FilibusterServerLifecycle {
                     throw new FilibusterServerUnavailabilityException();
                 }
 
+                started = true;
+
                 return webClient;
             } catch (Throwable t) {
                 initializationFailed = true;
@@ -87,8 +90,8 @@ public class FilibusterServerLifecycle {
         }
     }
 
-    @SuppressWarnings("BusyWait")
     @Nullable
+    @SuppressWarnings({"BusyWait", "StaticAssignmentOfThrowable"})
     public static synchronized WebClient stopServer(FilibusterConfiguration filibusterConfiguration, WebClient webClient) throws Throwable {
         if (started) {
 
@@ -110,6 +113,8 @@ public class FilibusterServerLifecycle {
 
             logger.log(Level.INFO, "Filibuster server stopped!");
 
+            initializationFailedException = null;
+            initializationFailed = false;
             started = false;
         }
 

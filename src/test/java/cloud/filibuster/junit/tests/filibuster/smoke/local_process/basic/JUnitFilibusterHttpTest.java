@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.tests.filibuster.server.basic;
+package cloud.filibuster.junit.tests.filibuster.smoke.local_process.basic;
 
 import cloud.filibuster.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.helpers.Networking;
@@ -23,15 +23,16 @@ import java.util.Arrays;
 import java.util.List;
 
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
+import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterExternalHttpTest extends JUnitBaseTest {
+public class JUnitFilibusterHttpTest extends JUnitBaseTest {
     private static int numberOfTestsExceptionsThrownFaultsInjected = 0;
 
-    private final List<String> validErrorCodes = Arrays.asList("424", "500");
+    private final List<String> validErrorCodes = Arrays.asList("404", "503");
 
     /**
      * Inject faults between Hello and World using Filibuster and assert proper faults are injected.
@@ -40,13 +41,11 @@ public class JUnitFilibusterExternalHttpTest extends JUnitBaseTest {
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @FilibusterTest(serverBackend=FilibusterLocalProcessServerBackend.class)
     @Order(1)
-    public void testHelloAndExternalServiceWithFilibuster() {
-        boolean expected = false;
-
+    public void testHelloAndWorldServiceWithFilibuster() {
         try {
             String baseURI = "http://" + Networking.getHost("hello") + ":" + Networking.getPort("hello") + "/";
             WebClient webClient = TestHelper.getTestWebClient(baseURI);
-            RequestHeaders getHeaders = RequestHeaders.of(HttpMethod.GET, "/external", HttpHeaderNames.ACCEPT, "application/json");
+            RequestHeaders getHeaders = RequestHeaders.of(HttpMethod.GET, "/world", HttpHeaderNames.ACCEPT, "application/json");
             AggregatedHttpResponse response = webClient.execute(getHeaders).aggregate().join();
             ResponseHeaders headers = response.headers();
             String statusCode = headers.get(HttpHeaderNames.STATUS);
@@ -54,6 +53,7 @@ public class JUnitFilibusterExternalHttpTest extends JUnitBaseTest {
             if (wasFaultInjected()) {
                 numberOfTestsExceptionsThrownFaultsInjected++;
                 assertTrue(validErrorCodes.contains(statusCode));
+                assertTrue(wasFaultInjectedOnService("world"));
             } else {
                 assertEquals("200", statusCode);
             }

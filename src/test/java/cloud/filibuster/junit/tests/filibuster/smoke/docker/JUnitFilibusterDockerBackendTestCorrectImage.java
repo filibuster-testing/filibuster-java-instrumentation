@@ -1,12 +1,10 @@
-package cloud.filibuster.junit.tests.filibuster.server.exhaustive;
+package cloud.filibuster.junit.tests.filibuster.smoke.docker;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
-import cloud.filibuster.junit.configuration.FilibusterGrpcExhaustiveAnalysisConfigurationFile;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
-import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
 import cloud.filibuster.junit.tests.filibuster.JUnitBaseTest;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -17,43 +15,30 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
+import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
+import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Test simple annotation usage.
+ */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@SuppressWarnings("Java8ApiChecker")
-public class JUnitFilibusterTestWithExhaustiveAnalysisFileByAnnotation extends JUnitBaseTest {
-    private static final List<String> exhaustiveGrpcErrorCodeList = new ArrayList<>();
-
-    static {
-        exhaustiveGrpcErrorCodeList.add("CANCELLED");
-        exhaustiveGrpcErrorCodeList.add("UNKNOWN");
-        exhaustiveGrpcErrorCodeList.add("INVALID_ARGUMENT");
-        exhaustiveGrpcErrorCodeList.add("DEADLINE_EXCEEDED");
-        exhaustiveGrpcErrorCodeList.add("NOT_FOUND");
-        exhaustiveGrpcErrorCodeList.add("ALREADY_EXISTS");
-        exhaustiveGrpcErrorCodeList.add("PERMISSION_DENIED");
-        exhaustiveGrpcErrorCodeList.add("RESOURCE_EXHAUSTED");
-        exhaustiveGrpcErrorCodeList.add("FAILED_PRECONDITION");
-        exhaustiveGrpcErrorCodeList.add("ABORTED");
-        exhaustiveGrpcErrorCodeList.add("OUT_OF_RANGE");
-        exhaustiveGrpcErrorCodeList.add("UNIMPLEMENTED");
-        exhaustiveGrpcErrorCodeList.add("INTERNAL");
-        exhaustiveGrpcErrorCodeList.add("UNAVAILABLE");
-        exhaustiveGrpcErrorCodeList.add("DATA_LOSS");
-        exhaustiveGrpcErrorCodeList.add("UNAUTHENTICATED");
-    }
-
+public class JUnitFilibusterDockerBackendTestCorrectImage extends JUnitBaseTest {
     private static int numberOfTestsExceptionsThrownFaultsInjected = 0;
 
+    /**
+     * Inject faults between Hello and World using Filibuster and assert proper faults are injected.
+     *
+     * @throws InterruptedException if teardown of gRPC channel fails.
+     */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
-    @FilibusterTest(analysisConfigurationFile=FilibusterGrpcExhaustiveAnalysisConfigurationFile.class, serverBackend=FilibusterLocalProcessServerBackend.class)
+    @FilibusterTest
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -61,25 +46,43 @@ public class JUnitFilibusterTestWithExhaustiveAnalysisFileByAnnotation extends J
                 .usePlaintext()
                 .build();
 
+        boolean expected = false;
+
         try {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
             Hello.HelloReply reply = blockingStub.partialHello(request);
             assertEquals("Hello, Armerian World!!", reply.getMessage());
+            assertFalse(wasFaultInjected());
         } catch (Throwable t) {
-            if (wasFaultInjected()) {
+            boolean wasFaultInjected = wasFaultInjected();
+
+            if (wasFaultInjected) {
                 numberOfTestsExceptionsThrownFaultsInjected++;
 
-                boolean found = false;
-
-                for (String errorCode: exhaustiveGrpcErrorCodeList) {
-                    String expectedString = "DATA_LOSS: io.grpc.StatusRuntimeException: " + errorCode;
-                    if(t.getMessage().equals(expectedString)) {
-                        found = true;
-                    }
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
+                    expected = true;
                 }
 
-                if (! found) {
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNAVAILABLE")) {
+                    expected = true;
+                }
+
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED")) {
+                    expected = true;
+                }
+
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: INTERNAL")) {
+                    expected = true;
+                }
+
+                boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("world");
+                assertTrue(wasFaultInjectedOnWorldService);
+
+                boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World");
+                assertTrue(wasFaultInjectedOnWorldMethod);
+
+                if (! expected) {
                     throw t;
                 }
             } else {
@@ -91,11 +94,14 @@ public class JUnitFilibusterTestWithExhaustiveAnalysisFileByAnnotation extends J
         helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
     }
 
+    /**
+     * Verify that Filibuster generated the correct number of fault injections.
+     */
     @DisplayName("Verify correct number of generated Filibuster tests.")
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(16, numberOfTestsExceptionsThrownFaultsInjected);
+        assertEquals(4, numberOfTestsExceptionsThrownFaultsInjected);
     }
 }

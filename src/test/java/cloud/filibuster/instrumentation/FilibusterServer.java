@@ -264,6 +264,16 @@ public class FilibusterServer {
         });
 
         sb.annotatedService(new Object() {
+            @Post("/filibuster/analysis-file")
+            @ProducesJson
+            @ConsumesJson
+            public HttpResponse analysisFile() {
+                JSONObject jsonObject = new JSONObject();
+                return HttpResponse.of(jsonObject.toString());
+            }
+        });
+
+        sb.annotatedService(new Object() {
             @Get("/filibuster/has-next-iteration/{current_iteration}/{caller}")
             @ProducesJson
             @ConsumesJson

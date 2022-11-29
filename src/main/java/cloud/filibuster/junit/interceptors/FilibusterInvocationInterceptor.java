@@ -1,7 +1,6 @@
 package cloud.filibuster.junit.interceptors;
 
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
-import cloud.filibuster.instrumentation.exceptions.MissingWebClientException;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.helpers.Property;
 import cloud.filibuster.junit.FilibusterSystemProperties;
@@ -45,14 +44,6 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
 
     @Nullable
     public static WebClient getWebClient() throws Throwable {
-        if (privateWebClient == null) {
-            if (FilibusterServerLifecycle.didServerInitializationFail()) {
-                throw FilibusterServerLifecycle.getInitializationFailedException();
-            } else {
-                throw new MissingWebClientException();
-            }
-        }
-
         return privateWebClient;
     }
 

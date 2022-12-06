@@ -43,7 +43,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
     }
 
     @Nullable
-    public static WebClient getWebClient() throws Throwable {
+    public static WebClient getWebClient() {
         return privateWebClient;
     }
 

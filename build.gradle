@@ -30,11 +30,14 @@ repositories {
     mavenCentral()
 }
 
+dependencyLocking {
+    lockAllConfigurations()
+}
+
 dependencies {
     errorprone "com.google.errorprone:error_prone_core:latest.release"
     errorproneJavac "com.google.errorprone:javac:9+181-r4173-1"
 
-    // Adjust the list as you need.
     ['armeria',
      'armeria-brave',
      'armeria-grpc',
@@ -47,11 +50,12 @@ dependencies {
      'armeria-thrift0.13',
      'armeria-tomcat9',
      'armeria-zookeeper3'].each {
-        implementation "com.linecorp.armeria:${it}:1.16.0"
+        implementation "com.linecorp.armeria:${it}:1.14.0"
     }
 
     implementation "com.github.cliftonlabs:json-simple:2.1.2"
     implementation "org.json:json:20210307"
+
     implementation 'org.jetbrains:annotations:16.0.2'
 
     implementation "io.grpc:grpc-netty-shaded:1.40.1"
@@ -199,7 +203,7 @@ javadoc {
 
 group = "cloud.filibuster"
 archivesBaseName = "instrumentation"
-version = "0.37.2"
+version = "0.37.3"
 
 java {
     withJavadocJar()

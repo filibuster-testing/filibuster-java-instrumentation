@@ -18,7 +18,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.concurrent.TimeUnit;
 
-import static cloud.filibuster.junit.Assertions.assertPassesOrThrowsUnderFault;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**

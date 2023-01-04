@@ -22,7 +22,7 @@ public class FilibusterGrpcBasicAnalysisConfigurationFile implements FilibusterA
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilder = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc")
-                .pattern("(.*Service/.*)");
+                .pattern("(.*/.*)");
 
         for (String code : exhaustiveGrpcErrorCodeList) {
             filibusterAnalysisConfigurationBuilder.exception("io.grpc.StatusRuntimeException", createGrpcErrorMap(code));

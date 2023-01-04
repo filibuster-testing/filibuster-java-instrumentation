@@ -52,7 +52,7 @@ public class JUnitFilibusterTestWithExhaustiveAnalysisFile extends JUnitBaseTest
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilder = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc")
-                .pattern("(.*Service/.*)");
+                .pattern("(.*/.*)");
 
         for (String errorCode: exhaustiveGrpcErrorCodeList) {
             filibusterAnalysisConfigurationBuilder.exception("io.grpc.StatusRuntimeException", Map.of(

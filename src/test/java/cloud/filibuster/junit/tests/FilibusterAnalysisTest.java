@@ -18,7 +18,7 @@ public class FilibusterAnalysisTest {
     public void verifyDefaultAnalysisConfigurationTest() {
         FilibusterAnalysisConfiguration filibusterAnalysisConfiguration = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc")
-                .pattern("(.*Service/.*)")
+                .pattern("(.*/.*)")
                 .exception("io.grpc.StatusRuntimeException", Map.of(
                         "cause", "",
                         "code", "UNAVAILABLE"
@@ -29,7 +29,7 @@ public class FilibusterAnalysisTest {
                 ))
                 .build();
 
-        String expected = "{\"java.grpc\":{\"pattern\":\"(.*Service/.*)\",\"exceptions\":[{\"metadata\":{\"cause\":\"\",\"code\":\"UNAVAILABLE\"},\"name\":\"io.grpc.StatusRuntimeException\"},{\"metadata\":{\"cause\":\"\",\"code\":\"DEADLINE_EXCEEDED\"},\"name\":\"io.grpc.StatusRuntimeException\"}]}}";
+        String expected = "{\"java.grpc\":{\"pattern\":\"(.*/.*)\",\"exceptions\":[{\"metadata\":{\"cause\":\"\",\"code\":\"UNAVAILABLE\"},\"name\":\"io.grpc.StatusRuntimeException\"},{\"metadata\":{\"cause\":\"\",\"code\":\"DEADLINE_EXCEEDED\"},\"name\":\"io.grpc.StatusRuntimeException\"}]}}";
 
         assertEquals(expected, filibusterAnalysisConfiguration.toString());
     }
@@ -39,7 +39,7 @@ public class FilibusterAnalysisTest {
     public void verifyDefaultAnalysisConfigurationFileTest() throws IOException {
         FilibusterAnalysisConfiguration filibusterAnalysisConfiguration1 = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc")
-                .pattern("(.*Service/.*)")
+                .pattern("(.*/.*)")
                 .exception("io.grpc.StatusRuntimeException", Map.of(
                         "cause", "",
                         "code", "UNAVAILABLE"
@@ -52,7 +52,7 @@ public class FilibusterAnalysisTest {
 
         FilibusterAnalysisConfiguration filibusterAnalysisConfiguration2 = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc.other")
-                .pattern("(.*Service/.*)")
+                .pattern("(.*/.*)")
                 .exception("io.grpc.StatusRuntimeException", Map.of(
                         "cause", "",
                         "code", "NOT_FOUND"
@@ -64,7 +64,7 @@ public class FilibusterAnalysisTest {
                 .analysisConfiguration(filibusterAnalysisConfiguration2)
                 .build();
 
-        String expected = "{\"java.grpc.other\":{\"pattern\":\"(.*Service/.*)\",\"exceptions\":[{\"metadata\":{\"cause\":\"\",\"code\":\"NOT_FOUND\"},\"name\":\"io.grpc.StatusRuntimeException\"}]},\"java.grpc\":{\"pattern\":\"(.*Service/.*)\",\"exceptions\":[{\"metadata\":{\"cause\":\"\",\"code\":\"UNAVAILABLE\"},\"name\":\"io.grpc.StatusRuntimeException\"},{\"metadata\":{\"cause\":\"\",\"code\":\"DEADLINE_EXCEEDED\"},\"name\":\"io.grpc.StatusRuntimeException\"}]}}";
+        String expected = "{\"java.grpc.other\":{\"pattern\":\"(.*/.*)\",\"exceptions\":[{\"metadata\":{\"cause\":\"\",\"code\":\"NOT_FOUND\"},\"name\":\"io.grpc.StatusRuntimeException\"}]},\"java.grpc\":{\"pattern\":\"(.*/.*)\",\"exceptions\":[{\"metadata\":{\"cause\":\"\",\"code\":\"UNAVAILABLE\"},\"name\":\"io.grpc.StatusRuntimeException\"},{\"metadata\":{\"cause\":\"\",\"code\":\"DEADLINE_EXCEEDED\"},\"name\":\"io.grpc.StatusRuntimeException\"}]}}";
         assertEquals(expected, filibusterAnalysisConfigurationFile.toString());
 
         Path file = filibusterAnalysisConfigurationFile.writeToDisk();

@@ -35,7 +35,7 @@ public class FilibusterWorldExtendedDefaultAnalysisConfigurationFile implements 
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderGrpcExceptions = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc.exceptions")
-                .pattern("(.*Service/.*)");
+                .pattern("(.*/.*)");
         for (String code : exhaustiveGrpcErrorCodeList) {
             filibusterAnalysisConfigurationBuilderGrpcExceptions.exception("io.grpc.StatusRuntimeException", createGrpcErrorMap(code));
         }
@@ -44,7 +44,7 @@ public class FilibusterWorldExtendedDefaultAnalysisConfigurationFile implements 
         // Google's gRPC error types.
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderGrpcErrors = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc.errors")
-                .pattern("(.*Service/.*)");
+                .pattern("(.*/.*)");
 
         List<String> grpcErrorCodes = new ArrayList<>();
         grpcErrorCodes.add("UNIMPLEMENTED");

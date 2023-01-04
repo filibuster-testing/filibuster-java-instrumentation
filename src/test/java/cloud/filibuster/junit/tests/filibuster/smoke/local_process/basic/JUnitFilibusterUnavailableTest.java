@@ -1,9 +1,8 @@
-package cloud.filibuster.junit.tests.filibuster.smoke.local_process.macros;
+package cloud.filibuster.junit.tests.filibuster.smoke.local_process.basic;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.junit.Assertions;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
 import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
@@ -13,57 +12,60 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.concurrent.TimeUnit;
 
+import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.testcontainers.shaded.org.hamcrest.MatcherAssert.assertThat;
+import static org.testcontainers.shaded.org.hamcrest.Matchers.containsString;
 
-/**
- * Test simple annotation usage.
- */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterTestMacroAssertion extends JUnitBaseTest {
+public class JUnitFilibusterUnavailableTest extends JUnitBaseTest {
+    private static int numberOfTestsExceptionsThrownFaultsInjected = 0;
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @FilibusterTest(serverBackend=FilibusterLocalProcessServerBackend.class)
-    public void testMyHelloAndMyWorldServiceWithFilibusterWithMacro() throws InterruptedException {
+    @Order(1)
+    public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
                 .usePlaintext()
                 .build();
 
-        Assertions.assertPassesOrThrowsUnderFault(StatusRuntimeException.class, () -> {
+        try {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
-            Hello.HelloReply reply = blockingStub.partialHello(request);
-            assertEquals("Hello, Armerian World!!", reply.getMessage());
-        });
+            blockingStub.unavailable(request);
+            assertTrue(false);
+        } catch (StatusRuntimeException e) {
+            if (wasFaultInjected()) {
+                numberOfTestsExceptionsThrownFaultsInjected++;
+                assertThat(e.getMessage(), containsString("DATA_LOSS: io.grpc.StatusRuntimeException:"));
+            } else {
+                // Actual response when the remote service is online but unimplemented.
+                assertEquals("DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED: Method cloud.filibuster.examples.WorldService/WorldUnavailable is unimplemented", e.getMessage());
+            }
+        }
 
         helloChannel.shutdownNow();
         helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
     }
 
-    @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
+    /**
+     * Verify that Filibuster generated the correct number of fault injections.
+     */
+    @DisplayName("Verify correct number of generated Filibuster tests.")
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
-    @FilibusterTest(serverBackend=FilibusterLocalProcessServerBackend.class, expected = StatusRuntimeException.class)
-    public void testMyHelloAndMyWorldServiceWithFilibusterWithMacroAndFailure() throws InterruptedException {
-        ManagedChannel helloChannel = ManagedChannelBuilder
-                .forAddress(Networking.getHost("hello"), 8765)
-                .usePlaintext()
-                .build();
-
-        Assertions.assertPassesOrThrowsUnderFault(StatusRuntimeException.class, () -> {
-            HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
-            Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
-            Hello.HelloReply reply = blockingStub.partialHello(request);
-            assertEquals("Hello, Armerian World!!", reply.getMessage());
-        });
-
-        helloChannel.shutdownNow();
-        helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
+    @Test
+    @Order(2)
+    public void testNumAssertions() {
+        assertEquals(4, numberOfTestsExceptionsThrownFaultsInjected);
     }
-
 }

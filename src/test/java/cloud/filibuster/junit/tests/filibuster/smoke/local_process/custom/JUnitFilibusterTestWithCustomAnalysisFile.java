@@ -36,7 +36,7 @@ public class JUnitFilibusterTestWithCustomAnalysisFile extends JUnitBaseTest {
         @SuppressWarnings("Java8ApiChecker")
         FilibusterAnalysisConfiguration filibusterAnalysisConfiguration = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc")
-                .pattern("(.*Service/.*)")
+                .pattern("(.*/.*)")
                 .exception("io.grpc.StatusRuntimeException", Map.of(
                         "cause", "",
                         "code", "UNAVAILABLE"

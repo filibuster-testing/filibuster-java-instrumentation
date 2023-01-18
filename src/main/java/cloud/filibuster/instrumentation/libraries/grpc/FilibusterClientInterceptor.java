@@ -1,5 +1,6 @@
 package cloud.filibuster.instrumentation.libraries.grpc;
 
+import cloud.filibuster.exceptions.FilibusterFaultInjectionException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
@@ -16,6 +17,7 @@ import io.grpc.Status;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -60,23 +62,41 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
         return status;
     }
 
-    private static Status generateException(FilibusterClientInstrumentor filibusterClientInstrumentor) {
+    private static Status generateExceptionFromForcedException(FilibusterClientInstrumentor filibusterClientInstrumentor) {
         JSONObject forcedException = filibusterClientInstrumentor.getForcedException();
 
-        // Create the exception to throw.
+        // Get description of the fault.
         String exceptionNameString = forcedException.getString("name");
         JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
         String causeString = forcedExceptionMetadata.getString("cause");
         String codeStr = forcedExceptionMetadata.getString("code");
-        Status.Code code = Status.Code.valueOf(codeStr);
+
+        // Status object to return to the user.
+        Status status;
+
+        if (!causeString.isEmpty()) {
+            // Cause always takes priority in gRPC because it implies a UNKNOWN response.
+            try {
+                Throwable throwable = (Throwable) Class.forName(causeString).getConstructor(new Class[] { String.class }).newInstance("Filibuster generated exception.");
+                status = Status.fromThrowable(throwable);
+            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException | InvocationTargetException e) {
+                throw new FilibusterFaultInjectionException("Unable to generate custom exception from string '" + causeString + "':" + e, e);
+            }
+        } else if (!codeStr.isEmpty()) {
+            // Code is checked secondary and ignored if cause is present.
+            Status.Code code = Status.Code.valueOf(codeStr);
+            status = Status.fromCode(code);
+        } else {
+            // Otherwise, we do not know what to inject.
+            throw new FilibusterFaultInjectionException("No code or cause provided for injection of io.grpc.StatusRuntimeException.");
+        }
 
         // Notify Filibuster of failure.
         HashMap<String, String> additionalMetadata = new HashMap<>();
         additionalMetadata.put("code", codeStr);
         filibusterClientInstrumentor.afterInvocationWithException(exceptionNameString, causeString, additionalMetadata);
 
-        // Return status.
-        return Status.fromCode(code);
+        return status;
     }
 
     private static Status generateExceptionFromFailureMetadata(FilibusterClientInstrumentor filibusterClientInstrumentor) {
@@ -88,6 +108,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
         String exceptionNameString = "io.grpc.StatusRuntimeException";
         String codeStr = exceptionMetadata.getString("code");
         Status.Code code = Status.Code.valueOf(codeStr);
+        // Ignored cause here because this call path is used for cross-language failures and cause doesn't propagate across RPC boundaries.
         String causeString = "";
 
         // Notify Filibuster of failure.
@@ -305,7 +326,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
 
                     if (forcedException != null && filibusterClientInstrumentor.shouldAbort()) {
                         delegate = new NoopClientCall<REQUEST, RESPONSE>();
-                        Status status = generateException(filibusterClientInstrumentor);
+                        Status status = generateExceptionFromForcedException(filibusterClientInstrumentor);
                         responseListener.onClose(status, new Metadata());
                         return;
                     }
@@ -348,7 +369,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
 
             if (! filibusterClientInstrumentor.shouldAbort()) {
                 // Request completed normally, but we want to throw the exception anyway, generate and throw.
-                generateException(filibusterClientInstrumentor);
+                generateExceptionFromForcedException(filibusterClientInstrumentor);
             } else {
                 // Request completed normally.
 

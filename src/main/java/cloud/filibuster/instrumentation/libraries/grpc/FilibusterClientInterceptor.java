@@ -24,6 +24,7 @@ import java.util.logging.Logger;
 
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationServerCommunicationEnabledProperty;
+import static java.util.Objects.requireNonNull;
 
 public class FilibusterClientInterceptor implements ClientInterceptor {
     private static final Logger logger = Logger.getLogger(FilibusterClientInterceptor.class.getName());
@@ -64,6 +65,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
 
     private static Status generateExceptionFromForcedException(FilibusterClientInstrumentor filibusterClientInstrumentor) {
         JSONObject forcedException = filibusterClientInstrumentor.getForcedException();
+        requireNonNull(forcedException);
 
         // Get description of the fault.
         String exceptionNameString = forcedException.getString("name");
@@ -101,6 +103,8 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
 
     private static Status generateExceptionFromFailureMetadata(FilibusterClientInstrumentor filibusterClientInstrumentor) {
         JSONObject failureMetadata = filibusterClientInstrumentor.getFailureMetadata();
+        requireNonNull(failureMetadata);
+
         JSONObject exception = failureMetadata.getJSONObject("exception");
         JSONObject exceptionMetadata = exception.getJSONObject("metadata");
 

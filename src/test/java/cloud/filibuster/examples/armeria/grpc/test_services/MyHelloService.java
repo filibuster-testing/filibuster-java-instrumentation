@@ -3,6 +3,7 @@ package cloud.filibuster.examples.armeria.grpc.test_services;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.examples.WorldServiceGrpc;
+import cloud.filibuster.exceptions.CircuitBreakerException;
 import cloud.filibuster.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
@@ -76,8 +77,13 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
                 }
 
             } catch (StatusRuntimeException e) {
-                Status status = Status.DATA_LOSS.withDescription(e.toString());
-                responseObserver.onError(status.asRuntimeException());
+                if (e.getCause() instanceof CircuitBreakerException) {
+                    Status status = Status.INTERNAL.withDescription(e.toString());
+                    responseObserver.onError(status.asRuntimeException());
+                } else {
+                    Status status = Status.DATA_LOSS.withDescription(e.toString());
+                    responseObserver.onError(status.asRuntimeException());
+                }
 
                 originalChannel.shutdownNow();
                 try {
@@ -88,7 +94,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
                     logger.log(Level.SEVERE, "Failed to terminate channel: " + ie);
                 }
 
-                return;
+                return; // TODO: can we remove this?
             }
         } else {    // build stub with decorator
             String serviceName = "test";

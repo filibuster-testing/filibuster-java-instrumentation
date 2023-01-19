@@ -63,7 +63,8 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
         return status;
     }
 
-    private static Status generateExceptionFromForcedException(FilibusterClientInstrumentor filibusterClientInstrumentor) {
+    @SuppressWarnings("Varifier")
+    public static Status generateExceptionFromForcedException(FilibusterClientInstrumentor filibusterClientInstrumentor) {
         JSONObject forcedException = filibusterClientInstrumentor.getForcedException();
         requireNonNull(forcedException);
 

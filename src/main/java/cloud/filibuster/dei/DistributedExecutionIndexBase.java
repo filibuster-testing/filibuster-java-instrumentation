@@ -26,6 +26,7 @@ public abstract class DistributedExecutionIndexBase implements Cloneable {
         return Objects.hash(this.counters, this.callstack);
     }
 
+    @SuppressWarnings("Varifier")
     public void push(Callsite callsite) {
         DistributedExecutionIndex dei = (DistributedExecutionIndex) this;
         DistributedExecutionIndexKey key = dei.convertCallsiteToDistributedExecutionIndexKey(callsite);

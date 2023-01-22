@@ -1,5 +1,6 @@
 package cloud.filibuster.junit.configuration;
 
+import cloud.filibuster.exceptions.FilibusterUnsupportedServerBackendException;
 import cloud.filibuster.junit.server.backends.FilibusterDockerServerBackend;
 import cloud.filibuster.junit.server.FilibusterServerBackend;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
@@ -229,8 +230,7 @@ public class FilibusterConfiguration {
             try {
                 serverBackend = clazz.getDeclaredConstructor().newInstance();
             } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                // TODO: something better.
-                throw new UnsupportedOperationException(e);
+                throw new FilibusterUnsupportedServerBackendException("Backend " + clazz + " is not supported.", e);
             }
 
             this.filibusterServerBackend = serverBackend;

@@ -13,6 +13,7 @@ public abstract class DistributedExecutionIndexBase implements Cloneable {
     protected ArrayList<Map.Entry<DistributedExecutionIndexKey, Integer>> callstack = new ArrayList<>();
 
     @Override
+    @SuppressWarnings("Varifier")
     public boolean equals(Object o) {
         if (!(o instanceof DistributedExecutionIndexBase)) {
             return false;

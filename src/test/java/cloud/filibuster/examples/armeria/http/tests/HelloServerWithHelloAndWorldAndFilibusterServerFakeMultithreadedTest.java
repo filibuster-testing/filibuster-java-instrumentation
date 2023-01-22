@@ -1,7 +1,7 @@
 package cloud.filibuster.examples.armeria.http.tests;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
-import cloud.filibuster.instrumentation.FilibusterServer;
+import cloud.filibuster.instrumentation.FilibusterServerFake;
 import cloud.filibuster.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
 import cloud.filibuster.instrumentation.helpers.Networking;
@@ -25,7 +25,7 @@ import static cloud.filibuster.examples.test_servers.HelloServer.resetInitialDis
 import static cloud.filibuster.examples.test_servers.HelloServer.setInitialDistributedExecutionIndex;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class HelloServerWithHelloAndWorldAndFilibusterServerMultithreadedTest extends HelloServerTest {
+public class HelloServerWithHelloAndWorldAndFilibusterServerFakeMultithreadedTest extends HelloServerTest {
     @BeforeEach
     public void startServices() throws IOException, InterruptedException {
         super.startHelloServer();
@@ -33,7 +33,7 @@ public class HelloServerWithHelloAndWorldAndFilibusterServerMultithreadedTest ex
         super.startExternalServer();
         super.startFilibuster();
 
-        FilibusterServer.oneNewTestExecution = true;
+        FilibusterServerFake.oneNewTestExecution = true;
 
         Callsite callsite = new Callsite("service", "class", "moduleName", "deadbeef");
         DistributedExecutionIndex startingDistributedExecutionIndex = createNewDistributedExecutionIndex();
@@ -49,7 +49,7 @@ public class HelloServerWithHelloAndWorldAndFilibusterServerMultithreadedTest ex
         super.stopExternalServer();
         super.stopFilibuster();
 
-        FilibusterServer.noNewTestExecution = false;
+        FilibusterServerFake.noNewTestExecution = false;
 
         resetInitialDistributedExecutionIndex();
     }
@@ -75,23 +75,23 @@ public class HelloServerWithHelloAndWorldAndFilibusterServerMultithreadedTest ex
         assertEquals("200", statusCode);
 
         // Very proper number of Filibuster records.
-        assertEquals(4, FilibusterServer.payloadsReceived.size());
+        assertEquals(4, FilibusterServerFake.payloadsReceived.size());
 
         // These are the required Filibuster instrumentation fields for this call.
 
-        JSONObject firstInvocationPayload = FilibusterServer.payloadsReceived.get(0);
+        JSONObject firstInvocationPayload = FilibusterServerFake.payloadsReceived.get(0);
         assertEquals("invocation", firstInvocationPayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-3f36509a95d2905e9c5f0d4d69abf4e53328e53c-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-5debe6073ffa4f016a7764fe919145bd85031cf4-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", firstInvocationPayload.getString("execution_index"));
 
-        JSONObject firstInvocationCompletedPayload = FilibusterServer.payloadsReceived.get(1);
+        JSONObject firstInvocationCompletedPayload = FilibusterServerFake.payloadsReceived.get(1);
         assertEquals("invocation_complete", firstInvocationCompletedPayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-3f36509a95d2905e9c5f0d4d69abf4e53328e53c-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-5debe6073ffa4f016a7764fe919145bd85031cf4-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", firstInvocationCompletedPayload.getString("execution_index"));
 
-        JSONObject secondInvocationPayload = FilibusterServer.payloadsReceived.get(2);
+        JSONObject secondInvocationPayload = FilibusterServerFake.payloadsReceived.get(2);
         assertEquals("invocation", secondInvocationPayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-3f36509a95d2905e9c5f0d4d69abf4e53328e53c-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-30564c557e80fb964390daf4507d803a360f3ae3-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", secondInvocationPayload.getString("execution_index"));
 
-        JSONObject secondInvocationCompletedPayload = FilibusterServer.payloadsReceived.get(3);
+        JSONObject secondInvocationCompletedPayload = FilibusterServerFake.payloadsReceived.get(3);
         assertEquals("invocation_complete", secondInvocationCompletedPayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-3f36509a95d2905e9c5f0d4d69abf4e53328e53c-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-30564c557e80fb964390daf4507d803a360f3ae3-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", secondInvocationCompletedPayload.getString("execution_index"));
     }
@@ -111,23 +111,23 @@ public class HelloServerWithHelloAndWorldAndFilibusterServerMultithreadedTest ex
         assertEquals("200", statusCode);
 
         // Very proper number of Filibuster records.
-        assertEquals(4, FilibusterServer.payloadsReceived.size());
+        assertEquals(4, FilibusterServerFake.payloadsReceived.size());
 
         // These are the required Filibuster instrumentation fields for this call.
 
-        JSONObject firstInvocationPayload = FilibusterServer.payloadsReceived.get(0);
+        JSONObject firstInvocationPayload = FilibusterServerFake.payloadsReceived.get(0);
         assertEquals("invocation", firstInvocationPayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-3f36509a95d2905e9c5f0d4d69abf4e53328e53c-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-feaf26703eccaeb393f2adbc2778988bc8b80c1b-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", firstInvocationPayload.getString("execution_index"));
 
-        JSONObject firstInvocationCompletedPayload = FilibusterServer.payloadsReceived.get(1);
+        JSONObject firstInvocationCompletedPayload = FilibusterServerFake.payloadsReceived.get(1);
         assertEquals("invocation_complete", firstInvocationCompletedPayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-3f36509a95d2905e9c5f0d4d69abf4e53328e53c-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-feaf26703eccaeb393f2adbc2778988bc8b80c1b-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", firstInvocationCompletedPayload.getString("execution_index"));
 
-        JSONObject secondInvocationPayload = FilibusterServer.payloadsReceived.get(2);
+        JSONObject secondInvocationPayload = FilibusterServerFake.payloadsReceived.get(2);
         assertEquals("invocation", secondInvocationPayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-3f36509a95d2905e9c5f0d4d69abf4e53328e53c-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-feaf26703eccaeb393f2adbc2778988bc8b80c1b-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 2]]", secondInvocationPayload.getString("execution_index"));
 
-        JSONObject secondInvocationCompletedPayload = FilibusterServer.payloadsReceived.get(3);
+        JSONObject secondInvocationCompletedPayload = FilibusterServerFake.payloadsReceived.get(3);
         assertEquals("invocation_complete", secondInvocationCompletedPayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-3f36509a95d2905e9c5f0d4d69abf4e53328e53c-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-feaf26703eccaeb393f2adbc2778988bc8b80c1b-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 2]]", secondInvocationCompletedPayload.getString("execution_index"));
     }

@@ -2,8 +2,9 @@ package cloud.filibuster.examples.armeria.grpc.tests.decorators.scenarios;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
+import cloud.filibuster.examples.armeria.grpc.test_services.MyHelloService;
 import cloud.filibuster.examples.armeria.grpc.tests.decorators.HelloGrpcServerTest;
-import cloud.filibuster.instrumentation.FilibusterServer;
+import cloud.filibuster.instrumentation.FilibusterServerFake;
 import cloud.filibuster.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.datatypes.VectorClock;
 import cloud.filibuster.instrumentation.helpers.Networking;
@@ -19,13 +20,17 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import static cloud.filibuster.examples.test_servers.HelloServer.resetInitialDistributedExecutionIndex;
 import static cloud.filibuster.examples.test_servers.HelloServer.setupLocalFixtures;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SuppressWarnings({"ResultOfMethodCallIgnored", "DeduplicateConstants"})
-public class HelloGrpcServerTestWithHelloAndFilibusterServerFaultTest extends HelloGrpcServerTest {
+public class HelloGrpcServerTestWithHelloAndFilibusterServerFakeWithCauseTest extends HelloGrpcServerTest {
+    private static final Logger logger = Logger.getLogger(HelloGrpcServerTestWithHelloAndFilibusterServerFakeWithCauseTest.class.getName());
+
     private GrpcClientBuilder grpcClientBuilder;
     private static final String serviceName = "test";
 
@@ -63,50 +68,42 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerFaultTest extends He
         setupLocalFixtures();
 
         FilibusterClientInterceptor.disableInstrumentation = false;
-        FilibusterServerInterceptor.disableInstrumentation = false;
+        FilibusterServerInterceptor.disableInstrumentation = true;
         FilibusterDecoratingHttpClient.disableInstrumentation = false;
 
-        FilibusterServer.grpcExceptionType = true;
-        FilibusterServer.shouldInjectExceptionFault = true;
-        FilibusterServer.additionalExceptionMetadata.put("code", "FAILED_PRECONDITION");
+        MyHelloService.shouldReturnRuntimeExceptionWithCause = true;
     }
 
     @AfterEach
     public void teardownFalseAbortScenario() {
-        FilibusterServer.shouldInjectExceptionFault = false;
-        FilibusterServer.grpcExceptionType = false;
-        FilibusterServer.resetAdditionalExceptionMetadata();
+        MyHelloService.shouldReturnRuntimeExceptionWithCause = false;
+
+        FilibusterServerInterceptor.disableInstrumentation = false;
     }
 
     @Test
-    @DisplayName("Test hello server grpc route with Filibuster and fault injection.")
-    public void testMyHelloServiceWithFilibusterWithFaultInjection() {
-        StatusRuntimeException re;
-
-        try {
+    @DisplayName("Test hello server grpc route with Filibuster server available and exception with cause.")
+    public void testMyHelloServiceWithFilibusterAndExceptionWithCause() throws InterruptedException {
+        assertThrows(StatusRuntimeException.class, () -> {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = grpcClientBuilder
                     .build(HelloServiceGrpc.HelloServiceBlockingStub.class);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian World").build();
             blockingStub.hello(request);
-            throw new AssertionError("We shouldn't ever get here!");
-        } catch (StatusRuntimeException e) {
-            re = e;
-        }
+        });
 
-        assertEquals("FAILED_PRECONDITION", re.getStatus().getCode().name());
+        waitForWaitComplete();
 
-        VectorClock firstRequestVectorClock = generateAssertionClock();
+        assertEquals(2, FilibusterServerFake.payloadsReceived.size());
 
-        assertEquals(2, FilibusterServer.payloadsReceived.size());
+        JSONObject lastPayload = FilibusterServerFake.payloadsReceived.get(FilibusterServerFake.payloadsReceived.size() - 1);
+        assertEquals("invocation_complete", lastPayload.getString("instrumentation_type"));
+        assertEquals(0, lastPayload.getInt("generated_id"));
+        assertEquals("FAILED_PRECONDITION", lastPayload.getJSONObject("exception").getJSONObject("metadata").getString("code"));
+        assertEquals("io.grpc.StatusRuntimeException", lastPayload.getJSONObject("exception").getString("name"));
 
-        JSONObject firstInvocationPayload = FilibusterServer.payloadsReceived.get(0);
-        assertEquals("invocation", firstInvocationPayload.getString("instrumentation_type"));
-        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-f6a939b3054b862be68d089c35d63547e522555a-146409d9c7d501362ce2f58ab555782fba01c7c6\", 1]]", firstInvocationPayload.getString("execution_index"));
-        assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationPayload.getJSONObject("vclock").toString());
+        VectorClock assertVc = generateAssertionClock();
+        assertEquals(assertVc.toString(), lastPayload.get("vclock").toString());
 
-        JSONObject firstInvocationCompletePayload = FilibusterServer.payloadsReceived.get(1);
-        assertEquals("invocation_complete", firstInvocationCompletePayload.getString("instrumentation_type"));
-        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-f6a939b3054b862be68d089c35d63547e522555a-146409d9c7d501362ce2f58ab555782fba01c7c6\", 1]]", firstInvocationCompletePayload.getString("execution_index"));
-        assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationCompletePayload.getJSONObject("vclock").toString());
+        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-3e962c844d1c1a56c366ce7906d89d40e42a7f01-146409d9c7d501362ce2f58ab555782fba01c7c6\", 1]]", lastPayload.getString("execution_index"));
     }
 }

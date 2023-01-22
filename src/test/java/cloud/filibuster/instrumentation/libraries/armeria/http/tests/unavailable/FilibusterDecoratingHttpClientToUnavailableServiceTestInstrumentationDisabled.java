@@ -1,7 +1,7 @@
 package cloud.filibuster.instrumentation.libraries.armeria.http.tests.unavailable;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
-import cloud.filibuster.instrumentation.FilibusterServer;
+import cloud.filibuster.instrumentation.FilibusterServerFake;
 import cloud.filibuster.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.datatypes.VectorClock;
 import cloud.filibuster.instrumentation.libraries.armeria.http.FilibusterDecoratingHttpClient;
@@ -59,7 +59,7 @@ public class FilibusterDecoratingHttpClientToUnavailableServiceTestInstrumentati
         waitForWaitComplete();
 
         // With instrumentation disabled, there should be zero payloads.
-        assertEquals(0, FilibusterServer.payloadsReceived.size());
+        assertEquals(0, FilibusterServerFake.payloadsReceived.size());
 
         // There should only be a single key; verify the execution index.
         DistributedExecutionIndex distributedExecutionIndex = getFirstDistributedExecutionIndexFromMapping();

@@ -32,8 +32,8 @@ import java.util.logging.Logger;
  * Fake server for Filibuster that allows programming against the server API without starting
  * the Python Filibuster server.
  */
-public class FilibusterServer {
-    private static final Logger logger = Logger.getLogger(FilibusterServer.class.getName());
+public class FilibusterServerFake {
+    private static final Logger logger = Logger.getLogger(FilibusterServerFake.class.getName());
 
     public static ArrayList<JSONObject> payloadsReceived = new ArrayList<>();
 

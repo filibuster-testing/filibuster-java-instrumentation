@@ -5,7 +5,8 @@ import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.examples.test_servers.HelloServer;
 import cloud.filibuster.examples.test_servers.WorldServer;
 import cloud.filibuster.examples.armeria.grpc.test_services.MyHelloService;
-import cloud.filibuster.instrumentation.FilibusterServer;
+import cloud.filibuster.examples.armeria.grpc.test_services.MyWorldService;
+import cloud.filibuster.instrumentation.FilibusterServerFake;
 import cloud.filibuster.instrumentation.datatypes.VectorClock;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
@@ -26,23 +27,25 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
-public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServerPartialInstrumentationTest extends OpenTelemetryHelloGrpcServerTest {
+public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServeFakerFullInstrumentationTest extends OpenTelemetryHelloGrpcServerTest {
     @BeforeEach
     public void startServices() throws IOException, InterruptedException {
         startHello();
         startWorld();
+        startExternalServer();
         startFilibuster();
 
-        FilibusterServer.oneNewTestExecution = true;
+        FilibusterServerFake.oneNewTestExecution = true;
     }
 
     @AfterEach
     public void stopServices() throws InterruptedException {
         stopFilibuster();
+        stopExternalServer();
         stopWorld();
         stopHello();
 
-        FilibusterServer.noNewTestExecution = false;
+        FilibusterServerFake.noNewTestExecution = false;
     }
 
     @BeforeEach
@@ -57,12 +60,12 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
     public void disableFilibuster() {
         FilibusterClientInterceptor.disableInstrumentation = true;
         FilibusterServerInterceptor.disableInstrumentation = true;
-        FilibusterServer.shouldInjectExceptionFault = false;
-        FilibusterServer.grpcExceptionType = false;
-        FilibusterServer.shouldNotAbort = false;
-        FilibusterServer.shouldInjectGrpcMetadataFault = false;
-        FilibusterServer.resetPayloadsReceived();
-        FilibusterServer.resetAdditionalExceptionMetadata();
+        FilibusterServerFake.shouldInjectExceptionFault = false;
+        FilibusterServerFake.grpcExceptionType = false;
+        FilibusterServerFake.shouldNotAbort = false;
+        FilibusterServerFake.shouldInjectGrpcMetadataFault = false;
+        FilibusterServerFake.resetPayloadsReceived();
+        FilibusterServerFake.resetAdditionalExceptionMetadata();
         FilibusterClientInstrumentor.clearVectorClockForRequestId();
         FilibusterClientInstrumentor.clearDistributedExecutionIndexForRequestId();
     }
@@ -75,21 +78,23 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
 
     @AfterEach
     public void resetFilibusterConfiguration() {
-        FilibusterServer.shouldInjectExceptionFault = false;
-        FilibusterServer.grpcExceptionType = false;
-        FilibusterServer.shouldInjectGrpcMetadataFault = false;
+        FilibusterServerFake.shouldInjectExceptionFault = false;
+        FilibusterServerFake.grpcExceptionType = false;
+        FilibusterServerFake.shouldInjectGrpcMetadataFault = false;
     }
 
     @BeforeEach
     public void enableOtelInstrumentor() {
         MyHelloService.useOtelClientInterceptor = true;
+        MyWorldService.useOtelClientInterceptor = true;
         HelloServer.useOtelServerInterceptor = true;
-        WorldServer.useOtelServerInterceptor = false;
+        WorldServer.useOtelServerInterceptor = true;
     }
 
     @AfterEach
     public void disableOtelInstrumentor() {
         MyHelloService.useOtelClientInterceptor = false;
+        MyWorldService.useOtelClientInterceptor = false;
         HelloServer.useOtelServerInterceptor = false;
         WorldServer.useOtelServerInterceptor = false;
     }
@@ -111,32 +116,36 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
         assertEquals("Hello, Armerian World!!", reply.getMessage());
 
         // Very proper number of Filibuster records.
-        assertEquals(3, FilibusterServer.payloadsReceived.size());
+        assertEquals(3, FilibusterServerFake.payloadsReceived.size());
 
         // Assemble vector clocks.
         VectorClock firstRequestVectorClock = new VectorClock();
         firstRequestVectorClock.incrementClock("hello");
 
-        JSONObject firstInvocationPayload = FilibusterServer.payloadsReceived.get(0);
+        JSONObject firstInvocationPayload = FilibusterServerFake.payloadsReceived.get(0);
         assertEquals("invocation", firstInvocationPayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-474e350ca19ed3b62165ba0d6fc7de4dc2bd2418-0467af73e0837d51c48b70651c64b7e6537819d2\", 1]]", firstInvocationPayload.getString("execution_index"));
-        assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationPayload.getJSONObject("vclock").toString());
+        firstInvocationPayload = null;
 
-        JSONObject firstRequestReceivedPayload = FilibusterServer.payloadsReceived.get(1);
+        JSONObject firstRequestReceivedPayload = FilibusterServerFake.payloadsReceived.get(1);
         assertEquals("request_received", firstRequestReceivedPayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-474e350ca19ed3b62165ba0d6fc7de4dc2bd2418-0467af73e0837d51c48b70651c64b7e6537819d2\", 1]]", firstRequestReceivedPayload.getString("execution_index"));
+        assertEquals(0, firstRequestReceivedPayload.getInt("generated_id"));
+        firstRequestReceivedPayload = null;
 
-        JSONObject firstInvocationCompletePayload = FilibusterServer.payloadsReceived.get(2);
+        JSONObject firstInvocationCompletePayload = FilibusterServerFake.payloadsReceived.get(2);
         assertEquals("invocation_complete", firstInvocationCompletePayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-474e350ca19ed3b62165ba0d6fc7de4dc2bd2418-0467af73e0837d51c48b70651c64b7e6537819d2\", 1]]", firstInvocationCompletePayload.getString("execution_index"));
         assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationCompletePayload.getJSONObject("vclock").toString());
+        assertEquals(0, firstInvocationCompletePayload.getInt("generated_id"));
+        firstInvocationCompletePayload = null;
 
         helloChannel.shutdownNow();
         helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
 
-        FilibusterServer.grpcExceptionType = false;
-        FilibusterServer.shouldInjectExceptionFault = false;
-        FilibusterServer.resetAdditionalExceptionMetadata();
+        FilibusterServerFake.grpcExceptionType = false;
+        FilibusterServerFake.shouldInjectExceptionFault = false;
+        FilibusterServerFake.resetAdditionalExceptionMetadata();
 
         FilibusterClientInterceptor.disableInstrumentation = true;
         FilibusterServerInterceptor.disableInstrumentation = true;
@@ -148,9 +157,9 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
         FilibusterClientInterceptor.disableInstrumentation = false;
         FilibusterServerInterceptor.disableInstrumentation = false;
 
-        FilibusterServer.grpcExceptionType = true;
-        FilibusterServer.shouldInjectExceptionFault = true;
-        FilibusterServer.additionalExceptionMetadata.put("code", "UNAVAILABLE");
+        FilibusterServerFake.grpcExceptionType = true;
+        FilibusterServerFake.shouldInjectExceptionFault = true;
+        FilibusterServerFake.additionalExceptionMetadata.put("code", "UNAVAILABLE");
 
         ManagedChannel helloChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
@@ -174,14 +183,14 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
         VectorClock firstRequestVectorClock = new VectorClock();
         firstRequestVectorClock.incrementClock("hello");
 
-        assertEquals(2, FilibusterServer.payloadsReceived.size());
+        assertEquals(2, FilibusterServerFake.payloadsReceived.size());
 
-        JSONObject firstInvocationPayload = FilibusterServer.payloadsReceived.get(0);
+        JSONObject firstInvocationPayload = FilibusterServerFake.payloadsReceived.get(0);
         assertEquals("invocation", firstInvocationPayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-474e350ca19ed3b62165ba0d6fc7de4dc2bd2418-0467af73e0837d51c48b70651c64b7e6537819d2\", 1]]", firstInvocationPayload.getString("execution_index"));
         assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationPayload.getJSONObject("vclock").toString());
 
-        JSONObject firstInvocationCompletePayload = FilibusterServer.payloadsReceived.get(1);
+        JSONObject firstInvocationCompletePayload = FilibusterServerFake.payloadsReceived.get(1);
         assertEquals("invocation_complete", firstInvocationCompletePayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-474e350ca19ed3b62165ba0d6fc7de4dc2bd2418-0467af73e0837d51c48b70651c64b7e6537819d2\", 1]]", firstInvocationCompletePayload.getString("execution_index"));
         assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationCompletePayload.getJSONObject("vclock").toString());
@@ -189,9 +198,9 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
         helloChannel.shutdownNow();
         helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
 
-        FilibusterServer.grpcExceptionType = false;
-        FilibusterServer.shouldInjectExceptionFault = false;
-        FilibusterServer.resetAdditionalExceptionMetadata();
+        FilibusterServerFake.grpcExceptionType = false;
+        FilibusterServerFake.shouldInjectExceptionFault = false;
+        FilibusterServerFake.resetAdditionalExceptionMetadata();
 
         FilibusterClientInterceptor.disableInstrumentation = true;
         FilibusterServerInterceptor.disableInstrumentation = true;
@@ -199,11 +208,11 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
 
     @Test
     @DisplayName("Test partial hello server grpc route with Filibuster. (metadata fault, MyHelloService, MyWorldService)")
-    public void testMyHelloAndMyWorldServiceWithFilibusterMetadataFault() throws InterruptedException {
+    public void testMyHelloAndMyWorldServiceWithFilibusterMetadataFault() throws IOException, InterruptedException {
         FilibusterClientInterceptor.disableInstrumentation = false;
         FilibusterServerInterceptor.disableInstrumentation = false;
 
-        FilibusterServer.shouldInjectGrpcMetadataFault = true;
+        FilibusterServerFake.shouldInjectGrpcMetadataFault = true;
 
         ManagedChannel helloChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
@@ -226,14 +235,15 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
         // Assemble vector clocks.
         VectorClock firstRequestVectorClock = new VectorClock();
         firstRequestVectorClock.incrementClock("hello");
-        assertEquals(2, FilibusterServer.payloadsReceived.size());
 
-        JSONObject firstInvocationPayload = FilibusterServer.payloadsReceived.get(0);
+        assertEquals(2, FilibusterServerFake.payloadsReceived.size());
+
+        JSONObject firstInvocationPayload = FilibusterServerFake.payloadsReceived.get(0);
         assertEquals("invocation", firstInvocationPayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-474e350ca19ed3b62165ba0d6fc7de4dc2bd2418-0467af73e0837d51c48b70651c64b7e6537819d2\", 1]]", firstInvocationPayload.getString("execution_index"));
         assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationPayload.getJSONObject("vclock").toString());
 
-        JSONObject firstInvocationCompletePayload = FilibusterServer.payloadsReceived.get(1);
+        JSONObject firstInvocationCompletePayload = FilibusterServerFake.payloadsReceived.get(1);
         assertEquals("invocation_complete", firstInvocationCompletePayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-474e350ca19ed3b62165ba0d6fc7de4dc2bd2418-0467af73e0837d51c48b70651c64b7e6537819d2\", 1]]", firstInvocationCompletePayload.getString("execution_index"));
         assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationCompletePayload.getJSONObject("vclock").toString());
@@ -241,10 +251,10 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
         helloChannel.shutdownNow();
         helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
 
-        FilibusterServer.grpcExceptionType = false;
-        FilibusterServer.shouldInjectExceptionFault = false;
-        FilibusterServer.shouldInjectGrpcMetadataFault = false;
-        FilibusterServer.resetAdditionalExceptionMetadata();
+        FilibusterServerFake.grpcExceptionType = false;
+        FilibusterServerFake.shouldInjectExceptionFault = false;
+        FilibusterServerFake.shouldInjectGrpcMetadataFault = false;
+        FilibusterServerFake.resetAdditionalExceptionMetadata();
 
         FilibusterClientInterceptor.disableInstrumentation = true;
         FilibusterServerInterceptor.disableInstrumentation = true;

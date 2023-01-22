@@ -1,6 +1,6 @@
 package cloud.filibuster.instrumentation.libraries.armeria.http.tests.available;
 
-import cloud.filibuster.instrumentation.FilibusterServer;
+import cloud.filibuster.instrumentation.FilibusterServerFake;
 import cloud.filibuster.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.helpers.Property;
@@ -38,8 +38,8 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTestInstrumentation
 
     @AfterEach
     public void resetFilibusterConfiguration() {
-        FilibusterServer.shouldReturnNotFounds = false;
-        FilibusterServer.noNewTestExecution = false;
+        FilibusterServerFake.shouldReturnNotFounds = false;
+        FilibusterServerFake.noNewTestExecution = false;
         FilibusterDecoratingHttpClient.disableServerCommunication = false;
     }
 
@@ -67,6 +67,6 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTestInstrumentation
         assertEquals("200", statusCode);
 
         // No assertions on payload -- no requests made.
-        assertEquals(0, FilibusterServer.payloadsReceived.size());
+        assertEquals(0, FilibusterServerFake.payloadsReceived.size());
     }
 }

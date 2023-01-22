@@ -1,7 +1,7 @@
 package cloud.filibuster.instrumentation.libraries.armeria.http.tests.unavailable;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
-import cloud.filibuster.instrumentation.FilibusterServer;
+import cloud.filibuster.instrumentation.FilibusterServerFake;
 import cloud.filibuster.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.datatypes.VectorClock;
 
@@ -50,7 +50,7 @@ public class FilibusterDecoratingHttpClientToUnavailableServiceTest extends Fili
 
         // Only the invocation and invocation_complete should be present.
         // No request_received because the destination was down.
-        assertEquals(2, FilibusterServer.payloadsReceived.size());
+        assertEquals(2, FilibusterServerFake.payloadsReceived.size());
 
         // There should only be a single key; verify the execution index.
         DistributedExecutionIndex distributedExecutionIndex = getFirstDistributedExecutionIndexFromMapping();

@@ -5,7 +5,7 @@ import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.examples.test_servers.HelloServer;
 import cloud.filibuster.examples.test_servers.WorldServer;
 import cloud.filibuster.examples.armeria.grpc.test_services.MyHelloService;
-import cloud.filibuster.instrumentation.FilibusterServer;
+import cloud.filibuster.instrumentation.FilibusterServerFake;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
-public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServerFullInstrumentationRaceDetectionTest extends OpenTelemetryHelloGrpcServerTest {
+public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServerFakeFullInstrumentationRaceDetectionTest extends OpenTelemetryHelloGrpcServerTest {
     static final private int ITERATIONS = 100;
 
     @BeforeEach
@@ -32,7 +32,7 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
         startWorld();
         startFilibuster();
 
-        FilibusterServer.oneNewTestExecution = true;
+        FilibusterServerFake.oneNewTestExecution = true;
     }
 
     @AfterEach
@@ -41,7 +41,7 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
         stopWorld();
         stopHello();
 
-        FilibusterServer.noNewTestExecution = false;
+        FilibusterServerFake.noNewTestExecution = false;
     }
 
     @BeforeEach
@@ -56,12 +56,12 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
     public void disableFilibuster() {
         FilibusterClientInterceptor.disableInstrumentation = true;
         FilibusterServerInterceptor.disableInstrumentation = true;
-        FilibusterServer.shouldInjectExceptionFault = false;
-        FilibusterServer.grpcExceptionType = false;
-        FilibusterServer.shouldNotAbort = false;
-        FilibusterServer.shouldInjectGrpcMetadataFault = false;
-        FilibusterServer.resetPayloadsReceived();
-        FilibusterServer.resetAdditionalExceptionMetadata();
+        FilibusterServerFake.shouldInjectExceptionFault = false;
+        FilibusterServerFake.grpcExceptionType = false;
+        FilibusterServerFake.shouldNotAbort = false;
+        FilibusterServerFake.shouldInjectGrpcMetadataFault = false;
+        FilibusterServerFake.resetPayloadsReceived();
+        FilibusterServerFake.resetAdditionalExceptionMetadata();
         FilibusterClientInstrumentor.clearVectorClockForRequestId();
         FilibusterClientInstrumentor.clearDistributedExecutionIndexForRequestId();
     }
@@ -74,9 +74,9 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
 
     @AfterEach
     public void resetFilibusterConfiguration() {
-        FilibusterServer.shouldInjectExceptionFault = false;
-        FilibusterServer.grpcExceptionType = false;
-        FilibusterServer.shouldInjectGrpcMetadataFault = false;
+        FilibusterServerFake.shouldInjectExceptionFault = false;
+        FilibusterServerFake.grpcExceptionType = false;
+        FilibusterServerFake.shouldInjectGrpcMetadataFault = false;
     }
 
     @BeforeEach
@@ -99,9 +99,9 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
         FilibusterClientInterceptor.disableInstrumentation = false;
         FilibusterServerInterceptor.disableInstrumentation = false;
 
-        FilibusterServer.grpcExceptionType = true;
-        FilibusterServer.shouldInjectExceptionFault = true;
-        FilibusterServer.additionalExceptionMetadata.put("code", "UNAVAILABLE");
+        FilibusterServerFake.grpcExceptionType = true;
+        FilibusterServerFake.shouldInjectExceptionFault = true;
+        FilibusterServerFake.additionalExceptionMetadata.put("code", "UNAVAILABLE");
 
         ManagedChannel helloChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
@@ -111,7 +111,7 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
         RuntimeException re;
 
         for (int i = 0; i < ITERATIONS; i++) {
-            FilibusterServer.resetPayloadsReceived();
+            FilibusterServerFake.resetPayloadsReceived();
             FilibusterClientInstrumentor.clearVectorClockForRequestId();
             FilibusterClientInstrumentor.clearDistributedExecutionIndexForRequestId();
             re = null;
@@ -127,15 +127,15 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
 
             assertEquals("DATA_LOSS: io.grpc.StatusRuntimeException: UNAVAILABLE", re.getMessage());
 
-            assertEquals(2, FilibusterServer.payloadsReceived.size());
+            assertEquals(2, FilibusterServerFake.payloadsReceived.size());
         }
 
         helloChannel.shutdownNow();
         helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
 
-        FilibusterServer.grpcExceptionType = false;
-        FilibusterServer.shouldInjectExceptionFault = false;
-        FilibusterServer.resetAdditionalExceptionMetadata();
+        FilibusterServerFake.grpcExceptionType = false;
+        FilibusterServerFake.shouldInjectExceptionFault = false;
+        FilibusterServerFake.resetAdditionalExceptionMetadata();
 
         FilibusterClientInterceptor.disableInstrumentation = true;
         FilibusterServerInterceptor.disableInstrumentation = true;
@@ -147,7 +147,7 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
         FilibusterClientInterceptor.disableInstrumentation = false;
         FilibusterServerInterceptor.disableInstrumentation = false;
 
-        FilibusterServer.shouldInjectGrpcMetadataFault = true;
+        FilibusterServerFake.shouldInjectGrpcMetadataFault = true;
 
         ManagedChannel helloChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
@@ -157,7 +157,7 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
         RuntimeException re;
 
         for (int i = 0; i < ITERATIONS; i++) {
-            FilibusterServer.resetPayloadsReceived();
+            FilibusterServerFake.resetPayloadsReceived();
             FilibusterClientInstrumentor.clearVectorClockForRequestId();
             FilibusterClientInstrumentor.clearDistributedExecutionIndexForRequestId();
             re = null;
@@ -173,16 +173,16 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
 
             assertEquals("DATA_LOSS: io.grpc.StatusRuntimeException: NOT_FOUND", re.getMessage());
 
-            assertEquals(2, FilibusterServer.payloadsReceived.size());
+            assertEquals(2, FilibusterServerFake.payloadsReceived.size());
         }
 
         helloChannel.shutdownNow();
         helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
 
-        FilibusterServer.grpcExceptionType = false;
-        FilibusterServer.shouldInjectExceptionFault = false;
-        FilibusterServer.shouldInjectGrpcMetadataFault = false;
-        FilibusterServer.resetAdditionalExceptionMetadata();
+        FilibusterServerFake.grpcExceptionType = false;
+        FilibusterServerFake.shouldInjectExceptionFault = false;
+        FilibusterServerFake.shouldInjectGrpcMetadataFault = false;
+        FilibusterServerFake.resetAdditionalExceptionMetadata();
 
         FilibusterClientInterceptor.disableInstrumentation = true;
         FilibusterServerInterceptor.disableInstrumentation = true;

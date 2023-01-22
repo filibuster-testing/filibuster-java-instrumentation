@@ -63,10 +63,10 @@ public class TestHelper {
 
     @SuppressWarnings("VoidMissingNullable")
     public static synchronized void startMockFilibusterServerAndWaitUntilAvailable() throws IOException, InterruptedException {
-        FilibusterServer.resetPayloadsReceived();
+        FilibusterServerFake.resetPayloadsReceived();
 
         if (filibusterServer == null) {
-            filibusterServer = FilibusterServer.serve();
+            filibusterServer = FilibusterServerFake.serve();
             CompletableFuture<Void> filibusterServerFuture = filibusterServer.start();
         }
 

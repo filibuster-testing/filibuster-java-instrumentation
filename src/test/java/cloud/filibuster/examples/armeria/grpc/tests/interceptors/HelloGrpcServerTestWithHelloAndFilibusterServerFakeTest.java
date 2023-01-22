@@ -3,7 +3,7 @@ package cloud.filibuster.examples.armeria.grpc.tests.interceptors;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.examples.armeria.grpc.test_services.MyHelloService;
-import cloud.filibuster.instrumentation.FilibusterServer;
+import cloud.filibuster.instrumentation.FilibusterServerFake;
 import cloud.filibuster.instrumentation.datatypes.VectorClock;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
-public class HelloGrpcServerTestWithHelloAndFilibusterServerTest extends HelloGrpcServerTest {
+public class HelloGrpcServerTestWithHelloAndFilibusterServerFakeTest extends HelloGrpcServerTest {
     @BeforeEach
     public void startServices() throws IOException, InterruptedException {
         startHello();
@@ -63,10 +63,10 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerTest extends HelloGr
     public void disableFilibuster() {
         FilibusterClientInterceptor.disableInstrumentation = true;
         FilibusterServerInterceptor.disableInstrumentation = true;
-        FilibusterServer.shouldInjectExceptionFault = false;
-        FilibusterServer.grpcExceptionType = false;
-        FilibusterServer.shouldNotAbort = false;
-        FilibusterServer.resetAdditionalExceptionMetadata();
+        FilibusterServerFake.shouldInjectExceptionFault = false;
+        FilibusterServerFake.grpcExceptionType = false;
+        FilibusterServerFake.shouldNotAbort = false;
+        FilibusterServerFake.resetAdditionalExceptionMetadata();
     }
 
     @AfterEach
@@ -107,7 +107,7 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerTest extends HelloGr
         Hello.HelloReply reply = blockingStub.hello(request);
         assertEquals("Hello, Armerian World!!", reply.getMessage());
 
-        JSONObject lastPayload = FilibusterServer.payloadsReceived.get(FilibusterServer.payloadsReceived.size() - 1);
+        JSONObject lastPayload = FilibusterServerFake.payloadsReceived.get(FilibusterServerFake.payloadsReceived.size() - 1);
         assertEquals("invocation_complete", lastPayload.getString("instrumentation_type"));
         assertEquals(0, lastPayload.getInt("generated_id"));
 
@@ -138,7 +138,7 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerTest extends HelloGr
             blockingStub.hello(request);
         });
 
-        JSONObject lastPayload = FilibusterServer.payloadsReceived.get(FilibusterServer.payloadsReceived.size() - 1);
+        JSONObject lastPayload = FilibusterServerFake.payloadsReceived.get(FilibusterServerFake.payloadsReceived.size() - 1);
         assertEquals("invocation_complete", lastPayload.getString("instrumentation_type"));
         assertEquals(0, lastPayload.getInt("generated_id"));
         assertEquals("FAILED_PRECONDITION", lastPayload.getJSONObject("exception").getJSONObject("metadata").getString("code"));
@@ -170,9 +170,9 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerTest extends HelloGr
             blockingStub.hello(request);
         });
 
-        assertEquals(3, FilibusterServer.payloadsReceived.size());
+        assertEquals(3, FilibusterServerFake.payloadsReceived.size());
 
-        JSONObject lastPayload = FilibusterServer.payloadsReceived.get(FilibusterServer.payloadsReceived.size() - 1);
+        JSONObject lastPayload = FilibusterServerFake.payloadsReceived.get(FilibusterServerFake.payloadsReceived.size() - 1);
         assertEquals("invocation_complete", lastPayload.getString("instrumentation_type"));
         assertEquals(0, lastPayload.getInt("generated_id"));
         assertEquals("FAILED_PRECONDITION", lastPayload.getJSONObject("exception").getJSONObject("metadata").getString("code"));
@@ -197,9 +197,9 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerTest extends HelloGr
         FilibusterClientInterceptor.disableInstrumentation = false;
         FilibusterServerInterceptor.disableInstrumentation = false;
 
-        FilibusterServer.grpcExceptionType = true;
-        FilibusterServer.shouldInjectExceptionFault = true;
-        FilibusterServer.additionalExceptionMetadata.put("code", "FAILED_PRECONDITION");
+        FilibusterServerFake.grpcExceptionType = true;
+        FilibusterServerFake.shouldInjectExceptionFault = true;
+        FilibusterServerFake.additionalExceptionMetadata.put("code", "FAILED_PRECONDITION");
 
         RuntimeException re;
 
@@ -217,14 +217,14 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerTest extends HelloGr
         VectorClock firstRequestVectorClock = new VectorClock();
         firstRequestVectorClock.incrementClock("test");
 
-        assertEquals(2, FilibusterServer.payloadsReceived.size());
+        assertEquals(2, FilibusterServerFake.payloadsReceived.size());
 
-        JSONObject firstInvocationPayload = FilibusterServer.payloadsReceived.get(0);
+        JSONObject firstInvocationPayload = FilibusterServerFake.payloadsReceived.get(0);
         assertEquals("invocation", firstInvocationPayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-174adee3b8b7333d81da6915880dfc80aadbca24-7321335838ea883cd005a01a7e721e2d6970fe2f\", 1]]", firstInvocationPayload.getString("execution_index"));
         assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationPayload.getJSONObject("vclock").toString());
 
-        JSONObject firstInvocationCompletePayload = FilibusterServer.payloadsReceived.get(1);
+        JSONObject firstInvocationCompletePayload = FilibusterServerFake.payloadsReceived.get(1);
         assertEquals("invocation_complete", firstInvocationCompletePayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-174adee3b8b7333d81da6915880dfc80aadbca24-7321335838ea883cd005a01a7e721e2d6970fe2f\", 1]]", firstInvocationCompletePayload.getString("execution_index"));
         assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationCompletePayload.getJSONObject("vclock").toString());
@@ -232,9 +232,9 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerTest extends HelloGr
         FilibusterClientInterceptor.disableInstrumentation = true;
         FilibusterServerInterceptor.disableInstrumentation = true;
 
-        FilibusterServer.shouldInjectExceptionFault = false;
-        FilibusterServer.grpcExceptionType = false;
-        FilibusterServer.resetAdditionalExceptionMetadata();
+        FilibusterServerFake.shouldInjectExceptionFault = false;
+        FilibusterServerFake.grpcExceptionType = false;
+        FilibusterServerFake.resetAdditionalExceptionMetadata();
     }
 
     @Test
@@ -245,10 +245,10 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerTest extends HelloGr
         FilibusterClientInterceptor.disableInstrumentation = false;
         FilibusterServerInterceptor.disableInstrumentation = false;
 
-        FilibusterServer.shouldNotAbort = true;
-        FilibusterServer.grpcExceptionType = true;
-        FilibusterServer.shouldInjectExceptionFault = true;
-        FilibusterServer.additionalExceptionMetadata.put("code", "FAILED_PRECONDITION");
+        FilibusterServerFake.shouldNotAbort = true;
+        FilibusterServerFake.grpcExceptionType = true;
+        FilibusterServerFake.shouldInjectExceptionFault = true;
+        FilibusterServerFake.additionalExceptionMetadata.put("code", "FAILED_PRECONDITION");
 
         RuntimeException re;
 
@@ -266,18 +266,18 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerTest extends HelloGr
         VectorClock firstRequestVectorClock = new VectorClock();
         firstRequestVectorClock.incrementClock("test");
 
-        assertEquals(3, FilibusterServer.payloadsReceived.size());
+        assertEquals(3, FilibusterServerFake.payloadsReceived.size());
 
-        JSONObject firstInvocationPayload = FilibusterServer.payloadsReceived.get(0);
+        JSONObject firstInvocationPayload = FilibusterServerFake.payloadsReceived.get(0);
         assertEquals("invocation", firstInvocationPayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-13bd8ae0013ed89f0746058b5a93091bb35d8bd4-7321335838ea883cd005a01a7e721e2d6970fe2f\", 1]]", firstInvocationPayload.getString("execution_index"));
         assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationPayload.getJSONObject("vclock").toString());
 
-        JSONObject firstRequestReceivedPayload = FilibusterServer.payloadsReceived.get(1);
+        JSONObject firstRequestReceivedPayload = FilibusterServerFake.payloadsReceived.get(1);
         assertEquals("request_received", firstRequestReceivedPayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-13bd8ae0013ed89f0746058b5a93091bb35d8bd4-7321335838ea883cd005a01a7e721e2d6970fe2f\", 1]]", firstRequestReceivedPayload.getString("execution_index"));
 
-        JSONObject firstInvocationCompletePayload = FilibusterServer.payloadsReceived.get(2);
+        JSONObject firstInvocationCompletePayload = FilibusterServerFake.payloadsReceived.get(2);
         assertEquals("invocation_complete", firstInvocationCompletePayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-13bd8ae0013ed89f0746058b5a93091bb35d8bd4-7321335838ea883cd005a01a7e721e2d6970fe2f\", 1]]", firstInvocationCompletePayload.getString("execution_index"));
         assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationCompletePayload.getJSONObject("vclock").toString());
@@ -285,8 +285,8 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerTest extends HelloGr
         FilibusterClientInterceptor.disableInstrumentation = true;
         FilibusterServerInterceptor.disableInstrumentation = true;
 
-        FilibusterServer.shouldInjectExceptionFault = false;
-        FilibusterServer.grpcExceptionType = false;
-        FilibusterServer.resetAdditionalExceptionMetadata();
+        FilibusterServerFake.shouldInjectExceptionFault = false;
+        FilibusterServerFake.grpcExceptionType = false;
+        FilibusterServerFake.resetAdditionalExceptionMetadata();
     }
 }

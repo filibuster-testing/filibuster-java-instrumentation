@@ -2,7 +2,7 @@ package cloud.filibuster.junit.tests.filibuster.smoke.fake;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
-import cloud.filibuster.instrumentation.FilibusterServer;
+import cloud.filibuster.instrumentation.FilibusterServerFake;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.interceptors.FilibusterInvocationInterceptor;
@@ -40,14 +40,14 @@ public class JUnitFilibusterTestWithServerFake extends JUnitBaseTest {
     protected static void disableFilibusterServerInitialization() throws IOException, InterruptedException {
         FilibusterInvocationInterceptor.shouldInitializeFilibusterServer = false;
         startMockFilibusterServerAndWaitUntilAvailable();
-        FilibusterServer.shouldInjectGrpcMetadataFault = true;
+        FilibusterServerFake.shouldInjectGrpcMetadataFault = true;
     }
 
     @AfterAll
     protected static void enableFilibusterServerInitialization() throws InterruptedException {
         FilibusterInvocationInterceptor.shouldInitializeFilibusterServer = true;
         stopMockFilibusterServerAndWaitUntilUnavailable();
-        FilibusterServer.shouldInjectGrpcMetadataFault = false;
+        FilibusterServerFake.shouldInjectGrpcMetadataFault = false;
     }
 
     /**

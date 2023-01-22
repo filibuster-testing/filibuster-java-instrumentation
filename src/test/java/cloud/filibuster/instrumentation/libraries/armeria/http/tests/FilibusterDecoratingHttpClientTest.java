@@ -1,7 +1,7 @@
 package cloud.filibuster.instrumentation.libraries.armeria.http.tests;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
-import cloud.filibuster.instrumentation.FilibusterServer;
+import cloud.filibuster.instrumentation.FilibusterServerFake;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
 import cloud.filibuster.instrumentation.datatypes.VectorClock;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
@@ -26,31 +26,31 @@ public class FilibusterDecoratingHttpClientTest extends FilibusterDecoratingHttp
     public void reEnableInstrumentation() {
         FilibusterDecoratingHttpClient.disableServerCommunication = false;
         FilibusterDecoratingHttpClient.disableInstrumentation = false;
-        FilibusterServer.noNewTestExecution = false;
-        FilibusterServer.shouldInjectExceptionFault = false;
-        FilibusterServer.shouldInjectStatusCodeFault = false;
-        FilibusterServer.emptyExceptionCauseString = false;
-        FilibusterServer.emptyExceptionString = false;
-        FilibusterServer.shouldReturnNotFounds = false;
-        FilibusterServer.shouldNotAbort = false;
+        FilibusterServerFake.noNewTestExecution = false;
+        FilibusterServerFake.shouldInjectExceptionFault = false;
+        FilibusterServerFake.shouldInjectStatusCodeFault = false;
+        FilibusterServerFake.emptyExceptionCauseString = false;
+        FilibusterServerFake.emptyExceptionString = false;
+        FilibusterServerFake.shouldReturnNotFounds = false;
+        FilibusterServerFake.shouldNotAbort = false;
     }
 
     @AfterAll
     public static void resetFilibuster() {
         FilibusterDecoratingHttpClient.disableServerCommunication = false;
         FilibusterDecoratingHttpClient.disableInstrumentation = false;
-        FilibusterServer.noNewTestExecution = false;
-        FilibusterServer.shouldInjectExceptionFault = false;
-        FilibusterServer.shouldInjectStatusCodeFault = false;
-        FilibusterServer.emptyExceptionCauseString = false;
-        FilibusterServer.emptyExceptionString = false;
-        FilibusterServer.shouldReturnNotFounds = false;
-        FilibusterServer.shouldNotAbort = false;
+        FilibusterServerFake.noNewTestExecution = false;
+        FilibusterServerFake.shouldInjectExceptionFault = false;
+        FilibusterServerFake.shouldInjectStatusCodeFault = false;
+        FilibusterServerFake.emptyExceptionCauseString = false;
+        FilibusterServerFake.emptyExceptionString = false;
+        FilibusterServerFake.shouldReturnNotFounds = false;
+        FilibusterServerFake.shouldNotAbort = false;
     }
 
     @BeforeEach
     public void clearConfigurationsBefore() {
-        FilibusterServer.payloadsReceived.clear();
+        FilibusterServerFake.payloadsReceived.clear();
 
         FilibusterClientInstrumentor.clearVectorClockForRequestId();
         FilibusterClientInstrumentor.clearDistributedExecutionIndexForRequestId();
@@ -61,7 +61,7 @@ public class FilibusterDecoratingHttpClientTest extends FilibusterDecoratingHttp
         FilibusterClientInstrumentor.clearDistributedExecutionIndexForRequestId();
         FilibusterClientInstrumentor.clearVectorClockForRequestId();
 
-        FilibusterServer.payloadsReceived.clear();
+        FilibusterServerFake.payloadsReceived.clear();
     }
 
     @BeforeEach

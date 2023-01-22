@@ -1,7 +1,7 @@
 package cloud.filibuster.instrumentation.libraries.armeria.http.tests.available;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
-import cloud.filibuster.instrumentation.FilibusterServer;
+import cloud.filibuster.instrumentation.FilibusterServerFake;
 import cloud.filibuster.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.datatypes.VectorClock;
 import cloud.filibuster.instrumentation.helpers.Networking;
@@ -47,8 +47,8 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTest extends Filibu
 
     @AfterEach
     public void resetFilibusterConfiguration() {
-        FilibusterServer.shouldReturnNotFounds = false;
-        FilibusterServer.noNewTestExecution = false;
+        FilibusterServerFake.shouldReturnNotFounds = false;
+        FilibusterServerFake.noNewTestExecution = false;
         FilibusterDecoratingHttpClient.disableServerCommunication = false;
     }
 
@@ -70,7 +70,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTest extends Filibu
         assertEquals("200", statusCode);
 
         // These are the required Filibuster instrumentation fields for this call.
-        JSONObject lastPayload = FilibusterServer.payloadsReceived.get(FilibusterServer.payloadsReceived.size() - 1);
+        JSONObject lastPayload = FilibusterServerFake.payloadsReceived.get(FilibusterServerFake.payloadsReceived.size() - 1);
         assertEquals("invocation_complete", lastPayload.getString("instrumentation_type"));
         assertEquals(0, lastPayload.getInt("generated_id"));
 
@@ -110,7 +110,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTest extends Filibu
         assertEquals("200", statusCode);
 
         // These are the required Filibuster instrumentation fields for this call.
-        JSONObject lastPayload = FilibusterServer.payloadsReceived.get(FilibusterServer.payloadsReceived.size() - 1);
+        JSONObject lastPayload = FilibusterServerFake.payloadsReceived.get(FilibusterServerFake.payloadsReceived.size() - 1);
         assertEquals("invocation_complete", lastPayload.getString("instrumentation_type"));
         assertEquals(0, lastPayload.getInt("generated_id"));
 
@@ -162,7 +162,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTest extends Filibu
         assertTrue(VectorClock.descends(getInitialVectorClock(), finalVectorClock));
 
         // Nothing should be logged.
-        assertEquals(0, FilibusterServer.payloadsReceived.size());
+        assertEquals(0, FilibusterServerFake.payloadsReceived.size());
     }
 
     @Test
@@ -179,7 +179,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTest extends Filibu
         assertEquals("200", statusCode);
 
         // These are the required Filibuster instrumentation fields for this call.
-        JSONObject lastPayload = FilibusterServer.payloadsReceived.get(FilibusterServer.payloadsReceived.size() - 1);
+        JSONObject lastPayload = FilibusterServerFake.payloadsReceived.get(FilibusterServerFake.payloadsReceived.size() - 1);
         assertEquals("invocation_complete", lastPayload.getString("instrumentation_type"));
         assertEquals(0, lastPayload.getInt("generated_id"));
 
@@ -208,7 +208,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTest extends Filibu
         // Second request.
         // **************************************************************************************
 
-        FilibusterServer.noNewTestExecution = true;
+        FilibusterServerFake.noNewTestExecution = true;
 
         webClient = TestHelper.getTestWebClient(baseExternalURI, serviceName);
         getHeaders = RequestHeaders.of(
@@ -219,7 +219,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTest extends Filibu
         assertEquals("200", statusCode);
 
         // These are the required Filibuster instrumentation fields for this call.
-        lastPayload = FilibusterServer.payloadsReceived.get(FilibusterServer.payloadsReceived.size() - 1);
+        lastPayload = FilibusterServerFake.payloadsReceived.get(FilibusterServerFake.payloadsReceived.size() - 1);
         assertEquals("invocation_complete", lastPayload.getString("instrumentation_type"));
         assertEquals(0, lastPayload.getInt("generated_id"));
 
@@ -251,7 +251,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTest extends Filibu
     public void testClientDecoratorWithBrokenFilibuster() {
         String serviceName = "hello";
 
-        FilibusterServer.shouldReturnNotFounds = true;
+        FilibusterServerFake.shouldReturnNotFounds = true;
 
         WebClient webClient = TestHelper.getTestWebClient(baseExternalURI, serviceName);
         RequestHeaders getHeaders = RequestHeaders.of(
@@ -262,7 +262,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTest extends Filibu
         assertEquals("200", statusCode);
 
         // Nothing should be logged.
-        assertEquals(0, FilibusterServer.payloadsReceived.size());
+        assertEquals(0, FilibusterServerFake.payloadsReceived.size());
     }
 
     @Test
@@ -279,7 +279,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceTest extends Filibu
         assertEquals("200", statusCode);
 
         // These are the required Filibuster instrumentation fields for this call.
-        JSONObject lastPayload = FilibusterServer.payloadsReceived.get(FilibusterServer.payloadsReceived.size() - 1);
+        JSONObject lastPayload = FilibusterServerFake.payloadsReceived.get(FilibusterServerFake.payloadsReceived.size() - 1);
         assertEquals("invocation_complete", lastPayload.getString("instrumentation_type"));
         assertEquals(0, lastPayload.getInt("generated_id"));
 

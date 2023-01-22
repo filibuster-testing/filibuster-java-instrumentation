@@ -3,7 +3,7 @@ package cloud.filibuster.instrumentation.libraries.opentelemetry;
 import cloud.filibuster.examples.test_servers.HelloServer;
 import cloud.filibuster.examples.test_servers.WorldServer;
 import cloud.filibuster.examples.armeria.grpc.test_services.MyHelloService;
-import cloud.filibuster.instrumentation.FilibusterServer;
+import cloud.filibuster.instrumentation.FilibusterServerFake;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterServerInterceptor;
@@ -13,14 +13,14 @@ import org.junit.jupiter.api.BeforeEach;
 import java.io.IOException;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
-public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServerPartialInstrumentationRaceDetectionTest extends OpenTelemetryHelloGrpcServerTest {
+public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServerFakePartialInstrumentationRaceDetectionTest extends OpenTelemetryHelloGrpcServerTest {
     @BeforeEach
     public void startServices() throws IOException, InterruptedException {
         startHello();
         startWorld();
         startFilibuster();
 
-        FilibusterServer.oneNewTestExecution = true;
+        FilibusterServerFake.oneNewTestExecution = true;
     }
 
     @AfterEach
@@ -29,7 +29,7 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
         stopWorld();
         stopHello();
 
-        FilibusterServer.noNewTestExecution = false;
+        FilibusterServerFake.noNewTestExecution = false;
     }
 
     @BeforeEach
@@ -44,12 +44,12 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
     public void disableFilibuster() {
         FilibusterClientInterceptor.disableInstrumentation = true;
         FilibusterServerInterceptor.disableInstrumentation = true;
-        FilibusterServer.shouldInjectExceptionFault = false;
-        FilibusterServer.grpcExceptionType = false;
-        FilibusterServer.shouldNotAbort = false;
-        FilibusterServer.shouldInjectGrpcMetadataFault = false;
-        FilibusterServer.resetPayloadsReceived();
-        FilibusterServer.resetAdditionalExceptionMetadata();
+        FilibusterServerFake.shouldInjectExceptionFault = false;
+        FilibusterServerFake.grpcExceptionType = false;
+        FilibusterServerFake.shouldNotAbort = false;
+        FilibusterServerFake.shouldInjectGrpcMetadataFault = false;
+        FilibusterServerFake.resetPayloadsReceived();
+        FilibusterServerFake.resetAdditionalExceptionMetadata();
         FilibusterClientInstrumentor.clearVectorClockForRequestId();
         FilibusterClientInstrumentor.clearDistributedExecutionIndexForRequestId();
     }
@@ -62,9 +62,9 @@ public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServe
 
     @AfterEach
     public void resetFilibusterConfiguration() {
-        FilibusterServer.shouldInjectExceptionFault = false;
-        FilibusterServer.grpcExceptionType = false;
-        FilibusterServer.shouldInjectGrpcMetadataFault = false;
+        FilibusterServerFake.shouldInjectExceptionFault = false;
+        FilibusterServerFake.grpcExceptionType = false;
+        FilibusterServerFake.shouldInjectGrpcMetadataFault = false;
     }
 
     @BeforeEach

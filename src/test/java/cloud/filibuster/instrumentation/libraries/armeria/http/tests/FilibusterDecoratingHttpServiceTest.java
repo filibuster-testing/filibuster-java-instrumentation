@@ -1,6 +1,6 @@
 package cloud.filibuster.instrumentation.libraries.armeria.http.tests;
 
-import cloud.filibuster.instrumentation.FilibusterServer;
+import cloud.filibuster.instrumentation.FilibusterServerFake;
 import cloud.filibuster.instrumentation.TestHelper;
 
 import cloud.filibuster.instrumentation.datatypes.RequestId;
@@ -195,7 +195,7 @@ public class FilibusterDecoratingHttpServiceTest extends FilibusterDecoratingHtt
         assertEquals(originVclock.toString(), Objects.requireNonNull(ThreadLocalContextStorage.get(FILIBUSTER_ORIGIN_VCLOCK)).toString());
 
         // These are the required Filibuster instrumentation fields for this call.
-        JSONObject lastPayload = FilibusterServer.payloadsReceived.get(FilibusterServer.payloadsReceived.size() - 1);
+        JSONObject lastPayload = FilibusterServerFake.payloadsReceived.get(FilibusterServerFake.payloadsReceived.size() - 1);
         assertEquals(generatedId, lastPayload.getInt("generated_id"));
         assertEquals("request_received", lastPayload.getString("instrumentation_type"));
         assertEquals("hello", lastPayload.getString("target_service_name"));

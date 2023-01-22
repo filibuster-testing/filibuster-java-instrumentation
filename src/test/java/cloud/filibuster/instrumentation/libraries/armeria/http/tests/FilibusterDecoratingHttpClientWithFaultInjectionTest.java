@@ -1,7 +1,7 @@
 package cloud.filibuster.instrumentation.libraries.armeria.http.tests;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
-import cloud.filibuster.instrumentation.FilibusterServer;
+import cloud.filibuster.instrumentation.FilibusterServerFake;
 import cloud.filibuster.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.datatypes.VectorClock;
 
@@ -46,18 +46,18 @@ public class FilibusterDecoratingHttpClientWithFaultInjectionTest extends Filibu
 
     @AfterEach
     public void resetFilibusterConfiguration() {
-        FilibusterServer.emptyExceptionString = false;
-        FilibusterServer.emptyExceptionCauseString = false;
-        FilibusterServer.shouldInjectStatusCodeFault = false;
-        FilibusterServer.shouldNotAbort = false;
-        FilibusterServer.shouldInjectExceptionFault = false;
-        FilibusterServer.skipSleepKey = false;
+        FilibusterServerFake.emptyExceptionString = false;
+        FilibusterServerFake.emptyExceptionCauseString = false;
+        FilibusterServerFake.shouldInjectStatusCodeFault = false;
+        FilibusterServerFake.shouldNotAbort = false;
+        FilibusterServerFake.shouldInjectExceptionFault = false;
+        FilibusterServerFake.skipSleepKey = false;
     }
 
     @Test
     @DisplayName("Test Filibuster fault injection to available service (exception.)")
     public void testClientDecoratorWithFaultInjectionExceptionToAvailableService() {
-        FilibusterServer.shouldInjectExceptionFault = true;
+        FilibusterServerFake.shouldInjectExceptionFault = true;
 
         Exception exception = null;
 
@@ -77,7 +77,7 @@ public class FilibusterDecoratingHttpClientWithFaultInjectionTest extends Filibu
         assertTrue(message.matches("connection timed out: 0.0.0.0/0.0.0.0:5004"));
 
         // These are the required Filibuster instrumentation fields for this call.
-        JSONObject lastPayload = FilibusterServer.payloadsReceived.get(FilibusterServer.payloadsReceived.size() - 1);
+        JSONObject lastPayload = FilibusterServerFake.payloadsReceived.get(FilibusterServerFake.payloadsReceived.size() - 1);
         assertEquals("invocation_complete", lastPayload.getString("instrumentation_type"));
         assertEquals(0, lastPayload.getInt("generated_id"));
         assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-aebcf693fd84bff1c4cfd4ca1a67d29a2f930ccc-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-f9ca9f28fae1fae27785f3b41678b2712637fea1-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", lastPayload.getString("execution_index"));
@@ -93,8 +93,8 @@ public class FilibusterDecoratingHttpClientWithFaultInjectionTest extends Filibu
     @Test
     @DisplayName("Test Filibuster fault injection to available service (empty exceptionString.)")
     public void testClientDecoratorWithFaultInjectionToAvailableServiceEmptyExceptionString() {
-        FilibusterServer.shouldInjectExceptionFault = true;
-        FilibusterServer.emptyExceptionString = true;
+        FilibusterServerFake.shouldInjectExceptionFault = true;
+        FilibusterServerFake.emptyExceptionString = true;
 
         Exception exception = null;
 
@@ -114,8 +114,8 @@ public class FilibusterDecoratingHttpClientWithFaultInjectionTest extends Filibu
     @Test
     @DisplayName("Test Filibuster fault injection to available service (empty exceptionCauseString.)")
     public void testClientDecoratorWithFaultInjectionToAvailableServiceEmptyExceptionCauseString() {
-        FilibusterServer.shouldInjectExceptionFault = true;
-        FilibusterServer.emptyExceptionCauseString = true;
+        FilibusterServerFake.shouldInjectExceptionFault = true;
+        FilibusterServerFake.emptyExceptionCauseString = true;
 
         Exception exception = null;
 
@@ -135,7 +135,7 @@ public class FilibusterDecoratingHttpClientWithFaultInjectionTest extends Filibu
     @Test
     @DisplayName("Test Filibuster fault injection to available service (status code.)")
     public void testClientDecoratorWithFaultInjectionStatusCodeToAvailableService() {
-        FilibusterServer.shouldInjectStatusCodeFault = true;
+        FilibusterServerFake.shouldInjectStatusCodeFault = true;
 
         WebClient webClient = TestHelper.getTestWebClient(baseExternalURI, "hello");
         RequestHeaders getHeaders = RequestHeaders.of(
@@ -146,7 +146,7 @@ public class FilibusterDecoratingHttpClientWithFaultInjectionTest extends Filibu
         assertEquals("404", statusCode);
 
         // These are the required Filibuster instrumentation fields for this call.
-        JSONObject lastPayload = FilibusterServer.payloadsReceived.get(FilibusterServer.payloadsReceived.size() - 1);
+        JSONObject lastPayload = FilibusterServerFake.payloadsReceived.get(FilibusterServerFake.payloadsReceived.size() - 1);
         assertEquals("invocation_complete", lastPayload.getString("instrumentation_type"));
         assertEquals(0, lastPayload.getInt("generated_id"));
         assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-aebcf693fd84bff1c4cfd4ca1a67d29a2f930ccc-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-8391a96383d8973d92774dbf97fe220aba7d46b4-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", lastPayload.getString("execution_index"));
@@ -160,7 +160,7 @@ public class FilibusterDecoratingHttpClientWithFaultInjectionTest extends Filibu
     @Test
     @DisplayName("Test Filibuster fault injection to unresolvable service (exception.)")
     public void testClientDecoratorWithFaultInjectionExceptionToUnresolvableService() {
-        FilibusterServer.shouldInjectExceptionFault = true;
+        FilibusterServerFake.shouldInjectExceptionFault = true;
 
         Exception exception = null;
 
@@ -180,7 +180,7 @@ public class FilibusterDecoratingHttpClientWithFaultInjectionTest extends Filibu
         assertTrue(message.matches("connection timed out: asedf.cloud/.*:80"));
 
         // These are the required Filibuster instrumentation fields for this call.
-        JSONObject lastPayload = FilibusterServer.payloadsReceived.get(FilibusterServer.payloadsReceived.size() - 1);
+        JSONObject lastPayload = FilibusterServerFake.payloadsReceived.get(FilibusterServerFake.payloadsReceived.size() - 1);
         assertEquals("invocation_complete", lastPayload.getString("instrumentation_type"));
         assertEquals(0, lastPayload.getInt("generated_id"));
         assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-aebcf693fd84bff1c4cfd4ca1a67d29a2f930ccc-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-338b2e8455b427c7ca09065b397e06038c076a89-07b3a2342a2737389063df8ce7dc601bb7d1b740\", 1]]", lastPayload.getString("execution_index"));
@@ -196,8 +196,8 @@ public class FilibusterDecoratingHttpClientWithFaultInjectionTest extends Filibu
     @Test
     @DisplayName("Test Filibuster fault injection to available service (no sleep key.)")
     public void testClientDecoratorWithFaultInjectionExceptionToAvailableServiceNoSleepKey() {
-        FilibusterServer.skipSleepKey = true;
-        FilibusterServer.shouldInjectExceptionFault = true;
+        FilibusterServerFake.skipSleepKey = true;
+        FilibusterServerFake.shouldInjectExceptionFault = true;
 
         Exception exception = null;
 
@@ -217,7 +217,7 @@ public class FilibusterDecoratingHttpClientWithFaultInjectionTest extends Filibu
         assertTrue(message.matches("connection timed out: 0.0.0.0/0.0.0.0:5004"));
 
         // These are the required Filibuster instrumentation fields for this call.
-        JSONObject lastPayload = FilibusterServer.payloadsReceived.get(FilibusterServer.payloadsReceived.size() - 1);
+        JSONObject lastPayload = FilibusterServerFake.payloadsReceived.get(FilibusterServerFake.payloadsReceived.size() - 1);
         assertEquals("invocation_complete", lastPayload.getString("instrumentation_type"));
         assertEquals(0, lastPayload.getInt("generated_id"));
         assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-aebcf693fd84bff1c4cfd4ca1a67d29a2f930ccc-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-d486defe255e933e889c4812d75e352c044d6e4e-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", lastPayload.getString("execution_index"));
@@ -244,7 +244,7 @@ public class FilibusterDecoratingHttpClientWithFaultInjectionTest extends Filibu
         assertEquals("404", statusCode);
 
         // These are the required Filibuster instrumentation fields for this call.
-        JSONObject lastPayload = FilibusterServer.payloadsReceived.get(FilibusterServer.payloadsReceived.size() - 1);
+        JSONObject lastPayload = FilibusterServerFake.payloadsReceived.get(FilibusterServerFake.payloadsReceived.size() - 1);
         assertEquals("invocation_complete", lastPayload.getString("instrumentation_type"));
         assertEquals(0, lastPayload.getInt("generated_id"));
 
@@ -273,8 +273,8 @@ public class FilibusterDecoratingHttpClientWithFaultInjectionTest extends Filibu
     @Test
     @DisplayName("Test Filibuster fault injection to available service (exception with false abort.)")
     public void testClientDecoratorWithFaultInjectionExceptionToAvailableServiceWithFalseAbort() {
-        FilibusterServer.shouldInjectExceptionFault = true;
-        FilibusterServer.shouldNotAbort = true;
+        FilibusterServerFake.shouldInjectExceptionFault = true;
+        FilibusterServerFake.shouldNotAbort = true;
 
         Exception exception = null;
 
@@ -294,7 +294,7 @@ public class FilibusterDecoratingHttpClientWithFaultInjectionTest extends Filibu
         assertTrue(message.matches("connection timed out: 0.0.0.0/0.0.0.0:5004"));
 
         // These are the required Filibuster instrumentation fields for this call.
-        JSONObject lastPayload = FilibusterServer.payloadsReceived.get(FilibusterServer.payloadsReceived.size() - 1);
+        JSONObject lastPayload = FilibusterServerFake.payloadsReceived.get(FilibusterServerFake.payloadsReceived.size() - 1);
         assertEquals("invocation_complete", lastPayload.getString("instrumentation_type"));
         assertEquals(0, lastPayload.getInt("generated_id"));
         assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-aebcf693fd84bff1c4cfd4ca1a67d29a2f930ccc-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-276fdc1bb312603c43c8a3fba16c98c31d83efda-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", lastPayload.getString("execution_index"));

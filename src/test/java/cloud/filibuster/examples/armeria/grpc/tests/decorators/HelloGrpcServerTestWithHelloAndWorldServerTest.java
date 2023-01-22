@@ -3,7 +3,7 @@ package cloud.filibuster.examples.armeria.grpc.tests.decorators;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.examples.armeria.grpc.test_services.MyHelloService;
-import cloud.filibuster.instrumentation.FilibusterServer;
+import cloud.filibuster.instrumentation.FilibusterServerFake;
 import cloud.filibuster.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
@@ -46,9 +46,9 @@ public class HelloGrpcServerTestWithHelloAndWorldServerTest extends HelloGrpcSer
     public void disableFilibuster() {
         FilibusterClientInterceptor.disableInstrumentation = true;
         FilibusterServerInterceptor.disableInstrumentation = true;
-        FilibusterServer.shouldInjectExceptionFault = false;
-        FilibusterServer.grpcExceptionType = false;
-        FilibusterServer.resetAdditionalExceptionMetadata();
+        FilibusterServerFake.shouldInjectExceptionFault = false;
+        FilibusterServerFake.grpcExceptionType = false;
+        FilibusterServerFake.resetAdditionalExceptionMetadata();
     }
 
     @AfterEach

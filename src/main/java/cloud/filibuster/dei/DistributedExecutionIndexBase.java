@@ -6,10 +6,25 @@ import cloud.filibuster.instrumentation.datatypes.Pair;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public abstract class DistributedExecutionIndexBase implements Cloneable {
     protected HashMap<DistributedExecutionIndexKey, Integer> counters = new HashMap<>();
     protected ArrayList<Map.Entry<DistributedExecutionIndexKey, Integer>> callstack = new ArrayList<>();
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof DistributedExecutionIndexBase)) {
+            return false;
+        }
+        DistributedExecutionIndexBase dei = (DistributedExecutionIndexBase) o;
+        return Objects.equals(this.counters, dei.counters) && Objects.equals(this.callstack, dei.callstack);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.counters, this.callstack);
+    }
 
     public void push(Callsite callsite) {
         DistributedExecutionIndex dei = (DistributedExecutionIndex) this;

@@ -18,6 +18,7 @@ public class FilibusterAnalysisConfiguration {
     private final String name;
     private final String pattern;
 
+    @SuppressWarnings("Varifier")
     public FilibusterAnalysisConfiguration(Builder builder) {
         this.name = builder.name;
         this.pattern = builder.pattern;

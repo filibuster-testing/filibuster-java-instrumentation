@@ -26,8 +26,10 @@ public abstract class TestExecution {
 
         for (DistributedExecutionIndex name: executedRPCs.keySet()) {
             String key = name.toString();
-            String value = executedRPCs.get(name).toString(4);
-            logger.info(key + " => " + value);
+            JSONObject value = executedRPCs.get(name);
+            if (key != null && value != null) {
+                logger.info(key + " => " + value.toString(4));
+            }
         }
 
         if (!faultsToInject.isEmpty()) {

@@ -94,7 +94,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
                     logger.log(Level.SEVERE, "Failed to terminate channel: " + ie);
                 }
 
-                return; // TODO: can we remove this?
+                return;
             }
         } else {    // build stub with decorator
             String serviceName = "test";

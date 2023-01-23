@@ -21,6 +21,16 @@ public abstract class TestExecution {
     // What faults should be injected in this execution?
     HashMap<DistributedExecutionIndex, JSONObject> faultsToInject = new HashMap<>();
 
+    HashMap<String, Boolean> firstRequestSeenByService = new HashMap<>();
+
+    public boolean hasSeenFirstRequestromService(String serviceName) {
+        return firstRequestSeenByService.containsKey(serviceName);
+    }
+
+    public void registerFirstRequestFromService(String serviceName) {
+        firstRequestSeenByService.put(serviceName, true);
+    }
+
     public void printRPCs() {
         logger.info("RPCs executed and interposed by Filibuster:");
 

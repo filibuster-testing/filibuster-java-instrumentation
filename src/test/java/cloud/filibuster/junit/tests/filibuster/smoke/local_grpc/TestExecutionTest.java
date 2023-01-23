@@ -18,6 +18,8 @@ public class TestExecutionTest {
         assertEquals(pe1, pe2);
     }
 
+    // Base tests.
+
     @Test
     public void testSameDistributedExecutionIndexWithSameJSONObject() {
         Callsite callsite = new Callsite("service", "klass", "theMethodName", "deadbeef");
@@ -47,12 +49,14 @@ public class TestExecutionTest {
 
         assertEquals(distributedExecutionIndex1, distributedExecutionIndex2);
 
+        JSONObject jsonObject = new JSONObject();
+
         PartialTestExecution pe1 = new PartialTestExecution();
         PartialTestExecution pe2 = new PartialTestExecution();
 
         // If this fails, we know the difference has to be in the JSONObject comparison, since the keys are the same.
-        pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex1, new JSONObject());
-        pe2.addDistributedExecutionIndexWithPayload(distributedExecutionIndex2, new JSONObject());
+        pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex1, jsonObject);
+        pe2.addDistributedExecutionIndexWithPayload(distributedExecutionIndex2, jsonObject);
         assertEquals(pe1, pe2);
     }
 
@@ -183,8 +187,259 @@ public class TestExecutionTest {
         assertEquals(pe1, pe2);
     }
 
-    // TODO: probably need some negative tests too.
-    // TODO: probably need to have json bodies too.
-    // TODO: need to also assert faultsToInject and not just the RPC helper.
-    // TODO: negative test for DEI?
+    // Including faults to inject as well as dei.
+
+    @Test
+    public void testSameDistributedExecutionIndexWithSameJSONObjectWithFaultsToInject() {
+        Callsite callsite = new Callsite("service", "klass", "theMethodName", "deadbeef");
+
+        DistributedExecutionIndex distributedExecutionIndex = new DistributedExecutionIndexV1();
+        distributedExecutionIndex.push(callsite);
+
+        JSONObject jsonObject = new JSONObject();
+
+        PartialTestExecution pe1 = new PartialTestExecution();
+        PartialTestExecution pe2 = new PartialTestExecution();
+
+        pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, jsonObject);
+        pe2.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, jsonObject);
+
+        pe1.addFaultToInject(distributedExecutionIndex, jsonObject);
+        pe2.addFaultToInject(distributedExecutionIndex, jsonObject);
+
+        assertEquals(pe1, pe2);
+    }
+
+    @Test
+    public void testSimilarDistributedExecutionIndexWithSameJSONObjectWithFaultsToInject() {
+        Callsite callsite = new Callsite("service", "klass", "theMethodName", "deadbeef");
+
+        DistributedExecutionIndex distributedExecutionIndex1 = new DistributedExecutionIndexV1();
+        distributedExecutionIndex1.push(callsite);
+
+        DistributedExecutionIndex distributedExecutionIndex2 = new DistributedExecutionIndexV1();
+        distributedExecutionIndex2.push(callsite);
+
+        assertEquals(distributedExecutionIndex1, distributedExecutionIndex2);
+
+        JSONObject jsonObject = new JSONObject();
+
+        PartialTestExecution pe1 = new PartialTestExecution();
+        PartialTestExecution pe2 = new PartialTestExecution();
+
+        // If this fails, we know the difference has to be in the JSONObject comparison, since the keys are the same.
+        pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex1, jsonObject);
+        pe2.addDistributedExecutionIndexWithPayload(distributedExecutionIndex2, jsonObject);
+
+        pe1.addFaultToInject(distributedExecutionIndex1, jsonObject);
+        pe2.addFaultToInject(distributedExecutionIndex2, jsonObject);
+
+        assertEquals(pe1, pe2);
+    }
+
+    @Test
+    public void testSameDistributedExecutionIndexWithSimilarJSONObjectWithFaultsToInject() {
+        Callsite callsite = new Callsite("service", "klass", "theMethodName", "deadbeef");
+
+        DistributedExecutionIndex distributedExecutionIndex = new DistributedExecutionIndexV1();
+        distributedExecutionIndex.push(callsite);
+
+        PartialTestExecution pe1 = new PartialTestExecution();
+        PartialTestExecution pe2 = new PartialTestExecution();
+
+        // If this fails, we know the difference has to be in the JSONObject comparison, since the keys are the same.
+        pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, new JSONObject());
+        pe2.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, new JSONObject());
+
+        pe1.addFaultToInject(distributedExecutionIndex, new JSONObject());
+        pe2.addFaultToInject(distributedExecutionIndex, new JSONObject());
+
+        assertEquals(pe1, pe2);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("a", "b");
+
+        pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, jsonObject);
+        assertNotEquals(pe1, pe2);
+    }
+
+    @Test
+    public void testSimilarDistributedExecutionIndexWithSimilarJSONObjectWithFaultsToInject() {
+        Callsite callsite = new Callsite("service", "klass", "theMethodName", "deadbeef");
+
+        DistributedExecutionIndex distributedExecutionIndex1 = new DistributedExecutionIndexV1();
+        distributedExecutionIndex1.push(callsite);
+
+        DistributedExecutionIndex distributedExecutionIndex2 = new DistributedExecutionIndexV1();
+        distributedExecutionIndex2.push(callsite);
+
+        assertEquals(distributedExecutionIndex1, distributedExecutionIndex2);
+
+        PartialTestExecution pe1 = new PartialTestExecution();
+        PartialTestExecution pe2 = new PartialTestExecution();
+
+        // If this fails, we know the difference has to be in the JSONObject comparison, since the keys are the same.
+        pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex1, new JSONObject());
+        pe2.addDistributedExecutionIndexWithPayload(distributedExecutionIndex2, new JSONObject());
+
+        pe1.addFaultToInject(distributedExecutionIndex1, new JSONObject());
+        pe2.addFaultToInject(distributedExecutionIndex2, new JSONObject());
+
+        assertEquals(pe1, pe2);
+    }
+
+    @Test
+    public void testMultipleSameDistributedExecutionIndexWithSameJSONObjectWithFaultsToInject() {
+        Callsite callsite1 = new Callsite("service", "klass", "methodOne", "deadbeef");
+        Callsite callsite2 = new Callsite("service", "klass", "methodTwo", "deadbeef");
+
+        DistributedExecutionIndex distributedExecutionIndex = new DistributedExecutionIndexV1();
+        distributedExecutionIndex.push(callsite1);
+        distributedExecutionIndex.push(callsite2);
+
+        PartialTestExecution pe1 = new PartialTestExecution();
+        PartialTestExecution pe2 = new PartialTestExecution();
+
+        JSONObject jsonObject = new JSONObject();
+
+        // If this fails, we know the difference has to be in the JSONObject comparison, since the keys are the same.
+        pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, jsonObject);
+        pe2.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, jsonObject);
+
+        pe1.addFaultToInject(distributedExecutionIndex, jsonObject);
+        pe2.addFaultToInject(distributedExecutionIndex, jsonObject);
+
+        assertEquals(pe1, pe2);
+    }
+
+    @Test
+    public void testMultipleSameDistributedExecutionIndexWithSimilarJSONObjectWithFaultsToInject() {
+        Callsite callsite1 = new Callsite("service", "klass", "methodOne", "deadbeef");
+        Callsite callsite2 = new Callsite("service", "klass", "methodTwo", "deadbeef");
+
+        DistributedExecutionIndex distributedExecutionIndex = new DistributedExecutionIndexV1();
+        distributedExecutionIndex.push(callsite1);
+        distributedExecutionIndex.push(callsite2);
+
+        PartialTestExecution pe1 = new PartialTestExecution();
+        PartialTestExecution pe2 = new PartialTestExecution();
+
+        // If this fails, we know the difference has to be in the JSONObject comparison, since the keys are the same.
+        pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, new JSONObject());
+        pe2.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, new JSONObject());
+
+        pe1.addFaultToInject(distributedExecutionIndex, new JSONObject());
+        pe2.addFaultToInject(distributedExecutionIndex, new JSONObject());
+
+        assertEquals(pe1, pe2);
+    }
+
+    @Test
+    public void testMultipleSimilarDistributedExecutionIndexWithSameJSONObjectWithFaultsToInject() {
+        Callsite callsite1 = new Callsite("service", "klass", "methodOne", "deadbeef");
+        Callsite callsite2 = new Callsite("service", "klass", "methodTwo", "deadbeef");
+
+        DistributedExecutionIndex distributedExecutionIndex1 = new DistributedExecutionIndexV1();
+        distributedExecutionIndex1.push(callsite1);
+        distributedExecutionIndex1.push(callsite2);
+
+        DistributedExecutionIndex distributedExecutionIndex2 = new DistributedExecutionIndexV1();
+        distributedExecutionIndex2.push(callsite1);
+        distributedExecutionIndex2.push(callsite2);
+
+        PartialTestExecution pe1 = new PartialTestExecution();
+        PartialTestExecution pe2 = new PartialTestExecution();
+
+        JSONObject jsonObject = new JSONObject();
+
+        // If this fails, we know the difference has to be in the JSONObject comparison, since the keys are the same.
+        pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex1, jsonObject);
+        pe2.addDistributedExecutionIndexWithPayload(distributedExecutionIndex2, jsonObject);
+
+        pe1.addFaultToInject(distributedExecutionIndex1, jsonObject);
+        pe2.addFaultToInject(distributedExecutionIndex2, jsonObject);
+
+        assertEquals(pe1, pe2);
+    }
+
+    @Test
+    public void testMultipleSimilarDistributedExecutionIndexWithSimilarJSONObjectWithFaultsToInject() {
+        Callsite callsite1 = new Callsite("service", "klass", "methodOne", "deadbeef");
+        Callsite callsite2 = new Callsite("service", "klass", "methodTwo", "deadbeef");
+
+        DistributedExecutionIndex distributedExecutionIndex1 = new DistributedExecutionIndexV1();
+        distributedExecutionIndex1.push(callsite1);
+        distributedExecutionIndex1.push(callsite2);
+
+        DistributedExecutionIndex distributedExecutionIndex2 = new DistributedExecutionIndexV1();
+        distributedExecutionIndex2.push(callsite1);
+        distributedExecutionIndex2.push(callsite2);
+
+        PartialTestExecution pe1 = new PartialTestExecution();
+        PartialTestExecution pe2 = new PartialTestExecution();
+
+        // If this fails, we know the difference has to be in the JSONObject comparison, since the keys are the same.
+        pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex1, new JSONObject());
+        pe2.addDistributedExecutionIndexWithPayload(distributedExecutionIndex2, new JSONObject());
+
+        pe1.addFaultToInject(distributedExecutionIndex1, new JSONObject());
+        pe2.addFaultToInject(distributedExecutionIndex2, new JSONObject());
+
+        assertEquals(pe1, pe2);
+    }
+
+    // Variation with JSON bodies.
+
+    @Test
+    public void testSameDistributedExecutionIndexWithSimilarJSONObjectWithBody() {
+        Callsite callsite = new Callsite("service", "klass", "theMethodName", "deadbeef");
+
+        DistributedExecutionIndex distributedExecutionIndex = new DistributedExecutionIndexV1();
+        distributedExecutionIndex.push(callsite);
+
+        PartialTestExecution pe1 = new PartialTestExecution();
+        PartialTestExecution pe2 = new PartialTestExecution();
+
+        JSONObject jsonObject1 = new JSONObject();
+        jsonObject1.put("thing", "thing");
+        JSONObject jsonObject2 = new JSONObject();
+        jsonObject2.put("thing", "thing");
+
+        // If this fails, we know the difference has to be in the JSONObject comparison, since the keys are the same.
+        pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, jsonObject1);
+        pe2.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, jsonObject2);
+        assertEquals(pe1, pe2);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("a", "b");
+
+        pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, jsonObject);
+        assertNotEquals(pe1, pe2);
+    }
+
+    @Test
+    public void testSimilarDistributedExecutionIndexWithSimilarJSONObjectWithBody() {
+        Callsite callsite = new Callsite("service", "klass", "theMethodName", "deadbeef");
+
+        DistributedExecutionIndex distributedExecutionIndex1 = new DistributedExecutionIndexV1();
+        distributedExecutionIndex1.push(callsite);
+
+        DistributedExecutionIndex distributedExecutionIndex2 = new DistributedExecutionIndexV1();
+        distributedExecutionIndex2.push(callsite);
+
+        assertEquals(distributedExecutionIndex1, distributedExecutionIndex2);
+
+        PartialTestExecution pe1 = new PartialTestExecution();
+        PartialTestExecution pe2 = new PartialTestExecution();
+
+        JSONObject jsonObject1 = new JSONObject();
+        jsonObject1.put("thing", "thing");
+        JSONObject jsonObject2 = new JSONObject();
+        jsonObject2.put("thing", "thing");
+
+        // If this fails, we know the difference has to be in the JSONObject comparison, since the keys are the same.
+        pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex1, jsonObject1);
+        pe2.addDistributedExecutionIndexWithPayload(distributedExecutionIndex2, jsonObject2);
+        assertEquals(pe1, pe2);
+    }
 }

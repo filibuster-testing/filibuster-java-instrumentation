@@ -119,8 +119,18 @@ public abstract class DistributedExecutionIndexBase implements Cloneable {
         }
 
         // Deep clone member fields here
-        newDistributedExecutionIndex.counters = new HashMap<>(this.counters);
-        newDistributedExecutionIndex.callstack = new ArrayList<>(this.callstack);
+
+        newDistributedExecutionIndex.counters = new HashMap<>();
+
+        for (Map.Entry<DistributedExecutionIndexKey, Integer> entry : this.counters.entrySet()) {
+            newDistributedExecutionIndex.counters.put(entry.getKey(), entry.getValue());
+        }
+
+        newDistributedExecutionIndex.callstack = new ArrayList<>();
+
+        for (Map.Entry<DistributedExecutionIndexKey, Integer> entry : this.callstack) {
+            newDistributedExecutionIndex.callstack.add(Pair.of(entry.getKey(), entry.getValue()));
+        }
 
         return newDistributedExecutionIndex;
     }

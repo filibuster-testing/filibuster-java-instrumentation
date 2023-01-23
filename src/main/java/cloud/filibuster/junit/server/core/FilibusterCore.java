@@ -295,15 +295,17 @@ public class FilibusterCore {
     }
 
     private void createAndSchedulePartialTestExecution(DistributedExecutionIndex distributedExecutionIndex, JSONObject faultObject) {
-        PartialTestExecution partialTestExecution = currentConcreteTestExecution.cloneToPartialTestExecution();
-        partialTestExecution.addFaultToInject(distributedExecutionIndex, faultObject);
+        if (currentConcreteTestExecution != null) {
+            PartialTestExecution partialTestExecution = currentConcreteTestExecution.cloneToPartialTestExecution();
+            partialTestExecution.addFaultToInject(distributedExecutionIndex, faultObject);
 
-        boolean partialIsExploredExecution = exploredTestExecutions.contains(partialTestExecution);
-        boolean partialIsScheduledExecution = unexploredTestExecutions.contains(partialTestExecution);
-        boolean partialIsCurrentExecution = currentPartialTestExecution == null ? false : currentPartialTestExecution.equals(partialTestExecution);
+            boolean partialIsExploredExecution = exploredTestExecutions.contains(partialTestExecution);
+            boolean partialIsScheduledExecution = unexploredTestExecutions.contains(partialTestExecution);
+            boolean partialIsCurrentExecution = currentPartialTestExecution == null ? false : currentPartialTestExecution.equals(partialTestExecution);
 
-        if (!partialIsExploredExecution && !partialIsScheduledExecution && !partialIsCurrentExecution) {
-            unexploredTestExecutions.add(partialTestExecution);
+            if (!partialIsExploredExecution && !partialIsScheduledExecution && !partialIsCurrentExecution) {
+                unexploredTestExecutions.add(partialTestExecution);
+            }
         }
     }
 }

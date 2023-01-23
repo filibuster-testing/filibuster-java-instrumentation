@@ -49,6 +49,7 @@ public class FilibusterCore {
     // RPC hooks.
 
     // Record an outgoing RPC and conditionally inject faults.
+    @SuppressWarnings("Varifier")
     public JSONObject beginInvocation(JSONObject payload) {
         // Register the RPC using the distributed execution index.
         String distributedExecutionIndexString = payload.getString("execution_index");
@@ -166,6 +167,7 @@ public class FilibusterCore {
     // Only needed for:
     // 1. Dynamic Reduction because we need to keep track of responses.
     // 2. HTTP calls, so we know which service we actually invoked.
+    @SuppressWarnings("Varifier")
     public JSONObject endInvocation(JSONObject payload) {
         String distributedExecutionIndexString = payload.getString("execution_index");
         DistributedExecutionIndex distributedExecutionIndex = new DistributedExecutionIndexV1().deserialize(distributedExecutionIndexString);

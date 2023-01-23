@@ -115,7 +115,7 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerFakeTest extends Hel
         assertVc.incrementClock("test");
         assertEquals(assertVc.toString(), lastPayload.get("vclock").toString());
 
-        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-cac2a2eab53c0eb00b365eee92dfc400c1d5995f-7321335838ea883cd005a01a7e721e2d6970fe2f\", 1]]", lastPayload.getString("execution_index"));
+        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-177358c9d75706358feadcbd934b043210653d55-7321335838ea883cd005a01a7e721e2d6970fe2f\", 1]]", lastPayload.getString("execution_index"));
 
         assertFalse(wasFaultInjected());
 
@@ -148,7 +148,7 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerFakeTest extends Hel
         assertVc.incrementClock("test");
         assertEquals(assertVc.toString(), lastPayload.get("vclock").toString());
 
-        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-0d639a1f4fd0952fce7a93ffc371b2d95c4817f1-7321335838ea883cd005a01a7e721e2d6970fe2f\", 1]]", lastPayload.getString("execution_index"));
+        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-6dd9b6476d030e580e70a5554dd39a7f1747b8b2-7321335838ea883cd005a01a7e721e2d6970fe2f\", 1]]", lastPayload.getString("execution_index"));
 
         MyHelloService.shouldReturnRuntimeExceptionWithDescription = false;
         FilibusterClientInterceptor.disableInstrumentation = true;
@@ -182,7 +182,7 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerFakeTest extends Hel
         assertVc.incrementClock("test");
         assertEquals(assertVc.toString(), lastPayload.get("vclock").toString());
 
-        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-4260cf8c1665fdf3445c0057f3d3ed6feb0e9f46-7321335838ea883cd005a01a7e721e2d6970fe2f\", 1]]", lastPayload.getString("execution_index"));
+        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-5342a9a24f825fa70d3dcd63b1ea6f8eb79570e8-7321335838ea883cd005a01a7e721e2d6970fe2f\", 1]]", lastPayload.getString("execution_index"));
 
         MyHelloService.shouldReturnRuntimeExceptionWithCause = false;
         FilibusterClientInterceptor.disableInstrumentation = true;
@@ -221,12 +221,12 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerFakeTest extends Hel
 
         JSONObject firstInvocationPayload = FilibusterServerFake.payloadsReceived.get(0);
         assertEquals("invocation", firstInvocationPayload.getString("instrumentation_type"));
-        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-174adee3b8b7333d81da6915880dfc80aadbca24-7321335838ea883cd005a01a7e721e2d6970fe2f\", 1]]", firstInvocationPayload.getString("execution_index"));
+        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-d0d8c0cd827b5beaecc850cb5457f6d0d679bb8a-7321335838ea883cd005a01a7e721e2d6970fe2f\", 1]]", firstInvocationPayload.getString("execution_index"));
         assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationPayload.getJSONObject("vclock").toString());
 
         JSONObject firstInvocationCompletePayload = FilibusterServerFake.payloadsReceived.get(1);
         assertEquals("invocation_complete", firstInvocationCompletePayload.getString("instrumentation_type"));
-        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-174adee3b8b7333d81da6915880dfc80aadbca24-7321335838ea883cd005a01a7e721e2d6970fe2f\", 1]]", firstInvocationCompletePayload.getString("execution_index"));
+        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-d0d8c0cd827b5beaecc850cb5457f6d0d679bb8a-7321335838ea883cd005a01a7e721e2d6970fe2f\", 1]]", firstInvocationCompletePayload.getString("execution_index"));
         assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationCompletePayload.getJSONObject("vclock").toString());
 
         FilibusterClientInterceptor.disableInstrumentation = true;
@@ -270,16 +270,16 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerFakeTest extends Hel
 
         JSONObject firstInvocationPayload = FilibusterServerFake.payloadsReceived.get(0);
         assertEquals("invocation", firstInvocationPayload.getString("instrumentation_type"));
-        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-13bd8ae0013ed89f0746058b5a93091bb35d8bd4-7321335838ea883cd005a01a7e721e2d6970fe2f\", 1]]", firstInvocationPayload.getString("execution_index"));
+        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-ff50faedf6b34a9af799cb97be3e311ddfc63ca4-7321335838ea883cd005a01a7e721e2d6970fe2f\", 1]]", firstInvocationPayload.getString("execution_index"));
         assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationPayload.getJSONObject("vclock").toString());
 
         JSONObject firstRequestReceivedPayload = FilibusterServerFake.payloadsReceived.get(1);
         assertEquals("request_received", firstRequestReceivedPayload.getString("instrumentation_type"));
-        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-13bd8ae0013ed89f0746058b5a93091bb35d8bd4-7321335838ea883cd005a01a7e721e2d6970fe2f\", 1]]", firstRequestReceivedPayload.getString("execution_index"));
+        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-ff50faedf6b34a9af799cb97be3e311ddfc63ca4-7321335838ea883cd005a01a7e721e2d6970fe2f\", 1]]", firstRequestReceivedPayload.getString("execution_index"));
 
         JSONObject firstInvocationCompletePayload = FilibusterServerFake.payloadsReceived.get(2);
         assertEquals("invocation_complete", firstInvocationCompletePayload.getString("instrumentation_type"));
-        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-13bd8ae0013ed89f0746058b5a93091bb35d8bd4-7321335838ea883cd005a01a7e721e2d6970fe2f\", 1]]", firstInvocationCompletePayload.getString("execution_index"));
+        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-ff50faedf6b34a9af799cb97be3e311ddfc63ca4-7321335838ea883cd005a01a7e721e2d6970fe2f\", 1]]", firstInvocationCompletePayload.getString("execution_index"));
         assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationCompletePayload.getJSONObject("vclock").toString());
 
         FilibusterClientInterceptor.disableInstrumentation = true;

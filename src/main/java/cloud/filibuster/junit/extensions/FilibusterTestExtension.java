@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import cloud.filibuster.exceptions.FilibusterUnsupportedCustomAnalysisFileException;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
@@ -95,8 +96,7 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
         try {
             analysisConfigurationFile = clazz.getDeclaredConstructor().newInstance();
         } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            // TODO: something better.
-            throw new UnsupportedOperationException(e);
+            throw new FilibusterUnsupportedCustomAnalysisFileException("Class doesn't match expected contract: " + e);
         }
 
         FilibusterCustomAnalysisConfigurationFile filibusterAnalysisConfigurationFile = analysisConfigurationFile.toFilibusterCustomAnalysisConfigurationFile();

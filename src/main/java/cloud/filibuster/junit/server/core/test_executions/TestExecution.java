@@ -68,6 +68,7 @@ public abstract class TestExecution {
         return this.faultsToInject.get(distributedExecutionIndex);
     }
 
+    @SuppressWarnings("Varifier")
     public PartialTestExecution cloneToPartialTestExecution() {
         PartialTestExecution partialTestExecution = new PartialTestExecution();
 
@@ -114,6 +115,7 @@ public abstract class TestExecution {
     }
 
     @Override
+    @SuppressWarnings("Varifier")
     public boolean equals(Object o) {
         if (!(o instanceof TestExecution)) {
             return false;

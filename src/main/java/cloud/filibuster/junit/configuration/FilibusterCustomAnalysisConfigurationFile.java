@@ -18,10 +18,17 @@ public class FilibusterCustomAnalysisConfigurationFile {
 
     private final JSONObject analysisConfigurationFile = new JSONObject();
 
+    private final List<FilibusterAnalysisConfiguration> filibusterAnalysisConfigurations = new ArrayList<>();
+
+    public List<FilibusterAnalysisConfiguration> getFilibusterAnalysisConfigurations() {
+        return filibusterAnalysisConfigurations;
+    }
+
     public FilibusterCustomAnalysisConfigurationFile(Builder builder) {
         for (FilibusterAnalysisConfiguration analysisConfiguration : builder.analysisConfigurations) {
             Map.Entry<String, JSONObject> entry = analysisConfiguration.toJSONPair();
             analysisConfigurationFile.put(entry.getKey(), entry.getValue());
+            filibusterAnalysisConfigurations.add(analysisConfiguration);
         }
     }
 

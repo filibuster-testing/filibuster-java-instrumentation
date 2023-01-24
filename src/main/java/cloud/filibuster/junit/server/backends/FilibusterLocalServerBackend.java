@@ -20,7 +20,7 @@ public class FilibusterLocalServerBackend implements FilibusterServerBackend {
 
     @Override
     public synchronized boolean start(FilibusterConfiguration filibusterConfiguration) throws InterruptedException {
-        FilibusterCore filibusterCore = new FilibusterCore();
+        FilibusterCore filibusterCore = new FilibusterCore(filibusterConfiguration);
 
         if (filibusterServer == null) {
             filibusterServer = FilibusterServer.serve(filibusterCore);

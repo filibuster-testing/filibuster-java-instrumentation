@@ -5,6 +5,7 @@ import cloud.filibuster.dei.implementations.DistributedExecutionIndexV1;
 import cloud.filibuster.exceptions.FilibusterCoreLogicException;
 import cloud.filibuster.exceptions.FilibusterFaultInjectionException;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
+import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
 import cloud.filibuster.junit.server.core.test_executions.ConcreteTestExecution;
 import cloud.filibuster.junit.server.core.test_executions.PartialTestExecution;
@@ -32,9 +33,12 @@ public class FilibusterCore {
         return currentInstance;
     }
 
-    public FilibusterCore() {
+    public FilibusterCore(FilibusterConfiguration filibusterConfiguration) {
         currentInstance = this;
+        this.filibusterConfiguration = filibusterConfiguration;
     }
+
+    private final FilibusterConfiguration filibusterConfiguration;
 
     // Queue containing the unexplored test executions.
     // These are partial executions, as they are only prefix executions.
@@ -71,7 +75,7 @@ public class FilibusterCore {
         if (filibusterCustomAnalysisConfigurationFile != null) {
             String serviceName = payload.getString("module");
             String methodName = payload.getString("method");
-            generateFaultsUsingAnalysisConfiguration(distributedExecutionIndex, serviceName, methodName);
+            generateFaultsUsingAnalysisConfiguration(filibusterConfiguration, distributedExecutionIndex, serviceName, methodName);
         }
 
         // Return either success or fault (if, this execution contains a fault to inject.)
@@ -287,6 +291,7 @@ public class FilibusterCore {
     }
 
     private void generateFaultsUsingAnalysisConfiguration(
+            FilibusterConfiguration filibusterConfiguration,
             DistributedExecutionIndex distributedExecutionIndex,
             String serviceName,
             String methodName
@@ -297,7 +302,7 @@ public class FilibusterCore {
                 List<JSONObject> exceptionFaultObjects = filibusterAnalysisConfiguration.getExceptionFaultObjects();
 
                 for(JSONObject faultObject : exceptionFaultObjects) {
-                    createAndSchedulePartialTestExecution(distributedExecutionIndex, faultObject);
+                    createAndSchedulePartialTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject);
                 }
 
                 // Errors.
@@ -315,7 +320,7 @@ public class FilibusterCore {
                     if (matcher.find()) {
                         for (Object obj : faultTypesArray) {
                             JSONObject faultTypeObject = (JSONObject) obj;
-                            createAndSchedulePartialTestExecution(distributedExecutionIndex, faultTypeObject);
+                            createAndSchedulePartialTestExecution(filibusterConfiguration, distributedExecutionIndex, faultTypeObject);
                         }
                     }
                 }
@@ -323,7 +328,10 @@ public class FilibusterCore {
         }
     }
 
-    private void createAndSchedulePartialTestExecution(DistributedExecutionIndex distributedExecutionIndex, JSONObject faultObject) {
+    private void createAndSchedulePartialTestExecution(
+            FilibusterConfiguration filibusterConfiguration,
+            DistributedExecutionIndex distributedExecutionIndex,
+            JSONObject faultObject) {
         if (currentConcreteTestExecution != null) {
             PartialTestExecution partialTestExecution = currentConcreteTestExecution.cloneToPartialTestExecution();
             partialTestExecution.addFaultToInject(distributedExecutionIndex, faultObject);
@@ -333,7 +341,15 @@ public class FilibusterCore {
             boolean partialIsCurrentExecution = currentPartialTestExecution == null ? false : currentPartialTestExecution.equals(partialTestExecution);
 
             if (!partialIsExploredExecution && !partialIsScheduledExecution && !partialIsCurrentExecution) {
-                unexploredTestExecutions.add(partialTestExecution);
+                if (filibusterConfiguration.getSuppressCombinations()) {
+                    if (!(partialTestExecution.getFaultsToInjectSize() > 1)) {
+                        unexploredTestExecutions.add(partialTestExecution);
+                    } else {
+                        logger.info("[FILIBUSTER-CORE]: Not scheduling test execution because it contains > 1 fault.");
+                    }
+                } else {
+                    unexploredTestExecutions.add(partialTestExecution);
+                }
             }
         }
     }

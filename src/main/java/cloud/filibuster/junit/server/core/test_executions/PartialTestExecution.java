@@ -12,4 +12,8 @@ public class PartialTestExecution extends TestExecution {
     public void addFaultToInject(DistributedExecutionIndex distributedExecutionIndex, JSONObject faultObject) {
         faultsToInject.put(distributedExecutionIndex, faultObject);
     }
+
+    public int getFaultsToInjectSize() {
+        return this.faultsToInject.size();
+    }
 }

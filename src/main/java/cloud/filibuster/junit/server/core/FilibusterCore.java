@@ -2,6 +2,7 @@ package cloud.filibuster.junit.server.core;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.dei.implementations.DistributedExecutionIndexV1;
+import cloud.filibuster.exceptions.FilibusterCoreLogicException;
 import cloud.filibuster.exceptions.FilibusterFaultInjectionException;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;

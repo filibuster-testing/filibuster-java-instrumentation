@@ -157,18 +157,27 @@ public class FilibusterCore {
     // Was any fault injected?
     public boolean wasFaultInjected() {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjected called");
+        if (currentPartialTestExecution == null) {
+            throw new FilibusterCoreLogicException("currentPartialTestExecution should not be null at this point, something fatal occurred.");
+        }
         return currentPartialTestExecution.wasFaultInjected();
     }
 
     // Was a fault injected on a particular service?
     public boolean wasFaultInjectedOnService(String serviceName) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjected called, serviceName: " + serviceName);
+        if (currentPartialTestExecution == null) {
+            throw new FilibusterCoreLogicException("currentPartialTestExecution should not be null at this point, something fatal occurred.");
+        }
         return currentPartialTestExecution.wasFaultInjectedOnService(serviceName);
     }
 
     // Was a fault injected on a particular GRPC call?
     public boolean wasFaultInjectedOnMethod(String serviceName, String methodName) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjected called, serviceName: " + serviceName + ", methodName:" + methodName);
+        if (currentPartialTestExecution == null) {
+            throw new FilibusterCoreLogicException("currentPartialTestExecution should not be null at this point, something fatal occurred.");
+        }
         return currentPartialTestExecution.wasFaultInjectedOnMethod(serviceName, methodName);
     }
 

@@ -91,13 +91,21 @@ public class FilibusterCore {
     // This is an old callback used to exit the Python server with code = 1 or code = 0 upon failure.
     public void completeIteration(int currentIteration) {
         logger.info("[FILIBUSTER-CORE]: completeIteration called, currentIteration: " + currentIteration);
-        currentConcreteTestExecution.printRPCs();
+        if (currentConcreteTestExecution != null) {
+            currentConcreteTestExecution.printRPCs();
+        } else {
+            throw new FilibusterCoreLogicException("currentConcreteTestExecution should not be null at this point, something fatal occurred.");
+        }
     }
 
     // This is an old callback used to exit the Python server with code = 1 or code = 0 upon failure.
     public void completeIteration(int currentIteration, int exceptionOccurred) {
         logger.info("[FILIBUSTER-CORE]: completeIteration called, currentIteration: " + currentIteration + ", exceptionOccurred: " + exceptionOccurred);
-        currentConcreteTestExecution.printRPCs();
+        if (currentConcreteTestExecution != null) {
+            currentConcreteTestExecution.printRPCs();
+        } else {
+            throw new FilibusterCoreLogicException("currentConcreteTestExecution should not be null at this point, something fatal occurred.");
+        }
     }
 
     // Is there a test execution?

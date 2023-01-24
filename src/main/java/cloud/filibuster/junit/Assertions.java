@@ -4,6 +4,7 @@ import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.helpers.Response;
 import cloud.filibuster.junit.exceptions.InternalAssertionFailureException;
+import cloud.filibuster.junit.server.core.FilibusterCore;
 import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.AggregatedHttpResponse;
 import com.linecorp.armeria.common.HttpHeaderNames;
@@ -15,6 +16,8 @@ import org.junit.jupiter.api.function.ThrowingConsumer;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendCanInvokeDirectlyProperty;
 
 /**
  * Assertions provided by Filibuster for writing conditional, fault-based assertions.
@@ -123,7 +126,11 @@ public class Assertions {
      * @return was fault injected
      */
     public static boolean wasFaultInjectedOnService(String serviceName) {
-        return wasFaultInjected("/filibuster/fault-injected/service/" + serviceName);
+        if (getServerBackendCanInvokeDirectlyProperty()) {
+            return FilibusterCore.getCurrentInstance().wasFaultInjectedOnService(serviceName);
+        } else {
+            return wasFaultInjected("/filibuster/fault-injected/service/" + serviceName);
+        }
     }
 
     /**
@@ -136,7 +143,11 @@ public class Assertions {
      * @return was fault injected
      */
     public static boolean wasFaultInjectedOnMethod(String serviceName, String methodName) {
-        return wasFaultInjected("/filibuster/fault-injected/method/" + serviceName + "/" + methodName);
+        if (getServerBackendCanInvokeDirectlyProperty()) {
+            return FilibusterCore.getCurrentInstance().wasFaultInjectedOnMethod(serviceName, methodName);
+        } else {
+            return wasFaultInjected("/filibuster/fault-injected/method/" + serviceName + "/" + methodName);
+        }
     }
 
     /**
@@ -146,6 +157,11 @@ public class Assertions {
      * @return was fault injected
      */
     public static boolean wasFaultInjectedOnMethod(String fullyQualifiedMethodName) {
-        return wasFaultInjected("/filibuster/fault-injected/method/" + fullyQualifiedMethodName);
+        if (getServerBackendCanInvokeDirectlyProperty()) {
+            String[] split = fullyQualifiedMethodName.split("/", 2);
+            return FilibusterCore.getCurrentInstance().wasFaultInjectedOnMethod(split[0], split[1]);
+        } else {
+            return wasFaultInjected("/filibuster/fault-injected/method/" + fullyQualifiedMethodName);
+        }
     }
 }

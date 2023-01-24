@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 
 import static cloud.filibuster.instrumentation.helpers.Property.setServerBackendCanInvokeDirectlyProperty;
 
+@SuppressWarnings("Varifier")
 public class FilibusterLocalServerBackend implements FilibusterServerBackend {
     private static final Logger logger = Logger.getLogger(FilibusterLocalServerBackend.class.getName());
 

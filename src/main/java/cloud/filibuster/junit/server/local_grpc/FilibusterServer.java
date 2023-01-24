@@ -19,6 +19,7 @@ import com.linecorp.armeria.server.annotation.Put;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
+@SuppressWarnings("Varifier")
 public class FilibusterServer {
     public static Server serve(FilibusterCore filibusterCore) {
         ServerBuilder sb = Server.builder();

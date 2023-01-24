@@ -368,8 +368,7 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
                                 filibusterClientInstrumentor.afterInvocationWithException(exceptionName, null, additionalMetadata);
                             } else { // a grpc request and with no failure
                                 // Notify Filibuster of complete invocation with the proper response.
-                                // TODO: Find a proper grpc class name here to record
-                                String className = "Object";
+                                String className = "io.grpc.StatusRuntimeException"; // Assumed, we don't actually have it.
                                 HashMap<String, String> returnValueProperties = new HashMap<>();
                                 filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties);
                             }

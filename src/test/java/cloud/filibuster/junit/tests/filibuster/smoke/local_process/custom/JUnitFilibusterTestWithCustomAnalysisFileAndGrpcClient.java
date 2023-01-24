@@ -20,7 +20,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -62,7 +64,7 @@ public class JUnitFilibusterTestWithCustomAnalysisFileAndGrpcClient extends JUni
         filibusterCustomAnalysisConfigurationFile.writeToDisk(analysisFilePath);
     }
 
-    private static int numberOfTestsExceptionsThrownFaultsInjected = 0;
+    private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     private GrpcClientBuilder grpcClientBuilder;
 
@@ -93,7 +95,7 @@ public class JUnitFilibusterTestWithCustomAnalysisFileAndGrpcClient extends JUni
             assertEquals("Hello, Armerian World!!", reply.getMessage());
         } catch (Throwable t) {
             if (wasFaultInjected()) {
-                numberOfTestsExceptionsThrownFaultsInjected++;
+                testExceptionsThrown.add(t.getMessage());
 
                 // Errors from the client to the Hello Service.
 
@@ -148,6 +150,6 @@ public class JUnitFilibusterTestWithCustomAnalysisFileAndGrpcClient extends JUni
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(8, numberOfTestsExceptionsThrownFaultsInjected);
+        assertEquals(8, testExceptionsThrown.size());
     }
 }

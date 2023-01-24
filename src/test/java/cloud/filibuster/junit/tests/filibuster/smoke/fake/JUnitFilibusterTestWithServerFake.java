@@ -18,6 +18,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.instrumentation.TestHelper.startMockFilibusterServerAndWaitUntilAvailable;
@@ -34,7 +36,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class JUnitFilibusterTestWithServerFake extends JUnitBaseTest {
-    private static int numberOfTestsExceptionsThrownFaultsInjected = 0;
+    private final static Set<String> testExceptionsThrown = new HashSet<>();
+
+    private static int numberOfTestsExecuted = 0;
 
     @BeforeAll
     protected static void disableFilibusterServerInitialization() throws IOException, InterruptedException {
@@ -66,6 +70,8 @@ public class JUnitFilibusterTestWithServerFake extends JUnitBaseTest {
 
         boolean expected = false;
 
+        numberOfTestsExecuted++;
+
         try {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
@@ -76,7 +82,7 @@ public class JUnitFilibusterTestWithServerFake extends JUnitBaseTest {
             boolean wasFaultInjected = wasFaultInjected();
 
             if (wasFaultInjected) {
-                numberOfTestsExceptionsThrownFaultsInjected++;
+                testExceptionsThrown.add(t.getMessage());
 
                 if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: NOT_FOUND")) {
                     expected = true;
@@ -107,7 +113,15 @@ public class JUnitFilibusterTestWithServerFake extends JUnitBaseTest {
     @Test
     @Order(2)
     public void testNumAssertions() {
+        // 1, because with the fake we inject the same fault three times
+        assertEquals(1, testExceptionsThrown.size());
+    }
+
+    @DisplayName("Verify correct number of generated Filibuster tests.")
+    @Test
+    @Order(2)
+    public void testNumberOfTestsExecuted() {
         // 3, because with the fake we inject the same fault three times
-        assertEquals(3, numberOfTestsExceptionsThrownFaultsInjected);
+        assertEquals(3, numberOfTestsExecuted);
     }
 }

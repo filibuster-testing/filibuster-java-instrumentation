@@ -17,7 +17,9 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
@@ -35,7 +37,7 @@ public class JUnitFilibusterTestWithBasicAnalysisFileByAnnotation extends JUnitB
         basicGrpcErrorCodeList.add("UNIMPLEMENTED");
     }
 
-    private static int numberOfTestsExceptionsThrownFaultsInjected = 0;
+    private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
@@ -54,7 +56,7 @@ public class JUnitFilibusterTestWithBasicAnalysisFileByAnnotation extends JUnitB
             assertEquals("Hello, Armerian World!!", reply.getMessage());
         } catch (Throwable t) {
             if (wasFaultInjected()) {
-                numberOfTestsExceptionsThrownFaultsInjected++;
+                testExceptionsThrown.add(t.getMessage());
 
                 boolean found = false;
 
@@ -82,6 +84,6 @@ public class JUnitFilibusterTestWithBasicAnalysisFileByAnnotation extends JUnitB
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(4, numberOfTestsExceptionsThrownFaultsInjected);
+        assertEquals(4, testExceptionsThrown.size());
     }
 }

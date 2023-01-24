@@ -20,6 +20,8 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.instrumentation.TestHelper.startExternalServerAndWaitUntilAvailable;
@@ -36,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
-    private static int numberOfTestsExceptionsThrownFaultsInjected = 0;
+    private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     /**
      * Verify that fault injection works with Filibuster when no beforeEach or afterEach is present.
@@ -78,7 +80,7 @@ public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
             assertEquals("Hello, Armerian World!!", reply.getMessage());
         } catch (Throwable t) {
             if (wasFaultInjected()) {
-                numberOfTestsExceptionsThrownFaultsInjected++;
+                testExceptionsThrown.add(t.getMessage());
 
                 if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
                     expected = true;
@@ -124,6 +126,6 @@ public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(4, numberOfTestsExceptionsThrownFaultsInjected);
+        assertEquals(4, testExceptionsThrown.size());
     }
 }

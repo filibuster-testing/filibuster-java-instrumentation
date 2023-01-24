@@ -17,6 +17,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
@@ -31,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class JUnitFilibusterFailingTest extends JUnitBaseTest {
-    private static int numberOfTestsExceptionsThrownFaultsInjected = 0;
+    private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     /**
      * Inject faults between Hello and World using Filibuster and assert proper faults are injected.
@@ -61,7 +63,7 @@ public class JUnitFilibusterFailingTest extends JUnitBaseTest {
             boolean wasFaultInjected = wasFaultInjected();
 
             if (wasFaultInjected) {
-                numberOfTestsExceptionsThrownFaultsInjected++;
+                testExceptionsThrown.add(t.getMessage());
 
                 if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
                     expected = true;
@@ -105,6 +107,6 @@ public class JUnitFilibusterFailingTest extends JUnitBaseTest {
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(0, numberOfTestsExceptionsThrownFaultsInjected);
+        assertEquals(0, testExceptionsThrown.size());
     }
 }

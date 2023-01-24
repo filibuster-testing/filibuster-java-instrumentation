@@ -25,7 +25,10 @@ public class FilibusterLocalServerBackend implements FilibusterServerBackend {
 
         if (filibusterServer == null) {
             filibusterServer = FilibusterServer.serve(filibusterCore);
-            CompletableFuture<Void> filibusterServerFuture = filibusterServer.start();
+
+            if (filibusterServer != null) {
+                CompletableFuture<Void> filibusterServerFuture = filibusterServer.start();
+            }
         }
 
         setServerBackendCanInvokeDirectlyProperty(true);

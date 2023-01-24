@@ -18,6 +18,28 @@ public class Property {
     }
 
     /***********************************************************************************
+     ** filibuster.server.backend.can_invoke_directly
+     ***********************************************************************************/
+
+    private final static String SERVER_BACKEND_CAN_INVOKE_DIRECTLY = "filibuster.server.backend.can_invoke_directly";
+
+    public final static boolean SERVER_BACKEND_CAN_INVOKE_DIRECTLY_DEFAULT = false;
+
+    public static void setServerBackendCanInvokeDirectlyProperty(boolean canInvokeDirectly) {
+        System.setProperty(SERVER_BACKEND_CAN_INVOKE_DIRECTLY, String.valueOf(canInvokeDirectly));
+    }
+
+    public static boolean getServerBackendCanInvokeDirectlyProperty() {
+        String propertyValue = System.getProperty(SERVER_BACKEND_CAN_INVOKE_DIRECTLY);
+
+        if (isPropertyNull(propertyValue)) {
+            return SERVER_BACKEND_CAN_INVOKE_DIRECTLY_DEFAULT;
+        } else {
+            return Boolean.valueOf(propertyValue);
+        }
+    }
+
+    /***********************************************************************************
      ** filibuster.server.backend.docker_image
      ***********************************************************************************/
 

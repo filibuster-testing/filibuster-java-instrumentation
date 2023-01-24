@@ -3,7 +3,7 @@ package cloud.filibuster.junit.server.backends;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.junit.server.FilibusterServerBackend;
 import cloud.filibuster.junit.server.core.FilibusterCore;
-import cloud.filibuster.junit.server.local_grpc.FilibusterServer;
+import cloud.filibuster.junit.server.local.FilibusterServer;
 import com.linecorp.armeria.server.Server;
 
 import javax.annotation.Nullable;
@@ -12,8 +12,8 @@ import java.util.logging.Logger;
 
 import static cloud.filibuster.instrumentation.helpers.Property.setServerBackendCanInvokeDirectlyProperty;
 
-public class FilibusterLocalGrpcServerBackend implements FilibusterServerBackend {
-    private static final Logger logger = Logger.getLogger(FilibusterLocalGrpcServerBackend.class.getName());
+public class FilibusterLocalServerBackend implements FilibusterServerBackend {
+    private static final Logger logger = Logger.getLogger(FilibusterLocalServerBackend.class.getName());
 
     @Nullable
     private static Server filibusterServer;

@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.server.local_grpc;
+package cloud.filibuster.junit.server.local;
 
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.server.core.FilibusterCore;

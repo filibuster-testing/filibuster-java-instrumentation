@@ -26,6 +26,16 @@ import java.util.regex.Pattern;
 public class FilibusterCore {
     private static final Logger logger = Logger.getLogger(FilibusterCore.class.getName());
 
+    private static FilibusterCore currentInstance;
+
+    public static FilibusterCore getCurrentInstance() {
+        return currentInstance;
+    }
+
+    public FilibusterCore() {
+        currentInstance = this;
+    }
+
     // Queue containing the unexplored test executions.
     // These are partial executions, as they are only prefix executions.
     Queue<PartialTestExecution> unexploredTestExecutions = new LinkedBlockingDeque<>();

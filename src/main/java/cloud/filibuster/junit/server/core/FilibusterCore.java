@@ -66,6 +66,10 @@ public class FilibusterCore {
 
     // Record an outgoing RPC and conditionally inject faults.
     public JSONObject beginInvocation(JSONObject payload) {
+        if (currentConcreteTestExecution == null) {
+            throw new FilibusterCoreLogicException("currentConcreteTestExecution should not be null at this point, something fatal occurred.");
+        }
+
         // Register the RPC using the distributed execution index.
         String distributedExecutionIndexString = payload.getString("execution_index");
         DistributedExecutionIndex distributedExecutionIndex = new DistributedExecutionIndexV1().deserialize(distributedExecutionIndexString);

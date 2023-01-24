@@ -40,7 +40,7 @@ import static cloud.filibuster.instrumentation.instrumentors.FilibusterLocks.vec
 /**
  * Client instrumentor for Filibuster.
  */
-@SuppressWarnings("StronglyTypeTime")
+@SuppressWarnings({"StronglyTypeTime", "Varifier"})
 final public class FilibusterClientInstrumentor {
     private static final Logger logger = Logger.getLogger(FilibusterClientInstrumentor.class.getName());
 

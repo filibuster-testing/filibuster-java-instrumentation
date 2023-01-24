@@ -305,31 +305,33 @@ public class FilibusterCore {
             String serviceName,
             String methodName
     ) {
-        for (FilibusterAnalysisConfiguration filibusterAnalysisConfiguration : filibusterCustomAnalysisConfigurationFile.getFilibusterAnalysisConfigurations()) {
-            if (filibusterAnalysisConfiguration.isPatternMatch(methodName)) {
-                // Exceptions.
-                List<JSONObject> exceptionFaultObjects = filibusterAnalysisConfiguration.getExceptionFaultObjects();
+        if (filibusterCustomAnalysisConfigurationFile != null) {
+            for (FilibusterAnalysisConfiguration filibusterAnalysisConfiguration : filibusterCustomAnalysisConfigurationFile.getFilibusterAnalysisConfigurations()) {
+                if (filibusterAnalysisConfiguration.isPatternMatch(methodName)) {
+                    // Exceptions.
+                    List<JSONObject> exceptionFaultObjects = filibusterAnalysisConfiguration.getExceptionFaultObjects();
 
-                for(JSONObject faultObject : exceptionFaultObjects) {
-                    createAndSchedulePartialTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject);
-                }
+                    for(JSONObject faultObject : exceptionFaultObjects) {
+                        createAndSchedulePartialTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject);
+                    }
 
-                // Errors.
-                List<JSONObject> errorFaultObjects = filibusterAnalysisConfiguration.getErrorFaultObjects();
+                    // Errors.
+                    List<JSONObject> errorFaultObjects = filibusterAnalysisConfiguration.getErrorFaultObjects();
 
-                for(JSONObject faultObject : errorFaultObjects) {
-                    JSONObject failureMetadataObject = faultObject.getJSONObject("failure_metadata");
+                    for(JSONObject faultObject : errorFaultObjects) {
+                        JSONObject failureMetadataObject = faultObject.getJSONObject("failure_metadata");
 
-                    String faultServiceName = failureMetadataObject.getString("service_name");
-                    Pattern faultServiceNamePattern = Pattern.compile(faultServiceName, Pattern.CASE_INSENSITIVE);
-                    Matcher matcher = faultServiceNamePattern.matcher(serviceName);
+                        String faultServiceName = failureMetadataObject.getString("service_name");
+                        Pattern faultServiceNamePattern = Pattern.compile(faultServiceName, Pattern.CASE_INSENSITIVE);
+                        Matcher matcher = faultServiceNamePattern.matcher(serviceName);
 
-                    List<Object> faultTypesArray = failureMetadataObject.getJSONArray("types").toList();
+                        List<Object> faultTypesArray = failureMetadataObject.getJSONArray("types").toList();
 
-                    if (matcher.find()) {
-                        for (Object obj : faultTypesArray) {
-                            JSONObject faultTypeObject = (JSONObject) obj;
-                            createAndSchedulePartialTestExecution(filibusterConfiguration, distributedExecutionIndex, faultTypeObject);
+                        if (matcher.find()) {
+                            for (Object obj : faultTypesArray) {
+                                JSONObject faultTypeObject = (JSONObject) obj;
+                                createAndSchedulePartialTestExecution(filibusterConfiguration, distributedExecutionIndex, faultTypeObject);
+                            }
                         }
                     }
                 }

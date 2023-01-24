@@ -81,7 +81,7 @@ public class FilibusterServer {
             @ConsumesJson
             public HttpResponse hasNextIteration(@Param("current_iteration") String currentIteration) {
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("has-next-iteration", filibusterCore.hasNextIteration(currentIteration));
+                jsonObject.put("has-next-iteration", filibusterCore.hasNextIteration(Integer.valueOf(currentIteration)));
                 return HttpResponse.of(jsonObject.toString());
             }
         });
@@ -102,7 +102,7 @@ public class FilibusterServer {
             @ProducesJson
             @ConsumesJson
             public HttpResponse completeIteration(@Param("current_iteration") String currentIteration) {
-                filibusterCore.completeIteration(currentIteration);
+                filibusterCore.completeIteration(Integer.valueOf(currentIteration));
                 return HttpResponse.of(HttpStatus.OK);
             }
         });
@@ -112,7 +112,7 @@ public class FilibusterServer {
             @ProducesJson
             @ConsumesJson
             public HttpResponse completeIteration(@Param("current_iteration") String currentIteration, @Param("exception_occurred") int exceptionOccurred) {
-                filibusterCore.completeIteration(currentIteration, exceptionOccurred);
+                filibusterCore.completeIteration(Integer.valueOf(currentIteration), exceptionOccurred);
                 return HttpResponse.of(HttpStatus.OK);
             }
         });
@@ -122,7 +122,7 @@ public class FilibusterServer {
             @ProducesJson
             @ConsumesJson
             public HttpResponse teardownsCompleted(@Param("current_iteration") String currentIteration) {
-                filibusterCore.teardownsCompleted(currentIteration);
+                filibusterCore.teardownsCompleted(Integer.valueOf(currentIteration));
                 return HttpResponse.of(HttpStatus.OK);
             }
         });

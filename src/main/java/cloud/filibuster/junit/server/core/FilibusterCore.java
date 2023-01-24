@@ -89,19 +89,19 @@ public class FilibusterCore {
     // JUnit hooks.
 
     // This is an old callback used to exit the Python server with code = 1 or code = 0 upon failure.
-    public void completeIteration(String currentIteration) {
+    public void completeIteration(int currentIteration) {
         logger.info("[FILIBUSTER-CORE]: completeIteration called, currentIteration: " + currentIteration);
         currentConcreteTestExecution.printRPCs();
     }
 
     // This is an old callback used to exit the Python server with code = 1 or code = 0 upon failure.
-    public void completeIteration(String currentIteration, int exceptionOccurred) {
+    public void completeIteration(int currentIteration, int exceptionOccurred) {
         logger.info("[FILIBUSTER-CORE]: completeIteration called, currentIteration: " + currentIteration + ", exceptionOccurred: " + exceptionOccurred);
         currentConcreteTestExecution.printRPCs();
     }
 
     // Is there a test execution?
-    public boolean hasNextIteration(String currentIteration) {
+    public boolean hasNextIteration(int currentIteration) {
         logger.info("[FILIBUSTER-CORE]: hasNextiteration called, currentIteration: " + currentIteration);
         return currentConcreteTestExecution != null;
     }
@@ -113,7 +113,7 @@ public class FilibusterCore {
     }
 
     // A test has completed and all callbacks have fired.
-    public void teardownsCompleted(String currentIteration) {
+    public void teardownsCompleted(int currentIteration) {
         logger.info("[FILIBUSTER-CORE]: teardownsCompleted called, currentIteration: " + currentIteration);
 
         if (currentConcreteTestExecution != null) {

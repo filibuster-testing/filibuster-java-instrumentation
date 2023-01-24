@@ -5,6 +5,7 @@ import cloud.filibuster.instrumentation.datatypes.VectorClock;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.helpers.Response;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
+import cloud.filibuster.junit.exceptions.FilibusterServerBadResponseException;
 import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.AggregatedHttpResponse;
 import com.linecorp.armeria.common.HttpHeaderNames;
@@ -14,6 +15,7 @@ import com.linecorp.armeria.common.ResponseHeaders;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
@@ -165,13 +167,11 @@ final public class FilibusterServerInstrumentor {
                     String statusCode = headers.get(HttpHeaderNames.STATUS);
 
                     if (statusCode == null) {
-                        // TODO: fix handling.
-                        throw new UnsupportedOperationException();
+                        FilibusterServerBadResponseException.logAndThrow("beforeInvocation, statusCode: null");
                     }
 
-                    if (!statusCode.equals("200")) {
-                        // TODO: fix handling.
-                        throw new UnsupportedOperationException();
+                    if (!Objects.equals(statusCode, "200")) {
+                        FilibusterServerBadResponseException.logAndThrow("beforeInvocation, statusCode: " + statusCode);
                     }
 
                     JSONObject jsonObject = Response.aggregatedHttpResponseToJsonObject(response);

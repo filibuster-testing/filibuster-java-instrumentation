@@ -20,7 +20,9 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -29,7 +31,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class JUnitFilibusterExternalHttpTest extends JUnitBaseTest {
-    private static int numberOfTestsExceptionsThrownFaultsInjected = 0;
+    private final static Set<String> testErrorCodesReceived = new HashSet<>();
+
+    private static int numberOfTestsExecuted = 0;
 
     private final List<String> validErrorCodes = Arrays.asList("424", "500");
 
@@ -41,6 +45,8 @@ public class JUnitFilibusterExternalHttpTest extends JUnitBaseTest {
     @FilibusterTest(serverBackend=FilibusterLocalProcessServerBackend.class)
     @Order(1)
     public void testHelloAndExternalServiceWithFilibuster() {
+        numberOfTestsExecuted++;
+
         boolean expected = false;
 
         try {
@@ -52,7 +58,7 @@ public class JUnitFilibusterExternalHttpTest extends JUnitBaseTest {
             String statusCode = headers.get(HttpHeaderNames.STATUS);
 
             if (wasFaultInjected()) {
-                numberOfTestsExceptionsThrownFaultsInjected++;
+                testErrorCodesReceived.add(statusCode);
                 assertTrue(validErrorCodes.contains(statusCode));
             } else {
                 assertEquals("200", statusCode);
@@ -62,14 +68,19 @@ public class JUnitFilibusterExternalHttpTest extends JUnitBaseTest {
         }
     }
 
-    /**
-     * Verify that Filibuster generated the correct number of fault injections.
-     */
     @DisplayName("Verify correct number of generated Filibuster tests.")
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(4, numberOfTestsExceptionsThrownFaultsInjected);
+        assertEquals(2, testErrorCodesReceived.size());
+    }
+
+    @DisplayName("Verify correct number of generated Filibuster tests.")
+    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
+    @Test
+    @Order(3)
+    public void testNumberOfTestsExecuted() {
+        assertEquals(5, numberOfTestsExecuted);
     }
 }

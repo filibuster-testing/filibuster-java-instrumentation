@@ -119,7 +119,7 @@ public class JUnitFilibusterTestWithServerFake extends JUnitBaseTest {
 
     @DisplayName("Verify correct number of generated Filibuster tests.")
     @Test
-    @Order(2)
+    @Order(3)
     public void testNumberOfTestsExecuted() {
         // 3, because with the fake we inject the same fault three times
         assertEquals(3, numberOfTestsExecuted);

@@ -10,6 +10,8 @@ import javax.annotation.Nullable;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
+import static cloud.filibuster.instrumentation.helpers.Property.setServerBackendCanInvokeDirectlyProperty;
+
 public class FilibusterLocalGrpcServerBackend implements FilibusterServerBackend {
     private static final Logger logger = Logger.getLogger(FilibusterLocalGrpcServerBackend.class.getName());
 
@@ -25,6 +27,8 @@ public class FilibusterLocalGrpcServerBackend implements FilibusterServerBackend
             CompletableFuture<Void> filibusterServerFuture = filibusterServer.start();
         }
 
+        setServerBackendCanInvokeDirectlyProperty(true);
+
         return true;
     }
 
@@ -35,6 +39,8 @@ public class FilibusterLocalGrpcServerBackend implements FilibusterServerBackend
             filibusterServer.blockUntilShutdown();
             filibusterServer = null;
         }
+
+        setServerBackendCanInvokeDirectlyProperty(false);
 
         return true;
     }

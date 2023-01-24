@@ -158,7 +158,7 @@ public class FilibusterCore {
     public boolean wasFaultInjected() {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjected called");
         if (currentPartialTestExecution == null) {
-            throw new FilibusterCoreLogicException("currentPartialTestExecution should not be null at this point, something fatal occurred.");
+            return false;
         }
         return currentPartialTestExecution.wasFaultInjected();
     }
@@ -167,7 +167,7 @@ public class FilibusterCore {
     public boolean wasFaultInjectedOnService(String serviceName) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjected called, serviceName: " + serviceName);
         if (currentPartialTestExecution == null) {
-            throw new FilibusterCoreLogicException("currentPartialTestExecution should not be null at this point, something fatal occurred.");
+            return false;
         }
         return currentPartialTestExecution.wasFaultInjectedOnService(serviceName);
     }
@@ -176,7 +176,7 @@ public class FilibusterCore {
     public boolean wasFaultInjectedOnMethod(String serviceName, String methodName) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjected called, serviceName: " + serviceName + ", methodName:" + methodName);
         if (currentPartialTestExecution == null) {
-            throw new FilibusterCoreLogicException("currentPartialTestExecution should not be null at this point, something fatal occurred.");
+            return false;
         }
         return currentPartialTestExecution.wasFaultInjectedOnMethod(serviceName, methodName);
     }

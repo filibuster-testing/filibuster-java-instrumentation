@@ -107,7 +107,7 @@ public class FilibusterCore {
     }
 
     // Is there a test execution?
-    public boolean hasNextIteration(String currentIteration, String caller) {
+    public boolean hasNextIteration(int currentIteration, String caller) {
         logger.info("[FILIBUSTER-CORE]: hasNextiteration called, currentIteration: " + currentIteration + ", caller: " + caller);
         return currentConcreteTestExecution != null;
     }

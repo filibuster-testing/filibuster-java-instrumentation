@@ -92,7 +92,7 @@ public class FilibusterServer {
             @ConsumesJson
             public HttpResponse hasNextIteration(@Param("current_iteration") String currentIteration, @Param("caller") String caller) {
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("has-next-iteration", filibusterCore.hasNextIteration(currentIteration, caller));
+                jsonObject.put("has-next-iteration", filibusterCore.hasNextIteration(Integer.valueOf(currentIteration), caller));
                 return HttpResponse.of(jsonObject.toString());
             }
         });

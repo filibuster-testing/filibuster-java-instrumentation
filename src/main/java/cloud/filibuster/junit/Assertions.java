@@ -3,7 +3,7 @@ package cloud.filibuster.junit;
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.helpers.Response;
-import cloud.filibuster.junit.exceptions.InternalAssertionFailureException;
+import cloud.filibuster.junit.exceptions.FilibusterServerBadResponseException;
 import cloud.filibuster.junit.server.core.FilibusterCore;
 import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.AggregatedHttpResponse;
@@ -14,6 +14,7 @@ import com.linecorp.armeria.common.ResponseHeaders;
 import org.json.JSONObject;
 import org.junit.jupiter.api.function.ThrowingConsumer;
 
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -99,13 +100,11 @@ public class Assertions {
             String statusCode = headers.get(HttpHeaderNames.STATUS);
 
             if (statusCode == null) {
-                logger.log(Level.SEVERE, "wasFaultInjected, statusCode: null");
-                throw new InternalAssertionFailureException();
+                FilibusterServerBadResponseException.logAndThrow("wasFaultInjected, statusCode: null");
             }
 
-            if (!statusCode.equals("200")) {
-                logger.log(Level.SEVERE, "wasFaultInjected, statusCode: " + statusCode);
-                throw new InternalAssertionFailureException();
+            if (!Objects.equals(statusCode, "200")) {
+                FilibusterServerBadResponseException.logAndThrow("wasFaultInjected, statusCode: " + statusCode);
             }
 
             // Get body and verify the proper response.

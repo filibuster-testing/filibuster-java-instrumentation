@@ -219,11 +219,16 @@ public class FilibusterCore {
     public boolean isNewTestExecution(String serviceName) {
         logger.info("[FILIBUSTER-CORE]: isNewTestExecution called, serviceName: " + serviceName);
 
-        if (!currentConcreteTestExecution.hasSeenFirstRequestromService(serviceName)) {
-            currentConcreteTestExecution.registerFirstRequestFromService(serviceName);
-            return true;
-        } else {
+        if (currentConcreteTestExecution == null) {
+            // Doesn't really matter, because if this isn't set, no tests will execute.
             return false;
+        } else {
+            if (!currentConcreteTestExecution.hasSeenFirstRequestromService(serviceName)) {
+                currentConcreteTestExecution.registerFirstRequestFromService(serviceName);
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 

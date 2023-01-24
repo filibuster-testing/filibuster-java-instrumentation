@@ -5,8 +5,6 @@ import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.configuration.FilibusterGrpcExhaustiveAnalysisConfigurationFile;
-import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
-import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
 import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
 import cloud.filibuster.junit.tests.filibuster.JUnitBaseTest;
 import io.grpc.ManagedChannel;
@@ -16,7 +14,6 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -51,7 +48,7 @@ public class JUnitFilibusterTestWithExhaustiveAnalysisFileByAnnotation extends J
         exhaustiveGrpcErrorCodeList.add("UNAUTHENTICATED");
     }
 
-    private static Set<String> testExceptionsThrown = new HashSet<>();
+    private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @FilibusterTest(analysisConfigurationFile=FilibusterGrpcExhaustiveAnalysisConfigurationFile.class, serverBackend=FilibusterLocalServerBackend.class)

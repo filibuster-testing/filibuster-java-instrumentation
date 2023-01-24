@@ -4,7 +4,6 @@ import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
-import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
 import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
 import cloud.filibuster.junit.tests.filibuster.JUnitBaseTest;
 import io.grpc.ManagedChannel;
@@ -14,7 +13,6 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -32,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class JUnitFilibusterTest extends JUnitBaseTest {
-    private static Set<String> testExceptionsThrown = new HashSet<>();
+    private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     /**
      * Inject faults between Hello and World using Filibuster and assert proper faults are injected.

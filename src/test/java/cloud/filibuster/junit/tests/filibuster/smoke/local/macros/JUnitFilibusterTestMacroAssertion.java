@@ -5,8 +5,6 @@ import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.Assertions;
 import cloud.filibuster.junit.FilibusterTest;
-import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
-import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
 import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
 import cloud.filibuster.junit.tests.filibuster.JUnitBaseTest;
 import io.grpc.ManagedChannel;
@@ -15,7 +13,6 @@ import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.concurrent.TimeUnit;
 

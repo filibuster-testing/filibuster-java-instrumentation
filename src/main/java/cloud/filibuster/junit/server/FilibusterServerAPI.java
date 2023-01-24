@@ -17,7 +17,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendCanInvokeDirectlyProperty;
-import static cloud.filibuster.instrumentation.helpers.Property.setServerBackendCanInvokeDirectlyProperty;
 
 @SuppressWarnings("Varifier")
 public class FilibusterServerAPI {

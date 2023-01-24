@@ -8,8 +8,6 @@ import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrument
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterServerInterceptor;
 import cloud.filibuster.junit.FilibusterTest;
-import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
-import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
 import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -18,7 +16,6 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -39,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
-    private static Set<String> testExceptionsThrown = new HashSet<>();
+    private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     /**
      * Verify that fault injection works with Filibuster when no beforeEach or afterEach is present.

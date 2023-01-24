@@ -77,7 +77,7 @@ public class FilibusterCore {
         // Return either success or fault (if, this execution contains a fault to inject.)
         JSONObject response = new JSONObject();
 
-        if (currentPartialTestExecution.shouldFault(distributedExecutionIndex)) {
+        if (currentPartialTestExecution != null && currentPartialTestExecution.shouldFault(distributedExecutionIndex)) {
             JSONObject faultObject = currentPartialTestExecution.getFault(distributedExecutionIndex);
 
             // This is a bit redundant, we could just take the fault object and insert it directly into the response

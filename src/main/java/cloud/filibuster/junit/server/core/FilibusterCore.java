@@ -34,6 +34,10 @@ public class FilibusterCore {
     // The current instance of the FilibusterCore.
     // Required as the instrumentation has no direct way of being instantiated with this object.
     public static FilibusterCore getCurrentInstance() {
+        if (currentInstance == null) {
+            throw new FilibusterCoreLogicException("Current instance is null, this indicates a problem!");
+        }
+
         return currentInstance;
     }
 

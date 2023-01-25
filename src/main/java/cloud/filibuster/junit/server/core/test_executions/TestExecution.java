@@ -191,4 +191,9 @@ public abstract class TestExecution {
     public int hashCode() {
         return Objects.hash(this.executedRPCs, this.faultsToInject);
     }
+
+    private static void cleanPayload(JSONObject payload) {
+        // Remove fields that are only related to the logging and don't contain useful information.
+        payload.remove("instrumentation_type");
+    }
 }

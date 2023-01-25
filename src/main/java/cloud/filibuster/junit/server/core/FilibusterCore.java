@@ -76,6 +76,10 @@ public class FilibusterCore {
     private int numberOfConcreteExecutionsExecuted = 0;
     private int numberOfUniqueConcreteExecutionsExecuted = 0;
 
+    private boolean divergenceDetectedByNewRPCs = false;
+    private boolean divergenceDetectedByDifferentPayloads = false;
+
+
     // RPC hooks.
 
     // Record an outgoing RPC and conditionally inject faults.

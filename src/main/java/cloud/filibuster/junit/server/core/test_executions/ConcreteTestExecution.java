@@ -18,4 +18,16 @@ public class ConcreteTestExecution extends TestExecution {
         }
     }
 
+    public ConcreteTestExecution(PartialTestExecution partialTestExecution, boolean shouldCopyRPCs) {
+        for (Map.Entry<DistributedExecutionIndex, JSONObject> faultToInject : partialTestExecution.faultsToInject.entrySet()) {
+            faultsToInject.put(faultToInject.getKey(), faultToInject.getValue());
+        }
+
+        if (shouldCopyRPCs) {
+            for (Map.Entry<DistributedExecutionIndex, JSONObject> executedRPC : partialTestExecution.executedRPCs.entrySet()) {
+                executedRPCs.put(executedRPC.getKey(), executedRPC.getValue());
+            }
+        }
+    }
+
 }

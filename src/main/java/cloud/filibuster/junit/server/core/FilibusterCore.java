@@ -238,9 +238,11 @@ public class FilibusterCore {
     // Was any fault injected?
     public boolean wasFaultInjected() {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjected called");
+
         if (currentPartialTestExecution == null) {
             return false;
         }
+
         boolean result = currentPartialTestExecution.wasFaultInjected();
 
         logger.info("[FILIBUSTER-CORE]: wasFaultInjected returning: " + result);
@@ -251,9 +253,11 @@ public class FilibusterCore {
     // Was a fault injected on a particular service?
     public boolean wasFaultInjectedOnService(String serviceName) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnService called, serviceName: " + serviceName);
+
         if (currentPartialTestExecution == null) {
             return false;
         }
+
         boolean result = currentPartialTestExecution.wasFaultInjectedOnService(serviceName);
 
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnService returning: " + result);
@@ -268,6 +272,7 @@ public class FilibusterCore {
         if (currentPartialTestExecution == null) {
             return false;
         }
+
         boolean result = currentPartialTestExecution.wasFaultInjectedOnMethod(serviceName, methodName);
 
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethod returning: " + result);
@@ -281,6 +286,7 @@ public class FilibusterCore {
         if (currentPartialTestExecution == null) {
             return false;
         }
+
         boolean result = currentPartialTestExecution.wasFaultInjectedOnRequest(serializedRequest);
 
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnRequest returning: " + result);
@@ -294,6 +300,7 @@ public class FilibusterCore {
         if (currentPartialTestExecution == null) {
             return false;
         }
+
         boolean result = currentPartialTestExecution.wasFaultInjectedOnMethodWherePayloadContains(serviceName, methodName, contains);
 
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethodWherePayloadContains returning: " + result);

@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class FilibusterAnalysisTest {
@@ -71,7 +72,6 @@ public class FilibusterAnalysisTest {
         String read = Files.readString(file);
         JSONObject reread = new JSONObject(read);
 
-        // TODO: Fix, this is because keys are in different sort order.  Good enough for now.
-        assertEquals(filibusterAnalysisConfigurationFile.toString().length(), reread.toString().length());
+        assertTrue(filibusterAnalysisConfigurationFile.toJSONObject().similar(reread));
     }
 }

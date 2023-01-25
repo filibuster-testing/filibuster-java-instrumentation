@@ -29,7 +29,6 @@ public class FilibusterCore {
 
     // The current instance of the FilibusterCore.
     // Required as the instrumentation has no direct way of being instantiated with this object.
-    @Nullable
     private static FilibusterCore currentInstance;
 
     // The current instance of the FilibusterCore.

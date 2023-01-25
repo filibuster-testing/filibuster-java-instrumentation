@@ -510,5 +510,18 @@ public class FilibusterCore {
                 logger.warning("[FILIBUSTER-CORE]: Number of partial test executions attempted doesn't match concrete (-1): this could indicate a problem.");
             }
         }
+
+        if (divergenceDetectedByNewRPCs) {
+            logger.severe("Divergence detected in execution (as compared with the abstract scheduled execution.)\n" +
+                    "This means that the execution observed *different RPCs by execution index* than the desired execution.\n" +
+                    "Consider using options to stabilize the execution indexes. (dataNondeterminism = true)");
+        }
+
+        if (divergenceDetectedByDifferentPayloads) {
+            logger.warning("Divergence detected in execution (as compared with the abstract scheduled execution.)\n" +
+                    "This means that the execution observed the correct execution indexes but the request payloads differed.\n" +
+                    "This is to be expected when the following options are set (dataNondeterminism = true) and payloads will not contain the same information.\n" +
+                    "If this is expected, this may be a false positive.");
+        }
     }
 }

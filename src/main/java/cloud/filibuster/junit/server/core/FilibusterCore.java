@@ -464,7 +464,18 @@ public class FilibusterCore {
         logger.info("[FILIBUSTER-CORE]: Test Summary: ");
         logger.info("[FILIBUSTER-CORE]: * numberOfPartialExecutionsAttempted:       " + numberOfPartialExecutionsAttempted);
         logger.info("[FILIBUSTER-CORE]: * numberOfPartialExecutionsExecuted:        " + numberOfPartialExecutionsExecuted);
+
+        if (numberOfPartialExecutionsAttempted != numberOfPartialExecutionsExecuted) {
+            logger.warning("[FILIBUSTER-CORE]: Number of partial test executions attempted doesn't match executed: this could indicate a problem.");
+        }
+
         logger.info("[FILIBUSTER-CORE]: * numberOfConcreteExecutionsExecuted:       " + numberOfConcreteExecutionsExecuted);
         logger.info("[FILIBUSTER-CORE]: * numberOfUniqueConcreteExecutionsExecuted: " + numberOfUniqueConcreteExecutionsExecuted);
+
+        if (numberOfPartialExecutionsExecuted != 0 && numberOfConcreteExecutionsExecuted != 0) { // Actually ran something.
+            if (numberOfPartialExecutionsExecuted != (numberOfConcreteExecutionsExecuted - 1)) {
+                logger.warning("[FILIBUSTER-CORE]: Number of partial test executions attempted doesn't match concrete (-1): this could indicate a problem.");
+            }
+        }
     }
 }

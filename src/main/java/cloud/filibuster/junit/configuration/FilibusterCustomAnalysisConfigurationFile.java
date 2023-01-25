@@ -32,6 +32,10 @@ public class FilibusterCustomAnalysisConfigurationFile {
         }
     }
 
+    public JSONObject toJSONObject() {
+        return analysisConfigurationFile;
+    }
+
     @Override
     public String toString() {
         return analysisConfigurationFile.toString();

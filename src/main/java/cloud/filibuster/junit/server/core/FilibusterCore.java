@@ -244,26 +244,53 @@ public class FilibusterCore {
 
     // Was a fault injected on a particular service?
     public boolean wasFaultInjectedOnService(String serviceName) {
-        logger.info("[FILIBUSTER-CORE]: wasFaultInjected called, serviceName: " + serviceName);
+        logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnService called, serviceName: " + serviceName);
         if (currentPartialTestExecution == null) {
             return false;
         }
         boolean result = currentPartialTestExecution.wasFaultInjectedOnService(serviceName);
 
-        logger.info("[FILIBUSTER-CORE]: wasFaultInjected returning: " + result);
+        logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnService returning: " + result);
 
         return result;
     }
 
     // Was a fault injected on a particular GRPC call?
     public boolean wasFaultInjectedOnMethod(String serviceName, String methodName) {
-        logger.info("[FILIBUSTER-CORE]: wasFaultInjected called, serviceName: " + serviceName + ", methodName:" + methodName);
+        logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethod called, serviceName: " + serviceName + ", methodName: " + methodName);
+
         if (currentPartialTestExecution == null) {
             return false;
         }
         boolean result = currentPartialTestExecution.wasFaultInjectedOnMethod(serviceName, methodName);
 
-        logger.info("[FILIBUSTER-CORE]: wasFaultInjected returning: " + result);
+        logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethod returning: " + result);
+
+        return result;
+    }
+
+    public boolean wasFaultInjectedOnRequest(String serializedRequest) {
+        logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnRequest called, serializedRequest: " + serializedRequest);
+
+        if (currentPartialTestExecution == null) {
+            return false;
+        }
+        boolean result = currentPartialTestExecution.wasFaultInjectedOnRequest(serializedRequest);
+
+        logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnRequest returning: " + result);
+
+        return result;
+    }
+
+    public boolean wasFaultInjectedOnMethodWherePayloadContains(String serviceName, String methodName, String contains) {
+        logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethodWherePayloadContains called, serviceName: " + serviceName + ", methodName: " + methodName + ", contains: " + contains);
+
+        if (currentPartialTestExecution == null) {
+            return false;
+        }
+        boolean result = currentPartialTestExecution.wasFaultInjectedOnMethodWherePayloadContains(serviceName, methodName, contains);
+
+        logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethodWherePayloadContains returning: " + result);
 
         return result;
     }

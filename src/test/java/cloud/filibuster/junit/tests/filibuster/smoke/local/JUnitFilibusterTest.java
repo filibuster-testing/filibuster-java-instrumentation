@@ -84,6 +84,12 @@ public class JUnitFilibusterTest extends JUnitBaseTest {
                 boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World");
                 assertTrue(wasFaultInjectedOnWorldMethod);
 
+                boolean wasFaultInjectedOnWorldMethodWithPayload = wasFaultInjectedOnMethodWherePayloadContains("cloud.filibuster.examples.WorldService/World", request.toString());
+                assertTrue(wasFaultInjectedOnWorldMethodWithPayload);
+
+                boolean wasFaultInjectedOnRequest = wasFaultInjectedOnRequest(request.toString());
+                assertTrue(wasFaultInjectedOnRequest);
+
                 if (!expected) {
                     throw t;
                 }

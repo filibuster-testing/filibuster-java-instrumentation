@@ -48,9 +48,10 @@ public class JUnitFilibusterTest extends JUnitBaseTest {
 
         boolean expected = false;
 
+        HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
+        Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
+
         try {
-            HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
-            Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
             Hello.HelloReply reply = blockingStub.partialHello(request);
             assertEquals("Hello, Armerian World!!", reply.getMessage());
             assertFalse(wasFaultInjected());

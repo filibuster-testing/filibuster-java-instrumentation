@@ -23,7 +23,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@SuppressWarnings("Varifier")
+@SuppressWarnings({"Varifier", "Var"})
 public class FilibusterCore {
     private static final Logger logger = Logger.getLogger(FilibusterCore.class.getName());
 

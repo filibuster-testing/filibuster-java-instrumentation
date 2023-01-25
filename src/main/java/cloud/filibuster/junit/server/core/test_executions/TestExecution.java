@@ -132,36 +132,6 @@ public abstract class TestExecution {
         return false;
     }
 
-    private boolean wasFaultInjectedMatcher(String searchField, String stringToFind) {
-        return wasFaultInjectedMatcher(searchField, stringToFind, null);
-    }
-
-    private boolean wasFaultInjectedMatcher(String searchField, String stringToFind, @Nullable String contains) {
-        for (Map.Entry<DistributedExecutionIndex, JSONObject> entry : executedRPCs.entrySet()) {
-            JSONObject jsonObject = entry.getValue();
-
-            if (jsonObject.has(searchField)) {
-                String field = jsonObject.getString(searchField);
-                if (field.contains(stringToFind)) {
-                    DistributedExecutionIndex distributedExecutionIndex = entry.getKey();
-
-                    if (faultsToInject.containsKey(distributedExecutionIndex)) {
-                        if (contains == null) {
-                            return true;
-                        } else {
-                            JSONObject executedRPCObject = entry.getValue();
-                            if (executedRPCObject.getString("args").contains(contains)) {
-                                return true;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
-
     public boolean wasFaultInjectedOnService(String serviceName) {
         return wasFaultInjectedMatcher("module", serviceName);
     }
@@ -206,6 +176,36 @@ public abstract class TestExecution {
     @Override
     public int hashCode() {
         return Objects.hash(this.executedRPCs, this.faultsToInject);
+    }
+
+    private boolean wasFaultInjectedMatcher(String searchField, String stringToFind) {
+        return wasFaultInjectedMatcher(searchField, stringToFind, null);
+    }
+
+    private boolean wasFaultInjectedMatcher(String searchField, String stringToFind, @Nullable String contains) {
+        for (Map.Entry<DistributedExecutionIndex, JSONObject> entry : executedRPCs.entrySet()) {
+            JSONObject jsonObject = entry.getValue();
+
+            if (jsonObject.has(searchField)) {
+                String field = jsonObject.getString(searchField);
+                if (field.contains(stringToFind)) {
+                    DistributedExecutionIndex distributedExecutionIndex = entry.getKey();
+
+                    if (faultsToInject.containsKey(distributedExecutionIndex)) {
+                        if (contains == null) {
+                            return true;
+                        } else {
+                            JSONObject executedRPCObject = entry.getValue();
+                            if (executedRPCObject.getString("args").contains(contains)) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     private static void cleanPayload(JSONObject payload) {

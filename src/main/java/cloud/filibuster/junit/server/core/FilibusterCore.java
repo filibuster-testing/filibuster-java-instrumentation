@@ -17,8 +17,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.LinkedBlockingDeque;
+
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -51,11 +50,11 @@ public class FilibusterCore {
 
     // Queue containing the unexplored test executions.
     // These are partial executions, as they are only prefix executions.
-    Queue<PartialTestExecution> unexploredTestExecutions = new LinkedBlockingDeque<>();
+    TestExecutionQueue<PartialTestExecution> unexploredTestExecutions = new TestExecutionQueue<>();
 
     // Queue containing the test executions searched.
     // This includes both partial executions we attempted to explore and the actual realized concrete executions.
-    Queue<TestExecution> exploredTestExecutions = new LinkedBlockingDeque<>();
+    TestExecutionQueue<TestExecution> exploredTestExecutions = new TestExecutionQueue<>();
 
     // The partial test execution that we are exploring currently.
     @Nullable

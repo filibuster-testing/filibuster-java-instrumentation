@@ -56,15 +56,16 @@ public abstract class TestExecution {
         }
     }
 
-    public int addDistributedExecutionIndexWithPayload(DistributedExecutionIndex distributedExecutionIndex, JSONObject payload) {
-        // Remove fields that are only related to the logging and don't contain useful information.
-        payload.remove("instrumentation_type");
-
-        // Increment the generated_id; not used for anything anymore and merely here for debugging and because callers require it.
-        generatedId++;
+    public void addDistributedExecutionIndexWithPayload(DistributedExecutionIndex distributedExecutionIndex, JSONObject payload) {
+        cleanPayload(payload);
 
         // Add to the list of executed RPCs.
         executedRPCs.put(distributedExecutionIndex, payload);
+    }
+
+    public int incrementGeneratedId() {
+        // Increment the generated_id; not used for anything anymore and merely here for debugging and because callers require it.
+        generatedId++;
 
         return generatedId;
     }
@@ -79,6 +80,21 @@ public abstract class TestExecution {
 
     public JSONObject getFault(DistributedExecutionIndex distributedExecutionIndex) {
         return this.faultsToInject.get(distributedExecutionIndex);
+    }
+
+    public boolean hasSeenRPC(DistributedExecutionIndex distributedExecutionIndex) {
+        return executedRPCs.containsKey(distributedExecutionIndex);
+    }
+
+    public boolean hasSeenRPCWithPayload(DistributedExecutionIndex distributedExecutionIndex, JSONObject payload) {
+        cleanPayload(payload);
+
+        if (!executedRPCs.containsKey(distributedExecutionIndex)) {
+            return false;
+        }
+
+        JSONObject recordedPayload = executedRPCs.get(distributedExecutionIndex);
+        return recordedPayload.similar(payload);
     }
 
     @SuppressWarnings("Varifier")

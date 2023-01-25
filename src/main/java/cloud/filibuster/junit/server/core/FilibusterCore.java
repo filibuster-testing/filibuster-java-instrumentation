@@ -93,8 +93,23 @@ public class FilibusterCore {
         // Register the RPC using the distributed execution index.
         String distributedExecutionIndexString = payload.getString("execution_index");
         DistributedExecutionIndex distributedExecutionIndex = new DistributedExecutionIndexV1().deserialize(distributedExecutionIndexString);
-        int generatedId = currentConcreteTestExecution.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, payload);
         logger.info("[FILIBUSTER-CORE]: beginInvocation called, distributedExecutionIndex: " + distributedExecutionIndex);
+        currentConcreteTestExecution.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, payload);
+
+        // Get next generated id.
+        int generatedId = currentConcreteTestExecution.incrementGeneratedId();
+
+        // If detect divergence is enabled, and we have a partial execution set.
+        if (filibusterConfiguration.getDetectDivergence() && currentPartialTestExecution != null) {
+
+            if (!currentPartialTestExecution.hasSeenRPC(distributedExecutionIndex)) {
+                divergenceDetectedByNewRPCs = true;
+            } else {
+                if (!currentPartialTestExecution.hasSeenRPCWithPayload(distributedExecutionIndex, payload)) {
+                    divergenceDetectedByDifferentPayloads = true;
+                }
+            }
+        }
 
         // Generate new partial executions to run and queue them into the unexplored list.
         if (filibusterCustomAnalysisConfigurationFile != null) {

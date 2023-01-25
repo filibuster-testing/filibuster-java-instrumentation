@@ -3,6 +3,7 @@ package cloud.filibuster.junit.server.core.test_executions;
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import org.json.JSONObject;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -99,7 +100,27 @@ public abstract class TestExecution {
         return !this.faultsToInject.isEmpty();
     }
 
+    public boolean wasFaultInjectedOnRequest(String serializedRequest) {
+        for (Map.Entry<DistributedExecutionIndex, JSONObject> entry : executedRPCs.entrySet()) {
+            JSONObject executedRPCObject = entry.getValue();
+
+            if (executedRPCObject.getString("args").equals(serializedRequest)) {
+                DistributedExecutionIndex distributedExecutionIndex = entry.getKey();
+
+                if (faultsToInject.containsKey(distributedExecutionIndex)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     private boolean wasFaultInjectedMatcher(String searchField, String stringToFind) {
+        return wasFaultInjectedMatcher(searchField, stringToFind, null);
+    }
+
+    private boolean wasFaultInjectedMatcher(String searchField, String stringToFind, @Nullable String contains) {
         for (Map.Entry<DistributedExecutionIndex, JSONObject> entry : executedRPCs.entrySet()) {
             JSONObject jsonObject = entry.getValue();
 
@@ -107,8 +128,16 @@ public abstract class TestExecution {
                 String field = jsonObject.getString(searchField);
                 if (field.contains(stringToFind)) {
                     DistributedExecutionIndex distributedExecutionIndex = entry.getKey();
+
                     if (faultsToInject.containsKey(distributedExecutionIndex)) {
-                        return true;
+                        if (contains == null) {
+                            return true;
+                        } else {
+                            JSONObject executedRPCObject = entry.getValue();
+                            if (executedRPCObject.getString("args").contains(contains)) {
+                                return true;
+                            }
+                        }
                     }
                 }
             }
@@ -124,6 +153,10 @@ public abstract class TestExecution {
     // Recombination of RPC is artifact of HTTP API.
     public boolean wasFaultInjectedOnMethod(String serviceName, String methodName) {
         return wasFaultInjectedMatcher("method", serviceName + "/" + methodName);
+    }
+
+    public boolean wasFaultInjectedOnMethodWherePayloadContains(String serviceName, String methodName, String contains) {
+        return wasFaultInjectedMatcher("method", serviceName + "/" + methodName, contains);
     }
 
     @Override

@@ -69,6 +69,11 @@ public class FilibusterCore {
     @Nullable
     private FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
+    private int numberOfPartialExecutionsAttempted = 0;
+    private int numberOfPartialExecutionsExecuted = 0;
+    private int numberOfConcreteExecutionsExecuted = 0;
+    private int numberOfUniqueConcreteExecutionsExecuted = 0;
+
     // RPC hooks.
 
     // Record an outgoing RPC and conditionally inject faults.
@@ -134,6 +139,8 @@ public class FilibusterCore {
             throw new FilibusterCoreLogicException("currentConcreteTestExecution should not be null at this point, something fatal occurred.");
         }
 
+        printSummary();
+
         logger.info("[FILIBUSTER-CORE]: completeIteration returning");
     }
 
@@ -141,11 +148,14 @@ public class FilibusterCore {
     public void completeIteration(int currentIteration, int exceptionOccurred) {
         logger.info("[FILIBUSTER-CORE]: completeIteration called, currentIteration: " + currentIteration + ", exceptionOccurred: " + exceptionOccurred);
 
+
         if (currentConcreteTestExecution != null) {
             currentConcreteTestExecution.printRPCs();
         } else {
             throw new FilibusterCoreLogicException("currentConcreteTestExecution should not be null at this point, something fatal occurred.");
         }
+
+        printSummary();
 
         logger.info("[FILIBUSTER-CORE]: completeIteration returning");
     }
@@ -178,9 +188,25 @@ public class FilibusterCore {
             //   this may or may not be set if it's the initial execution.
             // * currentConcreteTestExecution: the actual concrete, realized trace of the test execution.
             if (currentPartialTestExecution != null) {
-                exploredTestExecutions.add(currentPartialTestExecution);
+                numberOfPartialExecutionsAttempted++;
+
+                if (!exploredTestExecutions.contains(currentPartialTestExecution)) {
+                    // Don't add to explored queue if it's already there.
+                    numberOfPartialExecutionsExecuted++;
+
+                    exploredTestExecutions.add(currentPartialTestExecution);
+                } else {
+                    logger.severe("[FILIBUSTER-CORE]: teardownsCompleted called, currentPartialTestExecution already exists in the explored queue, this could indicate a problem in Filibuster.");
+                }
             }
-            exploredTestExecutions.add(currentConcreteTestExecution);
+
+            if (!exploredTestExecutions.contains(currentConcreteTestExecution)) {
+                exploredTestExecutions.add(currentConcreteTestExecution);
+                numberOfConcreteExecutionsExecuted++;
+                numberOfUniqueConcreteExecutionsExecuted++;
+            } else {
+                numberOfConcreteExecutionsExecuted++;
+            }
 
             // Unset fields.
             currentPartialTestExecution = null;
@@ -432,5 +458,13 @@ public class FilibusterCore {
         }
 
         logger.info("[FILIBUSTER-CORE]: createAndSchedulePartialTestExecution returning.");
+    }
+
+    private void printSummary() {
+        logger.info("[FILIBUSTER-CORE]: Test Summary: ");
+        logger.info("[FILIBUSTER-CORE]: * numberOfPartialExecutionsAttempted:       " + numberOfPartialExecutionsAttempted);
+        logger.info("[FILIBUSTER-CORE]: * numberOfPartialExecutionsExecuted:        " + numberOfPartialExecutionsExecuted);
+        logger.info("[FILIBUSTER-CORE]: * numberOfConcreteExecutionsExecuted:       " + numberOfConcreteExecutionsExecuted);
+        logger.info("[FILIBUSTER-CORE]: * numberOfUniqueConcreteExecutionsExecuted: " + numberOfUniqueConcreteExecutionsExecuted);
     }
 }

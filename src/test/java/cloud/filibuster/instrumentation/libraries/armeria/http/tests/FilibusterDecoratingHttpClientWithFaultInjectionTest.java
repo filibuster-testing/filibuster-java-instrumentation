@@ -1,6 +1,7 @@
 package cloud.filibuster.instrumentation.libraries.armeria.http.tests;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
+import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.instrumentation.FilibusterServerFake;
 import cloud.filibuster.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.datatypes.VectorClock;
@@ -108,7 +109,7 @@ public class FilibusterDecoratingHttpClientWithFaultInjectionTest extends Filibu
         }
 
         assertTrue(exception instanceof CompletionException);
-        assertTrue(exception.getCause() instanceof UnsupportedOperationException);
+        assertTrue(exception.getCause() instanceof FilibusterFaultInjectionException);
     }
 
     @Test
@@ -129,7 +130,7 @@ public class FilibusterDecoratingHttpClientWithFaultInjectionTest extends Filibu
         }
 
         assertTrue(exception instanceof CompletionException);
-        assertTrue(exception.getCause() instanceof UnsupportedOperationException);
+        assertTrue(exception.getCause() instanceof FilibusterFaultInjectionException);
     }
 
     @Test
@@ -149,7 +150,7 @@ public class FilibusterDecoratingHttpClientWithFaultInjectionTest extends Filibu
         JSONObject lastPayload = FilibusterServerFake.payloadsReceived.get(FilibusterServerFake.payloadsReceived.size() - 1);
         assertEquals("invocation_complete", lastPayload.getString("instrumentation_type"));
         assertEquals(0, lastPayload.getInt("generated_id"));
-        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-aebcf693fd84bff1c4cfd4ca1a67d29a2f930ccc-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-8391a96383d8973d92774dbf97fe220aba7d46b4-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", lastPayload.getString("execution_index"));
+        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-aebcf693fd84bff1c4cfd4ca1a67d29a2f930ccc-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-cc8142615e013494807b89782f37f571f0e41552-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", lastPayload.getString("execution_index"));
         VectorClock assertVectorClock = new VectorClock();
         assertVectorClock.incrementClock("hello");
         assertEquals(assertVectorClock.toString(), lastPayload.getJSONObject("vclock").toString());

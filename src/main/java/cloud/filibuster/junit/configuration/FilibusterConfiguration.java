@@ -1,6 +1,6 @@
 package cloud.filibuster.junit.configuration;
 
-import cloud.filibuster.exceptions.FilibusterUnsupportedServerBackendException;
+import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedServerBackendException;
 import cloud.filibuster.junit.server.backends.FilibusterDockerServerBackend;
 import cloud.filibuster.junit.server.FilibusterServerBackend;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;

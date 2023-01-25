@@ -1,4 +1,4 @@
-package cloud.filibuster.exceptions;
+package cloud.filibuster.exceptions.filibuster;
 
 public class FilibusterFaultInjectionException extends RuntimeException {
     public FilibusterFaultInjectionException(String message) {

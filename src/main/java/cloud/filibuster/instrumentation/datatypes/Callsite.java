@@ -1,5 +1,7 @@
 package cloud.filibuster.instrumentation.datatypes;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterUnknownCallsiteException;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -73,7 +75,7 @@ public class Callsite {
 
         // If we have no frames, just abort everything.
         if (filteredStackTrace.size() == 0) {
-            throw new UnsupportedOperationException("Filibuster cannot determine the callsite of the remote request.");
+            throw new FilibusterUnknownCallsiteException("Filibuster cannot determine the callsite of the remote request.");
         }
 
         // When we serialize, should we use hash codes instead?

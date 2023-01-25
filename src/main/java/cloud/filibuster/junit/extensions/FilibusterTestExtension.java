@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import cloud.filibuster.exceptions.FilibusterUnsupportedCustomAnalysisFileException;
+import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedCustomAnalysisFileException;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;

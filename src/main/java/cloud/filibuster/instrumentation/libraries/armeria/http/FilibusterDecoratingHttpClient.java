@@ -1,5 +1,6 @@
 package cloud.filibuster.instrumentation.libraries.armeria.http;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
@@ -415,13 +416,13 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
                 ConnectTimeoutException cause = new ConnectTimeoutException(message);
                 exceptionToThrow = UnprocessedRequestException.of(cause);
             } else {
-                throw new UnsupportedOperationException();
+                throw new FilibusterFaultInjectionException("Cannot determine the execution cause to throw: " + causeString);
             }
         } else if (Objects.equals(exceptionNameString, "io.grpc.StatusRuntimeException")){
             String grpcErrorCode = forcedException.getJSONObject("metadata").get("code").toString();
             exceptionToThrow = new StatusRuntimeException(Status.fromCode(Status.Code.valueOf(grpcErrorCode)));
         } else {
-            throw new UnsupportedOperationException();
+            throw new FilibusterFaultInjectionException("Cannot determine the execution to throw: " + exceptionNameString);
         }
 
         if (exceptionToThrow != null) {
@@ -431,7 +432,7 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
             // Throw callsite exception.
             throw exceptionToThrow;
         } else {
-            throw new UnsupportedOperationException();
+            throw new FilibusterFaultInjectionException("Exception is supposed to be thrown, but is null because we could not find a match.");
         }
     }
 

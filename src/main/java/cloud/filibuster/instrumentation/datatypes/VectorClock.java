@@ -1,5 +1,6 @@
 package cloud.filibuster.instrumentation.datatypes;
 
+import cloud.filibuster.exceptions.vector_clock.VectorClockCloneException;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
@@ -22,12 +23,10 @@ public class VectorClock implements Cloneable {
     public VectorClock clone() {
         VectorClock newVectorClock;
 
-        try
-        {
+        try {
             newVectorClock = (VectorClock) super.clone();
-        } catch (CloneNotSupportedException e)
-        {
-            throw new UnsupportedOperationException(e);
+        } catch (CloneNotSupportedException e) {
+            throw new VectorClockCloneException("cloning not supported for vector clock", e);
         }
 
         // Deep clone member fields here

@@ -1,4 +1,4 @@
-package cloud.filibuster.exceptions;
+package cloud.filibuster.exceptions.filibuster;
 
 public class FilibusterUnsupportedServerBackendException extends RuntimeException {
     public FilibusterUnsupportedServerBackendException(String message) {

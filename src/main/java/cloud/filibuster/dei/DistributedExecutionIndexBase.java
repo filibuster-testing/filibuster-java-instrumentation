@@ -1,5 +1,7 @@
 package cloud.filibuster.dei;
 
+import cloud.filibuster.exceptions.distributed_execution_index.DistributedExecutionIndexCloneException;
+import cloud.filibuster.exceptions.distributed_execution_index.DistributedExecutionIndexSerializationException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
 import cloud.filibuster.instrumentation.datatypes.Pair;
 
@@ -51,7 +53,7 @@ public abstract class DistributedExecutionIndexBase implements Cloneable {
 
     public DistributedExecutionIndex deserialize(String serialized) {
         if (serialized == null) {
-            throw new UnsupportedOperationException();
+            throw new DistributedExecutionIndexSerializationException("cannot deserialize an empty string.");
         }
 
         if (serialized.equals("")) {
@@ -115,7 +117,7 @@ public abstract class DistributedExecutionIndexBase implements Cloneable {
         try {
             newDistributedExecutionIndex = (DistributedExecutionIndexBase) super.clone();
         } catch (CloneNotSupportedException e) {
-            throw new UnsupportedOperationException(e);
+            throw new DistributedExecutionIndexCloneException("cloning not supported for distributed execution index subtype", e);
         }
 
         // Deep clone member fields here

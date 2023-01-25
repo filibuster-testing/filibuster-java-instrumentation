@@ -1,6 +1,7 @@
 package cloud.filibuster.dei;
 
 import cloud.filibuster.dei.implementations.DistributedExecutionIndexV1;
+import cloud.filibuster.exceptions.distributed_execution_index.DistributedExecutionIndexSerializationException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -48,8 +49,8 @@ public class DistributedExecutionIndexV1Test {
         assertNotEquals(ei1.toString(), ei2.toString());
         assertNotEquals(ei1, ei2);
 
-        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-70f63ff27998e4f2e543923f159fd29fbf3b8672-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1]]", ei1.toString());
-        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-70f63ff27998e4f2e543923f159fd29fbf3b8672-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], " + "[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-8790b0af5d1bdc05525125909edce09da2cf28e3-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1]]", ei2.toString());
+        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-9c3c659411451e3a893dc379b03e663084bf6c9e-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1]]", ei1.toString());
+        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-9c3c659411451e3a893dc379b03e663084bf6c9e-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], " + "[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-7339577c067f3b0b15d925ee56e59fad1ed12a68-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1]]", ei2.toString());
     }
 
     @Test
@@ -76,7 +77,7 @@ public class DistributedExecutionIndexV1Test {
         DistributedExecutionIndex ei = createInstance();
         ei.push(generateCallsite());
         String toStringResult = ei.toString();
-        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-74d5a6fbe5d52010d6ebb6bdb55b994be9db07cc-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1]]", toStringResult);
+        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-67943b136edaede1c300f1c6f71a58deda8c3eda-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1]]", toStringResult);
     }
 
     @Test
@@ -111,7 +112,7 @@ public class DistributedExecutionIndexV1Test {
         DistributedExecutionIndex ei = createInstance();
         ei.push(generateCallsite());
         ei.push(generateCallsite());
-        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-d2d03000de35d7cb8ea9f85e803ebeb122df27c6-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-acbc6641f0569151adf6aaed8ebab687d256e41d-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1]]", ei.toString());
+        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-acbc6641f0569151adf6aaed8ebab687d256e41d-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-58b41f5b33b00e3cc640fddb49e88d15e3772b3a-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1]]", ei.toString());
     }
 
     @Test
@@ -129,14 +130,14 @@ public class DistributedExecutionIndexV1Test {
     @Test
     @DisplayName("Test deserialize null execution string.")
     public void testDeserializeNullString() {
-        assertThrows(UnsupportedOperationException.class, () -> createInstanceFromSerialized(null));
+        assertThrows(DistributedExecutionIndexSerializationException.class, () -> createInstanceFromSerialized(null));
     }
 
     @Test
     @DisplayName("Test deserialize, push, serialize cycle.")
     public void testDeserializePushSerialize() {
-        String startingSerializedExecutionIndex = "[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-a3f941d8eb410bc37b5bde1c55effc134b3afbe8-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-2b8c559f9f751e904b53e19c0aad3c5c47567ef3-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1]]";
-        String endingSerializedExecutionIndex = "[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-a3f941d8eb410bc37b5bde1c55effc134b3afbe8-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-2b8c559f9f751e904b53e19c0aad3c5c47567ef3-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-1339e707d04143b52cb286a143dcd359e347204c-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1]]";
+        String startingSerializedExecutionIndex = "[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-a3f941d8eb410bc37b5bde1c55effc134b3afbe8-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-89939c5a9cc741601f9611a1270fb706c2e8850f-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1]]";
+        String endingSerializedExecutionIndex = "[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-a3f941d8eb410bc37b5bde1c55effc134b3afbe8-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-89939c5a9cc741601f9611a1270fb706c2e8850f-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-89939c5a9cc741601f9611a1270fb706c2e8850f-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1]]";
         DistributedExecutionIndex ei = createInstanceFromSerialized(startingSerializedExecutionIndex);
         assertEquals(startingSerializedExecutionIndex, ei.toString());
         ei.push(generateCallsite());
@@ -151,7 +152,7 @@ public class DistributedExecutionIndexV1Test {
         ei.push(callsite);
         ei.pop();
         ei.push(callsite);
-        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-c37fd716bf78ca3f28f7ec23a566ff2932da4aa1-f49cf6381e322b147053b74e4500af8533ac1e4c\", 2]]", ei.toString());
+        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-710906af693c8ff1ae96741ece9ed1cc882fc413-f49cf6381e322b147053b74e4500af8533ac1e4c\", 2]]", ei.toString());
     }
 }
 

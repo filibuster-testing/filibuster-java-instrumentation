@@ -1,5 +1,6 @@
 package cloud.filibuster.junit;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedByHTTPServerException;
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.helpers.Response;
@@ -77,6 +78,37 @@ public class Assertions {
                 // Test threw, we didn't inject a fault: throw.
                 throw t;
             }
+        }
+    }
+
+    /**
+     * Determine if a fault was injected during the current test execution for a particular request and method.
+     *
+     * @param fullyQualifiedMethodName grpc method in the format Service/Method
+     * @param contains substring to search for
+     * @return was fault injected
+     */
+    public static boolean wasFaultInjectedOnMethodWherePayloadContains(String fullyQualifiedMethodName, String contains) {
+        String[] split = fullyQualifiedMethodName.split("/", 2);
+
+        if (getServerBackendCanInvokeDirectlyProperty()) {
+            return FilibusterCore.getCurrentInstance().wasFaultInjectedOnMethodWherePayloadContains(split[0], split[1], contains);
+        } else {
+            throw new FilibusterUnsupportedByHTTPServerException("wasFaultInjectedOnMethodWherePayloadContains only supported with local server.");
+        }
+    }
+
+    /**
+     * Determine if a fault was injected during the current test execution for a particular request.
+     *
+     * @param serializedRequest the @toString of the request.
+     * @return was fault injected
+     */
+    public static boolean wasFaultInjectedOnRequest(String serializedRequest) {
+        if (getServerBackendCanInvokeDirectlyProperty()) {
+            return FilibusterCore.getCurrentInstance().wasFaultInjectedOnRequest(serializedRequest);
+        } else {
+            throw new FilibusterUnsupportedByHTTPServerException("wasFaultInjectedOnRequest only supported with local server.");
         }
     }
 

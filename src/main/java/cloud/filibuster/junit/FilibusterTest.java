@@ -113,13 +113,6 @@ public @interface FilibusterTest {
     boolean suppressCombinations() default false;
 
     /**
-     * Should divergence be detected and reported?
-     *
-     * @return whether divergence should be detected and reported.
-     */
-    boolean detectDivergence() default false;
-
-    /**
      * Does this test configuration contain data nondeterminism?
      *
      * <p>Specifically, this only refers to whether the RPC messages can be affected across executions

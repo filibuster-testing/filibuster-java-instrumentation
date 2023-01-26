@@ -34,8 +34,6 @@ public class FilibusterConfiguration {
 
     private final boolean degradeWhenServerInitializationFails;
 
-    private final boolean detectDivergence;
-
     private final Class<? extends RuntimeException> expected;
 
     private FilibusterConfiguration(Builder builder) {
@@ -47,7 +45,6 @@ public class FilibusterConfiguration {
         this.dockerImageName = builder.dockerImageName;
         this.degradeWhenServerInitializationFails = builder.degradeWhenServerInitializationFails;
         this.expected = builder.expected;
-        this.detectDivergence = builder.detectDivergence;
     }
 
     /**
@@ -66,15 +63,6 @@ public class FilibusterConfiguration {
      */
     public Class<? extends RuntimeException> getExpected() {
         return this.expected;
-    }
-
-    /**
-     * Should we detect and report divergence?
-     *
-     * @return boolean
-     */
-    public boolean getDetectDivergence() {
-        return this.detectDivergence;
     }
 
     /**
@@ -179,8 +167,6 @@ public class FilibusterConfiguration {
 
         private boolean degradeWhenServerInitializationFails = false;
 
-        private boolean detectDivergence = false;
-
         private Class<? extends RuntimeException> expected;
 
         /**
@@ -284,18 +270,6 @@ public class FilibusterConfiguration {
         @CanIgnoreReturnValue
         public Builder degradeWhenServerInitializationFails(boolean degradeWhenServerInitializationFails) {
             this.degradeWhenServerInitializationFails = degradeWhenServerInitializationFails;
-            return this;
-        }
-
-        /**
-         * Should the test detect and report divergence?
-         *
-         * @param detectDivergence boolean
-         * @return builder
-         */
-        @CanIgnoreReturnValue
-        public Builder detectDivergence(boolean detectDivergence) {
-            this.detectDivergence = detectDivergence;
             return this;
         }
 

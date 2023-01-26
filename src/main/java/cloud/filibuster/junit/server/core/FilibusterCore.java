@@ -76,10 +76,6 @@ public class FilibusterCore {
     private int numberOfConcreteExecutionsExecuted = 0;
     private int numberOfUniqueConcreteExecutionsExecuted = 0;
 
-    private boolean divergenceDetectedByNewRPCs = false;
-    private boolean divergenceDetectedByDifferentPayloads = false;
-
-
     // RPC hooks.
 
     // Record an outgoing RPC and conditionally inject faults.
@@ -98,18 +94,6 @@ public class FilibusterCore {
 
         // Get next generated id.
         int generatedId = currentConcreteTestExecution.incrementGeneratedId();
-
-        // If detect divergence is enabled, and we have a partial execution set.
-        if (filibusterConfiguration.getDetectDivergence() && currentPartialTestExecution != null) {
-
-            if (!currentPartialTestExecution.hasSeenRPC(distributedExecutionIndex)) {
-                divergenceDetectedByNewRPCs = true;
-            } else {
-                if (!currentPartialTestExecution.hasSeenRPCWithPayload(distributedExecutionIndex, payload)) {
-                    divergenceDetectedByDifferentPayloads = true;
-                }
-            }
-        }
 
         // Generate new partial executions to run and queue them into the unexplored list.
         if (filibusterCustomAnalysisConfigurationFile != null) {
@@ -531,19 +515,6 @@ public class FilibusterCore {
             if (numberOfPartialExecutionsExecuted != (numberOfConcreteExecutionsExecuted - 1)) {
                 logger.warning("[FILIBUSTER-CORE]: Number of partial test executions attempted doesn't match concrete (-1): this could indicate a problem.");
             }
-        }
-
-        if (divergenceDetectedByNewRPCs) {
-            logger.severe("Divergence detected in execution (as compared with the abstract scheduled execution.)\n" +
-                    "This means that the execution observed *different RPCs by execution index* than the desired execution.\n" +
-                    "Consider using options to stabilize the execution indexes. (dataNondeterminism = true)");
-        }
-
-        if (divergenceDetectedByDifferentPayloads) {
-            logger.warning("Divergence detected in execution (as compared with the abstract scheduled execution.)\n" +
-                    "This means that the execution observed the correct execution indexes but the request payloads differed.\n" +
-                    "This is to be expected when the following options are set (dataNondeterminism = true) and payloads will not contain the same information.\n" +
-                    "If this is expected, this may be a false positive.");
         }
     }
 }

@@ -18,9 +18,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -50,7 +48,7 @@ public class JUnitFilibusterNoFaultsNoTerminationTest extends JUnitBaseTest {
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian " + Math.random()).build();
             Hello.HelloReply reply = blockingStub.partialHello(request);
             assertTrue(reply.getMessage().contains("Hello, Armerian"));
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             numberOfExceptionsThrown++;
             // Shouldn't ever get here.
         }

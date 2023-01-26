@@ -479,7 +479,7 @@ public class FilibusterCore {
 
             boolean partialIsExploredExecution = exploredTestExecutions.contains(partialTestExecution);
             boolean partialIsScheduledExecution = unexploredTestExecutions.contains(partialTestExecution);
-            boolean partialIsCurrentExecution = currentPartialTestExecution == null ? false : currentPartialTestExecution.equals(partialTestExecution);
+            boolean partialIsCurrentExecution = currentPartialTestExecution != null && currentPartialTestExecution.equals(partialTestExecution);
 
             if (!partialIsExploredExecution && !partialIsScheduledExecution && !partialIsCurrentExecution) {
                 if (filibusterConfiguration.getSuppressCombinations()) {

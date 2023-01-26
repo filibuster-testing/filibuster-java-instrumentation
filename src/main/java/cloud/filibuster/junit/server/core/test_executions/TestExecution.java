@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
+@SuppressWarnings("Varifier")
 public abstract class TestExecution {
     private static final Logger logger = Logger.getLogger(TestExecution.class.getName());
 

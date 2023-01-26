@@ -36,6 +36,8 @@ public class JUnitFilibusterBasicTest extends JUnitBaseTest {
 
     private static int numberOfTestsExecuted = 0;
 
+    private static int numberOfExceptionsThrown = 0;
+
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, maxIterations=10)
     @Order(1)
@@ -57,6 +59,8 @@ public class JUnitFilibusterBasicTest extends JUnitBaseTest {
             assertEquals("Hello, Armerian World!!", reply.getMessage());
             assertFalse(wasFaultInjected());
         } catch (Throwable t) {
+            numberOfExceptionsThrown++;
+
             boolean wasFaultInjected = wasFaultInjected();
 
             if (wasFaultInjected) {
@@ -102,7 +106,7 @@ public class JUnitFilibusterBasicTest extends JUnitBaseTest {
         helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
     }
 
-    @DisplayName("Verify correct number of generated Filibuster tests.")
+    @DisplayName("Verify correct number of thrown exceptions.")
     @Test
     @Order(2)
     public void testNumAssertions() {
@@ -114,5 +118,12 @@ public class JUnitFilibusterBasicTest extends JUnitBaseTest {
     @Order(3)
     public void testNumberOfTestsExecuted() {
         assertEquals(5, numberOfTestsExecuted);
+    }
+
+    @DisplayName("Verify correct number of exceptions thrown.")
+    @Test
+    @Order(4)
+    public void numberOfExceptionsThrown() {
+        assertEquals(4, numberOfExceptionsThrown);
     }
 }

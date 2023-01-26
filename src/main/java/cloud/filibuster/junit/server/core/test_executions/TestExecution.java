@@ -108,6 +108,10 @@ public abstract class TestExecution {
             partialTestExecution.executedRPCs.put(mapEntry.getKey(), mapEntry.getValue());
         }
 
+        for (Map.Entry<DistributedExecutionIndex, JSONObject> mapEntry : nondeterministicExecutedRPCs.entrySet()) {
+            partialTestExecution.nondeterministicExecutedRPCs.put(mapEntry.getKey(), mapEntry.getValue());
+        }
+
         for (Map.Entry<DistributedExecutionIndex, JSONObject> mapEntry : faultsToInject.entrySet()) {
             partialTestExecution.faultsToInject.put(mapEntry.getKey(), mapEntry.getValue());
         }

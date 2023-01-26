@@ -489,9 +489,19 @@ public class FilibusterCore {
             PartialTestExecution partialTestExecution = currentConcreteTestExecution.cloneToPartialTestExecution();
             partialTestExecution.addFaultToInject(distributedExecutionIndex, faultObject);
 
-            boolean partialIsExploredExecution = exploredTestExecutions.contains(partialTestExecution);
-            boolean partialIsScheduledExecution = unexploredTestExecutions.contains(partialTestExecution);
-            boolean partialIsCurrentExecution = currentPartialTestExecution != null && currentPartialTestExecution.equals(partialTestExecution);
+            boolean partialIsExploredExecution;
+            boolean partialIsScheduledExecution;
+            boolean partialIsCurrentExecution;
+
+            if (filibusterConfiguration.getDataNondeterminism()) {
+                partialIsExploredExecution = exploredTestExecutions.nondeterministicContains(partialTestExecution);
+                partialIsScheduledExecution = unexploredTestExecutions.nondeterministicContains(partialTestExecution);
+                partialIsCurrentExecution = currentPartialTestExecution != null && currentPartialTestExecution.nondeterministicEquals(partialTestExecution);
+            } else {
+                partialIsExploredExecution = exploredTestExecutions.contains(partialTestExecution);
+                partialIsScheduledExecution = unexploredTestExecutions.contains(partialTestExecution);
+                partialIsCurrentExecution = currentPartialTestExecution != null && currentPartialTestExecution.equals(partialTestExecution);
+            }
 
             if (!partialIsExploredExecution && !partialIsScheduledExecution && !partialIsCurrentExecution) {
                 if (filibusterConfiguration.getSuppressCombinations()) {

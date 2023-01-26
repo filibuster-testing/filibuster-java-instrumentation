@@ -90,21 +90,6 @@ public abstract class TestExecution {
         return this.faultsToInject.get(distributedExecutionIndex);
     }
 
-    public boolean hasSeenRPC(DistributedExecutionIndex distributedExecutionIndex) {
-        return executedRPCs.containsKey(distributedExecutionIndex);
-    }
-
-    public boolean hasSeenRPCWithPayload(DistributedExecutionIndex distributedExecutionIndex, JSONObject payload) {
-        cleanPayload(payload);
-
-        if (!executedRPCs.containsKey(distributedExecutionIndex)) {
-            return false;
-        }
-
-        JSONObject recordedPayload = executedRPCs.get(distributedExecutionIndex);
-        return recordedPayload.similar(payload);
-    }
-
     @SuppressWarnings("Varifier")
     public PartialTestExecution cloneToPartialTestExecution() {
         PartialTestExecution partialTestExecution = new PartialTestExecution();

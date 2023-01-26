@@ -19,6 +19,9 @@ public abstract class TestExecution {
     // What RPCs were executed?
     HashMap<DistributedExecutionIndex, JSONObject> executedRPCs = new HashMap<>();
 
+    // What RPCs were executed (without their arguments, which may be nondeterministic across executions)?
+    HashMap<DistributedExecutionIndex, JSONObject> nondeterministicExecutedRPCs = new HashMap<>();
+
     // What faults should be injected in this execution?
     HashMap<DistributedExecutionIndex, JSONObject> faultsToInject = new HashMap<>();
 

@@ -238,7 +238,7 @@ public class FilibusterCore {
     public boolean wasFaultInjected() {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjected called");
 
-        if (currentPartialTestExecution == null) {
+        if (currentPartialTestExecution == null || currentConcreteTestExecution == null) {
             return false;
         }
 
@@ -253,7 +253,7 @@ public class FilibusterCore {
     public boolean wasFaultInjectedOnService(String serviceName) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnService called, serviceName: " + serviceName);
 
-        if (currentPartialTestExecution == null) {
+        if (currentPartialTestExecution == null || currentConcreteTestExecution == null) {
             return false;
         }
 
@@ -268,7 +268,7 @@ public class FilibusterCore {
     public boolean wasFaultInjectedOnMethod(String serviceName, String methodName) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethod called, serviceName: " + serviceName + ", methodName: " + methodName);
 
-        if (currentPartialTestExecution == null) {
+        if (currentPartialTestExecution == null || currentConcreteTestExecution == null) {
             return false;
         }
 
@@ -282,7 +282,7 @@ public class FilibusterCore {
     public boolean wasFaultInjectedOnRequest(String serializedRequest) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnRequest called, serializedRequest: " + serializedRequest);
 
-        if (currentPartialTestExecution == null) {
+        if (currentPartialTestExecution == null || currentConcreteTestExecution == null) {
             return false;
         }
 
@@ -302,7 +302,7 @@ public class FilibusterCore {
     public boolean wasFaultInjectedOnMethodWherePayloadContains(String serviceName, String methodName, String contains) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethodWherePayloadContains called, serviceName: " + serviceName + ", methodName: " + methodName + ", contains: " + contains);
 
-        if (currentPartialTestExecution == null) {
+        if (currentPartialTestExecution == null || currentConcreteTestExecution == null) {
             return false;
         }
 

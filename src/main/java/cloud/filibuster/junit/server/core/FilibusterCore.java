@@ -286,7 +286,13 @@ public class FilibusterCore {
             return false;
         }
 
-        boolean result = currentPartialTestExecution.wasFaultInjectedOnRequest(serializedRequest);
+        boolean result;
+
+        if (filibusterConfiguration.getDataNondeterminism()) {
+            result = currentConcreteTestExecution.wasFaultInjectedOnRequest(serializedRequest);
+        } else {
+            result = currentPartialTestExecution.wasFaultInjectedOnRequest(serializedRequest);
+        }
 
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnRequest returning: " + result);
 
@@ -300,7 +306,13 @@ public class FilibusterCore {
             return false;
         }
 
-        boolean result = currentPartialTestExecution.wasFaultInjectedOnMethodWherePayloadContains(serviceName, methodName, contains);
+        boolean result;
+
+        if (filibusterConfiguration.getDataNondeterminism()) {
+            result = currentConcreteTestExecution.wasFaultInjectedOnMethodWherePayloadContains(serviceName, methodName, contains);
+        } else {
+            result = currentPartialTestExecution.wasFaultInjectedOnMethodWherePayloadContains(serviceName, methodName, contains);
+        }
 
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethodWherePayloadContains returning: " + result);
 

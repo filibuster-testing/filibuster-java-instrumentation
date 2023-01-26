@@ -77,7 +77,7 @@ public class JUnitFilibusterBasicTest extends JUnitBaseTest {
                 if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: INTERNAL")) {
                     expected = true;
                 }
-                
+
                 boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("WorldService");
                 assertTrue(wasFaultInjectedOnWorldService);
 

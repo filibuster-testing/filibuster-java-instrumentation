@@ -34,11 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class JUnitFilibusterBasicTest extends JUnitBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
-    /**
-     * Inject faults between Hello and World using Filibuster and assert proper faults are injected.
-     *
-     * @throws InterruptedException if teardown of gRPC channel fails.
-     */
+    private static int numberOfTestsExecuted = 0;
+
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class)
     @Order(1)
@@ -49,6 +46,8 @@ public class JUnitFilibusterBasicTest extends JUnitBaseTest {
                 .build();
 
         boolean expected = false;
+
+        numberOfTestsExecuted++;
 
         HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
         Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
@@ -78,19 +77,18 @@ public class JUnitFilibusterBasicTest extends JUnitBaseTest {
                 if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: INTERNAL")) {
                     expected = true;
                 }
-
-
+                
                 boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("WorldService");
                 assertTrue(wasFaultInjectedOnWorldService);
 
                 boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World");
                 assertTrue(wasFaultInjectedOnWorldMethod);
 
-                boolean wasFaultInjectedOnWorldMethodWithPayload = wasFaultInjectedOnMethodWherePayloadContains("cloud.filibuster.examples.WorldService/World", request.toString());
-                assertTrue(wasFaultInjectedOnWorldMethodWithPayload);
-
                 boolean wasFaultInjectedOnRequest = wasFaultInjectedOnRequest(request.toString());
                 assertTrue(wasFaultInjectedOnRequest);
+
+                boolean wasFaultInjectedOnWorldMethodWithPayload = wasFaultInjectedOnMethodWherePayloadContains("cloud.filibuster.examples.WorldService/World", request.toString());
+                assertTrue(wasFaultInjectedOnWorldMethodWithPayload);
 
                 if (!expected) {
                     throw t;
@@ -104,13 +102,17 @@ public class JUnitFilibusterBasicTest extends JUnitBaseTest {
         helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
     }
 
-    /**
-     * Verify that Filibuster generated the correct number of fault injections.
-     */
     @DisplayName("Verify correct number of generated Filibuster tests.")
     @Test
     @Order(2)
     public void testNumAssertions() {
         assertEquals(4, testExceptionsThrown.size());
+    }
+
+    @DisplayName("Verify correct number of executed tests.")
+    @Test
+    @Order(3)
+    public void testNumberOfTestsExecuted() {
+        assertEquals(5, numberOfTestsExecuted);
     }
 }

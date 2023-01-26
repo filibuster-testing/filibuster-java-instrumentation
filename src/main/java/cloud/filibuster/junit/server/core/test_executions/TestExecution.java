@@ -64,6 +64,11 @@ public abstract class TestExecution {
 
         // Add to the list of executed RPCs.
         executedRPCs.put(distributedExecutionIndex, payload);
+
+        // Add to the list of nondeterministic executed RPCs.
+        JSONObject nondeterministicPayload = new JSONObject(payload.toString());
+        nondeterministicPayload.remove("args");
+        nondeterministicExecutedRPCs.put(distributedExecutionIndex, nondeterministicPayload);
     }
 
     public int incrementGeneratedId() {

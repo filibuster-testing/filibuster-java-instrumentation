@@ -251,7 +251,6 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
         } catch (StatusRuntimeException e) {
             Status status = Status.DATA_LOSS.withDescription(e.toString());
             responseObserver.onError(status.asRuntimeException());
-            return;
         }
 
         originalChannel.shutdownNow();

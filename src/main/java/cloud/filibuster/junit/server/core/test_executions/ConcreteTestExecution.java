@@ -5,14 +5,13 @@ import org.json.JSONObject;
 
 import java.util.Map;
 
-// A valid test execution derived from a partial test execution once executed.
 public class ConcreteTestExecution extends TestExecution {
     public ConcreteTestExecution() {
 
     }
 
-    public ConcreteTestExecution(PartialTestExecution partialTestExecution) {
-        for (Map.Entry<DistributedExecutionIndex, JSONObject> faultToInject : partialTestExecution.faultsToInject.entrySet()) {
+    public ConcreteTestExecution(AbstractTestExecution abstractTestExecution) {
+        for (Map.Entry<DistributedExecutionIndex, JSONObject> faultToInject : abstractTestExecution.faultsToInject.entrySet()) {
             faultsToInject.put(faultToInject.getKey(), faultToInject.getValue());
         }
     }

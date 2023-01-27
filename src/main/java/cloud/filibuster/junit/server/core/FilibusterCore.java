@@ -8,7 +8,7 @@ import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
 import cloud.filibuster.junit.server.core.test_executions.ConcreteTestExecution;
-import cloud.filibuster.junit.server.core.test_executions.PartialTestExecution;
+import cloud.filibuster.junit.server.core.test_executions.AbstractTestExecution;
 import cloud.filibuster.junit.server.core.test_executions.TestExecution;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -49,20 +49,20 @@ public class FilibusterCore {
     private final FilibusterConfiguration filibusterConfiguration;
 
     // Queue containing the unexplored test executions.
-    // These are partial executions, as they are only prefix executions.
-    TestExecutionQueue<PartialTestExecution> unexploredTestExecutions = new TestExecutionQueue<>();
+    // These are abstract executions, as they are only prefix executions.
+    TestExecutionQueue<AbstractTestExecution> unexploredTestExecutions = new TestExecutionQueue<>();
 
     // Queue containing the test executions searched.
-    // This includes both partial executions we attempted to explore and the actual realized concrete executions.
+    // This includes both abstract executions we attempted to explore and the actual realized concrete executions.
     TestExecutionQueue<TestExecution> exploredTestExecutions = new TestExecutionQueue<>();
 
-    // The partial test execution that we are exploring currently.
+    // The abstract test execution that we are exploring currently.
     @Nullable
-    PartialTestExecution currentPartialTestExecution;
+    AbstractTestExecution currentAbstractTestExecution;
 
     // The concrete test execution that we are exploring currently.
     // Contains:
-    // * a prefix execution that matches the partial test execution.
+    // * a prefix execution that matches the abstract test execution.
     // * the same fault profile of the current, concrete test execution.
     @Nullable
     ConcreteTestExecution currentConcreteTestExecution = new ConcreteTestExecution();
@@ -71,8 +71,8 @@ public class FilibusterCore {
     @Nullable
     private FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
-    private int numberOfPartialExecutionsAttempted = 0;
-    private int numberOfPartialExecutionsExecuted = 0;
+    private int numberOfAbstractExecutionsAttempted = 0;
+    private int numberOfAbstractExecutionsExecuted = 0;
     private int numberOfConcreteExecutionsExecuted = 0;
     private int numberOfUniqueConcreteExecutionsExecuted = 0;
 
@@ -95,7 +95,7 @@ public class FilibusterCore {
         // Get next generated id.
         int generatedId = currentConcreteTestExecution.incrementGeneratedId();
 
-        // Generate new partial executions to run and queue them into the unexplored list.
+        // Generate new abstract executions to run and queue them into the unexplored list.
         if (filibusterCustomAnalysisConfigurationFile != null) {
             String serviceName = payload.getString("module");
             String methodName = payload.getString("method");
@@ -105,8 +105,8 @@ public class FilibusterCore {
         // Return either success or fault (if, this execution contains a fault to inject.)
         JSONObject response = new JSONObject();
 
-        if (currentPartialTestExecution != null && currentPartialTestExecution.shouldFault(distributedExecutionIndex)) {
-            JSONObject faultObject = currentPartialTestExecution.getFault(distributedExecutionIndex);
+        if (currentAbstractTestExecution != null && currentAbstractTestExecution.shouldFault(distributedExecutionIndex)) {
+            JSONObject faultObject = currentAbstractTestExecution.getFault(distributedExecutionIndex);
 
             // This is a bit redundant, we could just take the fault object and insert it directly into the response
             // if we change the API we call.
@@ -188,44 +188,41 @@ public class FilibusterCore {
         if (currentConcreteTestExecution != null) {
             // We're executing a test and not just running empty iterations (i.e., JUnit maxIterations > number of actual tests.)
 
-            // Add both the current concrete and partial execution to the explored list.
-            // * currentPartialTestExecution: the prefix of the concrete execution that was realized by the concrete execution.
+            // Add both the current concrete and abstract execution to the explored list.
+            // * currentAbstractTestExecution: the prefix of the concrete execution that was realized by the concrete execution.
             //   this may or may not be set if it's the initial execution.
             // * currentConcreteTestExecution: the actual concrete, realized trace of the test execution.
-            if (currentPartialTestExecution != null) {
-                numberOfPartialExecutionsAttempted++;
+            if (currentAbstractTestExecution != null) {
+                numberOfAbstractExecutionsAttempted++;
 
-                if (!exploredTestExecutions.contains(currentPartialTestExecution)) {
+                if (!exploredTestExecutions.contains(currentAbstractTestExecution)) {
                     // Don't add to explored queue if it's already there.
-                    numberOfPartialExecutionsExecuted++;
+                    numberOfAbstractExecutionsExecuted++;
 
-                    exploredTestExecutions.add(currentPartialTestExecution);
+                    exploredTestExecutions.add(currentAbstractTestExecution);
                 } else {
-                    logger.severe("[FILIBUSTER-CORE]: teardownsCompleted called, currentPartialTestExecution already exists in the explored queue, this could indicate a problem in Filibuster.");
+                    logger.severe("[FILIBUSTER-CORE]: teardownsCompleted called, currentAbstractTestExecution already exists in the explored queue, this could indicate a problem in Filibuster.");
                 }
             }
 
             if (!exploredTestExecutions.contains(currentConcreteTestExecution)) {
                 exploredTestExecutions.add(currentConcreteTestExecution);
-                numberOfConcreteExecutionsExecuted++;
-                numberOfUniqueConcreteExecutionsExecuted++;
-            } else {
-                numberOfConcreteExecutionsExecuted++;
             }
+            numberOfConcreteExecutionsExecuted++;
 
             // Unset fields.
-            currentPartialTestExecution = null;
+            currentAbstractTestExecution = null;
             currentConcreteTestExecution = null;
 
-            // If we have another test to run (it will be partial...)
+            // If we have another test to run (it will be abstract...)
             if (!unexploredTestExecutions.isEmpty()) {
                 logger.info("[FILIBUSTER-CORE]: teardownsCompleted, scheduling next test execution.");
 
-                PartialTestExecution nextPartialTestExecution = unexploredTestExecutions.remove();
+                AbstractTestExecution nextAbstractTestExecution = unexploredTestExecutions.remove();
 
-                // Set the partial execution, which drives fault injection and copy the faults into the concrete execution for the record.
-                currentPartialTestExecution = nextPartialTestExecution;
-                currentConcreteTestExecution = new ConcreteTestExecution(nextPartialTestExecution);
+                // Set the abstract execution, which drives fault injection and copy the faults into the concrete execution for the record.
+                currentAbstractTestExecution = nextAbstractTestExecution;
+                currentConcreteTestExecution = new ConcreteTestExecution(nextAbstractTestExecution);
             }
         }
 
@@ -238,11 +235,12 @@ public class FilibusterCore {
     public boolean wasFaultInjected() {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjected called");
 
-        if (currentPartialTestExecution == null || currentConcreteTestExecution == null) {
+        // TODO: need this?
+        if (currentAbstractTestExecution == null || currentConcreteTestExecution == null) {
             return false;
         }
 
-        boolean result = currentPartialTestExecution.wasFaultInjected();
+        boolean result = currentAbstractTestExecution.wasFaultInjected();
 
         logger.info("[FILIBUSTER-CORE]: wasFaultInjected returning: " + result);
 
@@ -253,11 +251,12 @@ public class FilibusterCore {
     public boolean wasFaultInjectedOnService(String serviceName) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnService called, serviceName: " + serviceName);
 
-        if (currentPartialTestExecution == null || currentConcreteTestExecution == null) {
+        // TODO: need this?
+        if (currentAbstractTestExecution == null || currentConcreteTestExecution == null) {
             return false;
         }
 
-        boolean result = currentPartialTestExecution.wasFaultInjectedOnService(serviceName);
+        boolean result = currentAbstractTestExecution.wasFaultInjectedOnService(serviceName);
 
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnService returning: " + result);
 
@@ -268,11 +267,12 @@ public class FilibusterCore {
     public boolean wasFaultInjectedOnMethod(String serviceName, String methodName) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethod called, serviceName: " + serviceName + ", methodName: " + methodName);
 
-        if (currentPartialTestExecution == null || currentConcreteTestExecution == null) {
+        // TODO: need this?
+        if (currentAbstractTestExecution == null || currentConcreteTestExecution == null) {
             return false;
         }
 
-        boolean result = currentPartialTestExecution.wasFaultInjectedOnMethod(serviceName, methodName);
+        boolean result = currentAbstractTestExecution.wasFaultInjectedOnMethod(serviceName, methodName);
 
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethod returning: " + result);
 
@@ -282,16 +282,17 @@ public class FilibusterCore {
     public boolean wasFaultInjectedOnRequest(String serializedRequest) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnRequest called, serializedRequest: " + serializedRequest);
 
-        if (currentPartialTestExecution == null || currentConcreteTestExecution == null) {
+        if (currentAbstractTestExecution == null || currentConcreteTestExecution == null) {
             return false;
         }
 
         boolean result;
 
+        // TODO: need this?
         if (filibusterConfiguration.getDataNondeterminism()) {
             result = currentConcreteTestExecution.wasFaultInjectedOnRequest(serializedRequest);
         } else {
-            result = currentPartialTestExecution.wasFaultInjectedOnRequest(serializedRequest);
+            result = currentAbstractTestExecution.wasFaultInjectedOnRequest(serializedRequest);
         }
 
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnRequest returning: " + result);
@@ -302,16 +303,17 @@ public class FilibusterCore {
     public boolean wasFaultInjectedOnMethodWherePayloadContains(String serviceName, String methodName, String contains) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethodWherePayloadContains called, serviceName: " + serviceName + ", methodName: " + methodName + ", contains: " + contains);
 
-        if (currentPartialTestExecution == null || currentConcreteTestExecution == null) {
+        if (currentAbstractTestExecution == null || currentConcreteTestExecution == null) {
             return false;
         }
 
         boolean result;
 
+        // TODO: need this?
         if (filibusterConfiguration.getDataNondeterminism()) {
             result = currentConcreteTestExecution.wasFaultInjectedOnMethodWherePayloadContains(serviceName, methodName, contains);
         } else {
-            result = currentPartialTestExecution.wasFaultInjectedOnMethodWherePayloadContains(serviceName, methodName, contains);
+            result = currentAbstractTestExecution.wasFaultInjectedOnMethodWherePayloadContains(serviceName, methodName, contains);
         }
 
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethodWherePayloadContains returning: " + result);
@@ -450,7 +452,7 @@ public class FilibusterCore {
                     List<JSONObject> exceptionFaultObjects = filibusterAnalysisConfiguration.getExceptionFaultObjects();
 
                     for(JSONObject faultObject : exceptionFaultObjects) {
-                        createAndSchedulePartialTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject);
+                        createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject);
                     }
 
                     // Errors.
@@ -468,7 +470,7 @@ public class FilibusterCore {
                         if (matcher.find()) {
                             for (Object obj : faultTypesArray) {
                                 JSONObject faultTypeObject = (JSONObject) obj;
-                                createAndSchedulePartialTestExecution(filibusterConfiguration, distributedExecutionIndex, faultTypeObject);
+                                createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultTypeObject);
                             }
                         }
                     }
@@ -479,63 +481,67 @@ public class FilibusterCore {
         logger.info("[FILIBUSTER-CORE]: generateFaultsUsingAnalysisConfiguration returning.");
     }
 
-    private void createAndSchedulePartialTestExecution(
+    private void createAndScheduleAbstractTestExecution(
             FilibusterConfiguration filibusterConfiguration,
             DistributedExecutionIndex distributedExecutionIndex,
             JSONObject faultObject) {
-        logger.info("[FILIBUSTER-CORE]: createAndSchedulePartialTestExecution called.");
+        logger.info("[FILIBUSTER-CORE]: createAndScheduleAbstractTestExecution called.");
 
         if (currentConcreteTestExecution != null) {
-            PartialTestExecution partialTestExecution = currentConcreteTestExecution.cloneToPartialTestExecution();
-            partialTestExecution.addFaultToInject(distributedExecutionIndex, faultObject);
+            AbstractTestExecution abstractTestExecution = currentConcreteTestExecution.cloneToAbstractTestExecution();
+            abstractTestExecution.addFaultToInject(distributedExecutionIndex, faultObject);
 
-            boolean partialIsExploredExecution;
-            boolean partialIsScheduledExecution;
-            boolean partialIsCurrentExecution;
+            boolean abstractIsExploredExecution;
+            boolean abstractIsScheduledExecution;
+            boolean abstractIsCurrentExecution;
 
+            // TODO: possibly rename these methods.
+            // TODO: we don't even need the different methods now, right?
             if (filibusterConfiguration.getDataNondeterminism()) {
-                partialIsExploredExecution = exploredTestExecutions.nondeterministicContains(partialTestExecution);
-                partialIsScheduledExecution = unexploredTestExecutions.nondeterministicContains(partialTestExecution);
-                partialIsCurrentExecution = currentPartialTestExecution != null && currentPartialTestExecution.nondeterministicEquals(partialTestExecution);
+                abstractIsExploredExecution = exploredTestExecutions.nondeterministicContains(abstractTestExecution);
+                abstractIsScheduledExecution = unexploredTestExecutions.nondeterministicContains(abstractTestExecution);
+                abstractIsCurrentExecution = currentAbstractTestExecution != null && currentAbstractTestExecution.nondeterministicEquals(abstractTestExecution);
             } else {
-                partialIsExploredExecution = exploredTestExecutions.contains(partialTestExecution);
-                partialIsScheduledExecution = unexploredTestExecutions.contains(partialTestExecution);
-                partialIsCurrentExecution = currentPartialTestExecution != null && currentPartialTestExecution.equals(partialTestExecution);
+                abstractIsExploredExecution = exploredTestExecutions.deterministicContains(abstractTestExecution);
+                abstractIsScheduledExecution = unexploredTestExecutions.deterministicContains(abstractTestExecution);
+                abstractIsCurrentExecution = currentAbstractTestExecution != null && currentAbstractTestExecution.deterministicEquals(abstractTestExecution);
             }
 
-            if (!partialIsExploredExecution && !partialIsScheduledExecution && !partialIsCurrentExecution) {
+            if (!abstractIsExploredExecution && !abstractIsScheduledExecution && !abstractIsCurrentExecution) {
                 if (filibusterConfiguration.getSuppressCombinations()) {
-                    if (!(partialTestExecution.getFaultsToInjectSize() > 1)) {
-                        unexploredTestExecutions.add(partialTestExecution);
-                        logger.info("[FILIBUSTER-CORE]: createAndSchedulePartialTestExecution, adding new execution to the queue.");
+                    if (!(abstractTestExecution.getFaultsToInjectSize() > 1)) {
+                        unexploredTestExecutions.add(abstractTestExecution);
+                        logger.info("[FILIBUSTER-CORE]: createAndScheduleAbstractTestExecution, adding new execution to the queue.");
                     } else {
-                        logger.info("[FILIBUSTER-CORE]: createAndSchedulePartialTestExecution, not scheduling test execution because it contains > 1 fault.");
+                        logger.info("[FILIBUSTER-CORE]: createAndScheduleAbstractTestExecution, not scheduling test execution because it contains > 1 fault.");
                     }
                 } else {
-                    logger.info("[FILIBUSTER-CORE]: createAndSchedulePartialTestExecution, adding new execution to the queue.");
-                    unexploredTestExecutions.add(partialTestExecution);
+                    logger.info("[FILIBUSTER-CORE]: createAndScheduleAbstractTestExecution, adding new execution to the queue.");
+                    unexploredTestExecutions.add(abstractTestExecution);
                 }
             }
         }
 
-        logger.info("[FILIBUSTER-CORE]: createAndSchedulePartialTestExecution returning.");
+        logger.info("[FILIBUSTER-CORE]: createAndScheduleAbstractTestExecution returning.");
     }
 
     private void printSummary() {
         logger.info("[FILIBUSTER-CORE]: Test Summary: ");
-        logger.info("[FILIBUSTER-CORE]: * numberOfPartialExecutionsAttempted:       " + numberOfPartialExecutionsAttempted);
-        logger.info("[FILIBUSTER-CORE]: * numberOfPartialExecutionsExecuted:        " + numberOfPartialExecutionsExecuted);
+        logger.info("[FILIBUSTER-CORE]: * numberOfAbstractExecutionsAttempted:       " + numberOfAbstractExecutionsAttempted);
+        logger.info("[FILIBUSTER-CORE]: * numberOfAbstractExecutionsExecuted:        " + numberOfAbstractExecutionsExecuted);
+        logger.info("[FILIBUSTER-CORE]: * numberOfConcreteExecutionsExecuted:        " + numberOfConcreteExecutionsExecuted);
 
-        if (numberOfPartialExecutionsAttempted != numberOfPartialExecutionsExecuted) {
-            logger.warning("[FILIBUSTER-CORE]: Number of partial test executions attempted doesn't match executed: this could indicate a problem.");
+        logger.info("[FILIBUSTER-CORE]: Queue Statistics: ");
+        logger.info("[FILIBUSTER-CORE]: * unexploredTestExecutions.size():           " + unexploredTestExecutions.size());
+        logger.info("[FILIBUSTER-CORE]: * exploredTestExecutions.size():             " + exploredTestExecutions.size());
+
+        if (numberOfAbstractExecutionsAttempted != numberOfAbstractExecutionsExecuted) {
+            logger.warning("[FILIBUSTER-CORE]: Number of abstract test executions attempted doesn't match executed: this could indicate a problem.");
         }
 
-        logger.info("[FILIBUSTER-CORE]: * numberOfConcreteExecutionsExecuted:       " + numberOfConcreteExecutionsExecuted);
-        logger.info("[FILIBUSTER-CORE]: * numberOfUniqueConcreteExecutionsExecuted: " + numberOfUniqueConcreteExecutionsExecuted);
-
-        if (numberOfPartialExecutionsExecuted != 0 && numberOfConcreteExecutionsExecuted != 0) { // Actually ran something.
-            if (numberOfPartialExecutionsExecuted != (numberOfConcreteExecutionsExecuted - 1)) {
-                logger.warning("[FILIBUSTER-CORE]: Number of partial test executions attempted doesn't match concrete (-1): this could indicate a problem.");
+        if (numberOfAbstractExecutionsExecuted != 0 && numberOfConcreteExecutionsExecuted != 0) { // Actually ran something.
+            if (numberOfAbstractExecutionsExecuted != (numberOfConcreteExecutionsExecuted - 1)) {
+                logger.warning("[FILIBUSTER-CORE]: Number of abstract test executions attempted doesn't match concrete (-1): this could indicate a problem.");
             }
         }
     }

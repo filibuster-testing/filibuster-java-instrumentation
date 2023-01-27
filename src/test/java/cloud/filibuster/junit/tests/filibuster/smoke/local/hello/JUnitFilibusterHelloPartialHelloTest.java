@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.tests.filibuster.smoke.local;
+package cloud.filibuster.junit.tests.filibuster.smoke.local.hello;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterBasicTest extends JUnitBaseTest {
+public class JUnitFilibusterHelloPartialHelloTest extends JUnitBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     private static int numberOfTestsExecuted = 0;

@@ -3,7 +3,7 @@ package cloud.filibuster.junit.tests.filibuster.smoke.local;
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.dei.implementations.DistributedExecutionIndexV1;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
-import cloud.filibuster.junit.server.core.test_executions.PartialTestExecution;
+import cloud.filibuster.junit.server.core.test_executions.AbstractTestExecution;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
@@ -13,8 +13,8 @@ import static org.junit.Assert.assertNotEquals;
 public class TestExecutionTest {
     @Test
     public void testEqualityOfEmpty() {
-        PartialTestExecution pe1 = new PartialTestExecution();
-        PartialTestExecution pe2 = new PartialTestExecution();
+        AbstractTestExecution pe1 = new AbstractTestExecution();
+        AbstractTestExecution pe2 = new AbstractTestExecution();
         assertEquals(pe1, pe2);
     }
 
@@ -29,8 +29,8 @@ public class TestExecutionTest {
 
         JSONObject jsonObject = new JSONObject();
 
-        PartialTestExecution pe1 = new PartialTestExecution();
-        PartialTestExecution pe2 = new PartialTestExecution();
+        AbstractTestExecution pe1 = new AbstractTestExecution();
+        AbstractTestExecution pe2 = new AbstractTestExecution();
 
         pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, jsonObject);
         pe2.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, jsonObject);
@@ -51,8 +51,8 @@ public class TestExecutionTest {
 
         JSONObject jsonObject = new JSONObject();
 
-        PartialTestExecution pe1 = new PartialTestExecution();
-        PartialTestExecution pe2 = new PartialTestExecution();
+        AbstractTestExecution pe1 = new AbstractTestExecution();
+        AbstractTestExecution pe2 = new AbstractTestExecution();
 
         // If this fails, we know the difference has to be in the JSONObject comparison, since the keys are the same.
         pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex1, jsonObject);
@@ -67,8 +67,8 @@ public class TestExecutionTest {
         DistributedExecutionIndex distributedExecutionIndex = new DistributedExecutionIndexV1();
         distributedExecutionIndex.push(callsite);
 
-        PartialTestExecution pe1 = new PartialTestExecution();
-        PartialTestExecution pe2 = new PartialTestExecution();
+        AbstractTestExecution pe1 = new AbstractTestExecution();
+        AbstractTestExecution pe2 = new AbstractTestExecution();
 
         // If this fails, we know the difference has to be in the JSONObject comparison, since the keys are the same.
         pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, new JSONObject());
@@ -94,8 +94,8 @@ public class TestExecutionTest {
 
         assertEquals(distributedExecutionIndex1, distributedExecutionIndex2);
 
-        PartialTestExecution pe1 = new PartialTestExecution();
-        PartialTestExecution pe2 = new PartialTestExecution();
+        AbstractTestExecution pe1 = new AbstractTestExecution();
+        AbstractTestExecution pe2 = new AbstractTestExecution();
 
         // If this fails, we know the difference has to be in the JSONObject comparison, since the keys are the same.
         pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex1, new JSONObject());
@@ -112,8 +112,8 @@ public class TestExecutionTest {
         distributedExecutionIndex.push(callsite1);
         distributedExecutionIndex.push(callsite2);
 
-        PartialTestExecution pe1 = new PartialTestExecution();
-        PartialTestExecution pe2 = new PartialTestExecution();
+        AbstractTestExecution pe1 = new AbstractTestExecution();
+        AbstractTestExecution pe2 = new AbstractTestExecution();
 
         JSONObject jsonObject = new JSONObject();
 
@@ -132,8 +132,8 @@ public class TestExecutionTest {
         distributedExecutionIndex.push(callsite1);
         distributedExecutionIndex.push(callsite2);
 
-        PartialTestExecution pe1 = new PartialTestExecution();
-        PartialTestExecution pe2 = new PartialTestExecution();
+        AbstractTestExecution pe1 = new AbstractTestExecution();
+        AbstractTestExecution pe2 = new AbstractTestExecution();
 
         // If this fails, we know the difference has to be in the JSONObject comparison, since the keys are the same.
         pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, new JSONObject());
@@ -154,8 +154,8 @@ public class TestExecutionTest {
         distributedExecutionIndex2.push(callsite1);
         distributedExecutionIndex2.push(callsite2);
 
-        PartialTestExecution pe1 = new PartialTestExecution();
-        PartialTestExecution pe2 = new PartialTestExecution();
+        AbstractTestExecution pe1 = new AbstractTestExecution();
+        AbstractTestExecution pe2 = new AbstractTestExecution();
 
         JSONObject jsonObject = new JSONObject();
 
@@ -178,8 +178,8 @@ public class TestExecutionTest {
         distributedExecutionIndex2.push(callsite1);
         distributedExecutionIndex2.push(callsite2);
 
-        PartialTestExecution pe1 = new PartialTestExecution();
-        PartialTestExecution pe2 = new PartialTestExecution();
+        AbstractTestExecution pe1 = new AbstractTestExecution();
+        AbstractTestExecution pe2 = new AbstractTestExecution();
 
         // If this fails, we know the difference has to be in the JSONObject comparison, since the keys are the same.
         pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex1, new JSONObject());
@@ -198,8 +198,8 @@ public class TestExecutionTest {
 
         JSONObject jsonObject = new JSONObject();
 
-        PartialTestExecution pe1 = new PartialTestExecution();
-        PartialTestExecution pe2 = new PartialTestExecution();
+        AbstractTestExecution pe1 = new AbstractTestExecution();
+        AbstractTestExecution pe2 = new AbstractTestExecution();
 
         pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, jsonObject);
         pe2.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, jsonObject);
@@ -224,8 +224,8 @@ public class TestExecutionTest {
 
         JSONObject jsonObject = new JSONObject();
 
-        PartialTestExecution pe1 = new PartialTestExecution();
-        PartialTestExecution pe2 = new PartialTestExecution();
+        AbstractTestExecution pe1 = new AbstractTestExecution();
+        AbstractTestExecution pe2 = new AbstractTestExecution();
 
         // If this fails, we know the difference has to be in the JSONObject comparison, since the keys are the same.
         pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex1, jsonObject);
@@ -244,8 +244,8 @@ public class TestExecutionTest {
         DistributedExecutionIndex distributedExecutionIndex = new DistributedExecutionIndexV1();
         distributedExecutionIndex.push(callsite);
 
-        PartialTestExecution pe1 = new PartialTestExecution();
-        PartialTestExecution pe2 = new PartialTestExecution();
+        AbstractTestExecution pe1 = new AbstractTestExecution();
+        AbstractTestExecution pe2 = new AbstractTestExecution();
 
         // If this fails, we know the difference has to be in the JSONObject comparison, since the keys are the same.
         pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, new JSONObject());
@@ -275,8 +275,8 @@ public class TestExecutionTest {
 
         assertEquals(distributedExecutionIndex1, distributedExecutionIndex2);
 
-        PartialTestExecution pe1 = new PartialTestExecution();
-        PartialTestExecution pe2 = new PartialTestExecution();
+        AbstractTestExecution pe1 = new AbstractTestExecution();
+        AbstractTestExecution pe2 = new AbstractTestExecution();
 
         // If this fails, we know the difference has to be in the JSONObject comparison, since the keys are the same.
         pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex1, new JSONObject());
@@ -297,8 +297,8 @@ public class TestExecutionTest {
         distributedExecutionIndex.push(callsite1);
         distributedExecutionIndex.push(callsite2);
 
-        PartialTestExecution pe1 = new PartialTestExecution();
-        PartialTestExecution pe2 = new PartialTestExecution();
+        AbstractTestExecution pe1 = new AbstractTestExecution();
+        AbstractTestExecution pe2 = new AbstractTestExecution();
 
         JSONObject jsonObject = new JSONObject();
 
@@ -321,8 +321,8 @@ public class TestExecutionTest {
         distributedExecutionIndex.push(callsite1);
         distributedExecutionIndex.push(callsite2);
 
-        PartialTestExecution pe1 = new PartialTestExecution();
-        PartialTestExecution pe2 = new PartialTestExecution();
+        AbstractTestExecution pe1 = new AbstractTestExecution();
+        AbstractTestExecution pe2 = new AbstractTestExecution();
 
         // If this fails, we know the difference has to be in the JSONObject comparison, since the keys are the same.
         pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, new JSONObject());
@@ -347,8 +347,8 @@ public class TestExecutionTest {
         distributedExecutionIndex2.push(callsite1);
         distributedExecutionIndex2.push(callsite2);
 
-        PartialTestExecution pe1 = new PartialTestExecution();
-        PartialTestExecution pe2 = new PartialTestExecution();
+        AbstractTestExecution pe1 = new AbstractTestExecution();
+        AbstractTestExecution pe2 = new AbstractTestExecution();
 
         JSONObject jsonObject = new JSONObject();
 
@@ -375,8 +375,8 @@ public class TestExecutionTest {
         distributedExecutionIndex2.push(callsite1);
         distributedExecutionIndex2.push(callsite2);
 
-        PartialTestExecution pe1 = new PartialTestExecution();
-        PartialTestExecution pe2 = new PartialTestExecution();
+        AbstractTestExecution pe1 = new AbstractTestExecution();
+        AbstractTestExecution pe2 = new AbstractTestExecution();
 
         // If this fails, we know the difference has to be in the JSONObject comparison, since the keys are the same.
         pe1.addDistributedExecutionIndexWithPayload(distributedExecutionIndex1, new JSONObject());
@@ -397,8 +397,8 @@ public class TestExecutionTest {
         DistributedExecutionIndex distributedExecutionIndex = new DistributedExecutionIndexV1();
         distributedExecutionIndex.push(callsite);
 
-        PartialTestExecution pe1 = new PartialTestExecution();
-        PartialTestExecution pe2 = new PartialTestExecution();
+        AbstractTestExecution pe1 = new AbstractTestExecution();
+        AbstractTestExecution pe2 = new AbstractTestExecution();
 
         JSONObject jsonObject1 = new JSONObject();
         jsonObject1.put("thing", "thing");
@@ -429,8 +429,8 @@ public class TestExecutionTest {
 
         assertEquals(distributedExecutionIndex1, distributedExecutionIndex2);
 
-        PartialTestExecution pe1 = new PartialTestExecution();
-        PartialTestExecution pe2 = new PartialTestExecution();
+        AbstractTestExecution pe1 = new AbstractTestExecution();
+        AbstractTestExecution pe2 = new AbstractTestExecution();
 
         JSONObject jsonObject1 = new JSONObject();
         jsonObject1.put("thing", "thing");

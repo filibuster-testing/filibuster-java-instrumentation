@@ -53,7 +53,8 @@ public abstract class TestExecution {
             for (DistributedExecutionIndex name: faultsToInject.keySet()) {
                 String key = name.toString();
                 String value = faultsToInject.get(name).toString(4);
-                logger.info(key + " => " + value);
+                JSONObject request = executedRPCs.get(name);
+                logger.info(key + " => " + value + " => " + request);
             }
         } else {
             logger.info("No faults injected by Filibuster:");
@@ -92,22 +93,22 @@ public abstract class TestExecution {
     }
 
     @SuppressWarnings("Varifier")
-    public PartialTestExecution cloneToPartialTestExecution() {
-        PartialTestExecution partialTestExecution = new PartialTestExecution();
+    public AbstractTestExecution cloneToAbstractTestExecution() {
+        AbstractTestExecution abstractTestExecution = new AbstractTestExecution();
 
         for (Map.Entry<DistributedExecutionIndex, JSONObject> mapEntry : executedRPCs.entrySet()) {
-            partialTestExecution.executedRPCs.put(mapEntry.getKey(), mapEntry.getValue());
+            abstractTestExecution.executedRPCs.put(mapEntry.getKey(), mapEntry.getValue());
         }
 
         for (Map.Entry<DistributedExecutionIndex, JSONObject> mapEntry : nondeterministicExecutedRPCs.entrySet()) {
-            partialTestExecution.nondeterministicExecutedRPCs.put(mapEntry.getKey(), mapEntry.getValue());
+            abstractTestExecution.nondeterministicExecutedRPCs.put(mapEntry.getKey(), mapEntry.getValue());
         }
 
         for (Map.Entry<DistributedExecutionIndex, JSONObject> mapEntry : faultsToInject.entrySet()) {
-            partialTestExecution.faultsToInject.put(mapEntry.getKey(), mapEntry.getValue());
+            abstractTestExecution.faultsToInject.put(mapEntry.getKey(), mapEntry.getValue());
         }
 
-        return partialTestExecution;
+        return abstractTestExecution;
     }
 
     public boolean wasFaultInjected() {
@@ -144,20 +145,12 @@ public abstract class TestExecution {
     }
 
     @SuppressWarnings("Varifier")
-    public boolean nondeterministicEquals(Object o) {
+    public boolean deterministicEquals(Object o) {
         if (!(o instanceof TestExecution)) {
             return false;
         }
 
         TestExecution te = (TestExecution) o;
-
-        // Are the key sets equivalent?
-        if (!this.nondeterministicExecutedRPCs.keySet().equals(te.nondeterministicExecutedRPCs.keySet())) {
-            return false;
-        }
-
-        // Are the JSON objects similar for each key?
-        boolean equalRPCsMap = this.nondeterministicExecutedRPCs.entrySet().stream().allMatch(e -> e.getValue().similar(te.nondeterministicExecutedRPCs.get(e.getKey())));
 
         // Are the key sets equivalent?
         if (!this.faultsToInject.keySet().equals(te.faultsToInject.keySet())) {
@@ -167,7 +160,26 @@ public abstract class TestExecution {
         // Are the JSON objects similar for each key?
         boolean equalFaultToInjectMap = this.faultsToInject.entrySet().stream().allMatch(e -> e.getValue().similar(te.faultsToInject.get(e.getKey())));
 
-        return equalRPCsMap && equalFaultToInjectMap;
+        return  equalFaultToInjectMap;
+    }
+
+    @SuppressWarnings("Varifier")
+    public boolean nondeterministicEquals(Object o) {
+        if (!(o instanceof TestExecution)) {
+            return false;
+        }
+
+        TestExecution te = (TestExecution) o;
+
+        // Are the key sets equivalent?
+        if (!this.faultsToInject.keySet().equals(te.faultsToInject.keySet())) {
+            return false;
+        }
+
+        // Are the JSON objects similar for each key?
+        boolean equalFaultToInjectMap = this.faultsToInject.entrySet().stream().allMatch(e -> e.getValue().similar(te.faultsToInject.get(e.getKey())));
+
+        return equalFaultToInjectMap;
     }
 
     @Override

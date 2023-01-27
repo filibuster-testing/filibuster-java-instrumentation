@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.tests.filibuster.smoke.local.nondeterministic;
+package cloud.filibuster.junit.tests.filibuster.smoke.local.hello.nondeterministic;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;

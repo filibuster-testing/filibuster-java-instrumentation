@@ -15,4 +15,15 @@ public class TestExecutionQueue<T extends TestExecution> extends LinkedBlockingD
 
         return false;
     }
+
+    public boolean deterministicContains(TestExecution te) {
+
+        for (T t : this) {
+            if (t.deterministicEquals(te)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

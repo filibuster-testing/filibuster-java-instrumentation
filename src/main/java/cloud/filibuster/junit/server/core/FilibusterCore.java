@@ -419,7 +419,7 @@ public class FilibusterCore {
     private void generateFaultsUsingAnalysisConfiguration(
             FilibusterConfiguration filibusterConfiguration,
             DistributedExecutionIndex distributedExecutionIndex,
-            String serviceName,
+            String moduleName,
             String methodName
     ) {
         logger.info("[FILIBUSTER-CORE]: generateFaultsUsingAnalysisConfiguration called.");
@@ -442,7 +442,7 @@ public class FilibusterCore {
 
                         String faultServiceName = failureMetadataObject.getString("service_name");
                         Pattern faultServiceNamePattern = Pattern.compile(faultServiceName, Pattern.CASE_INSENSITIVE);
-                        Matcher matcher = faultServiceNamePattern.matcher(serviceName);
+                        Matcher matcher = faultServiceNamePattern.matcher(moduleName);
 
                         List<Object> faultTypesArray = failureMetadataObject.getJSONArray("types").toList();
 

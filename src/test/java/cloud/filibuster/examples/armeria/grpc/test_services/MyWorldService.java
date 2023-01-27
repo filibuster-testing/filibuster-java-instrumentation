@@ -66,7 +66,7 @@ public class MyWorldService extends WorldServiceGrpc.WorldServiceImplBase {
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
         } else {
-            Status status = Status.FAILED_PRECONDITION.withCause(new UnsupportedOperationException());
+            Status status = Status.FAILED_PRECONDITION.withDescription("HTTP RPC returned: " + statusCode);
             responseObserver.onError(status.asException());
         }
     }

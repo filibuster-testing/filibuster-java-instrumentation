@@ -39,7 +39,7 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitBaseT
     private static int numberOfExceptionsThrown = 0;
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, maxIterations=1)
+    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, maxIterations=10)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -59,90 +59,73 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitBaseT
             assertEquals("Hello, Armerian World!!", reply.getMessage());
             assertFalse(wasFaultInjected());
         } catch (Throwable t) {
-            throw t;
+            numberOfExceptionsThrown++;
+            testExceptionsThrown.add(t.getMessage());
 
-//            numberOfExceptionsThrown++;
-//            testExceptionsThrown.add(t.getMessage());
-//
-//            boolean wasFaultInjected = wasFaultInjected();
-//
-//            boolean firstRPCFailed = false;
-//            boolean secondRPCFailed = false;
-//
-//            if (wasFaultInjected) {
-//                // First RPC failed.
-//                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
-//                    expected = true;
-//                    firstRPCFailed = true;
-//                }
-//
-//                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNAVAILABLE")) {
-//                    expected = true;
-//                    firstRPCFailed = true;
-//                }
-//
-//                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED")) {
-//                    expected = true;
-//                    firstRPCFailed = true;
-//                }
-//
-//                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: INTERNAL")) {
-//                    expected = true;
-//                    firstRPCFailed = true;
-//                }
-//
-//                if (firstRPCFailed) {
-//                    boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("WorldService");
-//                    assertTrue(wasFaultInjectedOnWorldService);
-//
-//                    boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World");
-//                    assertTrue(wasFaultInjectedOnWorldMethod);
-//
-//                    boolean wasFaultInjectedOnRequest = wasFaultInjectedOnRequest(request.toString());
-//                    assertTrue(wasFaultInjectedOnRequest);
-//
-//                    boolean wasFaultInjectedOnWorldMethodWithPayload = wasFaultInjectedOnMethodWherePayloadContains("cloud.filibuster.examples.WorldService/World", request.toString());
-//                    assertTrue(wasFaultInjectedOnWorldMethodWithPayload);
-//                }
-//
-//                // Second RPC failed.
-//
-//                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED")) {
-//                    expected = true;
-//                    secondRPCFailed = true;
-//                }
-//
-//                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: INTERNAL")) {
-//                    expected = true;
-//                    secondRPCFailed = true;
-//                }
-//
-//                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: UNAVAILABLE")) {
-//                    expected = true;
-//                    secondRPCFailed = true;
-//                }
-//
-//                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
-//                    expected = true;
-//                    secondRPCFailed = true;
-//                }
-//
-//                if (secondRPCFailed) {
-//                    boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("HelloService");
-//                    assertTrue(wasFaultInjectedOnWorldService);
-//
-//                    boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod("cloud.filibuster.examples.HelloService/Hello");
-//                    assertTrue(wasFaultInjectedOnWorldMethod);
-//                }
-//
-//                if (!expected) {
-//                    throw t;
-//                }
-//            } else {
-//                if (!expected) {
-//                    throw t;
-//                }
-//            }
+            boolean wasFaultInjected = wasFaultInjected();
+
+            boolean firstRPCFailed = false;
+
+            if (wasFaultInjected) {
+                // First RPC failed.
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
+                    expected = true;
+                    firstRPCFailed = true;
+                }
+
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNAVAILABLE")) {
+                    expected = true;
+                    firstRPCFailed = true;
+                }
+
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED")) {
+                    expected = true;
+                    firstRPCFailed = true;
+                }
+
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: INTERNAL")) {
+                    expected = true;
+                    firstRPCFailed = true;
+                }
+
+                if (firstRPCFailed) {
+                    boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("WorldService");
+                    assertTrue(wasFaultInjectedOnWorldService);
+
+                    boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World");
+                    assertTrue(wasFaultInjectedOnWorldMethod);
+
+                    boolean wasFaultInjectedOnRequest = wasFaultInjectedOnRequest(request.toString());
+                    assertTrue(wasFaultInjectedOnRequest);
+
+                    boolean wasFaultInjectedOnWorldMethodWithPayload = wasFaultInjectedOnMethodWherePayloadContains("cloud.filibuster.examples.WorldService/World", request.toString());
+                    assertTrue(wasFaultInjectedOnWorldMethodWithPayload);
+                }
+
+                // Second RPC failed.
+
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNKNOWN")) {
+                    expected = true;
+                }
+
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: FAILED_PRECONDITION: HTTP RPC returned: 500")) {
+                    expected = true;
+                }
+
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: FAILED_PRECONDITION: HTTP RPC returned: 502")) {
+                    expected = true;
+                }
+
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: FAILED_PRECONDITION: HTTP RPC returned: 503")) {
+                    expected = true;
+                }
+
+                if (!expected) {
+                    throw t;
+                }
+            } else {
+                throw t;
+            }
         }
 
         helloChannel.shutdownNow();
@@ -160,13 +143,13 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitBaseT
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEquals(25, numberOfTestsExecuted);
+        assertEquals(9, numberOfTestsExecuted);
     }
 
     @DisplayName("Verify correct number of exceptions thrown.")
     @Test
     @Order(4)
     public void numberOfExceptionsThrown() {
-        assertEquals(24, numberOfExceptionsThrown);
+        assertEquals(8, numberOfExceptionsThrown);
     }
 }

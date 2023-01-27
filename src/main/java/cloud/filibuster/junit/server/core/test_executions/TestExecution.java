@@ -145,7 +145,7 @@ public abstract class TestExecution {
     }
 
     @SuppressWarnings("Varifier")
-    public boolean deterministicEquals(Object o) {
+    public boolean matchesAbstractTestExecution(Object o) {
         if (!(o instanceof TestExecution)) {
             return false;
         }
@@ -158,28 +158,7 @@ public abstract class TestExecution {
         }
 
         // Are the JSON objects similar for each key?
-        boolean equalFaultToInjectMap = this.faultsToInject.entrySet().stream().allMatch(e -> e.getValue().similar(te.faultsToInject.get(e.getKey())));
-
-        return  equalFaultToInjectMap;
-    }
-
-    @SuppressWarnings("Varifier")
-    public boolean nondeterministicEquals(Object o) {
-        if (!(o instanceof TestExecution)) {
-            return false;
-        }
-
-        TestExecution te = (TestExecution) o;
-
-        // Are the key sets equivalent?
-        if (!this.faultsToInject.keySet().equals(te.faultsToInject.keySet())) {
-            return false;
-        }
-
-        // Are the JSON objects similar for each key?
-        boolean equalFaultToInjectMap = this.faultsToInject.entrySet().stream().allMatch(e -> e.getValue().similar(te.faultsToInject.get(e.getKey())));
-
-        return equalFaultToInjectMap;
+        return this.faultsToInject.entrySet().stream().allMatch(e -> e.getValue().similar(te.faultsToInject.get(e.getKey())));
     }
 
     @Override

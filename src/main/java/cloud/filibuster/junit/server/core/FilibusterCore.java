@@ -230,48 +230,42 @@ public class FilibusterCore {
 
     // Fault injection helpers.
 
-    // Was any fault injected?
     public boolean wasFaultInjected() {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjected called");
 
-        // TODO: need this?
-        if (currentAbstractTestExecution == null || currentConcreteTestExecution == null) {
+        if (currentConcreteTestExecution == null) {
             return false;
         }
 
-        boolean result = currentAbstractTestExecution.wasFaultInjected();
+        boolean result = currentConcreteTestExecution.wasFaultInjected();
 
         logger.info("[FILIBUSTER-CORE]: wasFaultInjected returning: " + result);
 
         return result;
     }
 
-    // Was a fault injected on a particular service?
     public boolean wasFaultInjectedOnService(String serviceName) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnService called, serviceName: " + serviceName);
 
-        // TODO: need this?
-        if (currentAbstractTestExecution == null || currentConcreteTestExecution == null) {
+        if (currentConcreteTestExecution == null) {
             return false;
         }
 
-        boolean result = currentAbstractTestExecution.wasFaultInjectedOnService(serviceName);
+        boolean result = currentConcreteTestExecution.wasFaultInjectedOnService(serviceName);
 
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnService returning: " + result);
 
         return result;
     }
 
-    // Was a fault injected on a particular GRPC call?
     public boolean wasFaultInjectedOnMethod(String serviceName, String methodName) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethod called, serviceName: " + serviceName + ", methodName: " + methodName);
 
-        // TODO: need this?
-        if (currentAbstractTestExecution == null || currentConcreteTestExecution == null) {
+        if (currentConcreteTestExecution == null) {
             return false;
         }
 
-        boolean result = currentAbstractTestExecution.wasFaultInjectedOnMethod(serviceName, methodName);
+        boolean result = currentConcreteTestExecution.wasFaultInjectedOnMethod(serviceName, methodName);
 
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethod returning: " + result);
 
@@ -281,18 +275,11 @@ public class FilibusterCore {
     public boolean wasFaultInjectedOnRequest(String serializedRequest) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnRequest called, serializedRequest: " + serializedRequest);
 
-        if (currentAbstractTestExecution == null || currentConcreteTestExecution == null) {
+        if (currentConcreteTestExecution == null) {
             return false;
         }
 
-        boolean result;
-
-        // TODO: need this?
-        if (filibusterConfiguration.getDataNondeterminism()) {
-            result = currentConcreteTestExecution.wasFaultInjectedOnRequest(serializedRequest);
-        } else {
-            result = currentAbstractTestExecution.wasFaultInjectedOnRequest(serializedRequest);
-        }
+        boolean result = currentConcreteTestExecution.wasFaultInjectedOnRequest(serializedRequest);
 
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnRequest returning: " + result);
 
@@ -302,18 +289,11 @@ public class FilibusterCore {
     public boolean wasFaultInjectedOnMethodWherePayloadContains(String serviceName, String methodName, String contains) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethodWherePayloadContains called, serviceName: " + serviceName + ", methodName: " + methodName + ", contains: " + contains);
 
-        if (currentAbstractTestExecution == null || currentConcreteTestExecution == null) {
+        if (currentConcreteTestExecution == null) {
             return false;
         }
 
-        boolean result;
-
-        // TODO: need this?
-        if (filibusterConfiguration.getDataNondeterminism()) {
-            result = currentConcreteTestExecution.wasFaultInjectedOnMethodWherePayloadContains(serviceName, methodName, contains);
-        } else {
-            result = currentAbstractTestExecution.wasFaultInjectedOnMethodWherePayloadContains(serviceName, methodName, contains);
-        }
+        boolean result = currentConcreteTestExecution.wasFaultInjectedOnMethodWherePayloadContains(serviceName, methodName, contains);
 
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethodWherePayloadContains returning: " + result);
 
@@ -490,21 +470,9 @@ public class FilibusterCore {
             AbstractTestExecution abstractTestExecution = currentConcreteTestExecution.cloneToAbstractTestExecution();
             abstractTestExecution.addFaultToInject(distributedExecutionIndex, faultObject);
 
-            boolean abstractIsExploredExecution;
-            boolean abstractIsScheduledExecution;
-            boolean abstractIsCurrentExecution;
-
-            // TODO: possibly rename these methods.
-            // TODO: we don't even need the different methods now, right?
-            if (filibusterConfiguration.getDataNondeterminism()) {
-                abstractIsExploredExecution = exploredTestExecutions.nondeterministicContains(abstractTestExecution);
-                abstractIsScheduledExecution = unexploredTestExecutions.nondeterministicContains(abstractTestExecution);
-                abstractIsCurrentExecution = currentAbstractTestExecution != null && currentAbstractTestExecution.nondeterministicEquals(abstractTestExecution);
-            } else {
-                abstractIsExploredExecution = exploredTestExecutions.deterministicContains(abstractTestExecution);
-                abstractIsScheduledExecution = unexploredTestExecutions.deterministicContains(abstractTestExecution);
-                abstractIsCurrentExecution = currentAbstractTestExecution != null && currentAbstractTestExecution.deterministicEquals(abstractTestExecution);
-            }
+            boolean abstractIsExploredExecution = exploredTestExecutions.containsAbstractTestExecution(abstractTestExecution);
+            boolean abstractIsScheduledExecution = unexploredTestExecutions.containsAbstractTestExecution(abstractTestExecution);
+            boolean abstractIsCurrentExecution = currentAbstractTestExecution != null && currentAbstractTestExecution.matchesAbstractTestExecution(abstractTestExecution);
 
             if (!abstractIsExploredExecution && !abstractIsScheduledExecution && !abstractIsCurrentExecution) {
                 if (filibusterConfiguration.getSuppressCombinations()) {

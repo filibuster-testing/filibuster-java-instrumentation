@@ -36,8 +36,6 @@ public class JUnitFilibusterHelloHelloTest extends JUnitBaseTest {
 
     private static int numberOfTestsExecuted = 0;
 
-    private static int numberOfExceptionsThrown = 0;
-
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, maxIterations=10)
     @Order(1)
@@ -71,12 +69,5 @@ public class JUnitFilibusterHelloHelloTest extends JUnitBaseTest {
     @Order(3)
     public void testNumberOfTestsExecuted() {
         assertEquals(1, numberOfTestsExecuted);
-    }
-
-    @DisplayName("Verify correct number of exceptions thrown.")
-    @Test
-    @Order(4)
-    public void numberOfExceptionsThrown() {
-        assertEquals(0, numberOfExceptionsThrown);
     }
 }

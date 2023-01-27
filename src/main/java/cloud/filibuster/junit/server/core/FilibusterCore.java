@@ -96,9 +96,9 @@ public class FilibusterCore {
 
         // Generate new abstract executions to run and queue them into the unexplored list.
         if (filibusterCustomAnalysisConfigurationFile != null) {
-            String serviceName = payload.getString("module");
+            String moduleName = payload.getString("module");
             String methodName = payload.getString("method");
-            generateFaultsUsingAnalysisConfiguration(filibusterConfiguration, distributedExecutionIndex, serviceName, methodName);
+            generateFaultsUsingAnalysisConfiguration(filibusterConfiguration, distributedExecutionIndex, moduleName, methodName);
         }
 
         // Return either success or fault (if, this execution contains a fault to inject.)

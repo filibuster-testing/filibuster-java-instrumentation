@@ -74,7 +74,6 @@ public class FilibusterCore {
     private int numberOfAbstractExecutionsAttempted = 0;
     private int numberOfAbstractExecutionsExecuted = 0;
     private int numberOfConcreteExecutionsExecuted = 0;
-    private int numberOfUniqueConcreteExecutionsExecuted = 0;
 
     // RPC hooks.
 

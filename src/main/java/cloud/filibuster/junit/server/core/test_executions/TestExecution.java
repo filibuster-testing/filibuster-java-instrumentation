@@ -54,7 +54,7 @@ public abstract class TestExecution {
                 String key = name.toString();
                 String value = faultsToInject.get(name).toString(4);
                 JSONObject request = executedRPCs.get(name);
-                logger.info(key + " => " + value + " => " + request);
+                logger.info(key + " => " + value + " => " + request.toString(4));
             }
         } else {
             logger.info("No faults injected by Filibuster:");

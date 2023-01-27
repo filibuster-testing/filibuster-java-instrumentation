@@ -450,7 +450,8 @@ public class FilibusterCore {
                         if (matcher.find()) {
                             for (Object obj : faultTypesArray) {
                                 HashMap faultTypeMap = (HashMap) obj;
-                                JSONObject faultTypeObject = new JSONObject(faultTypeMap);
+                                JSONObject faultTypeObject = new JSONObject();
+                                faultTypeObject.put("failure_metadata", faultTypeMap);
                                 createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultTypeObject);
                             }
                         }

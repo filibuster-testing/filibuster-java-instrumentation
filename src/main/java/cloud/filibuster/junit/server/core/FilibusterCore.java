@@ -426,7 +426,8 @@ public class FilibusterCore {
 
         if (filibusterCustomAnalysisConfigurationFile != null) {
             for (FilibusterAnalysisConfiguration filibusterAnalysisConfiguration : filibusterCustomAnalysisConfigurationFile.getFilibusterAnalysisConfigurations()) {
-                if (filibusterAnalysisConfiguration.isPatternMatch(methodName)) {
+                // Second check here (concat) is a legacy check for the old Python server compatibility.
+                if (filibusterAnalysisConfiguration.isPatternMatch(methodName) || filibusterAnalysisConfiguration.isPatternMatch(moduleName + "." + methodName)) {
                     // Exceptions.
                     List<JSONObject> exceptionFaultObjects = filibusterAnalysisConfiguration.getExceptionFaultObjects();
 

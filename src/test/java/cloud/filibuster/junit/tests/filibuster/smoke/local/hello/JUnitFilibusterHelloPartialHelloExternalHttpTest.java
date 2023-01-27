@@ -39,7 +39,7 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitBaseT
     private static int numberOfExceptionsThrown = 0;
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, maxIterations=10)
+    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, maxIterations=50)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -143,13 +143,13 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitBaseT
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEquals(9, numberOfTestsExecuted);
+        assertEquals(25, numberOfTestsExecuted);
     }
 
     @DisplayName("Verify correct number of exceptions thrown.")
     @Test
     @Order(4)
     public void numberOfExceptionsThrown() {
-        assertEquals(8, numberOfExceptionsThrown);
+        assertEquals(24, numberOfExceptionsThrown);
     }
 }

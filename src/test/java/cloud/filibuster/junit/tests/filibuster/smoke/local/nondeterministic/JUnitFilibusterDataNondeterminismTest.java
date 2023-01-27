@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.tests.filibuster.smoke.local;
+package cloud.filibuster.junit.tests.filibuster.smoke.local.nondeterministic;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterBasicTest extends JUnitBaseTest {
+public class JUnitFilibusterDataNondeterminismTest extends JUnitBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     private static int numberOfTestsExecuted = 0;
@@ -39,7 +39,7 @@ public class JUnitFilibusterBasicTest extends JUnitBaseTest {
     private static int numberOfExceptionsThrown = 0;
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, maxIterations=10)
+    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, dataNondeterminism=true, maxIterations=10)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -52,11 +52,11 @@ public class JUnitFilibusterBasicTest extends JUnitBaseTest {
         numberOfTestsExecuted++;
 
         HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
-        Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
+        Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian " + Math.random()).build();
 
         try {
             Hello.HelloReply reply = blockingStub.partialHello(request);
-            assertEquals("Hello, Armerian World!!", reply.getMessage());
+            assertTrue(reply.getMessage().contains("Hello, Armerian"));
             assertFalse(wasFaultInjected());
         } catch (Throwable t) {
             numberOfExceptionsThrown++;

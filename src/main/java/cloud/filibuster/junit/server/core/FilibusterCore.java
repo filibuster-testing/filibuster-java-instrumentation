@@ -238,7 +238,7 @@ public class FilibusterCore {
     public boolean wasFaultInjected() {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjected called");
 
-        if (currentPartialTestExecution == null) {
+        if (currentPartialTestExecution == null || currentConcreteTestExecution == null) {
             return false;
         }
 
@@ -253,7 +253,7 @@ public class FilibusterCore {
     public boolean wasFaultInjectedOnService(String serviceName) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnService called, serviceName: " + serviceName);
 
-        if (currentPartialTestExecution == null) {
+        if (currentPartialTestExecution == null || currentConcreteTestExecution == null) {
             return false;
         }
 
@@ -268,7 +268,7 @@ public class FilibusterCore {
     public boolean wasFaultInjectedOnMethod(String serviceName, String methodName) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethod called, serviceName: " + serviceName + ", methodName: " + methodName);
 
-        if (currentPartialTestExecution == null) {
+        if (currentPartialTestExecution == null || currentConcreteTestExecution == null) {
             return false;
         }
 
@@ -282,11 +282,17 @@ public class FilibusterCore {
     public boolean wasFaultInjectedOnRequest(String serializedRequest) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnRequest called, serializedRequest: " + serializedRequest);
 
-        if (currentPartialTestExecution == null) {
+        if (currentPartialTestExecution == null || currentConcreteTestExecution == null) {
             return false;
         }
 
-        boolean result = currentPartialTestExecution.wasFaultInjectedOnRequest(serializedRequest);
+        boolean result;
+
+        if (filibusterConfiguration.getDataNondeterminism()) {
+            result = currentConcreteTestExecution.wasFaultInjectedOnRequest(serializedRequest);
+        } else {
+            result = currentPartialTestExecution.wasFaultInjectedOnRequest(serializedRequest);
+        }
 
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnRequest returning: " + result);
 
@@ -296,11 +302,17 @@ public class FilibusterCore {
     public boolean wasFaultInjectedOnMethodWherePayloadContains(String serviceName, String methodName, String contains) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethodWherePayloadContains called, serviceName: " + serviceName + ", methodName: " + methodName + ", contains: " + contains);
 
-        if (currentPartialTestExecution == null) {
+        if (currentPartialTestExecution == null || currentConcreteTestExecution == null) {
             return false;
         }
 
-        boolean result = currentPartialTestExecution.wasFaultInjectedOnMethodWherePayloadContains(serviceName, methodName, contains);
+        boolean result;
+
+        if (filibusterConfiguration.getDataNondeterminism()) {
+            result = currentConcreteTestExecution.wasFaultInjectedOnMethodWherePayloadContains(serviceName, methodName, contains);
+        } else {
+            result = currentPartialTestExecution.wasFaultInjectedOnMethodWherePayloadContains(serviceName, methodName, contains);
+        }
 
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethodWherePayloadContains returning: " + result);
 
@@ -477,9 +489,19 @@ public class FilibusterCore {
             PartialTestExecution partialTestExecution = currentConcreteTestExecution.cloneToPartialTestExecution();
             partialTestExecution.addFaultToInject(distributedExecutionIndex, faultObject);
 
-            boolean partialIsExploredExecution = exploredTestExecutions.contains(partialTestExecution);
-            boolean partialIsScheduledExecution = unexploredTestExecutions.contains(partialTestExecution);
-            boolean partialIsCurrentExecution = currentPartialTestExecution == null ? false : currentPartialTestExecution.equals(partialTestExecution);
+            boolean partialIsExploredExecution;
+            boolean partialIsScheduledExecution;
+            boolean partialIsCurrentExecution;
+
+            if (filibusterConfiguration.getDataNondeterminism()) {
+                partialIsExploredExecution = exploredTestExecutions.nondeterministicContains(partialTestExecution);
+                partialIsScheduledExecution = unexploredTestExecutions.nondeterministicContains(partialTestExecution);
+                partialIsCurrentExecution = currentPartialTestExecution != null && currentPartialTestExecution.nondeterministicEquals(partialTestExecution);
+            } else {
+                partialIsExploredExecution = exploredTestExecutions.contains(partialTestExecution);
+                partialIsScheduledExecution = unexploredTestExecutions.contains(partialTestExecution);
+                partialIsCurrentExecution = currentPartialTestExecution != null && currentPartialTestExecution.equals(partialTestExecution);
+            }
 
             if (!partialIsExploredExecution && !partialIsScheduledExecution && !partialIsCurrentExecution) {
                 if (filibusterConfiguration.getSuppressCombinations()) {

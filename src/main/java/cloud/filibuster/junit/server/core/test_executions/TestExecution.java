@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
+@SuppressWarnings("Varifier")
 public abstract class TestExecution {
     private static final Logger logger = Logger.getLogger(TestExecution.class.getName());
 
@@ -18,6 +19,9 @@ public abstract class TestExecution {
 
     // What RPCs were executed?
     HashMap<DistributedExecutionIndex, JSONObject> executedRPCs = new HashMap<>();
+
+    // What RPCs were executed (without their arguments, which may be nondeterministic across executions)?
+    HashMap<DistributedExecutionIndex, JSONObject> nondeterministicExecutedRPCs = new HashMap<>();
 
     // What faults should be injected in this execution?
     HashMap<DistributedExecutionIndex, JSONObject> faultsToInject = new HashMap<>();
@@ -61,6 +65,11 @@ public abstract class TestExecution {
 
         // Add to the list of executed RPCs.
         executedRPCs.put(distributedExecutionIndex, payload);
+
+        // Add to the list of nondeterministic executed RPCs.
+        JSONObject nondeterministicPayload = new JSONObject(payload.toString());
+        nondeterministicPayload.remove("args");
+        nondeterministicExecutedRPCs.put(distributedExecutionIndex, nondeterministicPayload);
     }
 
     public int incrementGeneratedId() {
@@ -82,27 +91,16 @@ public abstract class TestExecution {
         return this.faultsToInject.get(distributedExecutionIndex);
     }
 
-    public boolean hasSeenRPC(DistributedExecutionIndex distributedExecutionIndex) {
-        return executedRPCs.containsKey(distributedExecutionIndex);
-    }
-
-    public boolean hasSeenRPCWithPayload(DistributedExecutionIndex distributedExecutionIndex, JSONObject payload) {
-        cleanPayload(payload);
-
-        if (!executedRPCs.containsKey(distributedExecutionIndex)) {
-            return false;
-        }
-
-        JSONObject recordedPayload = executedRPCs.get(distributedExecutionIndex);
-        return recordedPayload.similar(payload);
-    }
-
     @SuppressWarnings("Varifier")
     public PartialTestExecution cloneToPartialTestExecution() {
         PartialTestExecution partialTestExecution = new PartialTestExecution();
 
         for (Map.Entry<DistributedExecutionIndex, JSONObject> mapEntry : executedRPCs.entrySet()) {
             partialTestExecution.executedRPCs.put(mapEntry.getKey(), mapEntry.getValue());
+        }
+
+        for (Map.Entry<DistributedExecutionIndex, JSONObject> mapEntry : nondeterministicExecutedRPCs.entrySet()) {
+            partialTestExecution.nondeterministicExecutedRPCs.put(mapEntry.getKey(), mapEntry.getValue());
         }
 
         for (Map.Entry<DistributedExecutionIndex, JSONObject> mapEntry : faultsToInject.entrySet()) {
@@ -143,6 +141,33 @@ public abstract class TestExecution {
 
     public boolean wasFaultInjectedOnMethodWherePayloadContains(String serviceName, String methodName, String contains) {
         return wasFaultInjectedMatcher("method", serviceName + "/" + methodName, contains);
+    }
+
+    @SuppressWarnings("Varifier")
+    public boolean nondeterministicEquals(Object o) {
+        if (!(o instanceof TestExecution)) {
+            return false;
+        }
+
+        TestExecution te = (TestExecution) o;
+
+        // Are the key sets equivalent?
+        if (!this.nondeterministicExecutedRPCs.keySet().equals(te.nondeterministicExecutedRPCs.keySet())) {
+            return false;
+        }
+
+        // Are the JSON objects similar for each key?
+        boolean equalRPCsMap = this.nondeterministicExecutedRPCs.entrySet().stream().allMatch(e -> e.getValue().similar(te.nondeterministicExecutedRPCs.get(e.getKey())));
+
+        // Are the key sets equivalent?
+        if (!this.faultsToInject.keySet().equals(te.faultsToInject.keySet())) {
+            return false;
+        }
+
+        // Are the JSON objects similar for each key?
+        boolean equalFaultToInjectMap = this.faultsToInject.entrySet().stream().allMatch(e -> e.getValue().similar(te.faultsToInject.get(e.getKey())));
+
+        return equalRPCsMap && equalFaultToInjectMap;
     }
 
     @Override

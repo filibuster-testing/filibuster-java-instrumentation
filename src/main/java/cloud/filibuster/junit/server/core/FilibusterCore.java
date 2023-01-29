@@ -61,6 +61,7 @@ public class FilibusterCore {
     AbstractTestExecution currentAbstractTestExecution;
 
     // The concrete test execution that we are exploring currently.
+    //
     // Contains:
     // * a prefix execution that matches the abstract test execution.
     // * the same fault profile of the current, concrete test execution.
@@ -72,7 +73,9 @@ public class FilibusterCore {
     private FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
     private int numberOfAbstractExecutionsAttempted = 0;
+
     private int numberOfAbstractExecutionsExecuted = 0;
+
     private int numberOfConcreteExecutionsExecuted = 0;
 
     // RPC hooks.

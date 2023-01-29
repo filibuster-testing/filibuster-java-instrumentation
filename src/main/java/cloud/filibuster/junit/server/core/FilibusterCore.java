@@ -98,7 +98,20 @@ public class FilibusterCore {
         if (filibusterCustomAnalysisConfigurationFile != null) {
             String moduleName = payload.getString("module");
             String methodName = payload.getString("method");
-            generateFaultsUsingAnalysisConfiguration(filibusterConfiguration, distributedExecutionIndex, moduleName, methodName);
+
+            boolean shouldGenerateNewAbstractExecutions = false;
+
+            if (currentAbstractTestExecution == null) {
+                shouldGenerateNewAbstractExecutions = true;
+            } else if (currentAbstractTestExecution != null && currentAbstractTestExecution.sawInConcreteTestExecution(distributedExecutionIndex)) {
+                shouldGenerateNewAbstractExecutions = false;
+            } else {
+                shouldGenerateNewAbstractExecutions = true;
+            }
+
+            if (shouldGenerateNewAbstractExecutions) {
+                generateFaultsUsingAnalysisConfiguration(filibusterConfiguration, distributedExecutionIndex, moduleName, methodName);
+            }
         }
 
         // Return either success or fault (if, this execution contains a fault to inject.)

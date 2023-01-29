@@ -32,7 +32,7 @@ public class FilibusterCore {
 
     // The current instance of the FilibusterCore.
     // Required as the instrumentation has no direct way of being instantiated with this object.
-    public static FilibusterCore getCurrentInstance() {
+    public static synchronized FilibusterCore getCurrentInstance() {
         if (currentInstance == null) {
             throw new FilibusterCoreLogicException("Current instance is null, this indicates a problem!");
         }
@@ -78,7 +78,7 @@ public class FilibusterCore {
     // RPC hooks.
 
     // Record an outgoing RPC and conditionally inject faults.
-    public JSONObject beginInvocation(JSONObject payload) {
+    public synchronized JSONObject beginInvocation(JSONObject payload) {
         logger.info("[FILIBUSTER-CORE]: beginInvocation called, payload: " + payload.toString(4));
 
         if (currentConcreteTestExecution == null) {
@@ -147,7 +147,7 @@ public class FilibusterCore {
     // JUnit hooks.
 
     // This is an old callback used to exit the Python server with code = 1 or code = 0 upon failure.
-    public void completeIteration(int currentIteration) {
+    public synchronized void completeIteration(int currentIteration) {
         logger.info("[FILIBUSTER-CORE]: completeIteration called, currentIteration: " + currentIteration);
 
         if (currentConcreteTestExecution != null) {
@@ -162,7 +162,7 @@ public class FilibusterCore {
     }
 
     // This is an old callback used to exit the Python server with code = 1 or code = 0 upon failure.
-    public void completeIteration(int currentIteration, int exceptionOccurred) {
+    public synchronized void completeIteration(int currentIteration, int exceptionOccurred) {
         logger.info("[FILIBUSTER-CORE]: completeIteration called, currentIteration: " + currentIteration + ", exceptionOccurred: " + exceptionOccurred);
 
 
@@ -178,7 +178,7 @@ public class FilibusterCore {
     }
 
     // Is there a test execution?
-    public boolean hasNextIteration(int currentIteration) {
+    public synchronized boolean hasNextIteration(int currentIteration) {
         logger.info("[FILIBUSTER-CORE]: hasNextiteration called, currentIteration: " + currentIteration);
         boolean result = currentConcreteTestExecution != null;
         logger.info("[FILIBUSTER-CORE]: hasNextiteration returning: " + result);
@@ -186,7 +186,7 @@ public class FilibusterCore {
     }
 
     // Is there a test execution?
-    public boolean hasNextIteration(int currentIteration, String caller) {
+    public synchronized boolean hasNextIteration(int currentIteration, String caller) {
         logger.info("[FILIBUSTER-CORE]: hasNextiteration called, currentIteration: " + currentIteration + ", caller: " + caller);
         boolean result = currentConcreteTestExecution != null;
         logger.info("[FILIBUSTER-CORE]: hasNextiteration returning: " + result);
@@ -194,7 +194,7 @@ public class FilibusterCore {
     }
 
     // A test has completed and all callbacks have fired.
-    public void teardownsCompleted(int currentIteration) {
+    public synchronized void teardownsCompleted(int currentIteration) {
         logger.info("[FILIBUSTER-CORE]: teardownsCompleted called, currentIteration: " + currentIteration);
 
         if (currentConcreteTestExecution != null) {
@@ -243,7 +243,7 @@ public class FilibusterCore {
 
     // Fault injection helpers.
 
-    public boolean wasFaultInjected() {
+    public synchronized boolean wasFaultInjected() {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjected called");
 
         if (currentConcreteTestExecution == null) {
@@ -257,7 +257,7 @@ public class FilibusterCore {
         return result;
     }
 
-    public boolean wasFaultInjectedOnService(String serviceName) {
+    public synchronized boolean wasFaultInjectedOnService(String serviceName) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnService called, serviceName: " + serviceName);
 
         if (currentConcreteTestExecution == null) {
@@ -271,7 +271,7 @@ public class FilibusterCore {
         return result;
     }
 
-    public boolean wasFaultInjectedOnMethod(String serviceName, String methodName) {
+    public synchronized boolean wasFaultInjectedOnMethod(String serviceName, String methodName) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethod called, serviceName: " + serviceName + ", methodName: " + methodName);
 
         if (currentConcreteTestExecution == null) {
@@ -285,7 +285,7 @@ public class FilibusterCore {
         return result;
     }
 
-    public boolean wasFaultInjectedOnRequest(String serializedRequest) {
+    public synchronized boolean wasFaultInjectedOnRequest(String serializedRequest) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnRequest called, serializedRequest: " + serializedRequest);
 
         if (currentConcreteTestExecution == null) {
@@ -299,7 +299,7 @@ public class FilibusterCore {
         return result;
     }
 
-    public boolean wasFaultInjectedOnMethodWherePayloadContains(String serviceName, String methodName, String contains) {
+    public synchronized boolean wasFaultInjectedOnMethodWherePayloadContains(String serviceName, String methodName, String contains) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethodWherePayloadContains called, serviceName: " + serviceName + ", methodName: " + methodName + ", contains: " + contains);
 
         if (currentConcreteTestExecution == null) {
@@ -317,7 +317,7 @@ public class FilibusterCore {
     // Only needed for:
     // 1. Dynamic Reduction because we need to keep track of responses.
     // 2. HTTP calls, so we know which service we actually invoked.
-    public JSONObject endInvocation(JSONObject payload) {
+    public synchronized JSONObject endInvocation(JSONObject payload) {
         logger.info("[FILIBUSTER-CORE]: endInvocation called");
 
         String distributedExecutionIndexString = payload.getString("execution_index");
@@ -335,7 +335,7 @@ public class FilibusterCore {
 
     // Is this the first time that we are seeing an RPC from this service?
     // Used to control when vclocks, etc. are reset to ensure they are consistent across executions.
-    public boolean isNewTestExecution(String serviceName) {
+    public synchronized boolean isNewTestExecution(String serviceName) {
         logger.info("[FILIBUSTER-CORE]: isNewTestExecution called, serviceName: " + serviceName);
 
         boolean result = false;
@@ -359,7 +359,7 @@ public class FilibusterCore {
 
     // This callback was used to terminate the Filibuster python server -- required if using certain backends for
     // writing counterexample files, etc., but should automatically be handled by the JUnit invocation interceptors now.
-    public void terminateFilibuster() {
+    public synchronized void terminateFilibuster() {
         logger.info("[FILIBUSTER-CORE]: terminate called.");
         // Nothing.
         logger.info("[FILIBUSTER-CORE]: terminate returning.");
@@ -367,7 +367,7 @@ public class FilibusterCore {
 
     // Configuration.
 
-    public void analysisFile(JSONObject analysisFile) {
+    public synchronized void analysisFile(JSONObject analysisFile) {
         logger.info("[FILIBUSTER-CORE]: analysisFile called, payload: " + analysisFile.toString(4));
 
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();

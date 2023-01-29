@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.tests.filibuster.smoke.local.hello;
+package cloud.filibuster.junit.tests.filibuster.smoke.local.hello.suppress_combinations;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitBaseTest {
+public class JUnitFilibusterHelloPartialHelloExternalHttpWithSuppressCombinationsTest extends JUnitBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     private static int numberOfTestsExecuted = 0;
@@ -39,7 +39,7 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitBaseT
     private static int numberOfExceptionsThrown = 0;
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, maxIterations=50)
+    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, suppressCombinations=true, maxIterations=10)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -143,13 +143,13 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitBaseT
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEquals(25, numberOfTestsExecuted);
+        assertEquals(9, numberOfTestsExecuted);
     }
 
     @DisplayName("Verify correct number of exceptions thrown.")
     @Test
     @Order(4)
     public void numberOfExceptionsThrown() {
-        assertEquals(24, numberOfExceptionsThrown);
+        assertEquals(8, numberOfExceptionsThrown);
     }
 }

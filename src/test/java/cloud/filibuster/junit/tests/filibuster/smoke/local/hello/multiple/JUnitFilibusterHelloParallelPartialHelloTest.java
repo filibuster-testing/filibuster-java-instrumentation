@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.tests.filibuster.smoke.local.hello;
+package cloud.filibuster.junit.tests.filibuster.smoke.local.hello.multiple;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;

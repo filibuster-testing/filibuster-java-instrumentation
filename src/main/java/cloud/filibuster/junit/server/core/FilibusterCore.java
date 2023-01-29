@@ -429,6 +429,8 @@ public class FilibusterCore {
         logger.info("[FILIBUSTER-CORE]: analysisFile, set instance variable, returning.");
     }
 
+    // Private functions.
+
     private void generateFaultsUsingAnalysisConfiguration(
             FilibusterConfiguration filibusterConfiguration,
             DistributedExecutionIndex distributedExecutionIndex,

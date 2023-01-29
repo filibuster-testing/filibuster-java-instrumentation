@@ -13,7 +13,7 @@ public class AbstractTestExecution extends TestExecution {
     }
 
     public AbstractTestExecution(ConcreteTestExecution concreteTestExecution) {
-        this.sourceConcreteTestExecution = concreteTestExecution;
+        this.sourceConcreteTestExecution = (ConcreteTestExecution) concreteTestExecution.clone();
     }
 
     public boolean sawInConcreteTestExecution(DistributedExecutionIndex distributedExecutionIndex) {

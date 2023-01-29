@@ -97,25 +97,6 @@ public abstract class TestExecution {
         return this.faultsToInject.get(distributedExecutionIndex);
     }
 
-    @SuppressWarnings("Varifier")
-    public AbstractTestExecution cloneToAbstractTestExecution() {
-        AbstractTestExecution abstractTestExecution = new AbstractTestExecution();
-
-        for (Map.Entry<DistributedExecutionIndex, JSONObject> mapEntry : executedRPCs.entrySet()) {
-            abstractTestExecution.executedRPCs.put(mapEntry.getKey(), mapEntry.getValue());
-        }
-
-        for (Map.Entry<DistributedExecutionIndex, JSONObject> mapEntry : nondeterministicExecutedRPCs.entrySet()) {
-            abstractTestExecution.nondeterministicExecutedRPCs.put(mapEntry.getKey(), mapEntry.getValue());
-        }
-
-        for (Map.Entry<DistributedExecutionIndex, JSONObject> mapEntry : faultsToInject.entrySet()) {
-            abstractTestExecution.faultsToInject.put(mapEntry.getKey(), mapEntry.getValue());
-        }
-
-        return abstractTestExecution;
-    }
-
     public boolean wasFaultInjected() {
         return !this.faultsToInject.isEmpty();
     }

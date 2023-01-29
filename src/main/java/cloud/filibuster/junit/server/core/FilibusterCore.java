@@ -470,7 +470,7 @@ public class FilibusterCore {
         logger.info("[FILIBUSTER-CORE]: createAndScheduleAbstractTestExecution called.");
 
         if (currentConcreteTestExecution != null) {
-            AbstractTestExecution abstractTestExecution = currentConcreteTestExecution.cloneToAbstractTestExecution();
+            AbstractTestExecution abstractTestExecution = currentConcreteTestExecution.toAbstractTestExecution();
             abstractTestExecution.addFaultToInject(distributedExecutionIndex, faultObject);
 
             boolean abstractIsExploredExecution = exploredTestExecutions.containsAbstractTestExecution(abstractTestExecution);

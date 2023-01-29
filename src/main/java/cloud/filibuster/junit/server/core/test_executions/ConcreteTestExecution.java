@@ -5,6 +5,7 @@ import org.json.JSONObject;
 
 import java.util.Map;
 
+@SuppressWarnings("Varifier")
 public class ConcreteTestExecution extends TestExecution implements Cloneable {
     public ConcreteTestExecution() {
 
@@ -16,7 +17,6 @@ public class ConcreteTestExecution extends TestExecution implements Cloneable {
         }
     }
 
-    @SuppressWarnings("Varifier")
     public AbstractTestExecution toAbstractTestExecution() {
         AbstractTestExecution abstractTestExecution = new AbstractTestExecution(this);
 

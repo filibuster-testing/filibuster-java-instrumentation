@@ -5,6 +5,7 @@ import org.json.JSONObject;
 
 import javax.annotation.Nullable;
 
+@SuppressWarnings("Varifier")
 public class AbstractTestExecution extends TestExecution {
     @Nullable
     private ConcreteTestExecution sourceConcreteTestExecution;

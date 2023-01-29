@@ -158,13 +158,13 @@ public class JUnitFilibusterHelloPartialHelloExternalGrpcTest extends JUnitBaseT
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEquals(25, numberOfTestsExecuted);
+        assertEquals(9, numberOfTestsExecuted);
     }
 
     @DisplayName("Verify correct number of exceptions thrown.")
     @Test
     @Order(4)
     public void numberOfExceptionsThrown() {
-        assertEquals(24, numberOfExceptionsThrown);
+        assertEquals(8, numberOfExceptionsThrown);
     }
 }

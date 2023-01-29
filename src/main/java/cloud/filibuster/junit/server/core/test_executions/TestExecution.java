@@ -43,18 +43,23 @@ public abstract class TestExecution {
             String key = name.toString();
             JSONObject value = executedRPCs.get(name);
             if (key != null && value != null) {
-                logger.info(key + " => " + value.toString(4));
+                logger.info("\n" +
+                        "distributedExecutionIndex: " + key + "\n" +
+                        "payload: " + value.toString(4));
             }
         }
 
         if (!faultsToInject.isEmpty()) {
-            logger.info("Faults injected by Filibuster:");
+            logger.info("Faults injected by Filibuster (" + faultsToInject.size() + "): ");
 
             for (DistributedExecutionIndex name: faultsToInject.keySet()) {
                 String key = name.toString();
-                String value = faultsToInject.get(name).toString(4);
-                JSONObject request = executedRPCs.get(name);
-                logger.info(key + " => " + value + " => " + request.toString(4));
+                JSONObject value = faultsToInject.get(name);
+                JSONObject request = executedRPCs.getOrDefault(name, new JSONObject().put("error", "no request information found")); // eventually remove this.
+                logger.info("\n" +
+                        "distributedExecutionIndex: " + key + "\n" +
+                        "payload: " + value.toString(4) + "\n" +
+                        "request: " + request.toString(4));
             }
         } else {
             logger.info("No faults injected by Filibuster:");

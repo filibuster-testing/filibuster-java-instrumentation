@@ -50,15 +50,15 @@ public class FilibusterCore {
 
     // Queue containing the unexplored test executions.
     // These are abstract executions, as they are only prefix executions.
-    TestExecutionQueue<AbstractTestExecution> unexploredTestExecutions = new TestExecutionQueue<>();
+    private final TestExecutionQueue<AbstractTestExecution> unexploredTestExecutions = new TestExecutionQueue<>();
 
     // Queue containing the test executions searched.
     // This includes both abstract executions we attempted to explore and the actual realized concrete executions.
-    TestExecutionQueue<TestExecution> exploredTestExecutions = new TestExecutionQueue<>();
+    private final TestExecutionQueue<TestExecution> exploredTestExecutions = new TestExecutionQueue<>();
 
     // The abstract test execution that we are exploring currently.
     @Nullable
-    AbstractTestExecution currentAbstractTestExecution;
+    private AbstractTestExecution currentAbstractTestExecution;
 
     // The concrete test execution that we are exploring currently.
     //
@@ -66,7 +66,7 @@ public class FilibusterCore {
     // * a prefix execution that matches the abstract test execution.
     // * the same fault profile of the current, concrete test execution.
     @Nullable
-    ConcreteTestExecution currentConcreteTestExecution = new ConcreteTestExecution();
+    private ConcreteTestExecution currentConcreteTestExecution = new ConcreteTestExecution();
 
     // Analysis file, populated only once received from the test suite.
     @Nullable
@@ -102,14 +102,14 @@ public class FilibusterCore {
             String moduleName = payload.getString("module");
             String methodName = payload.getString("method");
 
-            boolean shouldGenerateNewAbstractExecutions = false;
+            boolean shouldGenerateNewAbstractExecutions;
 
             if (currentAbstractTestExecution == null) {
+                // Initial execution.
                 shouldGenerateNewAbstractExecutions = true;
-            } else if (currentAbstractTestExecution != null && currentAbstractTestExecution.sawInConcreteTestExecution(distributedExecutionIndex)) {
-                shouldGenerateNewAbstractExecutions = false;
             } else {
-                shouldGenerateNewAbstractExecutions = true;
+                // ...or, we already scheduled the faults, so don't.
+                shouldGenerateNewAbstractExecutions = !currentAbstractTestExecution.sawInConcreteTestExecution(distributedExecutionIndex);
             }
 
             if (shouldGenerateNewAbstractExecutions) {
@@ -147,6 +147,50 @@ public class FilibusterCore {
         return response;
     }
 
+    // Record that an RPC completed with a particular value.
+    // Only needed for:
+    // 1. Dynamic Reduction because we need to keep track of responses.
+    // 2. HTTP calls, so we know which service we actually invoked.
+    public synchronized JSONObject endInvocation(JSONObject payload) {
+        logger.info("[FILIBUSTER-CORE]: endInvocation called");
+
+        String distributedExecutionIndexString = payload.getString("execution_index");
+        DistributedExecutionIndex distributedExecutionIndex = new DistributedExecutionIndexV1().deserialize(distributedExecutionIndexString);
+
+        logger.info("[FILIBUSTER-CORE]: endInvocation called, distributedExecutionIndex: " + distributedExecutionIndex);
+
+        JSONObject response = new JSONObject();
+        response.put("execution_index", payload.getString("execution_index"));
+
+        logger.info("[FILIBUSTER-CORE]: endInvocation returning: " + response.toString(4));
+
+        return response;
+    }
+
+    // Is this the first time that we are seeing an RPC from this service?
+    // Used to control when vector clocks, etc. are reset to ensure they are consistent across executions.
+    public synchronized boolean isNewTestExecution(String serviceName) {
+        logger.info("[FILIBUSTER-CORE]: isNewTestExecution called, serviceName: " + serviceName);
+
+        boolean result = false;
+
+        if (currentConcreteTestExecution == null) {
+            // Doesn't really matter, because if this isn't set, no tests will execute.
+            result = false;
+        } else {
+            if (!currentConcreteTestExecution.hasSeenFirstRequestromService(serviceName)) {
+                currentConcreteTestExecution.registerFirstRequestFromService(serviceName);
+                result = true;
+            } else {
+                result = false;
+            }
+        }
+
+        logger.info("[FILIBUSTER-CORE]: isNewTestExecution returning: " + result);
+
+        return result;
+    }
+
     // JUnit hooks.
 
     // This is an old callback used to exit the Python server with code = 1 or code = 0 upon failure.
@@ -182,17 +226,17 @@ public class FilibusterCore {
 
     // Is there a test execution?
     public synchronized boolean hasNextIteration(int currentIteration) {
-        logger.info("[FILIBUSTER-CORE]: hasNextiteration called, currentIteration: " + currentIteration);
+        logger.info("[FILIBUSTER-CORE]: hasNextIteration called, currentIteration: " + currentIteration);
         boolean result = currentConcreteTestExecution != null;
-        logger.info("[FILIBUSTER-CORE]: hasNextiteration returning: " + result);
+        logger.info("[FILIBUSTER-CORE]: hasNextIteration returning: " + result);
         return result;
     }
 
     // Is there a test execution?
     public synchronized boolean hasNextIteration(int currentIteration, String caller) {
-        logger.info("[FILIBUSTER-CORE]: hasNextiteration called, currentIteration: " + currentIteration + ", caller: " + caller);
+        logger.info("[FILIBUSTER-CORE]: hasNextIteration called, currentIteration: " + currentIteration + ", caller: " + caller);
         boolean result = currentConcreteTestExecution != null;
-        logger.info("[FILIBUSTER-CORE]: hasNextiteration returning: " + result);
+        logger.info("[FILIBUSTER-CORE]: hasNextIteration returning: " + result);
         return result;
     }
 
@@ -312,50 +356,6 @@ public class FilibusterCore {
         boolean result = currentConcreteTestExecution.wasFaultInjectedOnMethodWherePayloadContains(serviceName, methodName, contains);
 
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethodWherePayloadContains returning: " + result);
-
-        return result;
-    }
-
-    // Record that an RPC completed with a particular value.
-    // Only needed for:
-    // 1. Dynamic Reduction because we need to keep track of responses.
-    // 2. HTTP calls, so we know which service we actually invoked.
-    public synchronized JSONObject endInvocation(JSONObject payload) {
-        logger.info("[FILIBUSTER-CORE]: endInvocation called");
-
-        String distributedExecutionIndexString = payload.getString("execution_index");
-        DistributedExecutionIndex distributedExecutionIndex = new DistributedExecutionIndexV1().deserialize(distributedExecutionIndexString);
-
-        logger.info("[FILIBUSTER-CORE]: endInvocation called, distributedExecutionIndex: " + distributedExecutionIndex);
-
-        JSONObject response = new JSONObject();
-        response.put("execution_index", payload.getString("execution_index"));
-
-        logger.info("[FILIBUSTER-CORE]: endInvocation returning: " + response.toString(4));
-
-        return response;
-    }
-
-    // Is this the first time that we are seeing an RPC from this service?
-    // Used to control when vclocks, etc. are reset to ensure they are consistent across executions.
-    public synchronized boolean isNewTestExecution(String serviceName) {
-        logger.info("[FILIBUSTER-CORE]: isNewTestExecution called, serviceName: " + serviceName);
-
-        boolean result = false;
-
-        if (currentConcreteTestExecution == null) {
-            // Doesn't really matter, because if this isn't set, no tests will execute.
-            result = false;
-        } else {
-            if (!currentConcreteTestExecution.hasSeenFirstRequestromService(serviceName)) {
-                currentConcreteTestExecution.registerFirstRequestFromService(serviceName);
-                result = true;
-            } else {
-                result = false;
-            }
-        }
-
-        logger.info("[FILIBUSTER-CORE]: isNewTestExecution returning: " + result);
 
         return result;
     }

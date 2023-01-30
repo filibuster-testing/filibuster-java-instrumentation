@@ -182,4 +182,11 @@ public @interface FilibusterTest {
      * @return throwable or runtime exception
      */
     Class<? extends RuntimeException> expected() default NoopException.class;
+
+    /**
+     * Which search strategy should Filibuster use?
+     *
+     * @return search strategy
+     */
+    FilibusterSearchStrategy searchStrategy() default FilibusterSearchStrategy.DFS;
 }

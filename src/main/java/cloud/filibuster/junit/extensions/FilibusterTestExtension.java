@@ -71,6 +71,7 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
                 .suppressCombinations(filibusterTest.suppressCombinations())
                 .dataNondeterminism(filibusterTest.dataNondeterminism())
                 .serverBackend(filibusterTest.serverBackend())
+                .searchStrategy(filibusterTest.searchStrategy())
                 .dockerImageName(dockerImageName)
                 .analysisFile(analysisFile)
                 .degradeWhenServerInitializationFails(filibusterTest.degradeWhenServerInitializationFails())

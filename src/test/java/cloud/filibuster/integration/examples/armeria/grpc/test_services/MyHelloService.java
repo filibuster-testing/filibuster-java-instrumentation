@@ -405,4 +405,61 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
             }
         }
     }
+
+    @Override
+    public void parallelSynchronousPartialHello(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
+        ManagedChannel originalChannel = ManagedChannelBuilder
+                .forAddress(Networking.getHost("world"), Networking.getPort("world"))
+                .usePlaintext()
+                .build();
+
+        ClientInterceptor clientInterceptor;
+
+        if (useOtelClientInterceptor) {
+            clientInterceptor = new OpenTelemetryFilibusterClientInterceptor("hello", null, null);
+        } else {
+            clientInterceptor = new FilibusterClientInterceptor("hello");
+        }
+
+        Channel channel = ClientInterceptors.intercept(originalChannel, clientInterceptor);
+
+        // Perform two async requests but synchronously, in order.
+        ArrayList<String> resultList = new ArrayList<>();
+
+        CompletableFuture<String> firstRequest = performAsyncWorldRequest(channel, req.getName());
+
+        try {
+            String firstResult = firstRequest.get();
+            resultList.add(firstResult);
+        } catch (InterruptedException | ExecutionException e) {
+            // Nothing.
+        }
+
+        CompletableFuture<String> secondRequest = performAsyncWorldRequest(channel, "Parallel");
+
+        try {
+            String secondResult = secondRequest.get();
+            resultList.add(secondResult);
+        } catch (InterruptedException | ExecutionException e) {
+            // Nothing.
+        }
+
+        // Assemble the final response.
+        String result = String.join(" Hello, ", resultList);
+
+        // Respond to the client.
+
+        Hello.HelloReply reply = Hello.HelloReply.newBuilder()
+                .setMessage("Hello, " + result)
+                .build();
+        responseObserver.onNext(reply);
+        responseObserver.onCompleted();
+
+        originalChannel.shutdownNow();
+        try {
+            originalChannel.awaitTermination(1000, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            logger.log(Level.SEVERE, "Failed to terminate channel: " + e);
+        }
+    }
 }

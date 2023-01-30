@@ -4,6 +4,7 @@ import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.dei.implementations.DistributedExecutionIndexV1;
 import cloud.filibuster.exceptions.filibuster.FilibusterCoreLogicException;
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
+import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
@@ -42,7 +43,18 @@ public class FilibusterCore {
 
     public FilibusterCore(FilibusterConfiguration filibusterConfiguration) {
         currentInstance = this;
+
         this.filibusterConfiguration = filibusterConfiguration;
+
+        if (filibusterConfiguration.getSearchStrategy() == FilibusterSearchStrategy.DFS) {
+            this.exploredTestExecutions = new TestExecutionStack<>();
+            this.unexploredTestExecutions = new TestExecutionStack<>();
+        } else if (filibusterConfiguration.getSearchStrategy() == FilibusterSearchStrategy.BFS) {
+            this.exploredTestExecutions = new TestExecutionQueue<>();
+            this.unexploredTestExecutions = new TestExecutionQueue<>();
+        } else {
+            throw new FilibusterCoreLogicException("Unsupported search strategy: " + filibusterConfiguration.getSearchStrategy());
+        }
     }
 
     // The current configuration of Filibuster being used.
@@ -50,11 +62,11 @@ public class FilibusterCore {
 
     // Queue containing the unexplored test executions.
     // These are abstract executions, as they are only prefix executions.
-    private final TestExecutionQueue<AbstractTestExecution> unexploredTestExecutions = new TestExecutionQueue<>();
+    private final TestExecutionCollection<AbstractTestExecution> unexploredTestExecutions;
 
     // Queue containing the test executions searched.
     // This includes both abstract executions we attempted to explore and the actual realized concrete executions.
-    private final TestExecutionQueue<TestExecution> exploredTestExecutions = new TestExecutionQueue<>();
+    private final TestExecutionCollection<TestExecution> exploredTestExecutions;
 
     // The abstract test execution that we are exploring currently.
     @Nullable

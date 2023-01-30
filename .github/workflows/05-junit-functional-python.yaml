@@ -3,7 +3,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Java (Functional, Python Integration)
+name: Java (Functional Tests, Python Integration)
 
 on: [push]
 

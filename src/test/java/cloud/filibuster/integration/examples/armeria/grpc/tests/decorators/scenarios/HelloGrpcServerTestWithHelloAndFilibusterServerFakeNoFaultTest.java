@@ -11,12 +11,14 @@ import cloud.filibuster.instrumentation.libraries.armeria.http.FilibusterDecorat
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterServerInterceptor;
 import cloud.filibuster.integration.examples.test_servers.HelloServer;
+import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
 import com.linecorp.armeria.client.grpc.GrpcClientBuilder;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 
@@ -79,6 +81,7 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerFakeNoFaultTest exte
      * Test end-to-end functionality when Filibuster is available but no faults are injected.
      */
     @Test
+    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @DisplayName("Test hello server grpc route with Filibuster server available.")
     public void testMyHelloServiceWithFilibuster() throws InterruptedException {
         HelloServiceGrpc.HelloServiceBlockingStub blockingStub = grpcClientBuilder

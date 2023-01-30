@@ -6,6 +6,7 @@ import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
 import cloud.filibuster.functional.JUnitBaseTest;
+import cloud.filibuster.junit.server.backends.FilibusterDockerServerBackend;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.DisplayName;
@@ -43,7 +44,7 @@ public class JUnitFilibusterDockerBackendTestBadImageExpected extends JUnitBaseT
      */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
-    @FilibusterTest(dockerImageName = "filibustertesting/asdfasdf:0.33", expected = ContainerLaunchException.class)
+    @FilibusterTest(serverBackend = FilibusterDockerServerBackend.class, dockerImageName = "filibustertesting/asdfasdf:0.33", expected = ContainerLaunchException.class)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         numberOfTestExecutions++;
 

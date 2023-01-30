@@ -1,5 +1,6 @@
 package cloud.filibuster.junit.server.backends;
 
+import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.junit.server.FilibusterServerBackend;
 import cloud.filibuster.junit.server.core.FilibusterCore;
@@ -7,6 +8,8 @@ import cloud.filibuster.junit.server.local.FilibusterServer;
 import com.linecorp.armeria.server.Server;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
@@ -47,5 +50,10 @@ public class FilibusterLocalServerBackend implements FilibusterServerBackend {
         setServerBackendCanInvokeDirectlyProperty(false);
 
         return true;
+    }
+
+    @Override
+    public List<FilibusterSearchStrategy> supportedSearchStrategies() {
+        return Arrays.asList(FilibusterSearchStrategy.BFS, FilibusterSearchStrategy.DFS);
     }
 }

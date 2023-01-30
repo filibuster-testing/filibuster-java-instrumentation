@@ -1,6 +1,7 @@
 package cloud.filibuster.junit.server.backends;
 
 import cloud.filibuster.instrumentation.helpers.Property;
+import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.junit.server.FilibusterServerBackend;
 import org.testcontainers.containers.GenericContainer;
@@ -8,6 +9,8 @@ import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.utility.DockerImageName;
 
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
 
 import static cloud.filibuster.instrumentation.helpers.Property.SERVER_HOST_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.SERVER_PORT_DEFAULT;
@@ -50,5 +53,10 @@ public class FilibusterDockerServerBackend implements FilibusterServerBackend {
         Property.setServerPortProperty(SERVER_PORT_DEFAULT);
 
         return true;
+    }
+
+    @Override
+    public List<FilibusterSearchStrategy> supportedSearchStrategies() {
+        return Arrays.asList(FilibusterSearchStrategy.DFS);
     }
 }

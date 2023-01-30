@@ -12,7 +12,7 @@ import cloud.filibuster.junit.exceptions.NoopException;
 import cloud.filibuster.junit.extensions.FilibusterTestExtension;
 
 import cloud.filibuster.junit.server.FilibusterServerBackend;
-import cloud.filibuster.junit.server.backends.FilibusterDockerServerBackend;
+import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
 import org.apiguardian.api.API;
 
 import org.junit.jupiter.api.Test;
@@ -160,7 +160,7 @@ public @interface FilibusterTest {
      *
      * @return server backend module.
      */
-    Class<? extends FilibusterServerBackend> serverBackend() default FilibusterDockerServerBackend.class;
+    Class<? extends FilibusterServerBackend> serverBackend() default FilibusterLocalServerBackend.class;
 
     /**
      * Docker image to use for the Docker server backend.

@@ -47,7 +47,7 @@ public class FilibusterServerLifecycle {
         initializationFailedException = null;
 
         if (!started) {
-            FilibusterServerBackend filibusterServerBackend = filibusterConfiguration.getFilibusterServerBackend();
+            FilibusterServerBackend filibusterServerBackend = filibusterConfiguration.getServerBackend();
 
             try {
                 filibusterServerBackend.start(filibusterConfiguration);
@@ -95,7 +95,7 @@ public class FilibusterServerLifecycle {
     public static synchronized WebClient stopServer(FilibusterConfiguration filibusterConfiguration, WebClient webClient) throws Throwable {
         if (started) {
 
-            FilibusterServerBackend filibusterServerBackend = filibusterConfiguration.getFilibusterServerBackend();
+            FilibusterServerBackend filibusterServerBackend = filibusterConfiguration.getServerBackend();
             filibusterServerBackend.stop(filibusterConfiguration);
 
             while (true) {

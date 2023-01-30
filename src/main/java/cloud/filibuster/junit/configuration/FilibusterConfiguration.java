@@ -27,11 +27,11 @@ public class FilibusterConfiguration {
 
     private final boolean dataNondeterminism;
 
-    private FilibusterSearchStrategy searchStrategy;
+    private final FilibusterSearchStrategy searchStrategy;
 
     private final String analysisFile;
 
-    private final FilibusterServerBackend filibusterServerBackend;
+    private final FilibusterServerBackend serverBackend;
 
     private final String dockerImageName;
 
@@ -45,7 +45,7 @@ public class FilibusterConfiguration {
         this.dataNondeterminism = builder.dataNondeterminism;
         this.searchStrategy = builder.searchStrategy;
         this.analysisFile = builder.analysisFile;
-        this.filibusterServerBackend = builder.filibusterServerBackend;
+        this.serverBackend = builder.serverBackend;
         this.dockerImageName = builder.dockerImageName;
         this.degradeWhenServerInitializationFails = builder.degradeWhenServerInitializationFails;
         this.expected = builder.expected;
@@ -56,8 +56,8 @@ public class FilibusterConfiguration {
      *
      * @return server backend.
      */
-    public FilibusterServerBackend getFilibusterServerBackend() {
-        return this.filibusterServerBackend;
+    public FilibusterServerBackend getServerBackend() {
+        return this.serverBackend;
     }
 
     /**
@@ -176,7 +176,7 @@ public class FilibusterConfiguration {
 
         private String analysisFile;
 
-        private FilibusterServerBackend filibusterServerBackend = new FilibusterDockerServerBackend();
+        private FilibusterServerBackend serverBackend = new FilibusterDockerServerBackend();
 
         private String dockerImageName;
 
@@ -239,7 +239,7 @@ public class FilibusterConfiguration {
          * @return builder
          */
         @CanIgnoreReturnValue
-        public Builder filibusterServerBackend(Class<? extends FilibusterServerBackend> clazz) {
+        public Builder serverBackend(Class<? extends FilibusterServerBackend> clazz) {
             FilibusterServerBackend serverBackend;
 
             try {
@@ -248,7 +248,7 @@ public class FilibusterConfiguration {
                 throw new FilibusterUnsupportedServerBackendException("Backend " + clazz + " is not supported.", e);
             }
 
-            this.filibusterServerBackend = serverBackend;
+            this.serverBackend = serverBackend;
             return this;
         }
 

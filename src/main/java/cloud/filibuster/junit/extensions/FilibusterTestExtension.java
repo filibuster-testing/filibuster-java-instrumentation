@@ -3,16 +3,19 @@ package cloud.filibuster.junit.extensions;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedCustomAnalysisFileException;
+import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.junit.formatters.FilibusterTestDisplayNameFormatter;
 import cloud.filibuster.junit.interceptors.FilibusterTestInvocationContext;
+import cloud.filibuster.junit.server.FilibusterServerBackend;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContext;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider;
@@ -67,12 +70,14 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
                 .dynamicReduction(filibusterTest.dynamicReduction())
                 .suppressCombinations(filibusterTest.suppressCombinations())
                 .dataNondeterminism(filibusterTest.dataNondeterminism())
-                .filibusterServerBackend(filibusterTest.serverBackend())
+                .serverBackend(filibusterTest.serverBackend())
                 .dockerImageName(dockerImageName)
                 .analysisFile(analysisFile)
                 .degradeWhenServerInitializationFails(filibusterTest.degradeWhenServerInitializationFails())
                 .expected(filibusterTest.expected())
                 .build();
+
+        validateSearchBackend(filibusterTest, filibusterConfiguration);
 
         HashMap<Integer, Boolean> invocationCompletionMap = new HashMap<>();
 
@@ -108,6 +113,15 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
         Preconditions.condition(repetitions > 0, () -> String.format(
                 "Configuration error: @FilibusterTest on method [%s] must be declared with a positive 'maxIterations'.", method));
         return repetitions;
+    }
+
+    private static void validateSearchBackend(FilibusterTest filibusterTest, FilibusterConfiguration filibusterConfiguration) {
+        FilibusterServerBackend filibusterServerBackend = filibusterConfiguration.getServerBackend();
+        FilibusterSearchStrategy filibusterSearchStrategy = filibusterTest.searchStrategy();
+        List<FilibusterSearchStrategy> supportedSearchStrategies = filibusterServerBackend.supportedSearchStrategies();
+
+        Preconditions.condition(supportedSearchStrategies.contains(filibusterSearchStrategy), () -> String.format(
+                "Configuration error: @FilibusterTest on method [%s] must be declared a supported search strategy by the chosen backend.", filibusterServerBackend));
     }
 
     private static FilibusterTestDisplayNameFormatter displayNameFormatter(FilibusterTest filibusterTest, Method method, String displayName) {

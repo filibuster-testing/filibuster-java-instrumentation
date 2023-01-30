@@ -1,6 +1,6 @@
 package cloud.filibuster.integration.examples.armeria.http.tests;
 
-import cloud.filibuster.instrumentation.TestHelper;
+import cloud.filibuster.integration.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.armeria.http.FilibusterDecoratingHttpClient;
 import cloud.filibuster.instrumentation.libraries.armeria.http.FilibusterDecoratingHttpService;

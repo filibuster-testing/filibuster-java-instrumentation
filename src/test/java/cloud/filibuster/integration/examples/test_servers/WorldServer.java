@@ -1,14 +1,14 @@
 package cloud.filibuster.integration.examples.test_servers;
 
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.MyWorldService;
-import cloud.filibuster.instrumentation.TestHelper;
+import cloud.filibuster.integration.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterServerInterceptor;
 import cloud.filibuster.instrumentation.libraries.armeria.http.FilibusterDecoratingHttpService;
 
-import cloud.filibuster.instrumentation.libraries.opentelemetry.OpenTelemetryFilibusterDecoratingHttpService;
-import cloud.filibuster.instrumentation.libraries.opentelemetry.OpenTelemetryFilibusterServerInterceptor;
+import cloud.filibuster.integration.instrumentation.libraries.opentelemetry.OpenTelemetryFilibusterDecoratingHttpService;
+import cloud.filibuster.integration.instrumentation.libraries.opentelemetry.OpenTelemetryFilibusterServerInterceptor;
 import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.HttpHeaderNames;
 import com.linecorp.armeria.common.HttpMethod;

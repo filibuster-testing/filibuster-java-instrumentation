@@ -3,7 +3,7 @@ package cloud.filibuster.integration.examples.armeria.grpc.tests.interceptors;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.MyHelloService;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
-import cloud.filibuster.instrumentation.FilibusterServerFake;
+import cloud.filibuster.integration.instrumentation.FilibusterServerFake;
 
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;

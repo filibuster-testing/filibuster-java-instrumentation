@@ -3,8 +3,8 @@ package cloud.filibuster.integration.examples.armeria.grpc.tests.decorators.scen
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.integration.examples.armeria.grpc.tests.decorators.HelloGrpcServerTest;
-import cloud.filibuster.instrumentation.FilibusterServerFake;
-import cloud.filibuster.instrumentation.TestHelper;
+import cloud.filibuster.integration.instrumentation.FilibusterServerFake;
+import cloud.filibuster.integration.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.datatypes.VectorClock;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.armeria.http.FilibusterDecoratingHttpClient;
@@ -96,7 +96,7 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerFakeNoFaultTest exte
         VectorClock assertVc = generateAssertionClock();
         assertEquals(assertVc.toString(), lastPayload.get("vclock").toString());
 
-        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-e6d2044db5d520c8bfb5fd775a1f024e11a0176f-146409d9c7d501362ce2f58ab555782fba01c7c6\", 1]]", lastPayload.getString("execution_index"));
+        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-d1cea17124375b2b5755215aa248d091c197acf5-146409d9c7d501362ce2f58ab555782fba01c7c6\", 1]]", lastPayload.getString("execution_index"));
 
         assertFalse(wasFaultInjected());
     }

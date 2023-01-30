@@ -41,7 +41,6 @@ public class JUnitFilibusterDockerBackendTestBadImage extends JUnitBaseTest {
      * @throws InterruptedException if teardown of gRPC channel fails.
      */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @FilibusterTest(dockerImageName = "filibustertesting/asdfasdf:0.33", degradeWhenServerInitializationFails = true)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {

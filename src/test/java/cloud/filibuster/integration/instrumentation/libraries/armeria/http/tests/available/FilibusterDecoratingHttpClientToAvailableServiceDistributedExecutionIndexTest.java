@@ -101,7 +101,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceDistributedExecutio
         // Verify invocation for second request.
         JSONObject webClient2InvocationPayload = FilibusterServerFake.payloadsReceived.get(1);
         assertEquals("invocation", webClient2InvocationPayload.getString("instrumentation_type"));
-        assertEquals("[[\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-e5c298e9d4b8e02f2d4be4c2e42cf328b67862ed-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", webClient2InvocationPayload.getString("execution_index"));
+        assertEquals("[[\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-25b149611e32f77f281ab2b54611e6f9c2fb4592-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", webClient2InvocationPayload.getString("execution_index"));
 
         // Verify invocation_complete for first request.
         JSONObject webClient1InvocationCompletePayload = FilibusterServerFake.payloadsReceived.get(2);
@@ -111,7 +111,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceDistributedExecutio
         // Verify invocation_complete for second request.
         JSONObject webClient2InvocationCompletePayload = FilibusterServerFake.payloadsReceived.get(3);
         assertEquals("invocation_complete", webClient2InvocationCompletePayload.getString("instrumentation_type"));
-        assertEquals("[[\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-e5c298e9d4b8e02f2d4be4c2e42cf328b67862ed-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", webClient2InvocationCompletePayload.getString("execution_index"));
+        assertEquals("[[\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-25b149611e32f77f281ab2b54611e6f9c2fb4592-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", webClient2InvocationCompletePayload.getString("execution_index"));
 
         resetInitialRequestId();
     }

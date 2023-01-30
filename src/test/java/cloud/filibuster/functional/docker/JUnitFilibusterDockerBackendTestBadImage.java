@@ -104,7 +104,6 @@ public class JUnitFilibusterDockerBackendTestBadImage extends JUnitBaseTest {
      * Verify that Filibuster generated the correct number of fault injections.
      */
     @DisplayName("Verify correct number of generated Filibuster tests.")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Test
     @Order(2)
     public void testNumAssertions() {
@@ -115,7 +114,6 @@ public class JUnitFilibusterDockerBackendTestBadImage extends JUnitBaseTest {
      * Verify correct number of test executions.
      */
     @DisplayName("Verify correct number of test executions.")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Test
     @Order(2)
     public void testNumExecutions() {

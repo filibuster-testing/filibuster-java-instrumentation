@@ -43,7 +43,6 @@ public class JUnitFilibusterDockerBackendTestBadImageExpected extends JUnitBaseT
      * @throws InterruptedException if teardown of gRPC channel fails.
      */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @FilibusterTest(serverBackend = FilibusterDockerServerBackend.class, dockerImageName = "filibustertesting/asdfasdf:0.33", expected = ContainerLaunchException.class)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         numberOfTestExecutions++;
@@ -105,7 +104,6 @@ public class JUnitFilibusterDockerBackendTestBadImageExpected extends JUnitBaseT
      * Verify that Filibuster generated the correct number of fault injections.
      */
     @DisplayName("Verify correct number of generated Filibuster tests.")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Test
     @Order(2)
     public void testNumAssertions() {
@@ -116,7 +114,6 @@ public class JUnitFilibusterDockerBackendTestBadImageExpected extends JUnitBaseT
      * Verify correct number of test executions.
      */
     @DisplayName("Verify correct number of test executions.")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Test
     @Order(2)
     public void testNumExecutions() {

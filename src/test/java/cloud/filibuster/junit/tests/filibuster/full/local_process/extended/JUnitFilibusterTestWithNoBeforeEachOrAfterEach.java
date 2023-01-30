@@ -2,7 +2,7 @@ package cloud.filibuster.junit.tests.filibuster.full.local_process.extended;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
-import cloud.filibuster.examples.armeria.grpc.test_services.MyHelloService;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.MyHelloService;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;

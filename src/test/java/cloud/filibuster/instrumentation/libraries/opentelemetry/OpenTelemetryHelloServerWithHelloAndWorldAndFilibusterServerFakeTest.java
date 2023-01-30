@@ -1,6 +1,6 @@
 package cloud.filibuster.instrumentation.libraries.opentelemetry;
 
-import cloud.filibuster.examples.armeria.http.tests.HelloServerTest;
+import cloud.filibuster.integration.examples.armeria.http.tests.HelloServerTest;
 import cloud.filibuster.instrumentation.FilibusterServerFake;
 import cloud.filibuster.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.datatypes.VectorClock;
@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-import static cloud.filibuster.examples.test_servers.HelloServer.resetInitialDistributedExecutionIndex;
+import static cloud.filibuster.integration.examples.test_servers.HelloServer.resetInitialDistributedExecutionIndex;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class OpenTelemetryHelloServerWithHelloAndWorldAndFilibusterServerFakeTest extends HelloServerTest {

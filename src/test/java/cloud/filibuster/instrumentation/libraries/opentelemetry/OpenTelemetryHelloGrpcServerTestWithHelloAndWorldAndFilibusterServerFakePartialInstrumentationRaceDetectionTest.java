@@ -1,8 +1,8 @@
 package cloud.filibuster.instrumentation.libraries.opentelemetry;
 
-import cloud.filibuster.examples.test_servers.HelloServer;
-import cloud.filibuster.examples.test_servers.WorldServer;
-import cloud.filibuster.examples.armeria.grpc.test_services.MyHelloService;
+import cloud.filibuster.integration.examples.test_servers.HelloServer;
+import cloud.filibuster.integration.examples.test_servers.WorldServer;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.MyHelloService;
 import cloud.filibuster.instrumentation.FilibusterServerFake;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;

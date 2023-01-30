@@ -4,9 +4,9 @@ import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.exceptions.FilibusterServerUnavailabilityException;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.armeria.http.FilibusterDecoratingHttpClient;
-import cloud.filibuster.examples.test_servers.ExternalServer;
-import cloud.filibuster.examples.test_servers.HelloServer;
-import cloud.filibuster.examples.test_servers.WorldServer;
+import cloud.filibuster.integration.examples.test_servers.ExternalServer;
+import cloud.filibuster.integration.examples.test_servers.HelloServer;
+import cloud.filibuster.integration.examples.test_servers.WorldServer;
 
 import cloud.filibuster.instrumentation.libraries.opentelemetry.OpenTelemetryFilibusterDecoratingHttpClient;
 

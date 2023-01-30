@@ -1,6 +1,6 @@
 package cloud.filibuster.junit.tests.filibuster;
 
-import cloud.filibuster.examples.armeria.grpc.test_services.MyHelloService;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.MyHelloService;
 
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 

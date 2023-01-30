@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.hello.multiple;
+package cloud.filibuster.functional.java_hello.nondeterministic;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitBaseTest {
+public class JUnitFilibusterDataNondeterminismTest extends JUnitBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     private static int numberOfTestsExecuted = 0;
@@ -39,7 +39,7 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitBaseT
     private static int numberOfExceptionsThrown = 0;
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, maxIterations=10)
+    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, dataNondeterminism=true, maxIterations=10)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -52,77 +52,47 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitBaseT
         numberOfTestsExecuted++;
 
         HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
-        Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
+        Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian " + Math.random()).build();
 
         try {
-            Hello.HelloReply reply = blockingStub.partialHelloExternalHttp(request);
-            assertEquals("Hello, Armerian World!!", reply.getMessage());
-//            assertFalse(wasFaultInjected());
+            Hello.HelloReply reply = blockingStub.partialHello(request);
+            assertTrue(reply.getMessage().contains("Hello, Armerian"));
+            assertFalse(wasFaultInjected());
         } catch (Throwable t) {
-            if (numberOfTestsExecuted == 10) {
-                assertFalse(true);
-            }
-
             numberOfExceptionsThrown++;
-            testExceptionsThrown.add(t.getMessage());
 
             boolean wasFaultInjected = wasFaultInjected();
 
-            boolean firstRPCFailed = false;
-
             if (wasFaultInjected) {
-                // First RPC failed.
+                testExceptionsThrown.add(t.getMessage());
+
                 if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
                     expected = true;
-                    firstRPCFailed = true;
                 }
 
                 if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNAVAILABLE")) {
                     expected = true;
-                    firstRPCFailed = true;
                 }
 
                 if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED")) {
                     expected = true;
-                    firstRPCFailed = true;
                 }
 
                 if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: INTERNAL")) {
                     expected = true;
-                    firstRPCFailed = true;
                 }
 
-                if (firstRPCFailed) {
-                    boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("WorldService");
-                    assertTrue(wasFaultInjectedOnWorldService);
+                boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("WorldService");
+                assertTrue(wasFaultInjectedOnWorldService);
 
-                    boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World");
-                    assertTrue(wasFaultInjectedOnWorldMethod);
+                boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World");
+                assertTrue(wasFaultInjectedOnWorldMethod);
 
-                    boolean wasFaultInjectedOnRequest = wasFaultInjectedOnRequest(request.toString());
-                    assertTrue(wasFaultInjectedOnRequest);
+                boolean wasFaultInjectedOnRequest = wasFaultInjectedOnRequest(request.toString());
+                assertTrue(wasFaultInjectedOnRequest);
 
-                    boolean wasFaultInjectedOnWorldMethodWithPayload = wasFaultInjectedOnMethodWherePayloadContains("cloud.filibuster.examples.WorldService/World", request.toString());
-                    assertTrue(wasFaultInjectedOnWorldMethodWithPayload);
-                }
-
-                // Second RPC failed.
-
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNKNOWN")) {
-                    expected = true;
-                }
-
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: FAILED_PRECONDITION: HTTP RPC returned: 500")) {
-                    expected = true;
-                }
-
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: FAILED_PRECONDITION: HTTP RPC returned: 502")) {
-                    expected = true;
-                }
-
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: FAILED_PRECONDITION: HTTP RPC returned: 503")) {
-                    expected = true;
-                }
+                boolean wasFaultInjectedOnWorldMethodWithPayload = wasFaultInjectedOnMethodWherePayloadContains("cloud.filibuster.examples.WorldService/World", request.toString());
+                assertTrue(wasFaultInjectedOnWorldMethodWithPayload);
 
                 if (!expected) {
                     throw t;
@@ -136,24 +106,24 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitBaseT
         helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
     }
 
-    @DisplayName("Verify correct exceptions thrown.")
+    @DisplayName("Verify correct number of thrown exceptions.")
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(8, testExceptionsThrown.size());
+        assertEquals(4, testExceptionsThrown.size());
     }
 
     @DisplayName("Verify correct number of executed tests.")
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEquals(9, numberOfTestsExecuted);
+        assertEquals(5, numberOfTestsExecuted);
     }
 
     @DisplayName("Verify correct number of exceptions thrown.")
     @Test
     @Order(4)
     public void numberOfExceptionsThrown() {
-        assertEquals(8, numberOfExceptionsThrown);
+        assertEquals(4, numberOfExceptionsThrown);
     }
 }

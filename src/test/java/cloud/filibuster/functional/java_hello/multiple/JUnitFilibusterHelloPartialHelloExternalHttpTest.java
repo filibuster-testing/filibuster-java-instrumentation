@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.hello.multiple;
+package cloud.filibuster.functional.java_hello.multiple;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterHelloPartialHelloExternalGrpcTest extends JUnitBaseTest {
+public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     private static int numberOfTestsExecuted = 0;
@@ -39,7 +39,7 @@ public class JUnitFilibusterHelloPartialHelloExternalGrpcTest extends JUnitBaseT
     private static int numberOfExceptionsThrown = 0;
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, maxIterations=30)
+    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, maxIterations=10)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -55,17 +55,20 @@ public class JUnitFilibusterHelloPartialHelloExternalGrpcTest extends JUnitBaseT
         Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
 
         try {
-            Hello.HelloReply reply = blockingStub.partialHelloExternalGrpc(request);
-            assertEquals("Hello, Hello, Hello, Armerian!!", reply.getMessage());
-            assertFalse(wasFaultInjected());
+            Hello.HelloReply reply = blockingStub.partialHelloExternalHttp(request);
+            assertEquals("Hello, Armerian World!!", reply.getMessage());
+//            assertFalse(wasFaultInjected());
         } catch (Throwable t) {
+            if (numberOfTestsExecuted == 10) {
+                assertFalse(true);
+            }
+
             numberOfExceptionsThrown++;
             testExceptionsThrown.add(t.getMessage());
 
             boolean wasFaultInjected = wasFaultInjected();
 
             boolean firstRPCFailed = false;
-            boolean secondRPCFailed = false;
 
             if (wasFaultInjected) {
                 // First RPC failed.
@@ -105,41 +108,27 @@ public class JUnitFilibusterHelloPartialHelloExternalGrpcTest extends JUnitBaseT
 
                 // Second RPC failed.
 
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED")) {
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNKNOWN")) {
                     expected = true;
-                    secondRPCFailed = true;
                 }
 
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: INTERNAL")) {
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: FAILED_PRECONDITION: HTTP RPC returned: 500")) {
                     expected = true;
-                    secondRPCFailed = true;
                 }
 
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: UNAVAILABLE")) {
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: FAILED_PRECONDITION: HTTP RPC returned: 502")) {
                     expected = true;
-                    secondRPCFailed = true;
                 }
 
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: FAILED_PRECONDITION: HTTP RPC returned: 503")) {
                     expected = true;
-                    secondRPCFailed = true;
-                }
-
-                if (secondRPCFailed) {
-                    boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("HelloService");
-                    assertTrue(wasFaultInjectedOnWorldService);
-
-                    boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod("cloud.filibuster.examples.HelloService/Hello");
-                    assertTrue(wasFaultInjectedOnWorldMethod);
                 }
 
                 if (!expected) {
                     throw t;
                 }
             } else {
-                if (!expected) {
-                    throw t;
-                }
+                throw t;
             }
         }
 

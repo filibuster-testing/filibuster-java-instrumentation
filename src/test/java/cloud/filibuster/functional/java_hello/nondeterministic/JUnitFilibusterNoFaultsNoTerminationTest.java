@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.hello;
+package cloud.filibuster.functional.java_hello.nondeterministic;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
@@ -19,15 +19,18 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterHelloPartialHelloWithErrorHandlingTest extends JUnitBaseTest {
+public class JUnitFilibusterNoFaultsNoTerminationTest extends JUnitBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     private static int numberOfTestsExecuted = 0;
+
+    private static int numberOfExceptionsThrown = 0;
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, maxIterations=10)
@@ -40,10 +43,16 @@ public class JUnitFilibusterHelloPartialHelloWithErrorHandlingTest extends JUnit
 
         numberOfTestsExecuted++;
 
-        HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
-        Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
-        Hello.HelloReply reply = blockingStub.partialHelloWithErrorHandling(request);
-        assertEquals("Hello, Armerian World!!", reply.getMessage());
+        try {
+            HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
+            Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian " + Math.random()).build();
+            Hello.HelloReply reply = blockingStub.partialHello(request);
+            assertTrue(reply.getMessage().contains("Hello, Armerian"));
+        } catch (RuntimeException e) {
+            numberOfExceptionsThrown++;
+            // Shouldn't ever get here.
+        }
+
 
         helloChannel.shutdownNow();
         helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
@@ -53,6 +62,7 @@ public class JUnitFilibusterHelloPartialHelloWithErrorHandlingTest extends JUnit
     @Test
     @Order(2)
     public void testNumAssertions() {
+        // No fault injections because of no DEI matches.
         assertEquals(0, testExceptionsThrown.size());
     }
 
@@ -60,6 +70,15 @@ public class JUnitFilibusterHelloPartialHelloWithErrorHandlingTest extends JUnit
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEquals(5, numberOfTestsExecuted);
+        // maxIterations executed because of no termination.
+        assertEquals(10, numberOfTestsExecuted);
+    }
+
+    @DisplayName("Verify correct number of exceptions thrown.")
+    @Test
+    @Order(4)
+    public void numberOfExceptionsThrown() {
+        // No fault injections because of no DEI matches.
+        assertEquals(0, numberOfExceptionsThrown);
     }
 }

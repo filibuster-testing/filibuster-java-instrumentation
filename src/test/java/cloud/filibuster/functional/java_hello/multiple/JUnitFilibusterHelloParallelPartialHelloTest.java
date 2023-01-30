@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.hello.suppress_combinations;
+package cloud.filibuster.functional.java_hello.multiple;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
@@ -26,19 +26,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterHelloParallelPartialHelloWithSuppressCombinationsTest extends JUnitBaseTest {
+public class JUnitFilibusterHelloParallelPartialHelloTest extends JUnitBaseTest {
     private final static Set<String> responsesReceived = new HashSet<>();
 
     private final List possibleResponses = Arrays.asList(
             "Hello, Armerian World!! Hello, Parallel World!!",
             "Hello, Parallel World!!",
-            "Hello, Armerian World!!"
+            "Hello, Armerian World!!",
+            "Hello, "
     );
 
     private static int numberOfTestsExecuted = 0;
-
+    
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, suppressCombinations=true, maxIterations=20)
+    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, maxIterations=100)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -70,6 +71,6 @@ public class JUnitFilibusterHelloParallelPartialHelloWithSuppressCombinationsTes
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEquals(9, numberOfTestsExecuted);
+        assertEquals(25, numberOfTestsExecuted);
     }
 }

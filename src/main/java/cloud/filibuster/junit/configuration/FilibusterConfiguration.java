@@ -1,6 +1,7 @@
 package cloud.filibuster.junit.configuration;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedServerBackendException;
+import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.server.backends.FilibusterDockerServerBackend;
 import cloud.filibuster.junit.server.FilibusterServerBackend;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
@@ -26,6 +27,8 @@ public class FilibusterConfiguration {
 
     private final boolean dataNondeterminism;
 
+    private FilibusterSearchStrategy searchStrategy;
+
     private final String analysisFile;
 
     private final FilibusterServerBackend filibusterServerBackend;
@@ -40,6 +43,7 @@ public class FilibusterConfiguration {
         this.dynamicReduction = builder.dynamicReduction;
         this.suppressCombinations = builder.suppressCombinations;
         this.dataNondeterminism = builder.dataNondeterminism;
+        this.searchStrategy = builder.searchStrategy;
         this.analysisFile = builder.analysisFile;
         this.filibusterServerBackend = builder.filibusterServerBackend;
         this.dockerImageName = builder.dockerImageName;
@@ -102,6 +106,15 @@ public class FilibusterConfiguration {
     }
 
     /**
+     * Which search strategy should Filibuster use?
+     *
+     * @return search strategy.
+     */
+    public FilibusterSearchStrategy getSearchStrategy() {
+        return this.searchStrategy;
+    }
+
+    /**
      * Should the jUnit suite degrade and run the tests without faults only when the server is unavailable?
      *
      * @return boolean
@@ -158,6 +171,8 @@ public class FilibusterConfiguration {
         private boolean dynamicReduction = false;
         private boolean suppressCombinations = false;
         private boolean dataNondeterminism = false;
+
+        private FilibusterSearchStrategy searchStrategy;
 
         private String analysisFile;
 
@@ -270,6 +285,18 @@ public class FilibusterConfiguration {
         @CanIgnoreReturnValue
         public Builder degradeWhenServerInitializationFails(boolean degradeWhenServerInitializationFails) {
             this.degradeWhenServerInitializationFails = degradeWhenServerInitializationFails;
+            return this;
+        }
+
+        /**
+         * Which search strategy should Filibuster use?
+         *
+         * @param searchStrategy search strategy
+         * @return builder
+         */
+        @CanIgnoreReturnValue
+        public Builder searchStrategy(FilibusterSearchStrategy searchStrategy) {
+            this.searchStrategy = searchStrategy;
             return this;
         }
 

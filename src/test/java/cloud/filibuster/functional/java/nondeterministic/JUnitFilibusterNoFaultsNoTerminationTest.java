@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java_hello.nondeterministic;
+package cloud.filibuster.functional.java.nondeterministic;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;

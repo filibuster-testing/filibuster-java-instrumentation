@@ -217,8 +217,8 @@ public class HelloGrpcServerTestWithHelloAndWorldAndFilibusterServerFakeTest ext
         assertEquals(6, FilibusterServerFake.payloadsReceived.size());
 
         ArrayList<String> validDistributedExecutionIndexes = new ArrayList<>();
-        validDistributedExecutionIndexes.add("[[\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-c33138380e9a2cec15067b0b41e732028c717add-0467af73e0837d51c48b70651c64b7e6537819d2\", 1]]");
-        validDistributedExecutionIndexes.add("[[\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-c33138380e9a2cec15067b0b41e732028c717add-2ac0bec48de1a7dcae4633461bc34169923a7ae9\", 1]]");
+        validDistributedExecutionIndexes.add("[[\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-6550c6956ce85982ca3b4a1bfb4341d3a3b4cd0d-0467af73e0837d51c48b70651c64b7e6537819d2\", 1]]");
+        validDistributedExecutionIndexes.add("[[\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-308d1419e1ba0da4af15c810881dec2f4c11dba9-6550c6956ce85982ca3b4a1bfb4341d3a3b4cd0d-2ac0bec48de1a7dcae4633461bc34169923a7ae9\", 1]]");
 
         // Scheduling nondeterminism means that we don't know what order the invocations, request_received, and
         // invocation_complete messages will arrive in.  However, we do know that each of them should exist

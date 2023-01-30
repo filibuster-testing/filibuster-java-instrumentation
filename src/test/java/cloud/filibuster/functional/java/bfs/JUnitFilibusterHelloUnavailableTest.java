@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.dfs;
+package cloud.filibuster.functional.java.bfs;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterHelloPartialHelloTest extends JUnitBaseTest {
+public class JUnitFilibusterHelloUnavailableTest extends JUnitBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     private static int numberOfTestsExecuted = 0;
@@ -40,7 +40,7 @@ public class JUnitFilibusterHelloPartialHelloTest extends JUnitBaseTest {
     private static int numberOfExceptionsThrown = 0;
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, searchStrategy= FilibusterSearchStrategy.DFS, maxIterations=10)
+    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, searchStrategy= FilibusterSearchStrategy.BFS, maxIterations=10)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -56,17 +56,18 @@ public class JUnitFilibusterHelloPartialHelloTest extends JUnitBaseTest {
         Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
 
         try {
-            Hello.HelloReply reply = blockingStub.partialHello(request);
+            Hello.HelloReply reply = blockingStub.unavailable(request);
+
+            // Should never reach these assertions.
             assertEquals("Hello, Armerian World!!", reply.getMessage());
             assertFalse(wasFaultInjected());
         } catch (Throwable t) {
             numberOfExceptionsThrown++;
+            testExceptionsThrown.add(t.getMessage());
 
             boolean wasFaultInjected = wasFaultInjected();
 
             if (wasFaultInjected) {
-                testExceptionsThrown.add(t.getMessage());
-
                 if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
                     expected = true;
                 }
@@ -99,7 +100,13 @@ public class JUnitFilibusterHelloPartialHelloTest extends JUnitBaseTest {
                     throw t;
                 }
             } else {
-                throw t;
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED: Method cloud.filibuster.examples.WorldService/WorldUnavailable is unimplemented")) {
+                    expected = true;
+                }
+
+                if (!expected) {
+                    throw t;
+                }
             }
         }
 
@@ -107,11 +114,11 @@ public class JUnitFilibusterHelloPartialHelloTest extends JUnitBaseTest {
         helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
     }
 
-    @DisplayName("Verify correct number of thrown exceptions.")
+    @DisplayName("Verify correct exceptions thrown.")
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(4, testExceptionsThrown.size());
+        assertEquals(5, testExceptionsThrown.size());
     }
 
     @DisplayName("Verify correct number of executed tests.")
@@ -125,6 +132,6 @@ public class JUnitFilibusterHelloPartialHelloTest extends JUnitBaseTest {
     @Test
     @Order(4)
     public void numberOfExceptionsThrown() {
-        assertEquals(4, numberOfExceptionsThrown);
+        assertEquals(5, numberOfExceptionsThrown);
     }
 }

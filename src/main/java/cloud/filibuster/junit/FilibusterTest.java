@@ -188,5 +188,5 @@ public @interface FilibusterTest {
      *
      * @return search strategy
      */
-    FilibusterSearchStrategy searchStrategy() default FilibusterSearchStrategy.BFS;
+    FilibusterSearchStrategy searchStrategy() default FilibusterSearchStrategy.DFS;
 }

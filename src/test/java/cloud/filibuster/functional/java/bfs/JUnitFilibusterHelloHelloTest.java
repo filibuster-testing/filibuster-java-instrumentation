@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.dfs;
+package cloud.filibuster.functional.java.bfs;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
@@ -19,19 +19,21 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /**
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterHelloPartialHelloWithErrorHandlingTest extends JUnitBaseTest {
+public class JUnitFilibusterHelloHelloTest extends JUnitBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     private static int numberOfTestsExecuted = 0;
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, searchStrategy= FilibusterSearchStrategy.DFS, maxIterations=10)
+    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, searchStrategy=FilibusterSearchStrategy.BFS, maxIterations=10)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -43,8 +45,9 @@ public class JUnitFilibusterHelloPartialHelloWithErrorHandlingTest extends JUnit
 
         HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
         Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
-        Hello.HelloReply reply = blockingStub.partialHelloWithErrorHandling(request);
-        assertEquals("Hello, Armerian World!!", reply.getMessage());
+        Hello.HelloReply reply = blockingStub.hello(request);
+        assertEquals("Hello, Armerian!!", reply.getMessage());
+        assertFalse(wasFaultInjected());
 
         helloChannel.shutdownNow();
         helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
@@ -61,6 +64,6 @@ public class JUnitFilibusterHelloPartialHelloWithErrorHandlingTest extends JUnit
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEquals(5, numberOfTestsExecuted);
+        assertEquals(1, numberOfTestsExecuted);
     }
 }

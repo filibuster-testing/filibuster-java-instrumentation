@@ -3,14 +3,14 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Java CI
+name: Java (Unit Tests)
 
 on: [push]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 100
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v2
@@ -22,4 +22,4 @@ jobs:
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
       - name: Test with Gradle
-        run: ./gradlew test
+        run: ./gradlew test --tests 'cloud.filibuster.unit.*'

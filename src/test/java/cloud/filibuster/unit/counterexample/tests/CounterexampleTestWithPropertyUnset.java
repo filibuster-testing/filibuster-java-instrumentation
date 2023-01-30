@@ -1,4 +1,4 @@
-package cloud.filibuster.counterexample.tests;
+package cloud.filibuster.unit.counterexample.tests;
 
 import cloud.filibuster.instrumentation.exceptions.EnvironmentMissingCounterexampleException;
 import cloud.filibuster.instrumentation.helpers.Property;

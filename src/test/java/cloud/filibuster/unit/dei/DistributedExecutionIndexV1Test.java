@@ -1,5 +1,6 @@
-package cloud.filibuster.dei;
+package cloud.filibuster.unit.dei;
 
+import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.dei.implementations.DistributedExecutionIndexV1;
 import cloud.filibuster.exceptions.distributed_execution_index.DistributedExecutionIndexSerializationException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;

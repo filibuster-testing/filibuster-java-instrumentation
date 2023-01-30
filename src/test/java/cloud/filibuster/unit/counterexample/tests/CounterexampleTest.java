@@ -1,4 +1,4 @@
-package cloud.filibuster.counterexample.tests;
+package cloud.filibuster.unit.counterexample.tests;
 
 import org.json.JSONObject;
 import org.junit.jupiter.api.DisplayName;

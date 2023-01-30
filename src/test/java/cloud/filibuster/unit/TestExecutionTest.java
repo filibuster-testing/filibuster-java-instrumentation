@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.tests.filibuster.smoke.local;
+package cloud.filibuster.unit;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.dei.implementations.DistributedExecutionIndexV1;

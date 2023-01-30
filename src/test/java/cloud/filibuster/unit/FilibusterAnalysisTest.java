@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.tests;
+package cloud.filibuster.unit;
 
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;

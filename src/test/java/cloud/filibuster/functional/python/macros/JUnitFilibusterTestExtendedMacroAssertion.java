@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class JUnitFilibusterTestExtendedMacroAssertion extends JUnitBaseTest {
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @FilibusterTest(serverBackend=FilibusterLocalProcessServerBackend.class)
     public void testMyHelloAndMyWorldServiceWithFilibusterWithMacro() throws Throwable {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -79,7 +78,6 @@ public class JUnitFilibusterTestExtendedMacroAssertion extends JUnitBaseTest {
     }
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @FilibusterTest(serverBackend=FilibusterLocalProcessServerBackend.class, expected = StatusRuntimeException.class)
     public void testMyHelloAndMyWorldServiceWithFilibusterWithMacroAndFailure() throws Throwable {
         ManagedChannel helloChannel = ManagedChannelBuilder

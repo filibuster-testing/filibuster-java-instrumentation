@@ -27,7 +27,5 @@ jobs:
         run: cd /tmp/filibuster && sudo make
       - name: Install Filibuster (Python)
         run: cd /tmp/filibuster && sudo make install
-      - name: Run Filibuster (Python)
-        run: /usr/local/bin/filibuster --server-only
-#      - name: Test with Gradle
-#        run: ./gradlew test --tests 'cloud.filibuster.functional.python.*'
+      - name: Test with Gradle
+        run: ./gradlew test --tests 'cloud.filibuster.functional.python.*'

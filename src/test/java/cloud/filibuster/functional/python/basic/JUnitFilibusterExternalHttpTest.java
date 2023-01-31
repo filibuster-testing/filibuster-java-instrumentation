@@ -42,6 +42,7 @@ public class JUnitFilibusterExternalHttpTest extends JUnitBaseTest {
      */
     @DisplayName("Test world route with Filibuster.")
     @FilibusterTest(serverBackend=FilibusterLocalProcessServerBackend.class)
+    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Order(1)
     public void testHelloAndExternalServiceWithFilibuster() {
         numberOfTestsExecuted++;
@@ -69,6 +70,7 @@ public class JUnitFilibusterExternalHttpTest extends JUnitBaseTest {
 
     @DisplayName("Verify correct number of generated Filibuster tests.")
     @Test
+    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Order(2)
     public void testNumAssertions() {
         assertEquals(2, testErrorCodesReceived.size());
@@ -76,6 +78,7 @@ public class JUnitFilibusterExternalHttpTest extends JUnitBaseTest {
 
     @DisplayName("Verify correct number of generated Filibuster tests.")
     @Test
+    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Order(3)
     public void testNumberOfTestsExecuted() {
         assertEquals(5, numberOfTestsExecuted);

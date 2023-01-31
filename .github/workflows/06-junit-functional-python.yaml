@@ -22,7 +22,7 @@ jobs:
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
       - name: Clone Filibuster (Python)
-        run: cd /tmp && git clone http://github.com/filibuster-testing/filibuster
+        run: cd /tmp && git clone http://github.com/filibuster-testing/filibuster -b improvements-2
       - name: Build Filibuster (Python)
         run: cd /tmp/filibuster && sudo make
 #      - name: Test with Gradle

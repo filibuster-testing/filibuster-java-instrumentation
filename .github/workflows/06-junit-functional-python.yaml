@@ -10,7 +10,7 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 2
 
     steps:
       - uses: actions/checkout@v2
@@ -27,5 +27,7 @@ jobs:
         run: cd /tmp/filibuster && sudo make
       - name: Install Filibuster (Python)
         run: cd /tmp/filibuster && sudo make install
+      - name: Run Filibuster (Python)
+        run: /usr/local/bin/filibuster --server-only
 #      - name: Test with Gradle
 #        run: ./gradlew test --tests 'cloud.filibuster.functional.python.*'

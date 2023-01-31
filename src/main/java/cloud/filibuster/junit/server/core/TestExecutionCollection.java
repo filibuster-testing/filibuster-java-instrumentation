@@ -2,18 +2,16 @@ package cloud.filibuster.junit.server.core;
 
 import cloud.filibuster.junit.server.core.test_executions.TestExecution;
 
-import java.util.Collection;
+public interface TestExecutionCollection<T extends TestExecution> {
+    boolean containsAbstractTestExecution(TestExecution te);
 
-public interface TestExecutionCollection<T extends TestExecution> extends Collection<T> {
-    default boolean containsAbstractTestExecution(TestExecution te) {
-        for (T t : this) {
-            if (t.matchesAbstractTestExecution(te)) {
-                return true;
-            }
-        }
+    boolean containsTestExecution(T testExecution);
 
-        return false;
-    }
+    boolean isEmpty();
 
-    T remove();
+    T removeAndReturnNextTestExecution();
+
+    int size();
+
+    void addTestExecution(T testExecution);
 }

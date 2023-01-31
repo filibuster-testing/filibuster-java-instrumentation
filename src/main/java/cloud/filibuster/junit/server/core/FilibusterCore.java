@@ -266,18 +266,18 @@ public class FilibusterCore {
             if (currentAbstractTestExecution != null) {
                 numberOfAbstractExecutionsAttempted++;
 
-                if (!exploredTestExecutions.contains(currentAbstractTestExecution)) {
+                if (!exploredTestExecutions.containsTestExecution(currentAbstractTestExecution)) {
                     // Don't add to explored queue if it's already there.
                     numberOfAbstractExecutionsExecuted++;
 
-                    exploredTestExecutions.add(currentAbstractTestExecution);
+                    exploredTestExecutions.addTestExecution(currentAbstractTestExecution);
                 } else {
                     logger.severe("[FILIBUSTER-CORE]: teardownsCompleted called, currentAbstractTestExecution already exists in the explored queue, this could indicate a problem in Filibuster.");
                 }
             }
 
-            if (!exploredTestExecutions.contains(currentConcreteTestExecution)) {
-                exploredTestExecutions.add(currentConcreteTestExecution);
+            if (!exploredTestExecutions.containsTestExecution(currentConcreteTestExecution)) {
+                exploredTestExecutions.addTestExecution(currentConcreteTestExecution);
             }
             numberOfConcreteExecutionsExecuted++;
 
@@ -289,7 +289,7 @@ public class FilibusterCore {
             if (!unexploredTestExecutions.isEmpty()) {
                 logger.info("[FILIBUSTER-CORE]: teardownsCompleted, scheduling next test execution.");
 
-                AbstractTestExecution nextAbstractTestExecution = unexploredTestExecutions.remove();
+                AbstractTestExecution nextAbstractTestExecution = unexploredTestExecutions.removeAndReturnNextTestExecution();
 
                 // Set the abstract execution, which drives fault injection and copy the faults into the concrete execution for the record.
                 currentAbstractTestExecution = nextAbstractTestExecution;
@@ -510,14 +510,14 @@ public class FilibusterCore {
             if (!abstractIsExploredExecution && !abstractIsScheduledExecution && !abstractIsCurrentExecution) {
                 if (filibusterConfiguration.getSuppressCombinations()) {
                     if (!(abstractTestExecution.getFaultsToInjectSize() > 1)) {
-                        unexploredTestExecutions.add(abstractTestExecution);
+                        unexploredTestExecutions.addTestExecution(abstractTestExecution);
                         logger.info("[FILIBUSTER-CORE]: createAndScheduleAbstractTestExecution, adding new execution to the queue.");
                     } else {
                         logger.info("[FILIBUSTER-CORE]: createAndScheduleAbstractTestExecution, not scheduling test execution because it contains > 1 fault.");
                     }
                 } else {
                     logger.info("[FILIBUSTER-CORE]: createAndScheduleAbstractTestExecution, adding new execution to the queue.");
-                    unexploredTestExecutions.add(abstractTestExecution);
+                    unexploredTestExecutions.addTestExecution(abstractTestExecution);
                 }
             }
         }

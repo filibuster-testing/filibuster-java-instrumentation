@@ -146,8 +146,8 @@ public class JUnitFilibusterTestWithFailFastException extends JUnitBaseTest {
      * Verify that the correct number of Filibuster tests are generated.
      */
     @DisplayName("Verify correct number of generated Filibuster tests.")
-    @Test
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
+    @Test
     @Order(2)
     public void testNumAssertions() {
         assertEquals(6, testExceptionsThrown.size());

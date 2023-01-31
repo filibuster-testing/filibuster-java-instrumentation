@@ -2,9 +2,10 @@ package cloud.filibuster.junit.server.core;
 
 import cloud.filibuster.junit.server.core.test_executions.TestExecution;
 
+import java.util.ArrayDeque;
 import java.util.Stack;
 
-public class TestExecutionStack<T extends TestExecution> extends Stack<T> implements TestExecutionCollection<T> {
+public class TestExecutionStack<T extends TestExecution> extends ArrayDeque<T> implements TestExecutionCollection<T> {
     @Override
     public boolean containsAbstractTestExecution(TestExecution te) {
         for (T t : this) {
@@ -23,11 +24,11 @@ public class TestExecutionStack<T extends TestExecution> extends Stack<T> implem
 
     @Override
     public T removeAndReturnNextTestExecution() {
-        return this.pop();
+        return this.removeFirst();
     }
 
     @Override
     public void addTestExecution(T testExecution) {
-        this.push(testExecution);
+        this.addFirst(testExecution);
     }
 }

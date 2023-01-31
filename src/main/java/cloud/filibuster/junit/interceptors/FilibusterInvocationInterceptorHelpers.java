@@ -1,5 +1,6 @@
 package cloud.filibuster.junit.interceptors;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.junit.exceptions.NoopException;
 import cloud.filibuster.junit.server.FilibusterServerAPI;
@@ -23,8 +24,7 @@ public class FilibusterInvocationInterceptorHelpers {
         try {
             return !FilibusterServerAPI.hasNextIteration(webClient, currentIteration, caller);
         } catch (Exception e) {
-            // TODO: fix me: in event server is unavailable, skip all executions except the first one.
-            return true;
+            throw new FilibusterRuntimeException("Filibuster server threw: " + e, e);
         }
     }
 

@@ -1,9 +1,11 @@
 package cloud.filibuster.junit;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedByHTTPServerException;
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.helpers.Response;
-import cloud.filibuster.junit.exceptions.InternalAssertionFailureException;
+import cloud.filibuster.junit.exceptions.FilibusterServerBadResponseException;
+import cloud.filibuster.junit.server.core.FilibusterCore;
 import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.AggregatedHttpResponse;
 import com.linecorp.armeria.common.HttpHeaderNames;
@@ -13,8 +15,11 @@ import com.linecorp.armeria.common.ResponseHeaders;
 import org.json.JSONObject;
 import org.junit.jupiter.api.function.ThrowingConsumer;
 
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendCanInvokeDirectlyProperty;
 
 /**
  * Assertions provided by Filibuster for writing conditional, fault-based assertions.
@@ -77,6 +82,37 @@ public class Assertions {
     }
 
     /**
+     * Determine if a fault was injected during the current test execution for a particular request and method.
+     *
+     * @param fullyQualifiedMethodName grpc method in the format Service/Method
+     * @param contains substring to search for
+     * @return was fault injected
+     */
+    public static boolean wasFaultInjectedOnMethodWherePayloadContains(String fullyQualifiedMethodName, String contains) {
+        String[] split = fullyQualifiedMethodName.split("/", 2);
+
+        if (getServerBackendCanInvokeDirectlyProperty()) {
+            return FilibusterCore.getCurrentInstance().wasFaultInjectedOnMethodWherePayloadContains(split[0], split[1], contains);
+        } else {
+            throw new FilibusterUnsupportedByHTTPServerException("wasFaultInjectedOnMethodWherePayloadContains only supported with local server.");
+        }
+    }
+
+    /**
+     * Determine if a fault was injected during the current test execution for a particular request.
+     *
+     * @param serializedRequest the @toString of the request.
+     * @return was fault injected
+     */
+    public static boolean wasFaultInjectedOnRequest(String serializedRequest) {
+        if (getServerBackendCanInvokeDirectlyProperty()) {
+            return FilibusterCore.getCurrentInstance().wasFaultInjectedOnRequest(serializedRequest);
+        } else {
+            throw new FilibusterUnsupportedByHTTPServerException("wasFaultInjectedOnRequest only supported with local server.");
+        }
+    }
+
+    /**
      * Determine if a fault was injected during the current test execution.
      *
      * @return was fault injected
@@ -96,13 +132,11 @@ public class Assertions {
             String statusCode = headers.get(HttpHeaderNames.STATUS);
 
             if (statusCode == null) {
-                logger.log(Level.SEVERE, "wasFaultInjected, statusCode: null");
-                throw new InternalAssertionFailureException();
+                FilibusterServerBadResponseException.logAndThrow("wasFaultInjected, statusCode: null");
             }
 
-            if (!statusCode.equals("200")) {
-                logger.log(Level.SEVERE, "wasFaultInjected, statusCode: " + statusCode);
-                throw new InternalAssertionFailureException();
+            if (!Objects.equals(statusCode, "200")) {
+                FilibusterServerBadResponseException.logAndThrow("wasFaultInjected, statusCode: " + statusCode);
             }
 
             // Get body and verify the proper response.
@@ -123,7 +157,11 @@ public class Assertions {
      * @return was fault injected
      */
     public static boolean wasFaultInjectedOnService(String serviceName) {
-        return wasFaultInjected("/filibuster/fault-injected/service/" + serviceName);
+        if (getServerBackendCanInvokeDirectlyProperty()) {
+            return FilibusterCore.getCurrentInstance().wasFaultInjectedOnService(serviceName);
+        } else {
+            return wasFaultInjected("/filibuster/fault-injected/service/" + serviceName);
+        }
     }
 
     /**
@@ -136,7 +174,11 @@ public class Assertions {
      * @return was fault injected
      */
     public static boolean wasFaultInjectedOnMethod(String serviceName, String methodName) {
-        return wasFaultInjected("/filibuster/fault-injected/method/" + serviceName + "/" + methodName);
+        if (getServerBackendCanInvokeDirectlyProperty()) {
+            return FilibusterCore.getCurrentInstance().wasFaultInjectedOnMethod(serviceName, methodName);
+        } else {
+            return wasFaultInjected("/filibuster/fault-injected/method/" + serviceName + "/" + methodName);
+        }
     }
 
     /**
@@ -146,6 +188,11 @@ public class Assertions {
      * @return was fault injected
      */
     public static boolean wasFaultInjectedOnMethod(String fullyQualifiedMethodName) {
-        return wasFaultInjected("/filibuster/fault-injected/method/" + fullyQualifiedMethodName);
+        if (getServerBackendCanInvokeDirectlyProperty()) {
+            String[] split = fullyQualifiedMethodName.split("/", 2);
+            return FilibusterCore.getCurrentInstance().wasFaultInjectedOnMethod(split[0], split[1]);
+        } else {
+            return wasFaultInjected("/filibuster/fault-injected/method/" + fullyQualifiedMethodName);
+        }
     }
 }

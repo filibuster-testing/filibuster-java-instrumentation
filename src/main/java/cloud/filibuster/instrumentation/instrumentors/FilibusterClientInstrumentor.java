@@ -10,6 +10,8 @@ import cloud.filibuster.instrumentation.datatypes.VectorClock;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.helpers.Response;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
+import cloud.filibuster.junit.exceptions.FilibusterServerBadResponseException;
+import cloud.filibuster.junit.server.core.FilibusterCore;
 import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.HttpMethod;
 import com.linecorp.armeria.common.ResponseHeaders;
@@ -21,6 +23,7 @@ import org.json.JSONObject;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
@@ -32,13 +35,14 @@ import static cloud.filibuster.instrumentation.helpers.Counterexample.loadTestEx
 import static cloud.filibuster.instrumentation.helpers.Counterexample.shouldFailRequestWithOrDefault;
 
 import static cloud.filibuster.instrumentation.helpers.Property.getClientInstrumentorUseOverrideRequestIdProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendCanInvokeDirectlyProperty;
 import static cloud.filibuster.instrumentation.instrumentors.FilibusterLocks.distributedExecutionIndexLock;
 import static cloud.filibuster.instrumentation.instrumentors.FilibusterLocks.vectorClockLock;
 
 /**
  * Client instrumentor for Filibuster.
  */
-@SuppressWarnings("StronglyTypeTime")
+@SuppressWarnings({"StronglyTypeTime", "Varifier"})
 final public class FilibusterClientInstrumentor {
     private static final Logger logger = Logger.getLogger(FilibusterClientInstrumentor.class.getName());
 
@@ -462,46 +466,50 @@ final public class FilibusterClientInstrumentor {
         logger.log(Level.INFO, "shouldResetClocks: about to make call.");
 
         if (shouldCommunicateWithServer && counterexampleNotProvided()) {
-            CompletableFuture<Boolean> shouldResetClocks = CompletableFuture.supplyAsync(() -> {
+            if (getServerBackendCanInvokeDirectlyProperty()) {
+                return FilibusterCore.getCurrentInstance().isNewTestExecution(serviceName);
+            } else {
+                CompletableFuture<Boolean> shouldResetClocks = CompletableFuture.supplyAsync(() -> {
+                    try {
+                        // Call instrumentation using instrumentation to verify short-circuit.
+                        WebClient webClient = FilibusterExecutor.getDecoratedWebClient(filibusterBaseUri, filibusterServiceName);
+
+                        RequestHeaders postJson = RequestHeaders.of(
+                                HttpMethod.GET,
+                                "/filibuster/new-test-execution/" + serviceName,
+                                HttpHeaderNames.ACCEPT,
+                                "application/json",
+                                "X-Filibuster-Instrumentation",
+                                "true");
+                        AggregatedHttpResponse response = webClient.execute(postJson).aggregate().join();
+
+                        ResponseHeaders headers = response.headers();
+                        String statusCode = headers.get(HttpHeaderNames.STATUS);
+
+                        if (statusCode == null) {
+                            FilibusterServerBadResponseException.logAndThrow("shouldResetClocks, statusCode: null");
+                        }
+
+                        if (!Objects.equals(statusCode, "200")) {
+                            FilibusterServerBadResponseException.logAndThrow("shouldResetClocks, statusCode: " + statusCode);
+                        }
+
+                        JSONObject jsonObject = Response.aggregatedHttpResponseToJsonObject(response);
+
+                        return jsonObject.getBoolean("new-test-execution");
+                    } catch (RuntimeException e) {
+                        logger.log(Level.SEVERE, "cannot connect to the Filibuster server: " + e);
+                        return false;
+                    }
+                }, FilibusterExecutor.getExecutorService());
+
                 try {
-                    // Call instrumentation using instrumentation to verify short-circuit.
-                    WebClient webClient = FilibusterExecutor.getDecoratedWebClient(filibusterBaseUri, filibusterServiceName);
-
-                    RequestHeaders postJson = RequestHeaders.of(
-                            HttpMethod.GET,
-                            "/filibuster/new-test-execution/" + serviceName,
-                            HttpHeaderNames.ACCEPT,
-                            "application/json",
-                            "X-Filibuster-Instrumentation",
-                            "true");
-                    AggregatedHttpResponse response = webClient.execute(postJson).aggregate().join();
-
-                    ResponseHeaders headers = response.headers();
-                    String statusCode = headers.get(HttpHeaderNames.STATUS);
-
-                    if (statusCode == null) {
-                        throw new UnsupportedOperationException();
-                    }
-
-                    if (!statusCode.equals("200")) {
-                        throw new UnsupportedOperationException();
-                    }
-
-                    JSONObject jsonObject = Response.aggregatedHttpResponseToJsonObject(response);
-
-                    return jsonObject.getBoolean("new-test-execution");
-                } catch (RuntimeException e) {
-                    logger.log(Level.SEVERE,"cannot connect to the Filibuster server: " + e);
+                    logger.log(Level.INFO, "shouldResetClocks: finished.");
+                    return shouldResetClocks.get();
+                } catch (InterruptedException | ExecutionException e) {
+                    logger.log(Level.SEVERE, "cannot get information from Filibuster server: " + e);
                     return false;
                 }
-            }, FilibusterExecutor.getExecutorService());
-
-            try {
-                logger.log(Level.INFO, "shouldResetClocks: finished.");
-                return shouldResetClocks.get();
-            } catch (InterruptedException | ExecutionException e) {
-                logger.log(Level.SEVERE, "cannot get information from Filibuster server: " + e);
-                return false;
             }
         }
 
@@ -625,53 +633,66 @@ final public class FilibusterClientInstrumentor {
             }
         }
         else if (shouldCommunicateWithServer && counterexampleNotProvided()) {
-            CompletableFuture<Void> createFuture = CompletableFuture.supplyAsync(() -> {
-                try {
-                    // Call instrumentation using instrumentation to verify short-circuit.
-                    WebClient webClient = FilibusterExecutor.getDecoratedWebClient(filibusterBaseUri, filibusterServiceName);
+            if (getServerBackendCanInvokeDirectlyProperty()) {
+                JSONObject jsonObject = FilibusterCore.getCurrentInstance().beginInvocation(invocationPayload);
+                generatedId = jsonObject.getInt("generated_id");
 
-                    RequestHeaders postJson = RequestHeaders.of(
-                            HttpMethod.PUT,
-                            "/filibuster/create",
-                            HttpHeaderNames.CONTENT_TYPE,
-                            "application/json",
-                            "X-Filibuster-Instrumentation",
-                            "true");
-                    AggregatedHttpResponse response = webClient.execute(
-                            postJson, invocationPayload.toString()).aggregate().join();
-
-                    ResponseHeaders headers = response.headers();
-                    String statusCode = headers.get(HttpHeaderNames.STATUS);
-
-                    if (statusCode == null) {
-                        throw new UnsupportedOperationException();
-                    }
-
-                    if (!statusCode.equals("200")) {
-                        throw new UnsupportedOperationException();
-                    }
-
-                    JSONObject jsonObject = Response.aggregatedHttpResponseToJsonObject(response);
-                    generatedId = jsonObject.getInt("generated_id");
-
-                    if (jsonObject.has("forced_exception")) {
-                        forcedException = jsonObject.getJSONObject("forced_exception");
-                    }
-
-                    if (jsonObject.has("failure_metadata")) {
-                        failureMetadata = jsonObject.getJSONObject("failure_metadata");
-                    }
-                } catch (RuntimeException e) {
-                    logger.log(Level.SEVERE,"cannot connect to the Filibuster server: " + e);
+                if (jsonObject.has("forced_exception")) {
+                    forcedException = jsonObject.getJSONObject("forced_exception");
                 }
 
-                return null;
-            }, FilibusterExecutor.getExecutorService());
+                if (jsonObject.has("failure_metadata")) {
+                    failureMetadata = jsonObject.getJSONObject("failure_metadata");
+                }
+            } else {
+                CompletableFuture<Void> createFuture = CompletableFuture.supplyAsync(() -> {
+                    try {
+                        // Call instrumentation using instrumentation to verify short-circuit.
+                        WebClient webClient = FilibusterExecutor.getDecoratedWebClient(filibusterBaseUri, filibusterServiceName);
 
-            try {
-                createFuture.get();
-            } catch (InterruptedException | ExecutionException e) {
-                logger.log(Level.SEVERE, "cannot get information from Filibuster server: " + e);
+                        RequestHeaders postJson = RequestHeaders.of(
+                                HttpMethod.PUT,
+                                "/filibuster/create",
+                                HttpHeaderNames.CONTENT_TYPE,
+                                "application/json",
+                                "X-Filibuster-Instrumentation",
+                                "true");
+                        AggregatedHttpResponse response = webClient.execute(
+                                postJson, invocationPayload.toString()).aggregate().join();
+
+                        ResponseHeaders headers = response.headers();
+                        String statusCode = headers.get(HttpHeaderNames.STATUS);
+
+                        if (statusCode == null) {
+                            FilibusterServerBadResponseException.logAndThrow("beforeInvocation, statusCode: null");
+                        }
+
+                        if (!Objects.equals(statusCode, "200")) {
+                            FilibusterServerBadResponseException.logAndThrow("beforeInvocation, statusCode: " + statusCode);
+                        }
+
+                        JSONObject jsonObject = Response.aggregatedHttpResponseToJsonObject(response);
+                        generatedId = jsonObject.getInt("generated_id");
+
+                        if (jsonObject.has("forced_exception")) {
+                            forcedException = jsonObject.getJSONObject("forced_exception");
+                        }
+
+                        if (jsonObject.has("failure_metadata")) {
+                            failureMetadata = jsonObject.getJSONObject("failure_metadata");
+                        }
+                    } catch (RuntimeException e) {
+                        logger.log(Level.SEVERE, "cannot connect to the Filibuster server: " + e);
+                    }
+
+                    return null;
+                }, FilibusterExecutor.getExecutorService());
+
+                try {
+                    createFuture.get();
+                } catch (InterruptedException | ExecutionException e) {
+                    logger.log(Level.SEVERE, "cannot get information from Filibuster server: " + e);
+                }
             }
         }
 
@@ -800,28 +821,32 @@ final public class FilibusterClientInstrumentor {
         logger.log(Level.INFO, "invocationCompletePayload: about to make call.");
         logger.log(Level.INFO, "invocationCompletePayload: " + invocationCompletePayload);
 
-        CompletableFuture<Void> updateFuture = CompletableFuture.supplyAsync(() -> {
-            // Call instrumentation using instrumentation to verify short-circuit.
-            WebClient webClient = FilibusterExecutor.getDecoratedWebClient(filibusterBaseUri, filibusterServiceName);
+        if (getServerBackendCanInvokeDirectlyProperty()) {
+            FilibusterCore.getCurrentInstance().endInvocation(invocationCompletePayload);
+        } else {
+            CompletableFuture<Void> updateFuture = CompletableFuture.supplyAsync(() -> {
+                // Call instrumentation using instrumentation to verify short-circuit.
+                WebClient webClient = FilibusterExecutor.getDecoratedWebClient(filibusterBaseUri, filibusterServiceName);
 
-            RequestHeaders postJson = RequestHeaders.of(
-                    HttpMethod.POST,
-                    "/filibuster/update",
-                    HttpHeaderNames.CONTENT_TYPE,
-                    "application/json",
-                    "X-Filibuster-Instrumentation",
-                    "true");
-            webClient.execute(postJson, invocationCompletePayload.toString()).aggregate().join();
+                RequestHeaders postJson = RequestHeaders.of(
+                        HttpMethod.POST,
+                        "/filibuster/update",
+                        HttpHeaderNames.CONTENT_TYPE,
+                        "application/json",
+                        "X-Filibuster-Instrumentation",
+                        "true");
+                webClient.execute(postJson, invocationCompletePayload.toString()).aggregate().join();
 
-            return null;
-        }, FilibusterExecutor.getExecutorService());
+                return null;
+            }, FilibusterExecutor.getExecutorService());
 
-        try {
-            updateFuture.get();
-        } catch (InterruptedException | ExecutionException e) {
-            logger.log(Level.SEVERE, "cannot get information from Filibuster server: " + e);
+            try {
+                updateFuture.get();
+            } catch (InterruptedException | ExecutionException e) {
+                logger.log(Level.SEVERE, "cannot get information from Filibuster server: " + e);
+            }
+
+            logger.log(Level.INFO, "invocationCompletePayload: finished.");
         }
-
-        logger.log(Level.INFO, "invocationCompletePayload: finished.");
     }
 }

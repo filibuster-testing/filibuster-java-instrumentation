@@ -9,6 +9,7 @@ service HelloService {
   rpc PartialHelloExternalGrpc (HelloRequest) returns (HelloReply) {}
   rpc PartialHelloExternalHttp (HelloRequest) returns (HelloReply) {}
   rpc ParallelPartialHello (HelloRequest) returns (HelloReply) {}
+  rpc ParallelSynchronousPartialHello (HelloRequest) returns (HelloReply) {}
   rpc LazyHello (HelloRequest) returns (HelloReply) {}
   rpc BlockingHello (HelloRequest) returns (HelloReply) {}
   rpc LotsOfReplies (HelloRequest) returns (stream HelloReply) {}

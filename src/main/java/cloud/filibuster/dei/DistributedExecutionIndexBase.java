@@ -1,16 +1,35 @@
 package cloud.filibuster.dei;
 
+import cloud.filibuster.exceptions.distributed_execution_index.DistributedExecutionIndexCloneException;
+import cloud.filibuster.exceptions.distributed_execution_index.DistributedExecutionIndexSerializationException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
 import cloud.filibuster.instrumentation.datatypes.Pair;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public abstract class DistributedExecutionIndexBase implements Cloneable {
     protected HashMap<DistributedExecutionIndexKey, Integer> counters = new HashMap<>();
     protected ArrayList<Map.Entry<DistributedExecutionIndexKey, Integer>> callstack = new ArrayList<>();
 
+    @Override
+    @SuppressWarnings("Varifier")
+    public boolean equals(Object o) {
+        if (!(o instanceof DistributedExecutionIndexBase)) {
+            return false;
+        }
+        DistributedExecutionIndexBase dei = (DistributedExecutionIndexBase) o;
+        return Objects.equals(this.counters, dei.counters) && Objects.equals(this.callstack, dei.callstack);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.counters, this.callstack);
+    }
+
+    @SuppressWarnings("Varifier")
     public void push(Callsite callsite) {
         DistributedExecutionIndex dei = (DistributedExecutionIndex) this;
         DistributedExecutionIndexKey key = dei.convertCallsiteToDistributedExecutionIndexKey(callsite);
@@ -34,7 +53,7 @@ public abstract class DistributedExecutionIndexBase implements Cloneable {
 
     public DistributedExecutionIndex deserialize(String serialized) {
         if (serialized == null) {
-            throw new UnsupportedOperationException();
+            throw new DistributedExecutionIndexSerializationException("cannot deserialize an empty string.");
         }
 
         if (serialized.equals("")) {
@@ -98,12 +117,22 @@ public abstract class DistributedExecutionIndexBase implements Cloneable {
         try {
             newDistributedExecutionIndex = (DistributedExecutionIndexBase) super.clone();
         } catch (CloneNotSupportedException e) {
-            throw new UnsupportedOperationException(e);
+            throw new DistributedExecutionIndexCloneException("cloning not supported for distributed execution index subtype", e);
         }
 
         // Deep clone member fields here
-        newDistributedExecutionIndex.counters = new HashMap<>(this.counters);
-        newDistributedExecutionIndex.callstack = new ArrayList<>(this.callstack);
+
+        newDistributedExecutionIndex.counters = new HashMap<>();
+
+        for (Map.Entry<DistributedExecutionIndexKey, Integer> entry : this.counters.entrySet()) {
+            newDistributedExecutionIndex.counters.put(entry.getKey(), entry.getValue());
+        }
+
+        newDistributedExecutionIndex.callstack = new ArrayList<>();
+
+        for (Map.Entry<DistributedExecutionIndexKey, Integer> entry : this.callstack) {
+            newDistributedExecutionIndex.callstack.add(Pair.of(entry.getKey(), entry.getValue()));
+        }
 
         return newDistributedExecutionIndex;
     }

@@ -1,6 +1,7 @@
 package cloud.filibuster.instrumentation.libraries.grpc;
 
-import cloud.filibuster.exceptions.FilibusterFaultInjectionException;
+import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
+import cloud.filibuster.exceptions.filibuster.FilibusterInstrumentationMissingDelegateException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
@@ -158,7 +159,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
 
             @Override protected ClientCall<REQUEST, RESPONSE> delegate() {
                 if (delegate == null) {
-                    throw new UnsupportedOperationException();
+                    throw new FilibusterInstrumentationMissingDelegateException("Delegate is null, something threw inside of the Filibuster interceptor.");
                 }
                 return delegate;
             }

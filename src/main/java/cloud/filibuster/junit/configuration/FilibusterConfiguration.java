@@ -1,5 +1,7 @@
 package cloud.filibuster.junit.configuration;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedServerBackendException;
+import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.server.backends.FilibusterDockerServerBackend;
 import cloud.filibuster.junit.server.FilibusterServerBackend;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
@@ -25,9 +27,11 @@ public class FilibusterConfiguration {
 
     private final boolean dataNondeterminism;
 
+    private final FilibusterSearchStrategy searchStrategy;
+
     private final String analysisFile;
 
-    private final FilibusterServerBackend filibusterServerBackend;
+    private final FilibusterServerBackend serverBackend;
 
     private final String dockerImageName;
 
@@ -39,8 +43,9 @@ public class FilibusterConfiguration {
         this.dynamicReduction = builder.dynamicReduction;
         this.suppressCombinations = builder.suppressCombinations;
         this.dataNondeterminism = builder.dataNondeterminism;
+        this.searchStrategy = builder.searchStrategy;
         this.analysisFile = builder.analysisFile;
-        this.filibusterServerBackend = builder.filibusterServerBackend;
+        this.serverBackend = builder.serverBackend;
         this.dockerImageName = builder.dockerImageName;
         this.degradeWhenServerInitializationFails = builder.degradeWhenServerInitializationFails;
         this.expected = builder.expected;
@@ -51,8 +56,8 @@ public class FilibusterConfiguration {
      *
      * @return server backend.
      */
-    public FilibusterServerBackend getFilibusterServerBackend() {
-        return this.filibusterServerBackend;
+    public FilibusterServerBackend getServerBackend() {
+        return this.serverBackend;
     }
 
     /**
@@ -98,6 +103,15 @@ public class FilibusterConfiguration {
      */
     public boolean getSuppressCombinations() {
         return this.suppressCombinations;
+    }
+
+    /**
+     * Which search strategy should Filibuster use?
+     *
+     * @return search strategy.
+     */
+    public FilibusterSearchStrategy getSearchStrategy() {
+        return this.searchStrategy;
     }
 
     /**
@@ -158,9 +172,11 @@ public class FilibusterConfiguration {
         private boolean suppressCombinations = false;
         private boolean dataNondeterminism = false;
 
+        private FilibusterSearchStrategy searchStrategy;
+
         private String analysisFile;
 
-        private FilibusterServerBackend filibusterServerBackend = new FilibusterDockerServerBackend();
+        private FilibusterServerBackend serverBackend = new FilibusterDockerServerBackend();
 
         private String dockerImageName;
 
@@ -223,17 +239,16 @@ public class FilibusterConfiguration {
          * @return builder
          */
         @CanIgnoreReturnValue
-        public Builder filibusterServerBackend(Class<? extends FilibusterServerBackend> clazz) {
+        public Builder serverBackend(Class<? extends FilibusterServerBackend> clazz) {
             FilibusterServerBackend serverBackend;
 
             try {
                 serverBackend = clazz.getDeclaredConstructor().newInstance();
             } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                // TODO: something better.
-                throw new UnsupportedOperationException(e);
+                throw new FilibusterUnsupportedServerBackendException("Backend " + clazz + " is not supported.", e);
             }
 
-            this.filibusterServerBackend = serverBackend;
+            this.serverBackend = serverBackend;
             return this;
         }
 
@@ -270,6 +285,18 @@ public class FilibusterConfiguration {
         @CanIgnoreReturnValue
         public Builder degradeWhenServerInitializationFails(boolean degradeWhenServerInitializationFails) {
             this.degradeWhenServerInitializationFails = degradeWhenServerInitializationFails;
+            return this;
+        }
+
+        /**
+         * Which search strategy should Filibuster use?
+         *
+         * @param searchStrategy search strategy
+         * @return builder
+         */
+        @CanIgnoreReturnValue
+        public Builder searchStrategy(FilibusterSearchStrategy searchStrategy) {
+            this.searchStrategy = searchStrategy;
             return this;
         }
 

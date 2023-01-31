@@ -11,6 +11,7 @@ plugins {
     id 'signing'
     id 'maven-publish'
     id('io.github.gradle-nexus.publish-plugin') version '1.1.0'
+    id 'com.adarshr.test-logger' version '3.2.0'
 }
 
 apply plugin: 'java'
@@ -85,7 +86,7 @@ test {
     useJUnitPlatform()
     finalizedBy jacocoTestReport
     maxParallelForks = 1
-    timeout = Duration.ofMinutes(45)
+    timeout = Duration.ofMinutes(60)
     minHeapSize = "128m" // initial heap size
     maxHeapSize = "2048m" // maximum heap size
     jvmArgs '-XX:MaxPermSize=256m' // mem argument for the test JVM
@@ -203,7 +204,7 @@ javadoc {
 
 group = "cloud.filibuster"
 archivesBaseName = "instrumentation"
-version = "0.39"
+version = "1.00"
 
 java {
     withJavadocJar()

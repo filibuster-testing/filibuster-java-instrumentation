@@ -7,25 +7,59 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class FilibusterAnalysisConfiguration {
     private final JSONObject analysisConfiguration = new JSONObject();
     private final JSONObject configurationObject = new JSONObject();
+    private final List<JSONObject> exceptionFaultObjects = new ArrayList<>();
+    private final List<JSONObject> errorFaultObjects = new ArrayList<>();
     private final String name;
+    private final String pattern;
 
+    @SuppressWarnings("Varifier")
     public FilibusterAnalysisConfiguration(Builder builder) {
         this.name = builder.name;
+        this.pattern = builder.pattern;
+
         configurationObject.put("pattern", builder.pattern);
 
         if (builder.exceptions.size() > 0) {
             configurationObject.put("exceptions", builder.exceptions);
+
+            for (JSONObject exceptionObject : builder.exceptions) {
+                JSONObject exception = new JSONObject();
+                exception.put("forced_exception", exceptionObject);
+                exceptionFaultObjects.add(exception);
+            }
         }
 
         if (builder.errors.size() > 0) {
             configurationObject.put("errors", builder.errors);
+
+            for (JSONObject errorObject : builder.errors) {
+                JSONObject error = new JSONObject();
+                error.put("failure_metadata", errorObject);
+                errorFaultObjects.add(error);
+            }
         }
 
         analysisConfiguration.put(builder.name, configurationObject);
+    }
+
+    public List<JSONObject> getExceptionFaultObjects() {
+        return this.exceptionFaultObjects;
+    }
+
+    public List<JSONObject> getErrorFaultObjects() {
+        return this.errorFaultObjects;
+    }
+
+    public boolean isPatternMatch(String matchString) {
+        Pattern pattern = Pattern.compile(this.pattern, Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(matchString);
+        return matcher.find();
     }
 
     public Map.Entry<String, JSONObject> toJSONPair() {

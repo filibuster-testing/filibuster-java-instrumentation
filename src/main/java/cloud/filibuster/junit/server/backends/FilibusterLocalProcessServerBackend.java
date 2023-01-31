@@ -1,10 +1,13 @@
 package cloud.filibuster.junit.server.backends;
 
+import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.junit.server.FilibusterServerBackend;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -34,5 +37,10 @@ public class FilibusterLocalProcessServerBackend implements FilibusterServerBack
         filibusterServerProcess = null;
 
         return true;
+    }
+
+    @Override
+    public List<FilibusterSearchStrategy> supportedSearchStrategies() {
+        return Arrays.asList(FilibusterSearchStrategy.DFS);
     }
 }

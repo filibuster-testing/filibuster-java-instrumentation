@@ -14,7 +14,7 @@ public interface DistributedExecutionIndexKey {
     static DistributedExecutionIndexKey deserialize(String serialized) {
         String[] stringArray = serialized.split("-", 5);
 
-        // TODO: Assuming only a single version right now.
+        // Assuming only a single version right now.
         return new DistributedExecutionIndexV1.Key.Builder()
                 .source(stringArray[1])
                 .signature(stringArray[2])

@@ -71,7 +71,6 @@ public class JUnitFilibusterTestWithCustomAnalysisFile extends JUnitBaseTest {
      */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @FilibusterTest(analysisFile=analysisFilePath, serverBackend=FilibusterLocalProcessServerBackend.class)
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -122,7 +121,6 @@ public class JUnitFilibusterTestWithCustomAnalysisFile extends JUnitBaseTest {
      * Verify that the correct number of Filibuster tests are generated.
      */
     @DisplayName("Verify correct number of generated Filibuster tests.")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Test
     @Order(2)
     public void testNumAssertions() {

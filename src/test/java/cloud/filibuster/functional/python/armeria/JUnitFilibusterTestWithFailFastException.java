@@ -87,6 +87,7 @@ public class JUnitFilibusterTestWithFailFastException extends JUnitBaseTest {
      */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @FilibusterTest(analysisFile=analysisFilePath, serverBackend=FilibusterLocalProcessServerBackend.class)
+    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -146,6 +147,7 @@ public class JUnitFilibusterTestWithFailFastException extends JUnitBaseTest {
      */
     @DisplayName("Verify correct number of generated Filibuster tests.")
     @Test
+    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Order(2)
     public void testNumAssertions() {
         assertEquals(6, testExceptionsThrown.size());

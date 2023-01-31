@@ -526,14 +526,14 @@ public class FilibusterCore {
     }
 
     private void printSummary() {
+        logger.info("[FILIBUSTER-CORE]: Queue Statistics: ");
+        logger.info("[FILIBUSTER-CORE]: * unexploredTestExecutions.size():           " + unexploredTestExecutions.size());
+        logger.info("[FILIBUSTER-CORE]: * exploredTestExecutions.size():             " + exploredTestExecutions.size());
+
         logger.info("[FILIBUSTER-CORE]: Test Summary: ");
         logger.info("[FILIBUSTER-CORE]: * numberOfAbstractExecutionsAttempted:       " + numberOfAbstractExecutionsAttempted);
         logger.info("[FILIBUSTER-CORE]: * numberOfAbstractExecutionsExecuted:        " + numberOfAbstractExecutionsExecuted);
         logger.info("[FILIBUSTER-CORE]: * numberOfConcreteExecutionsExecuted:        " + numberOfConcreteExecutionsExecuted);
-
-        logger.info("[FILIBUSTER-CORE]: Queue Statistics: ");
-        logger.info("[FILIBUSTER-CORE]: * unexploredTestExecutions.size():           " + unexploredTestExecutions.size());
-        logger.info("[FILIBUSTER-CORE]: * exploredTestExecutions.size():             " + exploredTestExecutions.size());
 
         if (numberOfAbstractExecutionsAttempted != numberOfAbstractExecutionsExecuted) {
             logger.warning("[FILIBUSTER-CORE]: Number of abstract test executions attempted doesn't match executed: this could indicate a problem.");

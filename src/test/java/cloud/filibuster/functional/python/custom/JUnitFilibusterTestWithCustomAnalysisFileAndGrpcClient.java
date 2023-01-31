@@ -82,7 +82,6 @@ public class JUnitFilibusterTestWithCustomAnalysisFileAndGrpcClient extends JUni
      */
     @DisplayName("Test partial hello server grpc route with Filibuster with instrumented test client. (MyHelloService, MyWorldService)")
     @FilibusterTest(analysisFile=analysisFilePath, serverBackend=FilibusterLocalProcessServerBackend.class)
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         boolean expected = false;
@@ -146,7 +145,6 @@ public class JUnitFilibusterTestWithCustomAnalysisFileAndGrpcClient extends JUni
      * Verify the correct number of Filibuster tests are executed.
      */
     @DisplayName("Verify correct number of generated Filibuster tests.")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Test
     @Order(2)
     public void testNumAssertions() {

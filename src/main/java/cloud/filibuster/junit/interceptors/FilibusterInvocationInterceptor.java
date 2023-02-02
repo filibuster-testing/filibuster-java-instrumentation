@@ -216,6 +216,9 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
                 setWebClient(null);
             }
 
+            // Tell the GC to run which should prune objects related to the Filibuster core instantiation.
+            // (if using the local server.)
+            System.gc();
         }
     }
 

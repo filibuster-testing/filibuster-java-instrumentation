@@ -96,7 +96,10 @@ public class JUnitFilibusterHelloPartialHelloExternalGrpcTest extends JUnitBaseT
                     boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World");
                     assertTrue(wasFaultInjectedOnWorldMethod);
 
-                    boolean wasFaultInjectedOnRequest = wasFaultInjectedOnRequest(request.toString());
+                    boolean wasFaultInjectedOnRequestString = wasFaultInjectedOnRequest(request.toString());
+                    assertTrue(wasFaultInjectedOnRequestString);
+
+                    boolean wasFaultInjectedOnRequest = wasFaultInjectedOnRequest(request);
                     assertTrue(wasFaultInjectedOnRequest);
 
                     boolean wasFaultInjectedOnWorldMethodWithPayload = wasFaultInjectedOnMethodWherePayloadContains("cloud.filibuster.examples.WorldService/World", request.toString());

@@ -6,6 +6,8 @@ import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.helpers.Response;
 import cloud.filibuster.junit.exceptions.FilibusterServerBadResponseException;
 import cloud.filibuster.junit.server.core.FilibusterCore;
+import com.google.protobuf.GeneratedMessage;
+import com.google.protobuf.GeneratedMessageV3;
 import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.AggregatedHttpResponse;
 import com.linecorp.armeria.common.HttpHeaderNames;
@@ -110,6 +112,14 @@ public class Assertions {
         } else {
             throw new FilibusterUnsupportedByHTTPServerException("wasFaultInjectedOnRequest only supported with local server.");
         }
+    }
+
+    public static boolean wasFaultInjectedOnRequest(GeneratedMessage generatedMessage) {
+        return wasFaultInjectedOnRequest(generatedMessage.toString());
+    }
+
+    public static boolean wasFaultInjectedOnRequest(GeneratedMessageV3 generatedMessageV3) {
+        return wasFaultInjectedOnRequest(generatedMessageV3.toString());
     }
 
     /**

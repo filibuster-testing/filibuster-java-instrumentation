@@ -94,7 +94,11 @@ public class Assertions {
         String[] split = fullyQualifiedMethodName.split("/", 2);
 
         if (getServerBackendCanInvokeDirectlyProperty()) {
-            return FilibusterCore.getCurrentInstance().wasFaultInjectedOnMethodWherePayloadContains(split[0], split[1], contains);
+            if (FilibusterCore.hasCurrentInstance()) {
+                return FilibusterCore.getCurrentInstance().wasFaultInjectedOnMethodWhereRequestContains(split[0], split[1], contains);
+            } else {
+                return false;
+            }
         } else {
             throw new FilibusterUnsupportedByHTTPServerException("wasFaultInjectedOnMethodWherePayloadContains only supported with local server.");
         }

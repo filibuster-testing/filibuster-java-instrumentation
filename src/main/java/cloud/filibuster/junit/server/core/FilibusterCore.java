@@ -41,6 +41,10 @@ public class FilibusterCore {
         return currentInstance;
     }
 
+    public static synchronized boolean hasCurrentInstance() {
+        return currentInstance != null;
+    }
+
     public FilibusterCore(FilibusterConfiguration filibusterConfiguration) {
         currentInstance = this;
 

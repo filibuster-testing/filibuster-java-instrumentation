@@ -1,5 +1,6 @@
 package cloud.filibuster.junit.server;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.helpers.Response;
 import cloud.filibuster.junit.exceptions.FilibusterServerBadResponseException;
@@ -55,7 +56,11 @@ public class FilibusterServerAPI {
 
     public static void analysisFile(WebClient webClient, JSONObject jsonAnalysisConfiguration) throws ExecutionException, InterruptedException {
         if (getServerBackendCanInvokeDirectlyProperty()) {
-            FilibusterCore.getCurrentInstance().analysisFile(jsonAnalysisConfiguration);
+            if (FilibusterCore.hasCurrentInstance()) {
+                FilibusterCore.getCurrentInstance().analysisFile(jsonAnalysisConfiguration);
+            } else {
+                throw new FilibusterRuntimeException("No current filibuster core instance, this could indicate a problem.");
+            }
         } else {
             CompletableFuture<Void> analysisFileFuture = CompletableFuture.supplyAsync(() -> {
                 RequestHeaders postJson = RequestHeaders.of(
@@ -86,7 +91,11 @@ public class FilibusterServerAPI {
 
     public static void terminate(WebClient webClient) throws ExecutionException, InterruptedException {
         if (getServerBackendCanInvokeDirectlyProperty()) {
-            FilibusterCore.getCurrentInstance().terminateFilibuster();
+            if (FilibusterCore.hasCurrentInstance()) {
+                FilibusterCore.getCurrentInstance().terminateFilibuster();
+            } else {
+                throw new FilibusterRuntimeException("No current filibuster core instance, this could indicate a problem.");
+            }
         } else {
             CompletableFuture<Void> terminateFuture = CompletableFuture.supplyAsync(() -> {
                 RequestHeaders getJson = RequestHeaders.of(
@@ -117,7 +126,11 @@ public class FilibusterServerAPI {
 
     public static void teardownsCompleted(WebClient webClient, int currentIteration) throws ExecutionException, InterruptedException {
         if (getServerBackendCanInvokeDirectlyProperty()) {
-            FilibusterCore.getCurrentInstance().teardownsCompleted(currentIteration);
+            if (FilibusterCore.hasCurrentInstance()) {
+                FilibusterCore.getCurrentInstance().teardownsCompleted(currentIteration);
+            } else {
+                throw new FilibusterRuntimeException("No current filibuster core instance, this could indicate a problem.");
+            }
         } else {
             CompletableFuture<Void> teardownsCompletedFuture = CompletableFuture.supplyAsync(() -> {
                 RequestHeaders getJson = RequestHeaders.of(
@@ -156,7 +169,11 @@ public class FilibusterServerAPI {
         }
 
         if (getServerBackendCanInvokeDirectlyProperty()) {
-            FilibusterCore.getCurrentInstance().completeIteration(currentIteration, exceptionOccurredInt);
+            if (FilibusterCore.hasCurrentInstance()) {
+                FilibusterCore.getCurrentInstance().completeIteration(currentIteration, exceptionOccurredInt);
+            } else {
+                throw new FilibusterRuntimeException("No current filibuster core instance, this could indicate a problem.");
+            }
         } else {
             CompletableFuture<Void> updateFuture = CompletableFuture.supplyAsync(() -> {
                 RequestHeaders postJson = RequestHeaders.of(
@@ -187,7 +204,11 @@ public class FilibusterServerAPI {
 
     public static boolean hasNextIteration(WebClient webClient, int currentIteration, String caller) throws ExecutionException, InterruptedException {
         if (getServerBackendCanInvokeDirectlyProperty()) {
-            return FilibusterCore.getCurrentInstance().hasNextIteration(currentIteration, caller);
+            if (FilibusterCore.hasCurrentInstance()) {
+                return FilibusterCore.getCurrentInstance().hasNextIteration(currentIteration, caller);
+            } else {
+                throw new FilibusterRuntimeException("No current filibuster core instance, this could indicate a problem.");
+            }
         } else {
             CompletableFuture<Boolean> hasNextIteration = CompletableFuture.supplyAsync(() -> {
                 RequestHeaders getJson = RequestHeaders.of(

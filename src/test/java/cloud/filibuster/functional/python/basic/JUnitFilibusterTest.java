@@ -4,7 +4,6 @@ import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
-import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
 import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
 import cloud.filibuster.functional.JUnitBaseTest;
 import io.grpc.ManagedChannel;

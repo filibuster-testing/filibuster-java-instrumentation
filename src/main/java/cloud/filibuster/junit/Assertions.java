@@ -108,7 +108,11 @@ public class Assertions {
      */
     public static boolean wasFaultInjectedOnRequest(String serializedRequest) {
         if (getServerBackendCanInvokeDirectlyProperty()) {
-            return FilibusterCore.getCurrentInstance().wasFaultInjectedOnRequest(serializedRequest);
+            if (FilibusterCore.hasCurrentInstance()) {
+                return FilibusterCore.getCurrentInstance().wasFaultInjectedOnRequest(serializedRequest);
+            } else {
+                return false;
+            }
         } else {
             throw new FilibusterUnsupportedByHTTPServerException("wasFaultInjectedOnRequest only supported with local server.");
         }
@@ -168,7 +172,11 @@ public class Assertions {
      */
     public static boolean wasFaultInjectedOnService(String serviceName) {
         if (getServerBackendCanInvokeDirectlyProperty()) {
-            return FilibusterCore.getCurrentInstance().wasFaultInjectedOnService(serviceName);
+            if (FilibusterCore.hasCurrentInstance()) {
+                return FilibusterCore.getCurrentInstance().wasFaultInjectedOnService(serviceName);
+            } else {
+                return false;
+            }
         } else {
             return wasFaultInjected("/filibuster/fault-injected/service/" + serviceName);
         }
@@ -185,7 +193,11 @@ public class Assertions {
      */
     public static boolean wasFaultInjectedOnMethod(String serviceName, String methodName) {
         if (getServerBackendCanInvokeDirectlyProperty()) {
-            return FilibusterCore.getCurrentInstance().wasFaultInjectedOnMethod(serviceName, methodName);
+            if (FilibusterCore.hasCurrentInstance()) {
+                return FilibusterCore.getCurrentInstance().wasFaultInjectedOnMethod(serviceName, methodName);
+            } else {
+                return false;
+            }
         } else {
             return wasFaultInjected("/filibuster/fault-injected/method/" + serviceName + "/" + methodName);
         }
@@ -200,7 +212,12 @@ public class Assertions {
     public static boolean wasFaultInjectedOnMethod(String fullyQualifiedMethodName) {
         if (getServerBackendCanInvokeDirectlyProperty()) {
             String[] split = fullyQualifiedMethodName.split("/", 2);
-            return FilibusterCore.getCurrentInstance().wasFaultInjectedOnMethod(split[0], split[1]);
+
+            if (FilibusterCore.hasCurrentInstance()) {
+                return FilibusterCore.getCurrentInstance().wasFaultInjectedOnMethod(split[0], split[1]);
+            } else {
+                return false;
+            }
         } else {
             return wasFaultInjected("/filibuster/fault-injected/method/" + fullyQualifiedMethodName);
         }

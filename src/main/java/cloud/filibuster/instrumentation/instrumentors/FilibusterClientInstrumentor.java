@@ -2,6 +2,7 @@ package cloud.filibuster.instrumentation.instrumentors;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.dei.DistributedExecutionIndexType;
+import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.datatypes.RequestId;
@@ -467,7 +468,11 @@ final public class FilibusterClientInstrumentor {
 
         if (shouldCommunicateWithServer && counterexampleNotProvided()) {
             if (getServerBackendCanInvokeDirectlyProperty()) {
-                return FilibusterCore.getCurrentInstance().isNewTestExecution(serviceName);
+                if (FilibusterCore.hasCurrentInstance()) {
+                    return FilibusterCore.getCurrentInstance().isNewTestExecution(serviceName);
+                } else {
+                    throw new FilibusterRuntimeException("No current filibuster core instance, this could indicate a problem.");
+                }
             } else {
                 CompletableFuture<Boolean> shouldResetClocks = CompletableFuture.supplyAsync(() -> {
                     try {
@@ -634,15 +639,19 @@ final public class FilibusterClientInstrumentor {
         }
         else if (shouldCommunicateWithServer && counterexampleNotProvided()) {
             if (getServerBackendCanInvokeDirectlyProperty()) {
-                JSONObject jsonObject = FilibusterCore.getCurrentInstance().beginInvocation(invocationPayload);
-                generatedId = jsonObject.getInt("generated_id");
+                if (FilibusterCore.hasCurrentInstance()) {
+                    JSONObject jsonObject = FilibusterCore.getCurrentInstance().beginInvocation(invocationPayload);
+                    generatedId = jsonObject.getInt("generated_id");
 
-                if (jsonObject.has("forced_exception")) {
-                    forcedException = jsonObject.getJSONObject("forced_exception");
-                }
+                    if (jsonObject.has("forced_exception")) {
+                        forcedException = jsonObject.getJSONObject("forced_exception");
+                    }
 
-                if (jsonObject.has("failure_metadata")) {
-                    failureMetadata = jsonObject.getJSONObject("failure_metadata");
+                    if (jsonObject.has("failure_metadata")) {
+                        failureMetadata = jsonObject.getJSONObject("failure_metadata");
+                    }
+                } else {
+                    throw new FilibusterRuntimeException("No current filibuster core instance, this could indicate a problem.");
                 }
             } else {
                 CompletableFuture<Void> createFuture = CompletableFuture.supplyAsync(() -> {
@@ -822,7 +831,11 @@ final public class FilibusterClientInstrumentor {
         logger.log(Level.INFO, "invocationCompletePayload: " + invocationCompletePayload);
 
         if (getServerBackendCanInvokeDirectlyProperty()) {
-            FilibusterCore.getCurrentInstance().endInvocation(invocationCompletePayload);
+            if (FilibusterCore.hasCurrentInstance()) {
+                FilibusterCore.getCurrentInstance().endInvocation(invocationCompletePayload);
+            } else {
+                throw new FilibusterRuntimeException("No current filibuster core instance, this could indicate a problem.");
+            }
         } else {
             CompletableFuture<Void> updateFuture = CompletableFuture.supplyAsync(() -> {
                 // Call instrumentation using instrumentation to verify short-circuit.

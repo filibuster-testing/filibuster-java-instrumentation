@@ -126,7 +126,7 @@ public abstract class TestExecution {
         return wasFaultInjectedMatcher("method", serviceName + "/" + methodName);
     }
 
-    public boolean wasFaultInjectedOnMethodWherePayloadContains(String serviceName, String methodName, String contains) {
+    public boolean wasFaultInjectedOnMethodWhereRequestContains(String serviceName, String methodName, String contains) {
         return wasFaultInjectedMatcher("method", serviceName + "/" + methodName, contains);
     }
 

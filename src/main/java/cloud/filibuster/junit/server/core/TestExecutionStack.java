@@ -3,7 +3,6 @@ package cloud.filibuster.junit.server.core;
 import cloud.filibuster.junit.server.core.test_executions.TestExecution;
 
 import java.util.ArrayDeque;
-import java.util.Stack;
 
 public class TestExecutionStack<T extends TestExecution> extends ArrayDeque<T> implements TestExecutionCollection<T> {
     @Override

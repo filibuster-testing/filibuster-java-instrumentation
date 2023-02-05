@@ -41,6 +41,10 @@ public class FilibusterCore {
         return currentInstance;
     }
 
+    public static synchronized boolean hasCurrentInstance() {
+        return currentInstance != null;
+    }
+
     public FilibusterCore(FilibusterConfiguration filibusterConfiguration) {
         currentInstance = this;
 
@@ -358,14 +362,14 @@ public class FilibusterCore {
         return result;
     }
 
-    public synchronized boolean wasFaultInjectedOnMethodWherePayloadContains(String serviceName, String methodName, String contains) {
+    public synchronized boolean wasFaultInjectedOnMethodWhereRequestContains(String serviceName, String methodName, String contains) {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethodWherePayloadContains called, serviceName: " + serviceName + ", methodName: " + methodName + ", contains: " + contains);
 
         if (currentConcreteTestExecution == null) {
             return false;
         }
 
-        boolean result = currentConcreteTestExecution.wasFaultInjectedOnMethodWherePayloadContains(serviceName, methodName, contains);
+        boolean result = currentConcreteTestExecution.wasFaultInjectedOnMethodWhereRequestContains(serviceName, methodName, contains);
 
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethodWherePayloadContains returning: " + result);
 

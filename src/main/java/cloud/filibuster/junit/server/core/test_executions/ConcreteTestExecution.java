@@ -12,51 +12,25 @@ public class ConcreteTestExecution extends TestExecution implements Cloneable {
     }
 
     public ConcreteTestExecution(AbstractTestExecution abstractTestExecution) {
-        for (Map.Entry<DistributedExecutionIndex, JSONObject> faultToInject : abstractTestExecution.faultsToInject.entrySet()) {
-            faultsToInject.put(faultToInject.getKey(), faultToInject.getValue());
-        }
+        faultsToInject.putAll(abstractTestExecution.faultsToInject);
     }
 
     public AbstractTestExecution toAbstractTestExecution() {
         AbstractTestExecution abstractTestExecution = new AbstractTestExecution(this);
-
-        for (Map.Entry<DistributedExecutionIndex, JSONObject> mapEntry : executedRPCs.entrySet()) {
-            abstractTestExecution.executedRPCs.put(mapEntry.getKey(), mapEntry.getValue());
-        }
-
-        for (Map.Entry<DistributedExecutionIndex, JSONObject> mapEntry : nondeterministicExecutedRPCs.entrySet()) {
-            abstractTestExecution.nondeterministicExecutedRPCs.put(mapEntry.getKey(), mapEntry.getValue());
-        }
-
-        for (Map.Entry<DistributedExecutionIndex, JSONObject> mapEntry : faultsToInject.entrySet()) {
-            abstractTestExecution.faultsToInject.put(mapEntry.getKey(), mapEntry.getValue());
-        }
-
+        abstractTestExecution.executedRPCs.putAll(executedRPCs);
+        abstractTestExecution.nondeterministicExecutedRPCs.putAll(nondeterministicExecutedRPCs);
+        abstractTestExecution.faultsToInject.putAll(faultsToInject);
         return abstractTestExecution;
     }
 
     @Override
     protected Object clone() {
         ConcreteTestExecution concreteTestExecution = new ConcreteTestExecution();
-
         concreteTestExecution.generatedId = this.generatedId;
-
-        for (Map.Entry<String, Boolean> mapEntry : firstRequestSeenByService.entrySet()) {
-            concreteTestExecution.firstRequestSeenByService.put(mapEntry.getKey(), mapEntry.getValue());
-        }
-
-        for (Map.Entry<DistributedExecutionIndex, JSONObject> mapEntry : executedRPCs.entrySet()) {
-            concreteTestExecution.executedRPCs.put(mapEntry.getKey(), mapEntry.getValue());
-        }
-
-        for (Map.Entry<DistributedExecutionIndex, JSONObject> mapEntry : nondeterministicExecutedRPCs.entrySet()) {
-            concreteTestExecution.nondeterministicExecutedRPCs.put(mapEntry.getKey(), mapEntry.getValue());
-        }
-
-        for (Map.Entry<DistributedExecutionIndex, JSONObject> mapEntry : faultsToInject.entrySet()) {
-            concreteTestExecution.faultsToInject.put(mapEntry.getKey(), mapEntry.getValue());
-        }
-
+        concreteTestExecution.firstRequestSeenByService.putAll(firstRequestSeenByService);
+        concreteTestExecution.executedRPCs.putAll(executedRPCs);
+        concreteTestExecution.nondeterministicExecutedRPCs.putAll(nondeterministicExecutedRPCs);
+        concreteTestExecution.faultsToInject.putAll(faultsToInject);
         return concreteTestExecution;
     }
 }

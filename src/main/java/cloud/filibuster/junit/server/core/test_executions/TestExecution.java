@@ -4,6 +4,7 @@ import cloud.filibuster.dei.DistributedExecutionIndex;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -16,6 +17,9 @@ public abstract class TestExecution {
     // Legacy value used to number the RPCs for fault injection.
     // Superceded by DistributedExecutionIndex, but kept in for compatibility and debugging.
     int generatedId = 0;
+
+    // Assists in visualization and debugging onl; not used in record comparison.
+    ArrayList<DistributedExecutionIndex> invocationOrder = new ArrayList<>();
 
     // What RPCs were executed?
     HashMap<DistributedExecutionIndex, JSONObject> executedRPCs = new HashMap<>();
@@ -68,6 +72,9 @@ public abstract class TestExecution {
 
     public void addDistributedExecutionIndexWithPayload(DistributedExecutionIndex distributedExecutionIndex, JSONObject payload) {
         cleanPayload(payload);
+
+        // Add to invocation order list.
+        invocationOrder.add(distributedExecutionIndex);
 
         // Add to the list of executed RPCs.
         executedRPCs.put(distributedExecutionIndex, payload);

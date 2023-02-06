@@ -5,7 +5,7 @@ import cloud.filibuster.instrumentation.datatypes.VectorClock;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.helpers.Response;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
-import cloud.filibuster.junit.exceptions.FilibusterServerBadResponseException;
+import cloud.filibuster.exceptions.filibuster.FilibusterServerBadResponseException;
 import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.AggregatedHttpResponse;
 import com.linecorp.armeria.common.HttpHeaderNames;

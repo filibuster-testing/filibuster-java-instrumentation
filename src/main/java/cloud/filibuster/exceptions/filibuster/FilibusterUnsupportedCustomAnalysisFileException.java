@@ -1,6 +1,6 @@
 package cloud.filibuster.exceptions.filibuster;
 
-public class FilibusterUnsupportedCustomAnalysisFileException extends RuntimeException {
+public class FilibusterUnsupportedCustomAnalysisFileException extends FilibusterRuntimeException {
     public FilibusterUnsupportedCustomAnalysisFileException(String message) {
         super(message);
     }

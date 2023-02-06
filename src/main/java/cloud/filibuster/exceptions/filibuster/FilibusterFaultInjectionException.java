@@ -1,6 +1,6 @@
 package cloud.filibuster.exceptions.filibuster;
 
-public class FilibusterFaultInjectionException extends RuntimeException {
+public class FilibusterFaultInjectionException extends FilibusterRuntimeException {
     public FilibusterFaultInjectionException(String message) {
         super(message);
     }

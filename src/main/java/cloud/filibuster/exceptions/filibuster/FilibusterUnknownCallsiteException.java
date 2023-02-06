@@ -1,6 +1,6 @@
 package cloud.filibuster.exceptions.filibuster;
 
-public class FilibusterUnknownCallsiteException extends RuntimeException {
+public class FilibusterUnknownCallsiteException extends FilibusterRuntimeException {
     public FilibusterUnknownCallsiteException(String message) {
         super(message);
     }

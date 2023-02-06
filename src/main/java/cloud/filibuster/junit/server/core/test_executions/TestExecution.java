@@ -18,9 +18,6 @@ public abstract class TestExecution {
     // Superceded by DistributedExecutionIndex, but kept in for compatibility and debugging.
     int generatedId = 0;
 
-    // Assists in visualization and debugging onl; not used in record comparison.
-    ArrayList<DistributedExecutionIndex> invocationOrder = new ArrayList<>();
-
     // What RPCs were executed?
     HashMap<DistributedExecutionIndex, JSONObject> executedRPCs = new HashMap<>();
 
@@ -72,9 +69,6 @@ public abstract class TestExecution {
 
     public void addDistributedExecutionIndexWithPayload(DistributedExecutionIndex distributedExecutionIndex, JSONObject payload) {
         cleanPayload(payload);
-
-        // Add to invocation order list.
-        invocationOrder.add(distributedExecutionIndex);
 
         // Add to the list of executed RPCs.
         executedRPCs.put(distributedExecutionIndex, payload);

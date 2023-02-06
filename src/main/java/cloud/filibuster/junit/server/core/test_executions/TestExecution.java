@@ -28,7 +28,7 @@ public abstract class TestExecution {
 
     HashMap<String, Boolean> firstRequestSeenByService = new HashMap<>();
 
-    public boolean hasSeenFirstRequestromService(String serviceName) {
+    public boolean hasSeenFirstRequestFromService(String serviceName) {
         return firstRequestSeenByService.containsKey(serviceName);
     }
 

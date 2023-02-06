@@ -194,7 +194,7 @@ public class FilibusterCore {
             // Doesn't really matter, because if this isn't set, no tests will execute.
             result = false;
         } else {
-            if (!currentConcreteTestExecution.hasSeenFirstRequestromService(serviceName)) {
+            if (!currentConcreteTestExecution.hasSeenFirstRequestFromService(serviceName)) {
                 currentConcreteTestExecution.registerFirstRequestFromService(serviceName);
                 result = true;
             } else {

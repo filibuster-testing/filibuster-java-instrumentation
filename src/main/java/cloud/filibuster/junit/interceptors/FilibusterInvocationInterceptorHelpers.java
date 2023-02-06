@@ -2,7 +2,7 @@ package cloud.filibuster.junit.interceptors;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
-import cloud.filibuster.junit.exceptions.NoopException;
+import cloud.filibuster.exceptions.filibuster.FilibusterNoopException;
 import cloud.filibuster.junit.server.FilibusterServerAPI;
 import com.linecorp.armeria.client.WebClient;
 import org.junit.jupiter.api.extension.InvocationInterceptor;
@@ -39,7 +39,7 @@ public class FilibusterInvocationInterceptorHelpers {
         } catch (Throwable t) {
             Class<? extends RuntimeException> expectedExceptionClass = filibusterConfiguration.getExpected();
 
-            if (expectedExceptionClass != NoopException.class && expectedExceptionClass.isInstance(t)) {
+            if (expectedExceptionClass != FilibusterNoopException.class && expectedExceptionClass.isInstance(t)) {
                 FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */false);
             } else {
                 FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */true);

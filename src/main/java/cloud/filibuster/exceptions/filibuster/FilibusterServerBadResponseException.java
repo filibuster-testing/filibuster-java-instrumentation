@@ -1,6 +1,4 @@
-package cloud.filibuster.junit.exceptions;
-
-import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
+package cloud.filibuster.exceptions.filibuster;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;

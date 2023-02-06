@@ -228,7 +228,6 @@ public class FilibusterCore {
     public synchronized void completeIteration(int currentIteration, int exceptionOccurred) {
         logger.info("[FILIBUSTER-CORE]: completeIteration called, currentIteration: " + currentIteration + ", exceptionOccurred: " + exceptionOccurred);
 
-
         if (currentConcreteTestExecution != null) {
             currentConcreteTestExecution.printRPCs();
         } else {
@@ -530,23 +529,18 @@ public class FilibusterCore {
     }
 
     private void printSummary() {
-        logger.info("[FILIBUSTER-CORE]: Queue Statistics: ");
-        logger.info("[FILIBUSTER-CORE]: * unexploredTestExecutions.size():           " + unexploredTestExecutions.size());
-        logger.info("[FILIBUSTER-CORE]: * exploredTestExecutions.size():             " + exploredTestExecutions.size());
-
-        logger.info("[FILIBUSTER-CORE]: Test Summary: ");
-        logger.info("[FILIBUSTER-CORE]: * numberOfAbstractExecutionsAttempted:       " + numberOfAbstractExecutionsAttempted);
-        logger.info("[FILIBUSTER-CORE]: * numberOfAbstractExecutionsExecuted:        " + numberOfAbstractExecutionsExecuted);
-        logger.info("[FILIBUSTER-CORE]: * numberOfConcreteExecutionsExecuted:        " + numberOfConcreteExecutionsExecuted);
-
-        if (numberOfAbstractExecutionsAttempted != numberOfAbstractExecutionsExecuted) {
-            logger.warning("[FILIBUSTER-CORE]: Number of abstract test executions attempted doesn't match executed: this could indicate a problem.");
-        }
-
-        if (numberOfAbstractExecutionsExecuted != 0 && numberOfConcreteExecutionsExecuted != 0) { // Actually ran something.
-            if (numberOfAbstractExecutionsExecuted != (numberOfConcreteExecutionsExecuted - 1)) {
-                logger.warning("[FILIBUSTER-CORE]: Number of abstract test executions attempted doesn't match concrete (-1): this could indicate a problem.");
-            }
-        }
+        logger.info(
+                "" + "\n" +
+                        "[FILIBUSTER-CORE]: Filibuster In-Progress Summary" + "\n" +
+                        "" + "\n" +
+                        "[FILIBUSTER-CORE]: Queue Statistics: " + "\n" +
+                        "[FILIBUSTER-CORE]: * unexploredTestExecutions.size():           " + unexploredTestExecutions.size() + "\n" +
+                        "[FILIBUSTER-CORE]: * exploredTestExecutions.size():             " + exploredTestExecutions.size() + " (+1, =" + (exploredTestExecutions.size() + 1) + ")" + "\n" +
+                        "" + "\n" +
+                        "[FILIBUSTER-CORE]: Test Summary: " + "\n" +
+                        "[FILIBUSTER-CORE]: * numberOfAbstractExecutionsAttempted:       " + numberOfAbstractExecutionsAttempted + (currentAbstractTestExecution == null ? "" : " (+1, =" + (numberOfAbstractExecutionsAttempted + 1) + ")") + "\n" +
+                        "[FILIBUSTER-CORE]: * numberOfAbstractExecutionsExecuted:        " + numberOfAbstractExecutionsExecuted + (currentAbstractTestExecution == null ? "" : " (+1, =" + (numberOfAbstractExecutionsExecuted + 1) + ")") + "\n" +
+                        "[FILIBUSTER-CORE]: * numberOfConcreteExecutionsExecuted:        " + numberOfConcreteExecutionsExecuted + " (+1, =" + (numberOfConcreteExecutionsExecuted + 1) + ")" + "\n"
+        );
     }
 }

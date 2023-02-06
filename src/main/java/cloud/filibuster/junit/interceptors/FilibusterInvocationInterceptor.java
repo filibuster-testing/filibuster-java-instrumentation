@@ -4,7 +4,7 @@ import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.helpers.Property;
 import cloud.filibuster.junit.FilibusterSystemProperties;
-import cloud.filibuster.junit.exceptions.NoopException;
+import cloud.filibuster.exceptions.filibuster.FilibusterNoopException;
 import cloud.filibuster.junit.server.FilibusterServerLifecycle;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.junit.server.FilibusterServerAPI;
@@ -103,7 +103,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
                     Throwable t = FilibusterServerLifecycle.getInitializationFailedException();
                     Class<? extends RuntimeException> expectedExceptionClass = filibusterConfiguration.getExpected();
 
-                    if (expectedExceptionClass != NoopException.class) {
+                    if (expectedExceptionClass != FilibusterNoopException.class) {
                         // We expected a failure...
                         if (expectedExceptionClass.isInstance(t)) {
                             // ...and it was what we expected.

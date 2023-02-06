@@ -1,6 +1,6 @@
 package cloud.filibuster.exceptions.filibuster;
 
-public class FilibusterUnsupportedByHTTPServerException extends RuntimeException {
+public class FilibusterUnsupportedByHTTPServerException extends FilibusterRuntimeException {
     public FilibusterUnsupportedByHTTPServerException(String message) {
         super(message);
     }

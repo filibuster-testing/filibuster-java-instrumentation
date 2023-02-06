@@ -1,6 +1,6 @@
 package cloud.filibuster.exceptions.filibuster;
 
-public class FilibusterInstrumentationMissingDelegateException extends RuntimeException {
+public class FilibusterInstrumentationMissingDelegateException extends FilibusterRuntimeException {
     public FilibusterInstrumentationMissingDelegateException(String message) {
         super(message);
     }

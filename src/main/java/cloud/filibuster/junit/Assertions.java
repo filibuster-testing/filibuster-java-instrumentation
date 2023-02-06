@@ -4,7 +4,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedByHTTPServerE
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.helpers.Response;
-import cloud.filibuster.junit.exceptions.FilibusterServerBadResponseException;
+import cloud.filibuster.exceptions.filibuster.FilibusterServerBadResponseException;
 import cloud.filibuster.junit.server.core.FilibusterCore;
 import com.google.protobuf.GeneratedMessage;
 import com.google.protobuf.GeneratedMessageV3;

@@ -7,6 +7,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,13 +62,30 @@ public class TestExecutionReport {
         return result;
     }
 
+    public String toJavascript() {
+        JSONObject jsonObject = toJSONObject();
+        return "var analysis = " + jsonObject.toString(4) + ";";
+    }
+
     public void writeTestReport() {
         try {
-            Path path = Files.createTempFile(generateFilename(), ".json");
-            Files.write(path, toJSONObject().toString(4).getBytes());
+
+            // Create new directory for analysis report.
+            Path directory = Files.createTempDirectory("filibuster-test-execution-");
+
+            // Write out the actual JSON report.
+            Path scriptFile = Files.createFile(Paths.get(directory.toString() + "/analysis.js"));
+            Files.write(scriptFile, toJavascript().getBytes());
+
+            // Copy index file over.
+            Path currentPath = Paths.get(System.getProperty("user.dir"));
+            Path filePath = Paths.get(currentPath.toString(), "html/test_execution_report/index.html");
+            Path destinationPath = Paths.get(directory + "/index.html");
+            Files.copy(filePath, destinationPath);
+
             logger.info(
                     "" + "\n" +
-                            "[FILIBUSTER-CORE]: Test Execution Report written to file://" + path + "\n");
+                            "[FILIBUSTER-CORE]: Test Execution Report written to file://" + destinationPath + "\n");
         } catch (IOException e) {
             throw new FilibusterTestReportWriterException(e);
         }

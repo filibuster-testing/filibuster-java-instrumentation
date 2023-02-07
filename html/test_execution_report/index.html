@@ -1,0 +1,103 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Filibuster Test Execution Report</title>
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script type="text/javascript" src="./analysis.js"></script>
+    <style>
+		table {
+			margin: 0 auto;
+			font-size: large;
+			border: 1px solid black;
+            table-layout: fixed;
+		}
+
+		h1 {
+			text-align: center;
+			color: #006600;
+			font-size: xx-large;
+			font-family: 'Gill Sans',
+				'Gill Sans MT', ' Calibri',
+				'Trebuchet MS', 'sans-serif';
+		}
+
+		td {
+			border: 1px solid black;
+		}
+
+		th,
+		td {
+			font-weight: bold;
+			border: 1px solid black;
+			padding: 10px;
+			text-align: center;
+		}
+
+		td {
+            font-weight: lighter;
+		}
+
+        tr.success {
+            background-color: green;
+        }
+
+        tr.fault {
+            background-color: red;
+        }
+	</style>
+</head>
+
+<body>
+<section>
+    <h1>Filibuster Test Execution Report</h1>
+
+    <table id='table'>
+        <tr>
+            <th>Distributed Execution Index</th>
+            <th>RPC Method</th>
+            <th>RPC Arguments</th>
+            <th>Fault</th>
+        </tr>
+
+        <script>
+                function isEmpty(obj) {
+                    return Object.keys(obj).length === 0;
+                }
+
+				$(document).ready(function () {
+                    for (i in analysis.rpcs) {
+                        var rpc = analysis.rpcs[i];
+                        var isFaulted = !isEmpty(rpc.fault);
+                        console.log(rpc);
+                        console.log(rpc.fault);
+                        console.log(isEmpty(rpc.fault));
+
+                        var row = '';
+
+                        if (!isFaulted) {
+                            row += '<tr class="success">';
+                        } else {
+                            row += '<tr class="fault">';
+                        }
+
+                        row += '<td class="dei"><textarea>' + rpc.dei + '</textarea></td>';
+                        row += '<td class="method">' + rpc.details.method + '</td>';
+                        row += '<td class="args"><textarea>' + rpc.details.args + '</textarea></td>';
+
+                        if (!isFaulted) {
+                            row += '<td></td>';
+                        } else {
+                            row += '<td>' + rpc.fault.forced_exception.metadata.code + '</td>';
+                        }
+
+                        row += '</tr>';
+						$('#table').append(row);
+
+                    }
+				});
+			</script>
+</section>
+</body>
+
+</html>

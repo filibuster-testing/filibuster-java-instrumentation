@@ -194,7 +194,7 @@ public class FilibusterCore {
             // Doesn't really matter, because if this isn't set, no tests will execute.
             result = false;
         } else {
-            if (!currentConcreteTestExecution.hasSeenFirstRequestromService(serviceName)) {
+            if (!currentConcreteTestExecution.hasSeenFirstRequestFromService(serviceName)) {
                 currentConcreteTestExecution.registerFirstRequestFromService(serviceName);
                 result = true;
             } else {
@@ -215,6 +215,7 @@ public class FilibusterCore {
 
         if (currentConcreteTestExecution != null) {
             currentConcreteTestExecution.printRPCs();
+            currentConcreteTestExecution.getTestExecutionReport().writeTestReport();
         } else {
             throw new FilibusterCoreLogicException("currentConcreteTestExecution should not be null at this point, something fatal occurred.");
         }
@@ -230,6 +231,7 @@ public class FilibusterCore {
 
         if (currentConcreteTestExecution != null) {
             currentConcreteTestExecution.printRPCs();
+            currentConcreteTestExecution.getTestExecutionReport().writeTestReport();
         } else {
             throw new FilibusterCoreLogicException("currentConcreteTestExecution should not be null at this point, something fatal occurred.");
         }

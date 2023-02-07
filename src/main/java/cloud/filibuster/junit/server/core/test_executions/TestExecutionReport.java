@@ -78,14 +78,12 @@ public class TestExecutionReport {
             Files.write(scriptFile, toJavascript().getBytes());
 
             // Copy index file over.
-            Path currentPath = Paths.get(System.getProperty("user.dir"));
-            Path filePath = Paths.get(currentPath.toString(), "html/test_execution_report/index.html");
-            Path destinationPath = Paths.get(directory + "/index.html");
-            Files.copy(filePath, destinationPath);
+            Path indexPath = Paths.get(directory + "/index.html");
+            Files.write(indexPath, htmlContent.getBytes());
 
             logger.info(
                     "" + "\n" +
-                            "[FILIBUSTER-CORE]: Test Execution Report written to file://" + destinationPath + "\n");
+                            "[FILIBUSTER-CORE]: Test Execution Report written to file://" + indexPath + "\n");
         } catch (IOException e) {
             throw new FilibusterTestReportWriterException(e);
         }
@@ -104,4 +102,108 @@ public class TestExecutionReport {
 
         return "filibuster-test-execution-report-" + n;
     }
+
+    private String htmlContent = "<html lang=\"en\">\n" +
+            "\n" +
+            "<head>\n" +
+            "    <meta charset=\"UTF-8\">\n" +
+            "    <title>Filibuster Test Execution Report</title>\n" +
+            "    <script src=\"https://code.jquery.com/jquery-3.5.1.js\"></script>\n" +
+            "    <script type=\"text/javascript\" src=\"./analysis.js\"></script>\n" +
+            "    <style>\n" +
+            "\t\ttable {\n" +
+            "\t\t\tmargin: 0 auto;\n" +
+            "\t\t\tfont-size: large;\n" +
+            "\t\t\tborder: 1px solid black;\n" +
+            "            table-layout: fixed;\n" +
+            "\t\t}\n" +
+            "\n" +
+            "\t\th1 {\n" +
+            "\t\t\ttext-align: center;\n" +
+            "\t\t\tcolor: #006600;\n" +
+            "\t\t\tfont-size: xx-large;\n" +
+            "\t\t\tfont-family: 'Gill Sans',\n" +
+            "\t\t\t\t'Gill Sans MT', ' Calibri',\n" +
+            "\t\t\t\t'Trebuchet MS', 'sans-serif';\n" +
+            "\t\t}\n" +
+            "\n" +
+            "\t\ttd {\n" +
+            "\t\t\tborder: 1px solid black;\n" +
+            "\t\t}\n" +
+            "\n" +
+            "\t\tth,\n" +
+            "\t\ttd {\n" +
+            "\t\t\tfont-weight: bold;\n" +
+            "\t\t\tborder: 1px solid black;\n" +
+            "\t\t\tpadding: 10px;\n" +
+            "\t\t\ttext-align: center;\n" +
+            "\t\t}\n" +
+            "\n" +
+            "\t\ttd {\n" +
+            "            font-weight: lighter;\n" +
+            "\t\t}\n" +
+            "\n" +
+            "        tr.success {\n" +
+            "            background-color: green;\n" +
+            "        }\n" +
+            "\n" +
+            "        tr.fault {\n" +
+            "            background-color: red;\n" +
+            "        }\n" +
+            "\t</style>\n" +
+            "</head>\n" +
+            "\n" +
+            "<body>\n" +
+            "<section>\n" +
+            "    <h1>Filibuster Test Execution Report</h1>\n" +
+            "\n" +
+            "    <table id='table'>\n" +
+            "        <tr>\n" +
+            "            <th>Distributed Execution Index</th>\n" +
+            "            <th>RPC Method</th>\n" +
+            "            <th>RPC Arguments</th>\n" +
+            "            <th>Fault</th>\n" +
+            "        </tr>\n" +
+            "\n" +
+            "        <script>\n" +
+            "                function isEmpty(obj) {\n" +
+            "                    return Object.keys(obj).length === 0;\n" +
+            "                }\n" +
+            "\n" +
+            "\t\t\t\t$(document).ready(function () {\n" +
+            "                    for (i in analysis.rpcs) {\n" +
+            "                        var rpc = analysis.rpcs[i];\n" +
+            "                        var isFaulted = !isEmpty(rpc.fault);\n" +
+            "                        console.log(rpc);\n" +
+            "                        console.log(rpc.fault);\n" +
+            "                        console.log(isEmpty(rpc.fault));\n" +
+            "\n" +
+            "                        var row = '';\n" +
+            "\n" +
+            "                        if (!isFaulted) {\n" +
+            "                            row += '<tr class=\"success\">';\n" +
+            "                        } else {\n" +
+            "                            row += '<tr class=\"fault\">';\n" +
+            "                        }\n" +
+            "\n" +
+            "                        row += '<td class=\"dei\"><textarea>' + rpc.dei + '</textarea></td>';\n" +
+            "                        row += '<td class=\"method\">' + rpc.details.method + '</td>';\n" +
+            "                        row += '<td class=\"args\"><textarea>' + rpc.details.args + '</textarea></td>';\n" +
+            "\n" +
+            "                        if (!isFaulted) {\n" +
+            "                            row += '<td></td>';\n" +
+            "                        } else {\n" +
+            "                            row += '<td>' + rpc.fault.forced_exception.metadata.code + '</td>';\n" +
+            "                        }\n" +
+            "\n" +
+            "                        row += '</tr>';\n" +
+            "\t\t\t\t\t\t$('#table').append(row);\n" +
+            "\n" +
+            "                    }\n" +
+            "\t\t\t\t});\n" +
+            "\t\t\t</script>\n" +
+            "</section>\n" +
+            "</body>\n" +
+            "\n" +
+            "</html>\n";
 }

@@ -13,8 +13,14 @@ public class ConcreteTestExecution extends TestExecution implements Cloneable {
 
     }
 
+    public void addDistributedExecutionIndexWithPayload(DistributedExecutionIndex distributedExecutionIndex, JSONObject payload) {
+        testExecutionReport.recordInvocation(distributedExecutionIndex, payload);
+        super.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, payload);
+    }
+
     public ConcreteTestExecution(AbstractTestExecution abstractTestExecution) {
         faultsToInject.putAll(abstractTestExecution.faultsToInject);
+        testExecutionReport.setFaultsInjected(faultsToInject);
     }
 
     public AbstractTestExecution toAbstractTestExecution() {

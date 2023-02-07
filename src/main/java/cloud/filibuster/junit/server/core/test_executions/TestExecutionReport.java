@@ -1,11 +1,20 @@
 package cloud.filibuster.junit.server.core.test_executions;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
+import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Logger;
+
 public class TestExecutionReport {
+    private static final Logger logger = Logger.getLogger(TestExecutionReport.class.getName());
+
     private final ArrayList<DistributedExecutionIndex> deiInvocationOrder = new ArrayList<>();
 
     private final HashMap<DistributedExecutionIndex, JSONObject> deiInvocations = new HashMap<>();
@@ -50,5 +59,31 @@ public class TestExecutionReport {
         JSONObject result = new JSONObject();
         result.put(Keys.RPCS_KEY, RPCs);
         return result;
+    }
+
+    public void writeTestReport() {
+        try {
+            Path path = Files.createTempFile(generateFilename(), ".json");
+            Files.write(path, toJSONObject().toString(4).getBytes());
+            logger.info(
+                    "" + "\n" +
+                            "[FILIBUSTER-CORE]: Test Execution Report written to file://" + path + "\n");
+        } catch (IOException e) {
+            throw new FilibusterTestReportWriterException(e);
+        }
+    }
+
+    private static final SecureRandom random = new SecureRandom();
+
+    private static String generateFilename() {
+        long n = random.nextLong();
+
+        if (n == Long.MIN_VALUE) {
+            n = 0;
+        } else {
+            n = Math.abs(n);
+        }
+
+        return "filibuster-test-execution-report-" + n;
     }
 }

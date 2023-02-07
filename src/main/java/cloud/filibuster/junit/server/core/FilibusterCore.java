@@ -215,6 +215,7 @@ public class FilibusterCore {
 
         if (currentConcreteTestExecution != null) {
             currentConcreteTestExecution.printRPCs();
+            currentConcreteTestExecution.getTestExecutionReport().writeTestReport();
         } else {
             throw new FilibusterCoreLogicException("currentConcreteTestExecution should not be null at this point, something fatal occurred.");
         }
@@ -230,6 +231,7 @@ public class FilibusterCore {
 
         if (currentConcreteTestExecution != null) {
             currentConcreteTestExecution.printRPCs();
+            currentConcreteTestExecution.getTestExecutionReport().writeTestReport();
         } else {
             throw new FilibusterCoreLogicException("currentConcreteTestExecution should not be null at this point, something fatal occurred.");
         }

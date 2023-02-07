@@ -67,10 +67,9 @@ public abstract class TestExecution {
     }
 
     public void addDistributedExecutionIndexWithPayload(DistributedExecutionIndex distributedExecutionIndex, JSONObject payload) {
-        cleanPayload(payload);
-
         // Add to the list of executed RPCs.
-        executedRPCs.put(distributedExecutionIndex, payload);
+        JSONObject payloadWithoutInstrumentationType = cleanPayloadOfInstrumentationType(payload);
+        executedRPCs.put(distributedExecutionIndex, payloadWithoutInstrumentationType);
 
         // Add to the list of nondeterministic executed RPCs.
         JSONObject nondeterministicPayload = new JSONObject(payload.toString());
@@ -210,8 +209,9 @@ public abstract class TestExecution {
         return false;
     }
 
-    private static void cleanPayload(JSONObject payload) {
-        // Remove fields that are only related to the logging and don't contain useful information.
-        payload.remove("instrumentation_type");
+    private static JSONObject cleanPayloadOfInstrumentationType(JSONObject payload) {
+        JSONObject jsonObject = new JSONObject(payload.toString());
+        jsonObject.remove("instrumentation_type");
+        return jsonObject;
     }
 }

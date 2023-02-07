@@ -14,7 +14,7 @@ public abstract class TestExecution {
     private static final Logger logger = Logger.getLogger(TestExecution.class.getName());
 
     // Legacy value used to number the RPCs for fault injection.
-    // Superceded by DistributedExecutionIndex, but kept in for compatibility and debugging.
+    // Superseded by DistributedExecutionIndex, but kept in for compatibility and debugging.
     int generatedId = 0;
 
     // What RPCs were executed?
@@ -72,9 +72,8 @@ public abstract class TestExecution {
         executedRPCs.put(distributedExecutionIndex, payloadWithoutInstrumentationType);
 
         // Add to the list of nondeterministic executed RPCs.
-        JSONObject nondeterministicPayload = new JSONObject(payload.toString());
-        nondeterministicPayload.remove("args");
-        nondeterministicExecutedRPCs.put(distributedExecutionIndex, nondeterministicPayload);
+        JSONObject deterministicPayload = cleanPayloadOfArguments(payload);
+        nondeterministicExecutedRPCs.put(distributedExecutionIndex, deterministicPayload);
     }
 
     public int incrementGeneratedId() {
@@ -212,6 +211,12 @@ public abstract class TestExecution {
     private static JSONObject cleanPayloadOfInstrumentationType(JSONObject payload) {
         JSONObject jsonObject = new JSONObject(payload.toString());
         jsonObject.remove("instrumentation_type");
+        return jsonObject;
+    }
+
+    private static JSONObject cleanPayloadOfArguments(JSONObject payload) {
+        JSONObject jsonObject = new JSONObject(payload.toString());
+        jsonObject.remove("args");
         return jsonObject;
     }
 }

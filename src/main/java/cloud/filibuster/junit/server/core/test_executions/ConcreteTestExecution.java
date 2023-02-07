@@ -7,6 +7,8 @@ import java.util.Map;
 
 @SuppressWarnings("Varifier")
 public class ConcreteTestExecution extends TestExecution implements Cloneable {
+    private final TestExecutionReport testExecutionReport = new TestExecutionReport();
+
     public ConcreteTestExecution() {
 
     }
@@ -32,5 +34,9 @@ public class ConcreteTestExecution extends TestExecution implements Cloneable {
         concreteTestExecution.nondeterministicExecutedRPCs.putAll(nondeterministicExecutedRPCs);
         concreteTestExecution.faultsToInject.putAll(faultsToInject);
         return concreteTestExecution;
+    }
+
+    public TestExecutionReport getTestExecutionReport() {
+        return testExecutionReport;
     }
 }

@@ -175,6 +175,10 @@ public class FilibusterCore {
 
         logger.info("[FILIBUSTER-CORE]: endInvocation called, distributedExecutionIndex: " + distributedExecutionIndex);
 
+        if (currentConcreteTestExecution == null) {
+            throw new FilibusterCoreLogicException("currentConcreteTestExecution should not be null at this point, something fatal occurred.");
+        }
+
         JSONObject response = new JSONObject();
         response.put("execution_index", payload.getString("execution_index"));
 

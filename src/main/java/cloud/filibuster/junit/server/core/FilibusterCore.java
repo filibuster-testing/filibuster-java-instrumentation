@@ -179,6 +179,8 @@ public class FilibusterCore {
             throw new FilibusterCoreLogicException("currentConcreteTestExecution should not be null at this point, something fatal occurred.");
         }
 
+        currentConcreteTestExecution.addDistributedExecutionIndexWithResponsePayload(distributedExecutionIndex, payload);
+
         JSONObject response = new JSONObject();
         response.put("execution_index", payload.getString("execution_index"));
 

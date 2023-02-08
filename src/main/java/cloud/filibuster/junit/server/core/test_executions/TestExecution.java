@@ -76,6 +76,10 @@ public abstract class TestExecution {
         nondeterministicExecutedRPCs.put(distributedExecutionIndex, deterministicPayload);
     }
 
+    public void addDistributedExecutionIndexWithResponsePayload(DistributedExecutionIndex distributedExecutionIndex, JSONObject payload) {
+        // Nothing for now.
+    }
+
     public int incrementGeneratedId() {
         // Increment the generated_id; not used for anything anymore and merely here for debugging and because callers require it.
         generatedId++;

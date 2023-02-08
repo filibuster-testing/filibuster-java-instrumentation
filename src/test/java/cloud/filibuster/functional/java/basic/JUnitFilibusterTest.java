@@ -55,6 +55,8 @@ public class JUnitFilibusterTest extends JUnitBaseTest {
             assertEquals("Hello, Armerian World!!", reply.getMessage());
             assertFalse(wasFaultInjected());
         } catch (Throwable t) {
+            assertEquals(false, true);
+
             boolean wasFaultInjected = wasFaultInjected();
 
             if (wasFaultInjected) {

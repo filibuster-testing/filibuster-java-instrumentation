@@ -4,6 +4,7 @@ import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterException;
 import org.json.JSONObject;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -14,6 +15,15 @@ import java.util.HashMap;
 import java.util.logging.Logger;
 
 public class TestExecutionReport {
+    private boolean hasReportBeenMaterialized = false;
+
+    @Nullable
+    private Path materializedReportPath;
+
+    private int testExecutionNumber = 0;
+
+    private boolean testExecutionPassed = false;
+
     private static final Logger logger = Logger.getLogger(TestExecutionReport.class.getName());
 
     private final ArrayList<DistributedExecutionIndex> deiInvocationOrder = new ArrayList<>();
@@ -48,6 +58,8 @@ public class TestExecutionReport {
     }
 
     static class Keys {
+        private static final String ITERATION_KEY = "iteration";
+        private static final String STATUS_KEY = "status";
         private static final String DEI_KEY = "dei";
         private static final String REQUEST_KEY = "request";
         private static final String RESPONSE_KEY = "response";
@@ -69,6 +81,8 @@ public class TestExecutionReport {
         }
 
         JSONObject result = new JSONObject();
+        result.put(Keys.ITERATION_KEY, testExecutionNumber);
+        result.put(Keys.STATUS_KEY, testExecutionPassed);
         result.put(Keys.RPCS_KEY, RPCs);
         return result;
     }
@@ -78,26 +92,38 @@ public class TestExecutionReport {
         return "var analysis = " + jsonObject.toString(4) + ";";
     }
 
-    public void writeTestReport() {
-        try {
+    public void writeTestReport(int currentIteration, boolean exceptionOccurred) {
+        testExecutionNumber = currentIteration;
+        testExecutionPassed = !exceptionOccurred;
 
-            // Create new directory for analysis report.
-            Path directory = Files.createTempDirectory("filibuster-test-execution-");
+        if (!hasReportBeenMaterialized) {
+            try {
+                // Create new directory for analysis report.
+                Path directory = Files.createTempDirectory("filibuster-test-execution-");
 
-            // Write out the actual JSON report.
-            Path scriptFile = Files.createFile(Paths.get(directory.toString() + "/analysis.js"));
-            Files.write(scriptFile, toJavascript().getBytes(Charset.defaultCharset()));
+                // Write out the actual JSON report.
+                Path scriptFile = Files.createFile(Paths.get(directory.toString() + "/analysis.js"));
+                Files.write(scriptFile, toJavascript().getBytes(Charset.defaultCharset()));
 
-            // Copy index file over.
-            Path indexPath = Paths.get(directory + "/index.html");
-            Files.write(indexPath, htmlContent.getBytes(Charset.defaultCharset()));
+                // Write out index file.
+                Path indexPath = Paths.get(directory + "/index.html");
+                Files.write(indexPath, htmlContent.getBytes(Charset.defaultCharset()));
 
-            logger.info(
-                    "" + "\n" +
-                            "[FILIBUSTER-CORE]: Test Execution Report written to file://" + indexPath + "\n");
-        } catch (IOException e) {
-            throw new FilibusterTestReportWriterException(e);
+                // Set materialized and it's location.
+                hasReportBeenMaterialized = true;
+                materializedReportPath = indexPath;
+
+                logger.info(
+                        "" + "\n" +
+                                "[FILIBUSTER-CORE]: Test Execution Report written to file://" + indexPath + "\n");
+            } catch (IOException e) {
+                throw new FilibusterTestReportWriterException(e);
+            }
         }
+    }
+
+    public Path getMaterializedReportPath() {
+        return materializedReportPath;
     }
 
     private static final String htmlContent = "<html lang=\"en\">\n" +
@@ -123,6 +149,23 @@ public class TestExecutionReport {
             "\t\t\t\t'Gill Sans MT', ' Calibri',\n" +
             "\t\t\t\t'Trebuchet MS', 'sans-serif';\n" +
             "\t\t}\n" +
+            "\n" +
+            "        div {\n" +
+            "\t\t\ttext-align: center;\n" +
+            "            margin: 0 auto;\n" +
+            "            width: 500px;\n" +
+            "            padding-bottom: 10px;\n" +
+            "        }\n" +
+            "\n" +
+            "        .fail { \n" +
+            "            font-weight: bold;\n" +
+            "            color: red;\n" +
+            "        }\n" +
+            "\n" +
+            "        .pass { \n" +
+            "            font-weight: bold;\n" +
+            "            color: green;\n" +
+            "        }\n" +
             "\n" +
             "\t\ttd {\n" +
             "\t\t\tborder: 1px solid black;\n" +
@@ -158,6 +201,8 @@ public class TestExecutionReport {
             "<section>\n" +
             "    <h1>Filibuster Test Execution Report</h1>\n" +
             "\n" +
+            "    <div id='status'></div>\n" +
+            "\n" +
             "    <table id='table'>\n" +
             "        <tr>\n" +
             "            <th>Distributed Execution Index</th>\n" +
@@ -177,6 +222,15 @@ public class TestExecutionReport {
             "                }\n" +
             "\n" +
             "\t\t\t\t$(document).ready(function () {\n" +
+            "                    console.log(analysis);\n" +
+            "                    var status = analysis.status;\n" +
+            "                    var iteration = analysis.iteration;\n" +
+            "                    if (status) {\n" +
+            "                        $('#status').html(\"Test Execution \" + iteration + \" <div class='pass'>Test Passed</div>\");\n" +
+            "                    } else {\n" +
+            "                        $('#status').html(\"Test Execution \" + iteration + \" <div class='fail'>Test Failed</div>\");\n" +
+            "                    }\n" +
+            "\n" +
             "                    for (i in analysis.rpcs) {\n" +
             "                        var rpc = analysis.rpcs[i];\n" +
             "                        var isFaulted = !isEmpty(rpc.fault);\n" +
@@ -227,7 +281,6 @@ public class TestExecutionReport {
             "\n" +
             "                        row += '</tr>';\n" +
             "\t\t\t\t\t\t$('#table').append(row);\n" +
-            "\n" +
             "                    }\n" +
             "\t\t\t\t});\n" +
             "\t\t\t</script>\n" +

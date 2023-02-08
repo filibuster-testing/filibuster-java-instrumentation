@@ -28,6 +28,12 @@ public class ConcreteTestExecution extends TestExecution implements Cloneable {
         return testExecutionReport;
     }
 
+    public void writeTestExecutionReport(int currentIteration, boolean exceptionOccurred) {
+        if (testExecutionReport != null) {
+            testExecutionReport.writeTestReport(currentIteration, exceptionOccurred);
+        }
+    }
+
     @Override
     protected Object clone() {
         ConcreteTestExecution concreteTestExecution = new ConcreteTestExecution();

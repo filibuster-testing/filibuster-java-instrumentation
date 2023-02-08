@@ -1,6 +1,5 @@
 package cloud.filibuster.functional.python.basic;
 
-import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.Hello.HelloRequest;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.examples.HelloServiceGrpc.HelloServiceBlockingStub;

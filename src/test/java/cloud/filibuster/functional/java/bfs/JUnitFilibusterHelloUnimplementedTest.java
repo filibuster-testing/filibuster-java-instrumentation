@@ -1,6 +1,5 @@
 package cloud.filibuster.functional.java.bfs;
 
-import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.Hello.HelloReply;
 import cloud.filibuster.examples.Hello.HelloRequest;
 import cloud.filibuster.examples.HelloServiceGrpc;

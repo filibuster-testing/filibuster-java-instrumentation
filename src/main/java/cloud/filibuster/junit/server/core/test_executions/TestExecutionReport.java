@@ -49,7 +49,8 @@ public class TestExecutionReport {
 
     static class Keys {
         private static String DEI_KEY = "dei";
-        private static String DETAILS_KEY = "details";
+        private static String REQUEST_KEY = "request";
+        private static String RESPONSE_KEY = "response";
         private static String FAULT_KEY = "fault";
         private static String RPCS_KEY = "rpcs";
         private static String PASSED_KEY = "passed";
@@ -62,7 +63,8 @@ public class TestExecutionReport {
         for (DistributedExecutionIndex dei : deiInvocationOrder) {
             JSONObject RPC = new JSONObject();
             RPC.put(Keys.DEI_KEY, dei.toString());
-            RPC.put(Keys.DETAILS_KEY, deiInvocations.getOrDefault(dei, new JSONObject()));
+            RPC.put(Keys.REQUEST_KEY, deiInvocations.getOrDefault(dei, new JSONObject()));
+            RPC.put(Keys.RESPONSE_KEY, deiResponses.getOrDefault(dei, new JSONObject()));
             RPC.put(Keys.FAULT_KEY, deiFaultsInjected.getOrDefault(dei, new JSONObject()));
             RPCs.add(RPC);
         }

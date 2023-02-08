@@ -47,12 +47,11 @@ public class TestExecutionReport {
     }
 
     static class Keys {
-        private static String DEI_KEY = "dei";
-        private static String REQUEST_KEY = "request";
-        private static String RESPONSE_KEY = "response";
-        private static String FAULT_KEY = "fault";
-        private static String RPCS_KEY = "rpcs";
-        private static String PASSED_KEY = "passed";
+        private static final String DEI_KEY = "dei";
+        private static final String REQUEST_KEY = "request";
+        private static final String RESPONSE_KEY = "response";
+        private static final String FAULT_KEY = "fault";
+        private static final String RPCS_KEY = "rpcs";
     }
 
     @SuppressWarnings("MemberName")

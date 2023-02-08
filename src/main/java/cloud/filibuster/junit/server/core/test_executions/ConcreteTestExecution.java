@@ -3,19 +3,12 @@ package cloud.filibuster.junit.server.core.test_executions;
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import org.json.JSONObject;
 
-import java.util.Map;
-
 @SuppressWarnings("Varifier")
 public class ConcreteTestExecution extends TestExecution implements Cloneable {
     private final TestExecutionReport testExecutionReport = new TestExecutionReport();
 
     public ConcreteTestExecution() {
 
-    }
-
-    public void addDistributedExecutionIndexWithPayload(DistributedExecutionIndex distributedExecutionIndex, JSONObject payload) {
-        testExecutionReport.recordInvocation(distributedExecutionIndex, payload);
-        super.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, payload);
     }
 
     public ConcreteTestExecution(AbstractTestExecution abstractTestExecution) {
@@ -31,6 +24,10 @@ public class ConcreteTestExecution extends TestExecution implements Cloneable {
         return abstractTestExecution;
     }
 
+    public TestExecutionReport getTestExecutionReport() {
+        return testExecutionReport;
+    }
+
     @Override
     protected Object clone() {
         ConcreteTestExecution concreteTestExecution = new ConcreteTestExecution();
@@ -42,7 +39,15 @@ public class ConcreteTestExecution extends TestExecution implements Cloneable {
         return concreteTestExecution;
     }
 
-    public TestExecutionReport getTestExecutionReport() {
-        return testExecutionReport;
+    @Override
+    public void addDistributedExecutionIndexWithRequestPayload(DistributedExecutionIndex distributedExecutionIndex, JSONObject payload) {
+        testExecutionReport.recordInvocation(distributedExecutionIndex, payload);
+        super.addDistributedExecutionIndexWithRequestPayload(distributedExecutionIndex, payload);
+    }
+
+    @Override
+    public void addDistributedExecutionIndexWithResponsePayload(DistributedExecutionIndex distributedExecutionIndex, JSONObject payload) {
+        testExecutionReport.recordInvocationComplete(distributedExecutionIndex, payload);
+        super.addDistributedExecutionIndexWithResponsePayload(distributedExecutionIndex, payload);
     }
 }

@@ -108,7 +108,7 @@ public class FilibusterCore {
         String distributedExecutionIndexString = payload.getString("execution_index");
         DistributedExecutionIndex distributedExecutionIndex = new DistributedExecutionIndexV1().deserialize(distributedExecutionIndexString);
         logger.info("[FILIBUSTER-CORE]: beginInvocation called, distributedExecutionIndex: " + distributedExecutionIndex);
-        currentConcreteTestExecution.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, payload);
+        currentConcreteTestExecution.addDistributedExecutionIndexWithRequestPayload(distributedExecutionIndex, payload);
 
         // Get next generated id.
         int generatedId = currentConcreteTestExecution.incrementGeneratedId();

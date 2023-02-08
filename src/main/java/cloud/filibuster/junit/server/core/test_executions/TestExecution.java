@@ -66,7 +66,7 @@ public abstract class TestExecution {
         }
     }
 
-    public void addDistributedExecutionIndexWithPayload(DistributedExecutionIndex distributedExecutionIndex, JSONObject payload) {
+    public void addDistributedExecutionIndexWithRequestPayload(DistributedExecutionIndex distributedExecutionIndex, JSONObject payload) {
         // Add to the list of executed RPCs.
         JSONObject payloadWithoutInstrumentationType = cleanPayloadOfInstrumentationType(payload);
         executedRPCs.put(distributedExecutionIndex, payloadWithoutInstrumentationType);

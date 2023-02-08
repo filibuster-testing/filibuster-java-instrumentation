@@ -20,6 +20,8 @@ public class TestExecutionReport {
 
     private final HashMap<DistributedExecutionIndex, JSONObject> deiInvocations = new HashMap<>();
 
+    private final HashMap<DistributedExecutionIndex, JSONObject> deiResponses = new HashMap<>();
+
     private final HashMap<DistributedExecutionIndex, JSONObject> deiFaultsInjected = new HashMap<>();
 
     public void recordInvocation(
@@ -31,6 +33,14 @@ public class TestExecutionReport {
 
         // ...then, record the information about the invocation.
         deiInvocations.put(distributedExecutionIndex, invocationJsonObject);
+    }
+
+    public void recordInvocationComplete(
+            DistributedExecutionIndex distributedExecutionIndex,
+            JSONObject invocationJsonObject
+    ) {
+        // Record the information about the invocation's response.
+        deiResponses.put(distributedExecutionIndex, invocationJsonObject);
     }
 
     public void setFaultsInjected(HashMap<DistributedExecutionIndex, JSONObject> faultsToInject) {

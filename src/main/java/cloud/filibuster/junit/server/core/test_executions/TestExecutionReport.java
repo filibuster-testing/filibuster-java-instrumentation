@@ -212,7 +212,7 @@ public class TestExecutionReport {
             "                            }\n" +
             "                            row += '</td>';\n" +
             "                        } else {\n" +
-            "                            row += '<td class=\"response\">' + rpc.response.return_value.__class__ + '</td>';\n" +
+            "                            row += '<td class=\"response\"><textarea>' + rpc.response.return_value.toString + '</textarea></td>';\n" +
             "                        }\n" +
             "\n" +
             "                        if (!isFaulted) {\n" +

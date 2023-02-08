@@ -1,11 +1,12 @@
-package cloud.filibuster.functional.python.basic;
+package cloud.filibuster.functional.java.basic;
 
 import cloud.filibuster.examples.Hello;
+import cloud.filibuster.examples.Hello.HelloRequest;
 import cloud.filibuster.examples.HelloServiceGrpc;
+import cloud.filibuster.examples.HelloServiceGrpc.HelloServiceBlockingStub;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
-import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
-import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
+import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
 import cloud.filibuster.functional.JUnitBaseTest;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -15,7 +16,6 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -28,12 +28,11 @@ import static org.testcontainers.shaded.org.hamcrest.MatcherAssert.assertThat;
 import static org.testcontainers.shaded.org.hamcrest.Matchers.containsString;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterUnavailableTest extends JUnitBaseTest {
+public class JUnitFilibusterUnimplementedTest extends JUnitBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
-    @FilibusterTest(serverBackend=FilibusterLocalProcessServerBackend.class)
+    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -42,9 +41,9 @@ public class JUnitFilibusterUnavailableTest extends JUnitBaseTest {
                 .build();
 
         try {
-            HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
-            Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
-            blockingStub.unavailable(request);
+            HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
+            HelloRequest request = HelloRequest.newBuilder().setName("Armerian").build();
+            blockingStub.unimplemented(request);
             assertTrue(false);
         } catch (StatusRuntimeException e) {
             if (wasFaultInjected()) {
@@ -64,7 +63,6 @@ public class JUnitFilibusterUnavailableTest extends JUnitBaseTest {
      * Verify that Filibuster generated the correct number of fault injections.
      */
     @DisplayName("Verify correct number of generated Filibuster tests.")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Test
     @Order(2)
     public void testNumAssertions() {

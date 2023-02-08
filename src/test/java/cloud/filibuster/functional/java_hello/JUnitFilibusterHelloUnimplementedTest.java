@@ -1,12 +1,11 @@
-package cloud.filibuster.functional.java.bfs;
+package cloud.filibuster.functional.java_hello;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
-import cloud.filibuster.functional.JUnitBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
+import cloud.filibuster.functional.JUnitBaseTest;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.DisplayName;
@@ -32,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterHelloUnavailableTest extends JUnitBaseTest {
+public class JUnitFilibusterHelloUnimplementedTest extends JUnitBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     private static int numberOfTestsExecuted = 0;
@@ -40,7 +39,7 @@ public class JUnitFilibusterHelloUnavailableTest extends JUnitBaseTest {
     private static int numberOfExceptionsThrown = 0;
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, searchStrategy= FilibusterSearchStrategy.BFS, maxIterations=10)
+    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, maxIterations=10)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -56,7 +55,7 @@ public class JUnitFilibusterHelloUnavailableTest extends JUnitBaseTest {
         Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
 
         try {
-            Hello.HelloReply reply = blockingStub.unavailable(request);
+            Hello.HelloReply reply = blockingStub.unimplemented(request);
 
             // Should never reach these assertions.
             assertEquals("Hello, Armerian World!!", reply.getMessage());

@@ -99,7 +99,7 @@ public class TestExecutionReport {
         }
     }
 
-    private String htmlContent = "<html lang=\"en\">\n" +
+    private static final String htmlContent = "<html lang=\"en\">\n" +
             "\n" +
             "<head>\n" +
             "    <meta charset=\"UTF-8\">\n" +

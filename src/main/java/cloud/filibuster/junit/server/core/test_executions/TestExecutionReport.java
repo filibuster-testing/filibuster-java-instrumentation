@@ -189,19 +189,43 @@ public class TestExecutionReport {
             "                        var row = '';\n" +
             "\n" +
             "                        if (!isFaulted) {\n" +
-            "                            row += '<tr class=\"success\">';\n" +
+            "                            if (isExceptionResponse) {\n" +
+            "                                row += '<tr class=\"exception\">';\n" +
+            "                            } else {\n" +
+            "                                row += '<tr class=\"success\">';\n" +
+            "                            }\n" +
             "                        } else {\n" +
             "                            row += '<tr class=\"fault\">';\n" +
             "                        }\n" +
             "\n" +
             "                        row += '<td class=\"dei\"><textarea>' + rpc.dei + '</textarea></td>';\n" +
-            "                        row += '<td class=\"method\">' + rpc.details.method + '</td>';\n" +
-            "                        row += '<td class=\"args\"><textarea>' + rpc.details.args + '</textarea></td>';\n" +
+            "                        row += '<td class=\"method\">' + rpc.request.method + '</td>';\n" +
+            "                        row += '<td class=\"args\"><textarea>' + rpc.request.args + '</textarea></td>';\n" +
+            "\n" +
+            "                        if (isExceptionResponse) {\n" +
+            "                            row += '<td>';\n" +
+            "                            row += 'code = ' + rpc.response.exception.metadata.code + ', ';\n" +
+            "                            if (rpc.response.exception.metadata.cause === \"\") {\n" +
+            "                                row += 'cause = undefined';\n" +
+            "                            } else {\n" +
+            "                                row += 'cause = ' + rpc.response.exception.metadata.cause;\n" +
+            "                            }\n" +
+            "                            row += '</td>';\n" +
+            "                        } else {\n" +
+            "                            row += '<td class=\"response\">' + rpc.response.return_value.__class__ + '</td>';\n" +
+            "                        }\n" +
             "\n" +
             "                        if (!isFaulted) {\n" +
             "                            row += '<td></td>';\n" +
             "                        } else {\n" +
-            "                            row += '<td>' + rpc.fault.forced_exception.metadata.code + '</td>';\n" +
+            "                            row += '<td>';\n" +
+            "                            row += 'code = ' + rpc.fault.forced_exception.metadata.code + ', ';\n" +
+            "                            if (rpc.fault.forced_exception.metadata.cause === \"\") {\n" +
+            "                                row += 'cause = null';\n" +
+            "                            } else {\n" +
+            "                                row += 'cause = ' + rpc.fault.forced_exception.metadata.cause;\n" +
+            "                            }\n" +
+            "                            row += '</td>';\n" +
             "                        }\n" +
             "\n" +
             "                        row += '</tr>';\n" +

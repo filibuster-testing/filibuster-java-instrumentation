@@ -103,18 +103,6 @@ public class TestExecutionReport {
 
     private static final SecureRandom random = new SecureRandom();
 
-    private static String generateFilename() {
-        long n = random.nextLong();
-
-        if (n == Long.MIN_VALUE) {
-            n = 0;
-        } else {
-            n = Math.abs(n);
-        }
-
-        return "filibuster-test-execution-report-" + n;
-    }
-
     private String htmlContent = "<html lang=\"en\">\n" +
             "\n" +
             "<head>\n" +

@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Logger;
@@ -100,8 +99,6 @@ public class TestExecutionReport {
             throw new FilibusterTestReportWriterException(e);
         }
     }
-
-    private static final SecureRandom random = new SecureRandom();
 
     private String htmlContent = "<html lang=\"en\">\n" +
             "\n" +

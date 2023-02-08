@@ -5,6 +5,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterExceptio
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -85,11 +86,11 @@ public class TestExecutionReport {
 
             // Write out the actual JSON report.
             Path scriptFile = Files.createFile(Paths.get(directory.toString() + "/analysis.js"));
-            Files.write(scriptFile, toJavascript().getBytes());
+            Files.write(scriptFile, toJavascript().getBytes(Charset.defaultCharset()));
 
             // Copy index file over.
             Path indexPath = Paths.get(directory + "/index.html");
-            Files.write(indexPath, htmlContent.getBytes());
+            Files.write(indexPath, htmlContent.getBytes(Charset.defaultCharset()));
 
             logger.info(
                     "" + "\n" +

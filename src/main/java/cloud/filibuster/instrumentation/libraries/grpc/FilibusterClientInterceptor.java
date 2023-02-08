@@ -382,6 +382,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                 // Notify Filibuster of complete invocation with the proper response.
                 String className = message.getClass().getName();
                 HashMap<String, String> returnValueProperties = new HashMap<>();
+                returnValueProperties.put("toString", message.toString());
                 filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties);
 
                 // Delegate.

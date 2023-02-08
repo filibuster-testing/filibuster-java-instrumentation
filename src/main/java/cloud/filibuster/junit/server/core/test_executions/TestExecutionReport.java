@@ -147,6 +147,10 @@ public class TestExecutionReport {
             "            background-color: green;\n" +
             "        }\n" +
             "\n" +
+            "        tr.exception {\n" +
+            "            background-color: yellow;\n" +
+            "        }\n" +
+            "\n" +
             "        tr.fault {\n" +
             "            background-color: red;\n" +
             "        }\n" +
@@ -162,7 +166,8 @@ public class TestExecutionReport {
             "            <th>Distributed Execution Index</th>\n" +
             "            <th>RPC Method</th>\n" +
             "            <th>RPC Arguments</th>\n" +
-            "            <th>Fault</th>\n" +
+            "            <th>Response</th>\n" +
+            "            <th>Fault?</th>\n" +
             "        </tr>\n" +
             "\n" +
             "        <script>\n" +
@@ -170,13 +175,16 @@ public class TestExecutionReport {
             "                    return Object.keys(obj).length === 0;\n" +
             "                }\n" +
             "\n" +
+            "                function containsExceptionKey(obj) {\n" +
+            "                    return \"exception\" in obj;\n" +
+            "                }\n" +
+            "\n" +
             "\t\t\t\t$(document).ready(function () {\n" +
             "                    for (i in analysis.rpcs) {\n" +
             "                        var rpc = analysis.rpcs[i];\n" +
             "                        var isFaulted = !isEmpty(rpc.fault);\n" +
-            "                        console.log(rpc);\n" +
-            "                        console.log(rpc.fault);\n" +
-            "                        console.log(isEmpty(rpc.fault));\n" +
+            "                        var isExceptionResponse = containsExceptionKey(rpc.response);\n" +
+            "                        console.log(rpc.response);\n" +
             "\n" +
             "                        var row = '';\n" +
             "\n" +

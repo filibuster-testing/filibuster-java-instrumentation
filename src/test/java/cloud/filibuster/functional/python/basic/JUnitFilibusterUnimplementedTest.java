@@ -54,7 +54,7 @@ public class JUnitFilibusterUnimplementedTest extends JUnitBaseTest {
                 assertThat(e.getMessage(), containsString("DATA_LOSS: io.grpc.StatusRuntimeException:"));
             } else {
                 // Actual response when the remote service is online but unimplemented.
-                assertEquals("DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED: Method cloud.filibuster.examples.WorldService/WorldUnavailable is unimplemented", e.getMessage());
+                assertEquals("DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED: Method cloud.filibuster.examples.WorldService/WorldUnimplemented is unimplemented", e.getMessage());
             }
         }
 

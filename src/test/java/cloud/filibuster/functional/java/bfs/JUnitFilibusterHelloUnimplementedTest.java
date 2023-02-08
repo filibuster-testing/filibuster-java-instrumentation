@@ -103,7 +103,7 @@ public class JUnitFilibusterHelloUnimplementedTest extends JUnitBaseTest {
                     throw t;
                 }
             } else {
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED: Method cloud.filibuster.examples.WorldService/WorldUnavailable is unimplemented")) {
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED: Method cloud.filibuster.examples.WorldService/WorldUnimplemented is unimplemented")) {
                     expected = true;
                 }
 

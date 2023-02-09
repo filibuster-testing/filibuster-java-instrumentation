@@ -57,7 +57,10 @@ public abstract class TestExecution {
             for (DistributedExecutionIndex name: faultsToInject.keySet()) {
                 String key = name.toString();
                 JSONObject value = faultsToInject.get(name);
-                JSONObject request = executedRPCs.getOrDefault(name, new JSONObject().put("error", "no request information found")); // eventually remove this. // TODO: needed anymore????
+
+                // getOrDefault needed because when application is nondeterministic the lookup for the request will fail because of a lack of DEI matches.
+                JSONObject request = executedRPCs.getOrDefault(name, new JSONObject().put("error", "no request information found"));
+
                 logMessage.append(key).append(" => ").append(value.toString(4)).append(" => ").append(request.toString(4)).append("\n");
             }
         } else {

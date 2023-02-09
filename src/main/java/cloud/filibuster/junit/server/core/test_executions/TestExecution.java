@@ -37,33 +37,35 @@ public abstract class TestExecution {
     }
 
     public void printRPCs() {
-        logger.info("RPCs executed and interposed by Filibuster:");
+        StringBuilder logMessage = new StringBuilder("\n");
+
+        logMessage.append("[FILIBUSTER-CORE]: RPCs executed and interposed by Filibuster");
+        logMessage.append("\n").append("\n");
 
         for (DistributedExecutionIndex name: executedRPCs.keySet()) {
             String key = name.toString();
             JSONObject value = executedRPCs.get(name);
             if (key != null && value != null) {
-                logger.info("\n" +
-                        "distributedExecutionIndex: " + key + "\n" +
-                        "payload: " + value.toString(4));
+                logMessage.append(key).append(" => ").append(value.toString(4)).append("\n");
             }
         }
 
         if (!faultsToInject.isEmpty()) {
-            logger.info("Faults injected by Filibuster (" + faultsToInject.size() + "): ");
+            logMessage.append("[FILIBUSTER-CORE]: Faults injected by Filibuster");
+            logMessage.append("\n").append("\n");
 
             for (DistributedExecutionIndex name: faultsToInject.keySet()) {
                 String key = name.toString();
                 JSONObject value = faultsToInject.get(name);
-                JSONObject request = executedRPCs.getOrDefault(name, new JSONObject().put("error", "no request information found")); // eventually remove this.
-                logger.info("\n" +
-                        "distributedExecutionIndex: " + key + "\n" +
-                        "payload: " + value.toString(4) + "\n" +
-                        "request: " + request.toString(4));
+                JSONObject request = executedRPCs.getOrDefault(name, new JSONObject().put("error", "no request information found")); // eventually remove this. // TODO: needed anymore????
+                logMessage.append(key).append(" => ").append(value.toString(4)).append(" => ").append(request.toString(4)).append("\n");
             }
         } else {
-            logger.info("No faults injected by Filibuster:");
+            logMessage.append("[FILIBUSTER-CORE]: No faults injected by Filibuster.");
+            logMessage.append("\n").append("\n");
         }
+
+        logger.info(logMessage.toString());
     }
 
     public void addDistributedExecutionIndexWithRequestPayload(DistributedExecutionIndex distributedExecutionIndex, JSONObject payload) {

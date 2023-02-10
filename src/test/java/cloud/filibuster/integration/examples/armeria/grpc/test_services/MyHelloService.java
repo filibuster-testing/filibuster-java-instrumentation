@@ -331,7 +331,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
     }
 
     @Override
-    public void unavailable(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
+    public void unimplemented(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
         // build stub with decorator or interceptor
         if (!shouldUseDecorator) {
             ManagedChannel originalChannel = ManagedChannelBuilder
@@ -352,7 +352,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
             try {
                 WorldServiceGrpc.WorldServiceBlockingStub blockingStub = WorldServiceGrpc.newBlockingStub(channel);
                 Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(req.getName()).build();
-                Hello.WorldReply worldReply = blockingStub.worldUnavailable(request);
+                Hello.WorldReply worldReply = blockingStub.worldUnimplemented(request);
 
                 Hello.HelloReply reply = Hello.HelloReply.newBuilder()
                         .setMessage("Hello, " + worldReply.getMessage())
@@ -392,7 +392,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
                 WorldServiceGrpc.WorldServiceBlockingStub blockingStub =
                         grpcClientBuilder.build(WorldServiceGrpc.WorldServiceBlockingStub.class);
                 Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(req.getName()).build();
-                Hello.WorldReply worldReply = blockingStub.worldUnavailable(request);
+                Hello.WorldReply worldReply = blockingStub.worldUnimplemented(request);
 
                 Hello.HelloReply reply = Hello.HelloReply.newBuilder()
                         .setMessage("Hello, " + worldReply.getMessage())

@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterHelloUnavailableTest extends JUnitBaseTest {
+public class JUnitFilibusterHelloUnimplementedTest extends JUnitBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     private static int numberOfTestsExecuted = 0;
@@ -55,7 +55,7 @@ public class JUnitFilibusterHelloUnavailableTest extends JUnitBaseTest {
         Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
 
         try {
-            Hello.HelloReply reply = blockingStub.unavailable(request);
+            Hello.HelloReply reply = blockingStub.unimplemented(request);
 
             // Should never reach these assertions.
             assertEquals("Hello, Armerian World!!", reply.getMessage());
@@ -99,7 +99,7 @@ public class JUnitFilibusterHelloUnavailableTest extends JUnitBaseTest {
                     throw t;
                 }
             } else {
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED: Method cloud.filibuster.examples.WorldService/WorldUnavailable is unimplemented")) {
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED: Method cloud.filibuster.examples.WorldService/WorldUnimplemented is unimplemented")) {
                     expected = true;
                 }
 

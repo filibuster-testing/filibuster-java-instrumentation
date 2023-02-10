@@ -8,6 +8,7 @@ import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
+import cloud.filibuster.junit.server.core.test_execution_reports.TestExecutionAggregateReport;
 import cloud.filibuster.junit.server.core.test_executions.ConcreteTestExecution;
 import cloud.filibuster.junit.server.core.test_executions.AbstractTestExecution;
 import cloud.filibuster.junit.server.core.test_executions.TestExecution;
@@ -49,6 +50,8 @@ public class FilibusterCore {
         currentInstance = this;
 
         this.filibusterConfiguration = filibusterConfiguration;
+        this.testExecutionAggregateReport = new TestExecutionAggregateReport();
+        testExecutionAggregateReport.writeOutPlaceholder();
 
         if (filibusterConfiguration.getSearchStrategy() == FilibusterSearchStrategy.DFS) {
             this.exploredTestExecutions = new TestExecutionStack<>();
@@ -60,6 +63,9 @@ public class FilibusterCore {
             throw new FilibusterCoreLogicException("Unsupported search strategy: " + filibusterConfiguration.getSearchStrategy());
         }
     }
+
+    // Aggregate test execution report.
+    private final TestExecutionAggregateReport testExecutionAggregateReport;
 
     // The current configuration of Filibuster being used.
     private final FilibusterConfiguration filibusterConfiguration;
@@ -108,7 +114,7 @@ public class FilibusterCore {
         String distributedExecutionIndexString = payload.getString("execution_index");
         DistributedExecutionIndex distributedExecutionIndex = new DistributedExecutionIndexV1().deserialize(distributedExecutionIndexString);
         logger.info("[FILIBUSTER-CORE]: beginInvocation called, distributedExecutionIndex: " + distributedExecutionIndex);
-        currentConcreteTestExecution.addDistributedExecutionIndexWithPayload(distributedExecutionIndex, payload);
+        currentConcreteTestExecution.addDistributedExecutionIndexWithRequestPayload(distributedExecutionIndex, payload);
 
         // Get next generated id.
         int generatedId = currentConcreteTestExecution.incrementGeneratedId();
@@ -175,6 +181,12 @@ public class FilibusterCore {
 
         logger.info("[FILIBUSTER-CORE]: endInvocation called, distributedExecutionIndex: " + distributedExecutionIndex);
 
+        if (currentConcreteTestExecution == null) {
+            throw new FilibusterCoreLogicException("currentConcreteTestExecution should not be null at this point, something fatal occurred.");
+        }
+
+        currentConcreteTestExecution.addDistributedExecutionIndexWithResponsePayload(distributedExecutionIndex, payload);
+
         JSONObject response = new JSONObject();
         response.put("execution_index", payload.getString("execution_index"));
 
@@ -215,7 +227,7 @@ public class FilibusterCore {
 
         if (currentConcreteTestExecution != null) {
             currentConcreteTestExecution.printRPCs();
-            currentConcreteTestExecution.getTestExecutionReport().writeTestReport();
+            currentConcreteTestExecution.writeTestExecutionReport(currentIteration, /* exceptionOccurred= */ false);
         } else {
             throw new FilibusterCoreLogicException("currentConcreteTestExecution should not be null at this point, something fatal occurred.");
         }
@@ -231,7 +243,7 @@ public class FilibusterCore {
 
         if (currentConcreteTestExecution != null) {
             currentConcreteTestExecution.printRPCs();
-            currentConcreteTestExecution.getTestExecutionReport().writeTestReport();
+            currentConcreteTestExecution.writeTestExecutionReport(currentIteration, /* exceptionOccurred= */ exceptionOccurred != 0);
         } else {
             throw new FilibusterCoreLogicException("currentConcreteTestExecution should not be null at this point, something fatal occurred.");
         }
@@ -262,6 +274,9 @@ public class FilibusterCore {
         logger.info("[FILIBUSTER-CORE]: teardownsCompleted called, currentIteration: " + currentIteration);
 
         if (currentConcreteTestExecution != null) {
+            // Add the test report to the aggregate report.
+            testExecutionAggregateReport.addTestExecutionReport(currentConcreteTestExecution.getTestExecutionReport());
+
             // We're executing a test and not just running empty iterations (i.e., JUnit maxIterations > number of actual tests.)
 
             // Add both the current concrete and abstract execution to the explored list.
@@ -381,7 +396,11 @@ public class FilibusterCore {
     // writing counterexample files, etc., but should automatically be handled by the JUnit invocation interceptors now.
     public synchronized void terminateFilibuster() {
         logger.info("[FILIBUSTER-CORE]: terminate called.");
-        // Nothing.
+
+        if (testExecutionAggregateReport != null) {
+            testExecutionAggregateReport.writeTestExecutionAggregateReport();
+        }
+
         logger.info("[FILIBUSTER-CORE]: terminate returning.");
     }
 

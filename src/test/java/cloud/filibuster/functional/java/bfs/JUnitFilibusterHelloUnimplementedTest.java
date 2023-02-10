@@ -1,7 +1,9 @@
 package cloud.filibuster.functional.java.bfs;
 
-import cloud.filibuster.examples.Hello;
+import cloud.filibuster.examples.Hello.HelloReply;
+import cloud.filibuster.examples.Hello.HelloRequest;
 import cloud.filibuster.examples.HelloServiceGrpc;
+import cloud.filibuster.examples.HelloServiceGrpc.HelloServiceBlockingStub;
 import cloud.filibuster.functional.JUnitBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
@@ -32,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterHelloUnavailableTest extends JUnitBaseTest {
+public class JUnitFilibusterHelloUnimplementedTest extends JUnitBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     private static int numberOfTestsExecuted = 0;
@@ -52,11 +54,11 @@ public class JUnitFilibusterHelloUnavailableTest extends JUnitBaseTest {
 
         numberOfTestsExecuted++;
 
-        HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
-        Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
+        HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
+        HelloRequest request = HelloRequest.newBuilder().setName("Armerian").build();
 
         try {
-            Hello.HelloReply reply = blockingStub.unavailable(request);
+            HelloReply reply = blockingStub.unimplemented(request);
 
             // Should never reach these assertions.
             assertEquals("Hello, Armerian World!!", reply.getMessage());
@@ -100,7 +102,7 @@ public class JUnitFilibusterHelloUnavailableTest extends JUnitBaseTest {
                     throw t;
                 }
             } else {
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED: Method cloud.filibuster.examples.WorldService/WorldUnavailable is unimplemented")) {
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED: Method cloud.filibuster.examples.WorldService/WorldUnimplemented is unimplemented")) {
                     expected = true;
                 }
 

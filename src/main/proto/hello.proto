@@ -15,7 +15,7 @@ service HelloService {
   rpc LotsOfReplies (HelloRequest) returns (stream HelloReply) {}
   rpc LotsOfGreetings (stream HelloRequest) returns (HelloReply) {}
   rpc BidiHello (stream HelloRequest) returns (stream HelloReply) {}
-  rpc Unavailable (HelloRequest) returns (HelloReply) {}
+  rpc Unimplemented (HelloRequest) returns (HelloReply) {}
 }
 
 message HelloRequest {
@@ -28,7 +28,7 @@ message HelloReply {
 
 service WorldService {
   rpc World (WorldRequest) returns (WorldReply) {}
-  rpc WorldUnavailable (WorldRequest) returns (WorldReply) {}
+  rpc WorldUnimplemented (WorldRequest) returns (WorldReply) {}
   rpc WorldExternalHttp (WorldRequest) returns (WorldReply) {}
   rpc WorldExternalGrpc (WorldRequest) returns (WorldReply) {}
 }

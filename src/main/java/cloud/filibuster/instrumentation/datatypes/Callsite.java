@@ -1,5 +1,6 @@
 package cloud.filibuster.instrumentation.datatypes;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterCallsiteGenerationException;
 import cloud.filibuster.exceptions.filibuster.FilibusterUnknownCallsiteException;
 
 import java.io.BufferedReader;
@@ -264,8 +265,7 @@ public class Callsite {
                         bufferedReader.close();
                     }
                 } catch (IOException e) {
-                    // Nothing right now.
-                    e.printStackTrace();
+                    throw new FilibusterCallsiteGenerationException(e);
                 }
             }
         }

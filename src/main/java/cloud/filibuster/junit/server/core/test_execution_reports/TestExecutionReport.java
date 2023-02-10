@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.server.core.test_executions;
+package cloud.filibuster.junit.server.core.test_execution_reports;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterException;
@@ -12,19 +12,20 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 public class TestExecutionReport {
+    private static final Logger logger = Logger.getLogger(TestExecutionReport.class.getName());
+
     private boolean hasReportBeenMaterialized = false;
 
     @Nullable
-    private Path materializedReportPath;
+    private MaterializedReportMetadata materializedReportMetadata;
 
     private int testExecutionNumber = 0;
 
     private boolean testExecutionPassed = false;
-
-    private static final Logger logger = Logger.getLogger(TestExecutionReport.class.getName());
 
     private final ArrayList<DistributedExecutionIndex> deiInvocationOrder = new ArrayList<>();
 
@@ -68,7 +69,7 @@ public class TestExecutionReport {
     }
 
     @SuppressWarnings("MemberName")
-    public JSONObject toJSONObject() {
+    private JSONObject toJSONObject() {
         ArrayList<JSONObject> RPCs = new ArrayList<>();
 
         for (DistributedExecutionIndex dei : deiInvocationOrder) {
@@ -87,7 +88,7 @@ public class TestExecutionReport {
         return result;
     }
 
-    public String toJavascript() {
+    private String toJavascript() {
         JSONObject jsonObject = toJSONObject();
         return "var analysis = " + jsonObject.toString(4) + ";";
     }
@@ -99,9 +100,11 @@ public class TestExecutionReport {
         if (!hasReportBeenMaterialized) {
             try {
                 // Create new directory for analysis report.
-                Path directory = Files.createTempDirectory("filibuster-test-execution-");
+                UUID uuid = UUID.randomUUID();
+                Path directory = Paths.get("/tmp/filibuster/filibuster-test-execution-" + uuid.toString());
+                Files.createDirectory(directory);
 
-                // Write out the actual JSON report.
+                // Write out the actual JSON data.
                 Path scriptFile = Files.createFile(Paths.get(directory.toString() + "/analysis.js"));
                 Files.write(scriptFile, toJavascript().getBytes(Charset.defaultCharset()));
 
@@ -111,19 +114,22 @@ public class TestExecutionReport {
 
                 // Set materialized and it's location.
                 hasReportBeenMaterialized = true;
-                materializedReportPath = indexPath;
+                materializedReportMetadata = new MaterializedReportMetadata(testExecutionNumber, testExecutionPassed, indexPath);
 
                 logger.info(
                         "" + "\n" +
                                 "[FILIBUSTER-CORE]: Test Execution Report written to file://" + indexPath + "\n");
+                logger.info(
+                        "" + "\n" +
+                                "[FILIBUSTER-CORE]: Click me for tool view: http://filibuster.local" + indexPath + "\n");
             } catch (IOException e) {
-                throw new FilibusterTestReportWriterException(e);
+                throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution report: ", e);
             }
         }
     }
 
-    public Path getMaterializedReportPath() {
-        return materializedReportPath;
+    public MaterializedReportMetadata getMaterializedReportMetadata() {
+        return this.materializedReportMetadata;
     }
 
     private static final String htmlContent = "<html lang=\"en\">\n" +

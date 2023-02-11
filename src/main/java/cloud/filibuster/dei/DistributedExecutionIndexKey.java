@@ -11,6 +11,10 @@ public interface DistributedExecutionIndexKey {
 
     @Override boolean equals(Object o);
 
+    String onlySignature();
+
+    String onlyDestination();
+
     static DistributedExecutionIndexKey deserialize(String serialized) {
         String[] stringArray = serialized.split("-", 5);
 

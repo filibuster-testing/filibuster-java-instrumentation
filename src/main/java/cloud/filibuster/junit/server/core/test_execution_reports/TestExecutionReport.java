@@ -2,6 +2,12 @@ package cloud.filibuster.junit.server.core.test_execution_reports;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterException;
+import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.MultipleInvocationsForIndividualMutationsAnalyzer;
+import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.RedundantRPCAnalyzer;
+import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.RequestBecomesResponseAnalyzer;
+import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.TestExecutionReportAnalyzer;
+import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.UnimplementedFailuresAnalyzer;
+import cloud.filibuster.junit.server.core.lint.analyzers.warnings.FilibusterAnalyzerWarning;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
@@ -12,6 +18,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -34,6 +42,18 @@ public class TestExecutionReport {
     private final HashMap<DistributedExecutionIndex, JSONObject> deiResponses = new HashMap<>();
 
     private final HashMap<DistributedExecutionIndex, JSONObject> deiFaultsInjected = new HashMap<>();
+
+    public Iterator<DistributedExecutionIndex> getInvocationOrderIterator() {
+        return deiInvocationOrder.iterator();
+    }
+
+    public JSONObject getInvocationObject(DistributedExecutionIndex distributedExecutionIndex) {
+        return deiInvocations.get(distributedExecutionIndex);
+    }
+
+    public JSONObject getResponseObject(DistributedExecutionIndex distributedExecutionIndex) {
+        return deiResponses.get(distributedExecutionIndex);
+    }
 
     public void recordInvocation(
             DistributedExecutionIndex distributedExecutionIndex,
@@ -66,18 +86,51 @@ public class TestExecutionReport {
         private static final String RESPONSE_KEY = "response";
         private static final String FAULT_KEY = "fault";
         private static final String RPCS_KEY = "rpcs";
+        private static final String WARNINGS_KEY = "warnings";
     }
 
     @SuppressWarnings("MemberName")
     private JSONObject toJSONObject() {
+        List<FilibusterAnalyzerWarning> warnings = new ArrayList<>();
+
+        // TODO: Dynamically register these.
+        TestExecutionReportAnalyzer redundantRpcAnalyzer = new RedundantRPCAnalyzer(this);
+        warnings.addAll(redundantRpcAnalyzer.analyze());
+
+        // GOOD
+        TestExecutionReportAnalyzer unimplementedFailuresAnalyzer = new UnimplementedFailuresAnalyzer(this);
+        warnings.addAll(unimplementedFailuresAnalyzer.analyze());
+
+        TestExecutionReportAnalyzer requestBecomesResponseAnalyzer = new RequestBecomesResponseAnalyzer(this);
+        warnings.addAll(requestBecomesResponseAnalyzer.analyze());
+
+        TestExecutionReportAnalyzer multipleInvocationsForIndividualMutationsAnalyzer = new MultipleInvocationsForIndividualMutationsAnalyzer(this);
+        warnings.addAll(multipleInvocationsForIndividualMutationsAnalyzer.analyze());
+
         ArrayList<JSONObject> RPCs = new ArrayList<>();
 
         for (DistributedExecutionIndex dei : deiInvocationOrder) {
+            List<JSONObject> warningObjects = new ArrayList<>();
+
+            for (FilibusterAnalyzerWarning warning : warnings) {
+                if (warning.getDistributedExecutionIndex().equals(dei)) {
+                    JSONObject warningObject = new JSONObject();
+                    warningObject.put(Keys.DEI_KEY, warning.getDistributedExecutionIndex().toString());
+                    warningObject.put("name", warning.getName());
+                    warningObject.put("recommendation", warning.getRecommendations());
+                    warningObject.put("impact", warning.getImpact());
+                    warningObject.put("description", warning.getDescription());
+                    warningObject.put("details", warning.getDetails());
+                    warningObjects.add(warningObject);
+                }
+            }
+
             JSONObject RPC = new JSONObject();
             RPC.put(Keys.DEI_KEY, dei.toString());
             RPC.put(Keys.REQUEST_KEY, deiInvocations.getOrDefault(dei, new JSONObject()));
             RPC.put(Keys.RESPONSE_KEY, deiResponses.getOrDefault(dei, new JSONObject()));
             RPC.put(Keys.FAULT_KEY, deiFaultsInjected.getOrDefault(dei, new JSONObject()));
+            RPC.put(Keys.WARNINGS_KEY, warningObjects);
             RPCs.add(RPC);
         }
 
@@ -85,6 +138,7 @@ public class TestExecutionReport {
         result.put(Keys.ITERATION_KEY, testExecutionNumber);
         result.put(Keys.STATUS_KEY, testExecutionPassed);
         result.put(Keys.RPCS_KEY, RPCs);
+
         return result;
     }
 
@@ -209,7 +263,7 @@ public class TestExecutionReport {
             "\n" +
             "    <div id='status'></div>\n" +
             "\n" +
-            "    <table id='table'>\n" +
+            "    <table id='rpcs'>\n" +
             "        <tr>\n" +
             "            <th>Distributed Execution Index</th>\n" +
             "            <th>RPC Method</th>\n" +
@@ -228,7 +282,6 @@ public class TestExecutionReport {
             "                }\n" +
             "\n" +
             "\t\t\t\t$(document).ready(function () {\n" +
-            "                    console.log(analysis);\n" +
             "                    var status = analysis.status;\n" +
             "                    var iteration = analysis.iteration;\n" +
             "                    if (status) {\n" +
@@ -241,7 +294,6 @@ public class TestExecutionReport {
             "                        var rpc = analysis.rpcs[i];\n" +
             "                        var isFaulted = !isEmpty(rpc.fault);\n" +
             "                        var isExceptionResponse = containsExceptionKey(rpc.response);\n" +
-            "                        console.log(rpc.response);\n" +
             "\n" +
             "                        var row = '';\n" +
             "\n" +
@@ -286,7 +338,29 @@ public class TestExecutionReport {
             "                        }\n" +
             "\n" +
             "                        row += '</tr>';\n" +
-            "\t\t\t\t\t\t$('#table').append(row);\n" +
+            "\t\t\t\t\t\t$('#rpcs').append(row);\n" +
+            "\n" +
+            "                        console.log(rpc.warnings);\n" +
+            "\n" +
+            "                        for (i in rpc.warnings) {\n" +
+            "                            var warning = rpc.warnings[i];\n" +
+            "                            var row = '';\n" +
+            "                            row += '<tr>';\n" +
+            "                            row += '<td>Warning</td>';\n" +
+            "                            row += '<td style=\"text-align: left\">';\n" +
+            "                            row += '<i><b>' + warning.name + ':</b></i> ' + warning.description + '<br />';\n" +
+            "                            row += '<br />';\n" +
+            "                            row += warning.impact + '<br />';\n" +
+            "                            row += '<i>Recommendation: ' + warning.recommendation + '</i><br />';\n" +
+            "                            row += '<br />';\n" +
+            "                            row += '<i>Details: ' + warning.details + '</i><br />';\n" +
+            "                            row += '</td>';\n" +
+            "                            // row += '<td>' + warning.description + '</td>';\n" +
+            "                            // row += '<td>' + warning.impact + '</td>';\n" +
+            "                            // row += '<td>' + warning.recommendation + '</td>';\n" +
+            "                            row += '</tr>';\n" +
+            "                            $('#rpcs').append(row);\n" +
+            "                        }\n" +
             "                    }\n" +
             "\t\t\t\t});\n" +
             "\t\t\t</script>\n" +

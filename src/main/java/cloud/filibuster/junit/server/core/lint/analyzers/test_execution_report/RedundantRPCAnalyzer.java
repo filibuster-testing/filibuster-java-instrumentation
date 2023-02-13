@@ -1,6 +1,7 @@
 package cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
+import cloud.filibuster.exceptions.filibuster.FilibusterAnalysisFailureException;
 import cloud.filibuster.junit.server.core.lint.analyzers.warnings.RedundantRPCWarning;
 import cloud.filibuster.junit.server.core.test_execution_reports.TestExecutionReport;
 import org.json.JSONObject;
@@ -19,7 +20,6 @@ public class RedundantRPCAnalyzer extends TestExecutionReportAnalyzer {
     void rpc(int RPC, DistributedExecutionIndex distributedExecutionIndex, JSONObject invocation, JSONObject response) {
         String deiKey = distributedExecutionIndex.projectionLastKeyWithOnlySignature();
         String invocationArgs = invocation.getString("args");
-        String invocationMethod = invocation.getString("method");
         String responseToEncode = "";
 
         if (response.has("return_value")) {
@@ -27,7 +27,7 @@ public class RedundantRPCAnalyzer extends TestExecutionReportAnalyzer {
         } else if (response.has("exception")) {
             responseToEncode = response.getJSONObject("exception").toString();
         } else {
-            // TODO: throw
+            throw new FilibusterAnalysisFailureException("Response did not contain either a return value or an exception.");
         }
 
         String key = deiKey + invocationArgs + responseToEncode;

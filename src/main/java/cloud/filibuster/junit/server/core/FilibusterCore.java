@@ -528,6 +528,33 @@ public class FilibusterCore {
             for (FilibusterAnalysisConfiguration filibusterAnalysisConfiguration : filibusterCustomAnalysisConfigurationFile.getFilibusterAnalysisConfigurations()) {
                 // Second check here (concat) is a legacy check for the old Python server compatibility.
                 if (filibusterAnalysisConfiguration.isPatternMatch(methodName) || filibusterAnalysisConfiguration.isPatternMatch(moduleName + "." + methodName)) {
+                    // Latency.
+                    List<JSONObject> latencyFaultObjects = filibusterAnalysisConfiguration.getLatencyFaultObjects();
+
+                    for(JSONObject faultObject : latencyFaultObjects) {
+                        JSONObject latencyObject = faultObject.getJSONObject("latency");
+                        String latencyObjectMatcherType = latencyObject.getString("type");
+                        MatcherType matcherType = MatcherType.valueOf(latencyObjectMatcherType);
+                        String latencyObjectMatcher = latencyObject.getString("matcher");
+                        Pattern faultServiceNamePattern = Pattern.compile(latencyObjectMatcher, Pattern.CASE_INSENSITIVE);
+                        Matcher matcher;
+
+                        switch (matcherType) {
+                            case SERVICE:
+                                matcher = faultServiceNamePattern.matcher(moduleName);
+                                break;
+                            case METHOD:
+                                matcher = faultServiceNamePattern.matcher(methodName);
+                                break;
+                            default:
+                                throw new FilibusterFaultInjectionException("Unknown latency injection type: " + matcherType);
+                        }
+
+                        if (matcher.find()) {
+                            createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject);
+                        }
+                    }
+
                     // Exceptions.
                     List<JSONObject> exceptionFaultObjects = filibusterAnalysisConfiguration.getExceptionFaultObjects();
 

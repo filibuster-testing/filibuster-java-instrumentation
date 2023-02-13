@@ -197,5 +197,6 @@ public @interface FilibusterTest {
      *
      * @return latency profile implementing class.
      */
+    // TODO: only supported by the local backend, probably should warn about this.
     Class<? extends FilibusterLatencyProfile> latencyProfile() default FilibusterNoLatencyProfile.class;
 }

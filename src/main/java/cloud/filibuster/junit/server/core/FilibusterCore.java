@@ -169,6 +169,31 @@ public class FilibusterCore {
         response.put("generated_id", generatedId);
 
         // TODO: This could be returned to the client and the delay done there.
+        FilibusterLatencyProfile filibusterLatencyProfile = filibusterConfiguration.getLatencyProfile();
+
+        if (filibusterLatencyProfile != null) {
+            int totalSleepMs = 0;
+
+            // Only works for GRPC right now.
+            int serviceSleepMs = filibusterLatencyProfile.getMsLatencyForService(payload.getString("module"));
+            int methodSleepMs = filibusterLatencyProfile.getMsLatencyForMethod(payload.getString("method"));
+
+            totalSleepMs += serviceSleepMs;
+            totalSleepMs += methodSleepMs;
+
+            logger.info("\n" +
+                    "[FILIBUSTER-CORE]: sleep based on latency profile: \n" +
+                    "serviceSleepMs: " + serviceSleepMs + "\n" +
+                    "methodSleepMs: " + methodSleepMs + "\n" +
+                    "totalSleepMs: " + totalSleepMs + "\n");
+
+            try {
+                Thread.sleep(totalSleepMs);
+            } catch (InterruptedException e) {
+                throw new FilibusterLatencyInjectionException("Failed to inject latency for call: ", e);
+            }
+        }
+
         logger.info("[FILIBUSTER-CORE]: beginInvocation returning, response: " + response.toString(4));
 
         return response;

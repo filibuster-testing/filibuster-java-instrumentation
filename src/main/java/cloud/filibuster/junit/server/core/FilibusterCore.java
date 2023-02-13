@@ -168,6 +168,7 @@ public class FilibusterCore {
         // Legacy, not used, but helpful in debugging and required by instrumentation libraries.
         response.put("generated_id", generatedId);
 
+        // TODO: This could be returned to the client and the delay done there.
         logger.info("[FILIBUSTER-CORE]: beginInvocation returning, response: " + response.toString(4));
 
         return response;

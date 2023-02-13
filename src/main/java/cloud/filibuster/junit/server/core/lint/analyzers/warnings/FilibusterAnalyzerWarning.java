@@ -5,7 +5,7 @@ import cloud.filibuster.dei.DistributedExecutionIndex;
 public abstract class FilibusterAnalyzerWarning {
     private final DistributedExecutionIndex distributedExecutionIndex;
 
-    private String details;
+    private final String details;
 
     public FilibusterAnalyzerWarning(DistributedExecutionIndex distributedExecutionIndex, String details) {
         this.distributedExecutionIndex = distributedExecutionIndex;

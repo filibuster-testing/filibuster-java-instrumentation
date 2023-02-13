@@ -11,10 +11,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class FilibusterAnalysisConfiguration {
+    public enum MatcherType { SERVICE, METHOD }
+
     private final JSONObject analysisConfiguration = new JSONObject();
     private final JSONObject configurationObject = new JSONObject();
     private final List<JSONObject> exceptionFaultObjects = new ArrayList<>();
     private final List<JSONObject> errorFaultObjects = new ArrayList<>();
+    private final List<JSONObject> latencyFaultObjects = new ArrayList<>();
     private final String name;
     private final String pattern;
 
@@ -45,6 +48,16 @@ public class FilibusterAnalysisConfiguration {
             }
         }
 
+        if (builder.latencies.size() > 0) {
+            configurationObject.put("latencies", builder.latencies);
+
+            for (JSONObject latencyObject : builder.latencies) {
+                JSONObject latency = new JSONObject();
+                latency.put("latency", latencyObject);
+                latencyFaultObjects.add(latency);
+            }
+        }
+
         analysisConfiguration.put(builder.name, configurationObject);
     }
 
@@ -54,6 +67,10 @@ public class FilibusterAnalysisConfiguration {
 
     public List<JSONObject> getErrorFaultObjects() {
         return this.errorFaultObjects;
+    }
+
+    public List<JSONObject> getLatencyFaultObjects() {
+        return this.latencyFaultObjects;
     }
 
     public boolean isPatternMatch(String matchString) {
@@ -75,8 +92,8 @@ public class FilibusterAnalysisConfiguration {
         private String name;
         private String pattern;
         private final List<JSONObject> exceptions = new ArrayList<>();
-
         private final List<JSONObject> errors = new ArrayList<>();
+        private final List<JSONObject> latencies = new ArrayList<>();
 
         @CanIgnoreReturnValue
         public Builder name(String name) {
@@ -105,6 +122,17 @@ public class FilibusterAnalysisConfiguration {
             exception.put("name", name);
             exception.put("metadata", metadata);
             exceptions.add(exception);
+            return this;
+        }
+
+        // TODO: Only implemented in the local server backend.
+        @CanIgnoreReturnValue
+        public Builder latency(MatcherType matcherType, String matcher, int milliseconds) {
+            JSONObject latency = new JSONObject();
+            latency.put("type", matcherType.toString());
+            latency.put("matcher", matcher);
+            latency.put("milliseconds", milliseconds);
+            latencies.add(latency);
             return this;
         }
 

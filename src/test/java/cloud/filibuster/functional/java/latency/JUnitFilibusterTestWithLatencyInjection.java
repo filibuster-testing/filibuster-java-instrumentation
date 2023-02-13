@@ -1,13 +1,12 @@
-package cloud.filibuster.functional.java.basic;
+package cloud.filibuster.functional.java.latency;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
-import cloud.filibuster.exceptions.filibuster.FilibusterAllowedTimeExceededException;
 import cloud.filibuster.functional.JUnitBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
+import cloud.filibuster.junit.configuration.FilibusterLatencyOnlyAnalysisConfigurationFile;
 import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
-import cloud.filibuster.junit.server.latency.Filibuster1000msLatencyProfile;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
@@ -19,22 +18,20 @@ import org.junit.jupiter.api.TestMethodOrder;
 import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.junit.Assertions.assertPassesWithinMsOrThrowsUnderFault;
-import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /**
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterTestWithLatencyProfile extends JUnitBaseTest {
+public class JUnitFilibusterTestWithLatencyInjection extends JUnitBaseTest {
     /**
      * Inject faults between Hello and World using Filibuster and assert proper faults are injected.
      *
      * @throws InterruptedException if teardown of gRPC channel fails.
      */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, latencyProfile=Filibuster1000msLatencyProfile.class, expected=FilibusterAllowedTimeExceededException.class, maxIterations=1)
+    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, maxIterations=10, analysisConfigurationFile=FilibusterLatencyOnlyAnalysisConfigurationFile.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -42,12 +39,13 @@ public class JUnitFilibusterTestWithLatencyProfile extends JUnitBaseTest {
                 .usePlaintext()
                 .build();
 
-        assertPassesWithinMsOrThrowsUnderFault(1, StatusRuntimeException.class, () -> {
+        // 800ms+ without FI
+        // 1800ms+ with FI.
+        assertPassesWithinMsOrThrowsUnderFault(2000, StatusRuntimeException.class, () -> {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
             Hello.HelloReply reply = blockingStub.partialHello(request);
             assertEquals("Hello, Armerian World!!", reply.getMessage());
-            assertFalse(wasFaultInjected());
         });
 
         helloChannel.shutdownNow();

@@ -56,4 +56,9 @@ public class FilibusterLocalServerBackend implements FilibusterServerBackend {
     public List<FilibusterSearchStrategy> supportedSearchStrategies() {
         return Arrays.asList(FilibusterSearchStrategy.BFS, FilibusterSearchStrategy.DFS);
     }
+
+    @Override
+    public boolean latencyProfileSupported() {
+        return true;
+    }
 }

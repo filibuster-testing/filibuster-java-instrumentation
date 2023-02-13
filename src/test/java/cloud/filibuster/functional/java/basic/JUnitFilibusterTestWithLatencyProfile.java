@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterTestWithLatency extends JUnitBaseTest {
+public class JUnitFilibusterTestWithLatencyProfile extends JUnitBaseTest {
     /**
      * Inject faults between Hello and World using Filibuster and assert proper faults are injected.
      *

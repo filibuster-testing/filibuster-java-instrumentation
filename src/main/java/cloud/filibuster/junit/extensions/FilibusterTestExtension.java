@@ -16,6 +16,8 @@ import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.junit.formatters.FilibusterTestDisplayNameFormatter;
 import cloud.filibuster.junit.interceptors.FilibusterTestInvocationContext;
 import cloud.filibuster.junit.server.FilibusterServerBackend;
+import cloud.filibuster.junit.server.latency.FilibusterLatencyProfile;
+import cloud.filibuster.junit.server.latency.FilibusterNoLatencyProfile;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContext;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider;
@@ -80,6 +82,7 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
                 .build();
 
         validateSearchBackend(filibusterTest, filibusterConfiguration);
+        validateBackendSelection(filibusterTest, filibusterConfiguration);
 
         HashMap<Integer, Boolean> invocationCompletionMap = new HashMap<>();
 
@@ -124,6 +127,17 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
 
         Preconditions.condition(supportedSearchStrategies.contains(filibusterSearchStrategy), () -> String.format(
                 "Configuration error: @FilibusterTest on method [%s] must be declared a supported search strategy by the chosen backend.", filibusterServerBackend));
+    }
+
+    private static void validateBackendSelection(FilibusterTest filibusterTest, FilibusterConfiguration filibusterConfiguration) {
+        FilibusterServerBackend filibusterServerBackend = filibusterConfiguration.getServerBackend();
+        FilibusterLatencyProfile filibusterLatencyProfile = filibusterConfiguration.getLatencyProfile();
+
+        if (!(filibusterLatencyProfile instanceof FilibusterNoLatencyProfile)) {
+            Preconditions.condition(filibusterServerBackend.latencyProfileSupported(), () -> String.format(
+                    "Configuration error: @FilibusterTest on method [%s] is using a custom latency profile but the chosen backend does not support it.", filibusterServerBackend));
+        }
+
     }
 
     private static FilibusterTestDisplayNameFormatter displayNameFormatter(FilibusterTest filibusterTest, Method method, String displayName) {

@@ -451,6 +451,21 @@ public class FilibusterCore {
                 filibusterAnalysisConfigurationBuilder.pattern(nameObject.getString("pattern"));
             }
 
+            if (nameObject.has("latencies")) {
+                JSONArray jsonArray = nameObject.getJSONArray("latencies");
+
+                for (Object obj : jsonArray) {
+                    JSONObject latencyObject = (JSONObject) obj;
+
+                    MatcherType matcherType = MatcherType.valueOf(latencyObject.getString("type"));
+                    String matcher = latencyObject.getString("matcher");
+                    int milliseconds = latencyObject.getInt("milliseconds");
+
+                    filibusterAnalysisConfigurationBuilder.latency(matcherType, matcher, milliseconds);
+                    logger.info("[FILIBUSTER-CORE]: analysisFile, found new configuration, matcherType: " + matcherType + ", matcher: " + matcher + ", milliseconds: " + milliseconds);
+                }
+            }
+
             if (nameObject.has("exceptions")) {
                 JSONArray jsonArray = nameObject.getJSONArray("exceptions");
 

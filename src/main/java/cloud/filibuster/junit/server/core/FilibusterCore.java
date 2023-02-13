@@ -122,6 +122,7 @@ public class FilibusterCore {
 
         // Generate new abstract executions to run and queue them into the unexplored list.
         if (filibusterCustomAnalysisConfigurationFile != null) {
+            // TODO: Only works for GRPC right now.
             String moduleName = payload.getString("module");
             String methodName = payload.getString("method");
 

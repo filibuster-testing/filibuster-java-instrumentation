@@ -125,7 +125,6 @@ public class FilibusterAnalysisConfiguration {
             return this;
         }
 
-        // TODO: Only implemented in the local server backend.
         @CanIgnoreReturnValue
         public Builder latency(MatcherType matcherType, String matcher, int milliseconds) {
             JSONObject latency = new JSONObject();

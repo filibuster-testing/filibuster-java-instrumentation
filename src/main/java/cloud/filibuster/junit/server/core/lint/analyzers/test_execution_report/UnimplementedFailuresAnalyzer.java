@@ -5,9 +5,6 @@ import cloud.filibuster.junit.server.core.lint.analyzers.warnings.UnimplementedF
 import cloud.filibuster.junit.server.core.test_execution_reports.TestExecutionReport;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class UnimplementedFailuresAnalyzer extends TestExecutionReportAnalyzer {
     public UnimplementedFailuresAnalyzer(TestExecutionReport testExecutionReport) {
         super(testExecutionReport);

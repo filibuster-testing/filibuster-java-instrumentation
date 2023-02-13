@@ -3,7 +3,6 @@ package cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report;
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.instrumentation.datatypes.Pair;
 import cloud.filibuster.junit.server.core.lint.analyzers.warnings.MultipleInvocationsForIndividualMutationsWarning;
-import cloud.filibuster.junit.server.core.lint.analyzers.warnings.ResponseBecomesRequestWarning;
 import cloud.filibuster.junit.server.core.test_execution_reports.TestExecutionReport;
 import org.json.JSONObject;
 

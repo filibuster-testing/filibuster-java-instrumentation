@@ -13,6 +13,8 @@ import cloud.filibuster.junit.extensions.FilibusterTestExtension;
 
 import cloud.filibuster.junit.server.FilibusterServerBackend;
 import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
+import cloud.filibuster.junit.server.latency.FilibusterLatencyProfile;
+import cloud.filibuster.junit.server.latency.FilibusterNoLatencyProfile;
 import org.apiguardian.api.API;
 
 import org.junit.jupiter.api.Test;
@@ -189,4 +191,11 @@ public @interface FilibusterTest {
      * @return search strategy
      */
     FilibusterSearchStrategy searchStrategy() default FilibusterSearchStrategy.DFS;
+
+    /**
+     * Latency profile for the execution.
+     *
+     * @return latency profile implementing class.
+     */
+    Class<? extends FilibusterLatencyProfile> latencyProfile() default FilibusterNoLatencyProfile.class;
 }

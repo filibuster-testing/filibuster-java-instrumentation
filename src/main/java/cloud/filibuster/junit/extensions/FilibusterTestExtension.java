@@ -76,6 +76,7 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
                 .analysisFile(analysisFile)
                 .degradeWhenServerInitializationFails(filibusterTest.degradeWhenServerInitializationFails())
                 .expected(filibusterTest.expected())
+                .latencyProfile(filibusterTest.latencyProfile())
                 .build();
 
         validateSearchBackend(filibusterTest, filibusterConfiguration);

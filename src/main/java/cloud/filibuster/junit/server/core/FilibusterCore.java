@@ -160,6 +160,18 @@ public class FilibusterCore {
                 JSONObject failureMetadataFaultObject = faultObject.getJSONObject("failure_metadata");
                 logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using failure_metadata: " + failureMetadataFaultObject.toString(4));
                 response.put("failure_metadata", failureMetadataFaultObject);
+            } else if (faultObject.has("latency")) {
+                JSONObject latencyObject = faultObject.getJSONObject("latency");
+                logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using latency: " + latencyObject.toString(4));
+
+                // TODO: Do we do this in the client instrumentation?  We need to if we want more than just local server support.
+                int millisecondsToDelay = latencyObject.getInt("milliseconds");
+
+                try {
+                    Thread.sleep(millisecondsToDelay);
+                } catch (InterruptedException e) {
+                    throw new FilibusterFaultInjectionException("Failed to inject latency for call: ", e);
+                }
             } else {
                 logger.info("[FILIBUSTER-CORE]: beginInvocation, failing to inject unknown fault: " + faultObject.toString(4));
                 throw new FilibusterFaultInjectionException("Unknown fault configuration: " + faultObject);

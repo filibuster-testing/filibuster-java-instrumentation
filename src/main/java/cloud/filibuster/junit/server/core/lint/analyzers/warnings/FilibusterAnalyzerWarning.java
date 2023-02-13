@@ -2,9 +2,6 @@ package cloud.filibuster.junit.server.core.lint.analyzers.warnings;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public abstract class FilibusterAnalyzerWarning {
     private final DistributedExecutionIndex distributedExecutionIndex;
 

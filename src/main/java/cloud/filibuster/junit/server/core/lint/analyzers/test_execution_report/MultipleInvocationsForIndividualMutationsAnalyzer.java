@@ -13,7 +13,6 @@ import java.util.Map;
 import static cloud.filibuster.junit.server.core.lint.analyzers.LCS.computeLCS;
 
 public class MultipleInvocationsForIndividualMutationsAnalyzer extends TestExecutionReportAnalyzer {
-
     private final List<Map.Entry<Integer, Map.Entry<DistributedExecutionIndex, JSONObject>>> previousRpcInvocations = new ArrayList<>();
 
     private final static int threshold = 10;

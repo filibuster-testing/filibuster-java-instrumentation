@@ -16,7 +16,7 @@ service HelloService {
   rpc LotsOfGreetings (stream HelloRequest) returns (HelloReply) {}
   rpc BidiHello (stream HelloRequest) returns (stream HelloReply) {}
   rpc Unimplemented (HelloRequest) returns (HelloReply) {}
-  rpc Smelly (HelloRequest) returns (HelloReply) {}
+  rpc SmellyRedundantRPC (HelloRequest) returns (HelloReply) {}
 }
 
 message HelloRequest {

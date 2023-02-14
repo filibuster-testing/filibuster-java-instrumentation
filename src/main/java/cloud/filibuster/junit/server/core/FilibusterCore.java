@@ -136,7 +136,7 @@ public class FilibusterCore {
 
         // Generate new abstract executions to run and queue them into the unexplored list.
         if (filibusterCustomAnalysisConfigurationFile != null) {
-            // TODO: Only works for GRPC right now.
+            // Only works for GRPC right now.
             String moduleName = payload.getString("module");
             String methodName = payload.getString("method");
 
@@ -175,7 +175,7 @@ public class FilibusterCore {
                 JSONObject latencyObject = faultObject.getJSONObject("latency");
                 logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using latency: " + latencyObject.toString(4));
 
-                // TODO: Do we do this in the client instrumentation?  We need to if we want more than just local server support.
+                // Do we do this in the client instrumentation?  We need to if we want more than just local server support.
                 int millisecondsToDelay = latencyObject.getInt("milliseconds");
 
                 try {
@@ -192,7 +192,7 @@ public class FilibusterCore {
         // Legacy, not used, but helpful in debugging and required by instrumentation libraries.
         response.put("generated_id", generatedId);
 
-        // TODO: This could be returned to the client and the delay done there.
+        // This could be returned to the client and the delay done there.
         FilibusterLatencyProfile filibusterLatencyProfile = filibusterConfiguration.getLatencyProfile();
 
         if (filibusterLatencyProfile != null) {

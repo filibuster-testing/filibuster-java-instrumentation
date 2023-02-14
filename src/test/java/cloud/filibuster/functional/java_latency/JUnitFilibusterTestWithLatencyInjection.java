@@ -1,13 +1,11 @@
-package cloud.filibuster.functional.java.latency;
+package cloud.filibuster.functional.java_latency;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
-import cloud.filibuster.exceptions.filibuster.FilibusterAllowedTimeExceededException;
 import cloud.filibuster.functional.JUnitBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.configuration.FilibusterLatencyOnlyAnalysisConfigurationFile;
-import cloud.filibuster.junit.server.latency.Filibuster1000msLatencyProfile;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
@@ -25,14 +23,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterTestWithLatencyProfileAndLatencyInjection extends JUnitBaseTest {
+public class JUnitFilibusterTestWithLatencyInjection extends JUnitBaseTest {
     /**
      * Inject faults between Hello and World using Filibuster and assert proper faults are injected.
      *
      * @throws InterruptedException if teardown of gRPC channel fails.
      */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest(analysisConfigurationFile=FilibusterLatencyOnlyAnalysisConfigurationFile.class, latencyProfile=Filibuster1000msLatencyProfile.class, expected=FilibusterAllowedTimeExceededException.class)
+    @FilibusterTest(analysisConfigurationFile=FilibusterLatencyOnlyAnalysisConfigurationFile.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -40,7 +38,9 @@ public class JUnitFilibusterTestWithLatencyProfileAndLatencyInjection extends JU
                 .usePlaintext()
                 .build();
 
-        assertPassesWithinMsOrThrowsUnderFault(1, StatusRuntimeException.class, () -> {
+        // 800ms+ without FI
+        // 1800ms+ with FI.
+        assertPassesWithinMsOrThrowsUnderFault(2000, StatusRuntimeException.class, () -> {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
             Hello.HelloReply reply = blockingStub.partialHello(request);

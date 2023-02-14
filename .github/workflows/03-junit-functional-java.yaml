@@ -3,7 +3,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Java (Functional Tests, Java Integration)
+name: Java (Functional Tests, Java Integration, Smoke Tests)
 
 on: [push]
 
@@ -22,4 +22,4 @@ jobs:
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
       - name: Test with Gradle
-        run: ./gradlew test --tests 'cloud.filibuster.functional.java.*'
+        run: ./gradlew test --tests 'cloud.filibuster.functional.java.smoke.*'

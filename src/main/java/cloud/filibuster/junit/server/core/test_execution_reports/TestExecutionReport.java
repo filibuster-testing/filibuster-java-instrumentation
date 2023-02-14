@@ -1,6 +1,7 @@
 package cloud.filibuster.junit.server.core.test_execution_reports;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
+import cloud.filibuster.exceptions.filibuster.FilibusterAnalysisFailureException;
 import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterException;
 import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.MultipleInvocationsForIndividualMutationsAnalyzer;
 import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.RedundantRPCAnalyzer;
@@ -12,6 +13,7 @@ import org.json.JSONObject;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -89,23 +91,31 @@ public class TestExecutionReport {
         private static final String WARNINGS_KEY = "warnings";
     }
 
+    public static void addAnalyzer(Class<? extends TestExecutionReportAnalyzer> clazz) {
+        testExecutionReportAnalyzers.add(clazz);
+    }
+
+    public static ArrayList<Class<? extends TestExecutionReportAnalyzer>> testExecutionReportAnalyzers = new ArrayList<>();
+
+    static {
+        testExecutionReportAnalyzers.add(RedundantRPCAnalyzer.class);
+        testExecutionReportAnalyzers.add(UnimplementedFailuresAnalyzer.class);
+        testExecutionReportAnalyzers.add(RequestBecomesResponseAnalyzer.class);
+        testExecutionReportAnalyzers.add(MultipleInvocationsForIndividualMutationsAnalyzer.class);
+    }
+
     @SuppressWarnings("MemberName")
     private JSONObject toJSONObject() {
         List<FilibusterAnalyzerWarning> warnings = new ArrayList<>();
 
-        // TODO: Dynamically register these.
-        TestExecutionReportAnalyzer redundantRpcAnalyzer = new RedundantRPCAnalyzer(this);
-        warnings.addAll(redundantRpcAnalyzer.analyze());
-
-        // GOOD
-        TestExecutionReportAnalyzer unimplementedFailuresAnalyzer = new UnimplementedFailuresAnalyzer(this);
-        warnings.addAll(unimplementedFailuresAnalyzer.analyze());
-
-        TestExecutionReportAnalyzer requestBecomesResponseAnalyzer = new RequestBecomesResponseAnalyzer(this);
-        warnings.addAll(requestBecomesResponseAnalyzer.analyze());
-
-        TestExecutionReportAnalyzer multipleInvocationsForIndividualMutationsAnalyzer = new MultipleInvocationsForIndividualMutationsAnalyzer(this);
-        warnings.addAll(multipleInvocationsForIndividualMutationsAnalyzer.analyze());
+        for (Class<? extends TestExecutionReportAnalyzer> clazz : testExecutionReportAnalyzers) {
+            try {
+                TestExecutionReportAnalyzer testExecutionReportAnalyzer = clazz.getDeclaredConstructor(TestExecutionReport.class).newInstance(this);
+                warnings.addAll(testExecutionReportAnalyzer.analyze());
+            } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                throw new FilibusterAnalysisFailureException("could not instantiate class " + clazz + " for analysis", e);
+            }
+        }
 
         ArrayList<JSONObject> RPCs = new ArrayList<>();
 

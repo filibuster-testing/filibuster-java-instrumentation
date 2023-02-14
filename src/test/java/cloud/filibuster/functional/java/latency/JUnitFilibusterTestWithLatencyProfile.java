@@ -34,7 +34,7 @@ public class JUnitFilibusterTestWithLatencyProfile extends JUnitBaseTest {
      * @throws InterruptedException if teardown of gRPC channel fails.
      */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, latencyProfile=Filibuster1000msLatencyProfile.class, expected=FilibusterAllowedTimeExceededException.class, maxIterations=1)
+    @FilibusterTest(latencyProfile=Filibuster1000msLatencyProfile.class, expected=FilibusterAllowedTimeExceededException.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder

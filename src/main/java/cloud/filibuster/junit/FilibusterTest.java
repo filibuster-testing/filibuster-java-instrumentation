@@ -11,6 +11,7 @@ import cloud.filibuster.junit.configuration.FilibusterDefaultAnalysisConfigurati
 import cloud.filibuster.exceptions.filibuster.FilibusterNoopException;
 import cloud.filibuster.junit.extensions.FilibusterTestExtension;
 
+import cloud.filibuster.junit.interceptors.FilibusterEnvironmentSkipInvocationInterceptor;
 import cloud.filibuster.junit.server.FilibusterServerBackend;
 import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
 import cloud.filibuster.junit.server.latency.FilibusterLatencyProfile;
@@ -40,6 +41,7 @@ import org.junit.jupiter.api.parallel.Isolated;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @API(status = API.Status.STABLE, since = "5.0")
+@ExtendWith(FilibusterEnvironmentSkipInvocationInterceptor.class)
 @ExtendWith(FilibusterTestExtension.class)
 @TestTemplate
 @Isolated

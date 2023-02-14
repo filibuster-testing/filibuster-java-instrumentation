@@ -126,7 +126,7 @@ public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
         assertEqualsUnlessFilibusterDisabledByEnvironment(4, testExceptionsThrown.size());
     }
 
-    private void assertEqualsUnlessFilibusterDisabledByEnvironment(int expected, int actual) {
+    private static void assertEqualsUnlessFilibusterDisabledByEnvironment(int expected, int actual) {
         if (System.getenv("FILIBUSTER_DISABLED") != null) {
             Assert.assertEquals(0, actual);
         } else {

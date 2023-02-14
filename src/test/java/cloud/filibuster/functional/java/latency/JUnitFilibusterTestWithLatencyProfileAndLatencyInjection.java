@@ -19,9 +19,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.junit.Assertions.assertPassesWithinMsOrThrowsUnderFault;
-import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /**
  * Test simple annotation usage.

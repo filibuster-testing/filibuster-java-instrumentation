@@ -11,6 +11,7 @@ import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration.Matc
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
 import cloud.filibuster.junit.server.core.test_execution_reports.TestExecutionAggregateReport;
+import cloud.filibuster.junit.server.core.test_execution_reports.TestExecutionReport;
 import cloud.filibuster.junit.server.core.test_executions.ConcreteTestExecution;
 import cloud.filibuster.junit.server.core.test_executions.AbstractTestExecution;
 import cloud.filibuster.junit.server.core.test_executions.TestExecution;

@@ -12,8 +12,8 @@ import java.util.Map;
 
 import static cloud.filibuster.junit.server.core.lint.analyzers.LCS.computeLCS;
 
-public class RequestBecomesResponseAnalyzer extends TestExecutionReportAnalyzer {
-    public RequestBecomesResponseAnalyzer(TestExecutionReport testExecutionReport) {
+public class ResponseBecomesRequestAnalyzer extends TestExecutionReportAnalyzer {
+    public ResponseBecomesRequestAnalyzer(TestExecutionReport testExecutionReport) {
         super(testExecutionReport);
     }
 

@@ -5,7 +5,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterAnalysisFailureException
 import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterException;
 import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.MultipleInvocationsForIndividualMutationsAnalyzer;
 import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.RedundantRPCAnalyzer;
-import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.RequestBecomesResponseAnalyzer;
+import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.ResponseBecomesRequestAnalyzer;
 import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.TestExecutionReportAnalyzer;
 import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.UnimplementedFailuresAnalyzer;
 import cloud.filibuster.junit.server.core.lint.analyzers.warnings.FilibusterAnalyzerWarning;
@@ -106,7 +106,7 @@ public class TestExecutionReport {
     static {
         testExecutionReportAnalyzers.add(RedundantRPCAnalyzer.class);
         testExecutionReportAnalyzers.add(UnimplementedFailuresAnalyzer.class);
-        testExecutionReportAnalyzers.add(RequestBecomesResponseAnalyzer.class);
+        testExecutionReportAnalyzers.add(ResponseBecomesRequestAnalyzer.class);
         testExecutionReportAnalyzers.add(MultipleInvocationsForIndividualMutationsAnalyzer.class);
     }
 

@@ -93,6 +93,6 @@ public class JUnitFilibusterTestWithExhaustiveAnalysisFileByAnnotation extends J
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(16, testExceptionsThrown.size());
+        assertEqualsUnlessFilibusterDisabledByEnvironment(16, testExceptionsThrown.size());
     }
 }

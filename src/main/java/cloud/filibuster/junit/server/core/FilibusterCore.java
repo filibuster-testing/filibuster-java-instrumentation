@@ -104,6 +104,16 @@ public class FilibusterCore {
 
     private int numberOfConcreteExecutionsExecuted = 0;
 
+    private static TestExecutionReport mostRecentInitialTestExecutionReport;
+
+    public static TestExecutionReport getMostRecentInitialTestExecutionReport() {
+        return mostRecentInitialTestExecutionReport;
+    }
+
+    public static void setMostRecentInitialTestExecutionReport(TestExecutionReport report) {
+        mostRecentInitialTestExecutionReport = report;
+    }
+
     // RPC hooks.
 
     // Record an outgoing RPC and conditionally inject faults.
@@ -318,7 +328,11 @@ public class FilibusterCore {
 
         if (currentConcreteTestExecution != null) {
             // Add the test report to the aggregate report.
-            testExecutionAggregateReport.addTestExecutionReport(currentConcreteTestExecution.getTestExecutionReport());
+            TestExecutionReport testExecutionReport = currentConcreteTestExecution.getTestExecutionReport();
+            if (currentIteration == 1) {
+                mostRecentInitialTestExecutionReport = testExecutionReport;
+            }
+            testExecutionAggregateReport.addTestExecutionReport(testExecutionReport);
 
             // We're executing a test and not just running empty iterations (i.e., JUnit maxIterations > number of actual tests.)
 

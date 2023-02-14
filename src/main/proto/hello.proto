@@ -17,6 +17,9 @@ service HelloService {
   rpc BidiHello (stream HelloRequest) returns (stream HelloReply) {}
   rpc Unimplemented (HelloRequest) returns (HelloReply) {}
   rpc SmellyRedundantRPC (HelloRequest) returns (HelloReply) {}
+  rpc SmellyUnimplementedFailures (HelloRequest) returns (HelloReply) {}
+  rpc SmellyRequestBecomesResponse (HelloRequest) returns (HelloReply) {}
+  rpc SmellyMultipleInvocationsForIndividualMutations (HelloRequest) returns (HelloReply) {}
 }
 
 message HelloRequest {

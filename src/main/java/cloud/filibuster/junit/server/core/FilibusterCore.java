@@ -107,11 +107,11 @@ public class FilibusterCore {
 
     private static TestExecutionReport mostRecentInitialTestExecutionReport;
 
-    public static TestExecutionReport getMostRecentInitialTestExecutionReport() {
+    public static synchronized TestExecutionReport getMostRecentInitialTestExecutionReport() {
         return mostRecentInitialTestExecutionReport;
     }
 
-    public static void setMostRecentInitialTestExecutionReport(TestExecutionReport report) {
+    public static synchronized void setMostRecentInitialTestExecutionReport(TestExecutionReport report) {
         mostRecentInitialTestExecutionReport = report;
     }
 

@@ -57,8 +57,8 @@ public class JUnitFilibusterTestSmellyUnimplementedFailures extends JUnitBaseTes
         TestExecutionReport testExecutionReport = FilibusterCore.getMostRecentInitialTestExecutionReport();
         List<FilibusterAnalyzerWarning> warnings = testExecutionReport.getWarnings();
         for (FilibusterAnalyzerWarning warning : warnings) {
-            // TODO: could do more here.
             assertEquals(true, warning instanceof UnimplementedFailuresWarning);
+            assertEquals("cloud.filibuster.examples.WorldService/WorldUnimplemented", warning.getDetails());
         }
         assertEquals(1, warnings.size());
     }

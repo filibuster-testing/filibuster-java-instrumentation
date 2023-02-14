@@ -57,8 +57,8 @@ public class JUnitFilibusterTestSmellyResponseBecomesRequest extends JUnitBaseTe
         TestExecutionReport testExecutionReport = FilibusterCore.getMostRecentInitialTestExecutionReport();
         List<FilibusterAnalyzerWarning> warnings = testExecutionReport.getWarnings();
         for (FilibusterAnalyzerWarning warning : warnings) {
-            // TODO: could do more here.
             assertEquals(true, warning instanceof ResponseBecomesRequestWarning);
+            assertEquals("The following string (Armerian World!!) used in a request to cloud.filibuster.examples.WorldService/World was found in a previous response from cloud.filibuster.examples.WorldService/World", warning.getDetails());
         }
         assertEquals(1, warnings.size());
     }

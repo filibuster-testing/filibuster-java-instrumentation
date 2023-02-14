@@ -45,6 +45,12 @@ public class TestExecutionReport {
 
     private final HashMap<DistributedExecutionIndex, JSONObject> deiFaultsInjected = new HashMap<>();
 
+    private final List<FilibusterAnalyzerWarning> warnings = new ArrayList<>();
+
+    public List<FilibusterAnalyzerWarning> getWarnings() {
+        return this.warnings;
+    }
+
     public Iterator<DistributedExecutionIndex> getInvocationOrderIterator() {
         return deiInvocationOrder.iterator();
     }
@@ -106,8 +112,6 @@ public class TestExecutionReport {
 
     @SuppressWarnings("MemberName")
     private JSONObject toJSONObject() {
-        List<FilibusterAnalyzerWarning> warnings = new ArrayList<>();
-
         for (Class<? extends TestExecutionReportAnalyzer> clazz : testExecutionReportAnalyzers) {
             try {
                 TestExecutionReportAnalyzer testExecutionReportAnalyzer = clazz.getDeclaredConstructor(TestExecutionReport.class).newInstance(this);

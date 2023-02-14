@@ -331,7 +331,7 @@ public class FilibusterCore {
             // Add the test report to the aggregate report.
             TestExecutionReport testExecutionReport = currentConcreteTestExecution.getTestExecutionReport();
             if (currentIteration == 1) {
-                mostRecentInitialTestExecutionReport = testExecutionReport;
+                setMostRecentInitialTestExecutionReport(testExecutionReport);
             }
             testExecutionAggregateReport.addTestExecutionReport(testExecutionReport);
 

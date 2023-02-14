@@ -94,7 +94,7 @@ public class FilibusterCore {
     private ConcreteTestExecution currentConcreteTestExecution = new ConcreteTestExecution();
 
     // Analysis file, populated only once received from the test suite.
-    // TODO: Could just bypass this completely because we have the FilibusterConfiguration?
+    // In the future, this could just bypass this completely because we have the FilibusterConfiguration?
     @Nullable
     private FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 

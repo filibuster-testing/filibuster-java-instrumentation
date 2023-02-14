@@ -11,6 +11,7 @@ import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import org.junit.Assert;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -122,6 +123,14 @@ public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(4, testExceptionsThrown.size());
+        assertEqualsUnlessFilibusterDisabledByEnvironment(4, testExceptionsThrown.size());
+    }
+
+    private void assertEqualsUnlessFilibusterDisabledByEnvironment(int expected, int actual) {
+        if (System.getenv("FILIBUSTER_DISABLED") != null) {
+            Assert.assertEquals(0, actual);
+        } else {
+            Assert.assertEquals(expected, actual);
+        }
     }
 }

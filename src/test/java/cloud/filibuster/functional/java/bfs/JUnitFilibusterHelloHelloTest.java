@@ -57,13 +57,13 @@ public class JUnitFilibusterHelloHelloTest extends JUnitBaseTest {
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(0, testExceptionsThrown.size());
+        assertEqualsUnlessFilibusterDisabledByEnvironment(0, testExceptionsThrown.size());
     }
 
     @DisplayName("Verify correct number of executed tests.")
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEquals(1, numberOfTestsExecuted);
+        assertEqualsUnlessFilibusterDisabledByEnvironment(1, numberOfTestsExecuted);
     }
 }

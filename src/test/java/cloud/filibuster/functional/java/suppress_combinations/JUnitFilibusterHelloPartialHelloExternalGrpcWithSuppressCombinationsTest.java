@@ -151,20 +151,20 @@ public class JUnitFilibusterHelloPartialHelloExternalGrpcWithSuppressCombination
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(8, testExceptionsThrown.size());
+        assertEqualsUnlessFilibusterDisabledByEnvironment(8, testExceptionsThrown.size());
     }
 
     @DisplayName("Verify correct number of executed tests.")
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEquals(9, numberOfTestsExecuted);
+        assertEqualsUnlessFilibusterDisabledByEnvironment(9, numberOfTestsExecuted);
     }
 
     @DisplayName("Verify correct number of exceptions thrown.")
     @Test
     @Order(4)
     public void numberOfExceptionsThrown() {
-        assertEquals(8, numberOfExceptionsThrown);
+        assertEqualsUnlessFilibusterDisabledByEnvironment(8, numberOfExceptionsThrown);
     }
 }

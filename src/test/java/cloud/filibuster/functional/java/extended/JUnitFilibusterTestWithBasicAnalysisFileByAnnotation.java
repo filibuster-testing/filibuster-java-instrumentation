@@ -80,6 +80,6 @@ public class JUnitFilibusterTestWithBasicAnalysisFileByAnnotation extends JUnitB
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(4, testExceptionsThrown.size());
+        assertEqualsUnlessFilibusterDisabledByEnvironment(4, testExceptionsThrown.size());
     }
 }

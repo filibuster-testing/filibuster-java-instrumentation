@@ -71,7 +71,7 @@ public class JUnitFilibusterNoFaultsNoTerminationTest extends JUnitBaseTest {
     @Order(3)
     public void testNumberOfTestsExecuted() {
         // maxIterations executed because of no termination.
-        assertEquals(10, numberOfTestsExecuted);
+        assertEqualsUnlessFilibusterDisabledByEnvironment(10, numberOfTestsExecuted);
     }
 
     @DisplayName("Verify correct number of exceptions thrown.")

@@ -120,20 +120,20 @@ public class JUnitFilibusterHelloUnimplementedTest extends JUnitBaseTest {
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(5, testExceptionsThrown.size());
+        assertEqualsUnlessFilibusterDisabledByEnvironment(5, testExceptionsThrown.size());
     }
 
     @DisplayName("Verify correct number of executed tests.")
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEquals(5, numberOfTestsExecuted);
+        assertEqualsUnlessFilibusterDisabledByEnvironment(5, numberOfTestsExecuted);
     }
 
     @DisplayName("Verify correct number of exceptions thrown.")
     @Test
     @Order(4)
     public void numberOfExceptionsThrown() {
-        assertEquals(5, numberOfExceptionsThrown);
+        assertEqualsUnlessFilibusterDisabledByEnvironment(5, numberOfExceptionsThrown);
     }
 }

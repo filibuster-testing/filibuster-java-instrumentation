@@ -54,13 +54,13 @@ public class JUnitFilibusterHelloPartialHelloWithErrorHandlingTest extends JUnit
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(0, testExceptionsThrown.size());
+        assertEqualsUnlessFilibusterDisabledByEnvironment(0, testExceptionsThrown.size());
     }
 
     @DisplayName("Verify correct number of executed tests.")
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEquals(5, numberOfTestsExecuted);
+        assertEqualsUnlessFilibusterDisabledByEnvironment(5, numberOfTestsExecuted);
     }
 }

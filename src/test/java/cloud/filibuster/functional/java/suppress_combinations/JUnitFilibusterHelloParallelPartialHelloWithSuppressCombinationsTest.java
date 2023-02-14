@@ -63,13 +63,13 @@ public class JUnitFilibusterHelloParallelPartialHelloWithSuppressCombinationsTes
     @Test
     @Order(2)
     public void testResponsesReceived() {
-        assertEquals(possibleResponses.size(), responsesReceived.size());
+        assertEqualsUnlessFilibusterDisabledByEnvironment(possibleResponses.size(), responsesReceived.size());
     }
 
     @DisplayName("Verify correct number of executed tests.")
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEquals(9, numberOfTestsExecuted);
+        assertEqualsUnlessFilibusterDisabledByEnvironment(9, numberOfTestsExecuted);
     }
 }

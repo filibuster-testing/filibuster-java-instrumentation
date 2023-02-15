@@ -509,7 +509,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
         }
     }
 
-    private CompletableFuture<String> performAsyncWorldUnimplementedRequest(Channel channel, String name) {
+    private static CompletableFuture<String> performAsyncWorldUnimplementedRequest(Channel channel, String name) {
         CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
             WorldServiceGrpc.WorldServiceBlockingStub blockingStub = WorldServiceGrpc.newBlockingStub(channel);
             Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(name).build();
@@ -608,7 +608,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
         }
     }
 
-    private CompletableFuture<String> performAsyncWorldRandomRequest(Channel channel, String name) {
+    private static CompletableFuture<String> performAsyncWorldRandomRequest(Channel channel, String name) {
         CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
             WorldServiceGrpc.WorldServiceBlockingStub blockingStub = WorldServiceGrpc.newBlockingStub(channel);
             Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(name).build();

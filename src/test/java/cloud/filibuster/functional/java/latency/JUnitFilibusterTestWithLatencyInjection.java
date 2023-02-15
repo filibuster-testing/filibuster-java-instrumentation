@@ -2,14 +2,12 @@ package cloud.filibuster.functional.java.latency;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
-import cloud.filibuster.exceptions.filibuster.FilibusterAllowedTimeExceededException;
 import cloud.filibuster.functional.JUnitBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.configuration.FilibusterLatencyOnlyAnalysisConfigurationFile;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -19,13 +17,8 @@ import org.junit.jupiter.api.TestMethodOrder;
 import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.junit.Assertions.assertPassesWithinMs;
-import static cloud.filibuster.junit.Assertions.assertPassesWithinMsOrThrowsUnderFault;
-import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Test simple annotation usage.
- */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class JUnitFilibusterTestWithLatencyInjection extends JUnitBaseTest {
     private static int numberOfTestsExecuted = 0;

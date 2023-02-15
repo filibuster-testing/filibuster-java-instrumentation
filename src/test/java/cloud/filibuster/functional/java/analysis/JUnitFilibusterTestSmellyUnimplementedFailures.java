@@ -22,17 +22,10 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Test simple annotation usage.
- */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class JUnitFilibusterTestSmellyUnimplementedFailures extends JUnitBaseTest {
-    /**
-     * Inject faults between Hello and World using Filibuster and assert proper faults are injected.
-     *
-     * @throws InterruptedException if teardown of gRPC channel fails.
-     */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @FilibusterTest(analysisConfigurationFile=FilibusterSingleFaultAnalysisConfigurationFile.class)
     @Order(1)
@@ -54,11 +47,11 @@ public class JUnitFilibusterTestSmellyUnimplementedFailures extends JUnitBaseTes
     @Order(2)
     @Test
     public void testWarnings() {
-        if (!(System.getenv("FILIBUSTER_DISABLED") != null)) {
+        if (System.getenv("FILIBUSTER_DISABLED") == null) {
             TestExecutionReport testExecutionReport = FilibusterCore.getMostRecentInitialTestExecutionReport();
             List<FilibusterAnalyzerWarning> warnings = testExecutionReport.getWarnings();
             for (FilibusterAnalyzerWarning warning : warnings) {
-                assertEquals(true, warning instanceof UnimplementedFailuresWarning);
+                assertTrue(warning instanceof UnimplementedFailuresWarning);
                 assertEquals("cloud.filibuster.examples.WorldService/WorldUnimplemented", warning.getDetails());
             }
             assertEquals(1, warnings.size());

@@ -22,17 +22,10 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Test simple annotation usage.
- */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class JUnitFilibusterTestSmellyRedundantRPC extends JUnitBaseTest {
-    /**
-     * Inject faults between Hello and World using Filibuster and assert proper faults are injected.
-     *
-     * @throws InterruptedException if teardown of gRPC channel fails.
-     */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @FilibusterTest(analysisConfigurationFile=FilibusterSingleFaultAnalysisConfigurationFile.class)
     @Order(1)
@@ -54,11 +47,11 @@ public class JUnitFilibusterTestSmellyRedundantRPC extends JUnitBaseTest {
     @Order(2)
     @Test
     public void testWarnings() {
-        if (!(System.getenv("FILIBUSTER_DISABLED") != null)) {
+        if (System.getenv("FILIBUSTER_DISABLED") == null) {
             TestExecutionReport testExecutionReport = FilibusterCore.getMostRecentInitialTestExecutionReport();
             List<FilibusterAnalyzerWarning> warnings = testExecutionReport.getWarnings();
             for (FilibusterAnalyzerWarning warning : warnings) {
-                assertEquals(true, warning instanceof RedundantRPCWarning);
+                assertTrue(warning instanceof RedundantRPCWarning);
                 assertEquals("cloud.filibuster.examples.WorldService/World", warning.getDetails());
             }
             assertEquals(3, warnings.size());

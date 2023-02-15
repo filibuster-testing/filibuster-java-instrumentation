@@ -34,6 +34,18 @@ public class Assertions {
         return "http://" + Networking.getFilibusterHost() + ":" + Networking.getFilibusterPort() + "/";
     }
 
+    public static void assertPassesWithinMs(int milliseconds, Runnable testBlock) {
+        long startTime = System.nanoTime();
+        testBlock.run();
+        long endTime = System.nanoTime();
+
+        long duration = (endTime - startTime);
+        long durationMs = duration / 1000000;
+        if (durationMs > milliseconds) {
+            throw new FilibusterAllowedTimeExceededException("Test completed in " + durationMs +" milliseconds, exceeding allowed " + milliseconds + " milliseconds.");
+        }
+    }
+
     /**
      * Asserts the fault-free execution passes and that the fault executions pass or throw a given exception.
      *

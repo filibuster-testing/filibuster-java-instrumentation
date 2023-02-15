@@ -191,9 +191,9 @@
                         row += '<td class="method">' + rpc.request.method + '</td>';
 
                         row += '<td class="args">';
-                        row += '<div class="class_name">' + 'com.google.protobuf.GeneratedMessage' + '</div>';
+                        row += '<div class="class_name">' + rpc.request.args.__class__ + '</div>';
                         row += '<textarea>';
-                        row += rpc.request.args;
+                        row += rpc.request.args.toString;
                         row += '</textarea>'
                         row += '</td>';
 

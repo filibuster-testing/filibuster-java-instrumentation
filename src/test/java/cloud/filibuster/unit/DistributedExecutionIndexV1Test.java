@@ -4,6 +4,7 @@ import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.dei.implementations.DistributedExecutionIndexV1;
 import cloud.filibuster.exceptions.distributed_execution_index.DistributedExecutionIndexSerializationException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
+import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 public class DistributedExecutionIndexV1Test {
     private static Callsite generateCallsite() {
-        return new Callsite("service", "klass", "theMethodName", "deadbeef");
+        return new Callsite("service", "klass", "theMethodName", new CallsiteArguments(Object.class, "deadbeef"));
     }
 
     private static DistributedExecutionIndex createInstance() {
@@ -50,8 +51,8 @@ public class DistributedExecutionIndexV1Test {
         assertNotEquals(ei1.toString(), ei2.toString());
         assertNotEquals(ei1, ei2);
 
-        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-03efce3a0fb573e6f16e1b37250a60fb952b6f2a-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1]]", ei1.toString());
-        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-03efce3a0fb573e6f16e1b37250a60fb952b6f2a-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], " + "[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-d3ef174d66bc9fdd226a29ad6d45bc7f4ad2737d-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1]]", ei2.toString());
+        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-56d9b2760d767f5a999ba411f3628cbc5dd47b7c-00aa7adca5809bf3003b7469bdf22140ac380041\", 1]]", ei1.toString());
+        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-56d9b2760d767f5a999ba411f3628cbc5dd47b7c-00aa7adca5809bf3003b7469bdf22140ac380041\", 1], " + "[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-236aa4fb94f4e4067889dfef9c616b4f44cdb181-00aa7adca5809bf3003b7469bdf22140ac380041\", 1]]", ei2.toString());
     }
 
     @Test
@@ -78,7 +79,7 @@ public class DistributedExecutionIndexV1Test {
         DistributedExecutionIndex ei = createInstance();
         ei.push(generateCallsite());
         String toStringResult = ei.toString();
-        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-aa2f482db122c54e5ceb75a0c7110122684097cc-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1]]", toStringResult);
+        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-e229408cf2ebeb0cc0b98c2769317e7cb87129c6-00aa7adca5809bf3003b7469bdf22140ac380041\", 1]]", toStringResult);
     }
 
     @Test
@@ -113,7 +114,7 @@ public class DistributedExecutionIndexV1Test {
         DistributedExecutionIndex ei = createInstance();
         ei.push(generateCallsite());
         ei.push(generateCallsite());
-        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-2b57f6d1805d3bcfb9b3424750ec111266c817d5-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-2c9974f8c168d3abde8a06bb45e5b432cd5b8196-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1]]", ei.toString());
+        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-2c9974f8c168d3abde8a06bb45e5b432cd5b8196-00aa7adca5809bf3003b7469bdf22140ac380041\", 1], [\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-6978ab33722303fc1bb13aad57b261c92107b548-00aa7adca5809bf3003b7469bdf22140ac380041\", 1]]", ei.toString());
     }
 
     @Test
@@ -138,7 +139,7 @@ public class DistributedExecutionIndexV1Test {
     @DisplayName("Test deserialize, push, serialize cycle.")
     public void testDeserializePushSerialize() {
         String startingSerializedExecutionIndex = "[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-a3f941d8eb410bc37b5bde1c55effc134b3afbe8-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-1019228bce1928ade94fc03e5fcbf7f048e6fe9a-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1]]";
-        String endingSerializedExecutionIndex = "[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-a3f941d8eb410bc37b5bde1c55effc134b3afbe8-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-1019228bce1928ade94fc03e5fcbf7f048e6fe9a-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-1019228bce1928ade94fc03e5fcbf7f048e6fe9a-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1]]";
+        String endingSerializedExecutionIndex = "[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-a3f941d8eb410bc37b5bde1c55effc134b3afbe8-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-1019228bce1928ade94fc03e5fcbf7f048e6fe9a-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-ffb95605c9bfbb90f86d1eebd35c9d3e2410ab1d-00aa7adca5809bf3003b7469bdf22140ac380041\", 1]]";
         DistributedExecutionIndex ei = createInstanceFromSerialized(startingSerializedExecutionIndex);
         assertEquals(startingSerializedExecutionIndex, ei.toString());
         ei.push(generateCallsite());
@@ -153,7 +154,7 @@ public class DistributedExecutionIndexV1Test {
         ei.push(callsite);
         ei.pop();
         ei.push(callsite);
-        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-1a3805cc401240a92f778a569309c47becbf802c-f49cf6381e322b147053b74e4500af8533ac1e4c\", 2]]", ei.toString());
+        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-572c339240d2ef65496a1cc48f38bd95c18f2458-eb1e7e8219cff88635d68a832300e07cd75bfebc-00aa7adca5809bf3003b7469bdf22140ac380041\", 2]]", ei.toString());
     }
 }
 

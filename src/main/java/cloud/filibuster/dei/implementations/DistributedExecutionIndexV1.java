@@ -6,6 +6,7 @@ import cloud.filibuster.dei.DistributedExecutionIndexKey;
 import cloud.filibuster.dei.DistributedExecutionIndexType;
 import cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Key.Builder;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
+import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 
 import java.util.ArrayList;
@@ -357,7 +358,9 @@ public class DistributedExecutionIndexV1 extends DistributedExecutionIndexBase i
 
         public static String generateRpcAsynchronousComponentFromCallsite(Callsite callsite) {
             ArrayList<String> rpcAsynchronousElements = new ArrayList<>();
-            rpcAsynchronousElements.add(callsite.getSerializedArguments());
+            CallsiteArguments callsiteArguments = callsite.getSerializedArguments();
+            rpcAsynchronousElements.add(callsiteArguments.getStringClass());
+            rpcAsynchronousElements.add(callsiteArguments.getToStringResult());
             String rpcAsynchronous = "";
 
             if (getAsynchronousInclude()) {

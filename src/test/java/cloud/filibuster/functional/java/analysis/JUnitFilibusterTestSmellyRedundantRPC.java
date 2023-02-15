@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class JUnitFilibusterTestSmellyRedundantRPC extends JUnitBaseTest {
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest(analysisConfigurationFile=FilibusterSingleFaultAnalysisConfigurationFile.class)
+    @FilibusterTest(analysisConfigurationFile=FilibusterSingleFaultAnalysisConfigurationFile.class, maxIterations=2)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder

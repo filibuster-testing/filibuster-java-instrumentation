@@ -1,6 +1,7 @@
 package cloud.filibuster.integration.instrumentation.libraries.opentelemetry;
 
 import cloud.filibuster.instrumentation.datatypes.Callsite;
+import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.libraries.grpc.NoopClientCall;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
@@ -224,11 +225,13 @@ public class OpenTelemetryFilibusterClientInterceptor implements ClientIntercept
                         // Construct preliminary call site information.
                         // ******************************************************************************************
 
+                        CallsiteArguments callsiteArguments = new CallsiteArguments(message.getClass(), message.toString());
+
                         Callsite callsite = new Callsite(
                                 serviceName,
                                 grpcServiceName,
                                 grpcFullMethodName,
-                                message.toString()
+                                callsiteArguments
                         );
 
                         // ******************************************************************************************

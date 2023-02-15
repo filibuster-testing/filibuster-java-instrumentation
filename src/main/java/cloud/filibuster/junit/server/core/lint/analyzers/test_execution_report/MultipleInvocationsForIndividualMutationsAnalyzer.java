@@ -28,14 +28,14 @@ public class MultipleInvocationsForIndividualMutationsAnalyzer extends TestExecu
             DistributedExecutionIndex previousDistributedExecutionIndex = previousInvocation.getValue().getKey();
             JSONObject previousInvocationObject = previousInvocation.getValue().getValue();
 
-            String lcs = computeLCS(invocation.getString("args"), previousInvocationObject.getString("args"));
+            String lcs = computeLCS(invocation.getJSONObject("args").getString("toString"), previousInvocationObject.getJSONObject("args").getString("toString"));
 
             String previousRequestInvocationMethod = previousInvocationObject.getString("method");
 
             boolean lcsAboveThreshold = lcs.length() >= threshold;
             boolean previousInvocationDirectlyBeforeRPC = (previousResponseInvocationNumber + 1 == RPC);
             boolean sameMethodAsTarget = previousInvocationObject.getString("method").equals(invocation.getString("method"));
-            boolean sameArguments = previousInvocationObject.getString("args").equals(invocation.getString("args"));
+            boolean sameArguments = previousInvocationObject.getJSONObject("args").similar(invocation.getJSONObject("args"));
 
             if (lcsAboveThreshold && previousInvocationDirectlyBeforeRPC && sameMethodAsTarget && !sameArguments) {
                 this.addWarning(new MultipleInvocationsForIndividualMutationsWarning(distributedExecutionIndex,

@@ -1,6 +1,7 @@
 package cloud.filibuster.integration.examples.armeria.http.tests;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
+import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.integration.instrumentation.FilibusterServerFake;
 import cloud.filibuster.integration.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
@@ -35,7 +36,7 @@ public class HelloServerWithHelloAndWorldAndFilibusterServerFakeMultithreadedTes
 
         FilibusterServerFake.oneNewTestExecution = true;
 
-        Callsite callsite = new Callsite("service", "class", "moduleName", "deadbeef");
+        Callsite callsite = new Callsite("service", "class", "moduleName", new CallsiteArguments(Object.class, "deadbeef"));
         DistributedExecutionIndex startingDistributedExecutionIndex = createNewDistributedExecutionIndex();
         startingDistributedExecutionIndex.push(callsite);
 

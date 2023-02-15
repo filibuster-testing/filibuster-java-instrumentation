@@ -1,6 +1,7 @@
 package cloud.filibuster.integration.instrumentation.libraries.armeria.http.tests.available;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
+import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.integration.instrumentation.FilibusterServerFake;
 import cloud.filibuster.integration.instrumentation.TestHelper;
 
@@ -154,7 +155,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceDistributedExecutio
     @DisplayName("Test the Filibuster client decorator to available service (with headers, two futures.)")
     public void testClientDecoratorToAvailableServiceTwoRequestsWithHeaders() {
         DistributedExecutionIndex startingExecutionIndex = createNewDistributedExecutionIndex();
-        Callsite callsite = new Callsite("service", "class", "moduleName", "deadbeef");
+        Callsite callsite = new Callsite("service", "class", "moduleName", new CallsiteArguments(Object.class, "deadbeef"));
         startingExecutionIndex.push(callsite);
 
         setInitialVectorClock(null);
@@ -214,7 +215,7 @@ public class FilibusterDecoratingHttpClientToAvailableServiceDistributedExecutio
     @Test
     @DisplayName("Test the Filibuster client decorator to available service (with headers, two futures, in loop.)")
     public void testClientDecoratorToAvailableServiceTwoRequestsWithHeadersInLoop() {
-        Callsite callsite = new Callsite("service", "class", "moduleName", "deadbeef");
+        Callsite callsite = new Callsite("service", "class", "moduleName", new CallsiteArguments(Object.class, "deadbeef"));
         DistributedExecutionIndex startingDistributedExecutionIndex = createNewDistributedExecutionIndex();
         startingDistributedExecutionIndex.push(callsite);
 

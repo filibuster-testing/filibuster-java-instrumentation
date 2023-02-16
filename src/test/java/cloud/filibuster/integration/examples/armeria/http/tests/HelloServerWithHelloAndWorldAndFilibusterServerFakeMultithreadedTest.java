@@ -1,6 +1,7 @@
 package cloud.filibuster.integration.examples.armeria.http.tests;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
+import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.integration.instrumentation.FilibusterServerFake;
 import cloud.filibuster.integration.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
@@ -35,7 +36,7 @@ public class HelloServerWithHelloAndWorldAndFilibusterServerFakeMultithreadedTes
 
         FilibusterServerFake.oneNewTestExecution = true;
 
-        Callsite callsite = new Callsite("service", "class", "moduleName", "deadbeef");
+        Callsite callsite = new Callsite("service", "class", "moduleName", new CallsiteArguments(Object.class, "deadbeef"));
         DistributedExecutionIndex startingDistributedExecutionIndex = createNewDistributedExecutionIndex();
         startingDistributedExecutionIndex.push(callsite);
 
@@ -81,19 +82,19 @@ public class HelloServerWithHelloAndWorldAndFilibusterServerFakeMultithreadedTes
 
         JSONObject firstInvocationPayload = FilibusterServerFake.payloadsReceived.get(0);
         assertEquals("invocation", firstInvocationPayload.getString("instrumentation_type"));
-        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-56e3a63a049c2c86be01ec9a50d00064d844389e-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-1532c7f1ead5eb0c4a447b9589c22763fb129cbf-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", firstInvocationPayload.getString("execution_index"));
+        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-7c16a1567a8511780fc167514344025c9dbdf3c0-00aa7adca5809bf3003b7469bdf22140ac380041\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-1532c7f1ead5eb0c4a447b9589c22763fb129cbf-0a8127ad87a9ab6630533750add635c52d003488\", 1]]", firstInvocationPayload.getString("execution_index"));
 
         JSONObject firstInvocationCompletedPayload = FilibusterServerFake.payloadsReceived.get(1);
         assertEquals("invocation_complete", firstInvocationCompletedPayload.getString("instrumentation_type"));
-        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-56e3a63a049c2c86be01ec9a50d00064d844389e-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-1532c7f1ead5eb0c4a447b9589c22763fb129cbf-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", firstInvocationCompletedPayload.getString("execution_index"));
+        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-7c16a1567a8511780fc167514344025c9dbdf3c0-00aa7adca5809bf3003b7469bdf22140ac380041\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-1532c7f1ead5eb0c4a447b9589c22763fb129cbf-0a8127ad87a9ab6630533750add635c52d003488\", 1]]", firstInvocationCompletedPayload.getString("execution_index"));
 
         JSONObject secondInvocationPayload = FilibusterServerFake.payloadsReceived.get(2);
         assertEquals("invocation", secondInvocationPayload.getString("instrumentation_type"));
-        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-56e3a63a049c2c86be01ec9a50d00064d844389e-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-a0bdda920880c4f6377eea891cfacccf183d6b66-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", secondInvocationPayload.getString("execution_index"));
+        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-7c16a1567a8511780fc167514344025c9dbdf3c0-00aa7adca5809bf3003b7469bdf22140ac380041\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-a0bdda920880c4f6377eea891cfacccf183d6b66-0a8127ad87a9ab6630533750add635c52d003488\", 1]]", secondInvocationPayload.getString("execution_index"));
 
         JSONObject secondInvocationCompletedPayload = FilibusterServerFake.payloadsReceived.get(3);
         assertEquals("invocation_complete", secondInvocationCompletedPayload.getString("instrumentation_type"));
-        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-56e3a63a049c2c86be01ec9a50d00064d844389e-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-a0bdda920880c4f6377eea891cfacccf183d6b66-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", secondInvocationCompletedPayload.getString("execution_index"));
+        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-7c16a1567a8511780fc167514344025c9dbdf3c0-00aa7adca5809bf3003b7469bdf22140ac380041\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-a0bdda920880c4f6377eea891cfacccf183d6b66-0a8127ad87a9ab6630533750add635c52d003488\", 1]]", secondInvocationCompletedPayload.getString("execution_index"));
     }
 
     @Test
@@ -117,18 +118,18 @@ public class HelloServerWithHelloAndWorldAndFilibusterServerFakeMultithreadedTes
 
         JSONObject firstInvocationPayload = FilibusterServerFake.payloadsReceived.get(0);
         assertEquals("invocation", firstInvocationPayload.getString("instrumentation_type"));
-        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-56e3a63a049c2c86be01ec9a50d00064d844389e-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-b282b2b9281c7895c18e70e9a85f02e1acde5c15-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", firstInvocationPayload.getString("execution_index"));
+        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-7c16a1567a8511780fc167514344025c9dbdf3c0-00aa7adca5809bf3003b7469bdf22140ac380041\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-b282b2b9281c7895c18e70e9a85f02e1acde5c15-0a8127ad87a9ab6630533750add635c52d003488\", 1]]", firstInvocationPayload.getString("execution_index"));
 
         JSONObject firstInvocationCompletedPayload = FilibusterServerFake.payloadsReceived.get(1);
         assertEquals("invocation_complete", firstInvocationCompletedPayload.getString("instrumentation_type"));
-        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-56e3a63a049c2c86be01ec9a50d00064d844389e-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-b282b2b9281c7895c18e70e9a85f02e1acde5c15-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 1]]", firstInvocationCompletedPayload.getString("execution_index"));
+        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-7c16a1567a8511780fc167514344025c9dbdf3c0-00aa7adca5809bf3003b7469bdf22140ac380041\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-b282b2b9281c7895c18e70e9a85f02e1acde5c15-0a8127ad87a9ab6630533750add635c52d003488\", 1]]", firstInvocationCompletedPayload.getString("execution_index"));
 
         JSONObject secondInvocationPayload = FilibusterServerFake.payloadsReceived.get(2);
         assertEquals("invocation", secondInvocationPayload.getString("instrumentation_type"));
-        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-56e3a63a049c2c86be01ec9a50d00064d844389e-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-b282b2b9281c7895c18e70e9a85f02e1acde5c15-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 2]]", secondInvocationPayload.getString("execution_index"));
+        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-7c16a1567a8511780fc167514344025c9dbdf3c0-00aa7adca5809bf3003b7469bdf22140ac380041\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-b282b2b9281c7895c18e70e9a85f02e1acde5c15-0a8127ad87a9ab6630533750add635c52d003488\", 2]]", secondInvocationPayload.getString("execution_index"));
 
         JSONObject secondInvocationCompletedPayload = FilibusterServerFake.payloadsReceived.get(3);
         assertEquals("invocation_complete", secondInvocationCompletedPayload.getString("instrumentation_type"));
-        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-56e3a63a049c2c86be01ec9a50d00064d844389e-f49cf6381e322b147053b74e4500af8533ac1e4c\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-b282b2b9281c7895c18e70e9a85f02e1acde5c15-0a33c850b8b1834c9e7ec64a7afa9982c6f092da\", 2]]", secondInvocationCompletedPayload.getString("execution_index"));
+        assertEquals("[[\"V1-4cf5bc59bee9e1c44c6254b5f84e7f066bd8e5fe-a468b76d6940d5e59a854b8c01bb25e7e202be04-7c16a1567a8511780fc167514344025c9dbdf3c0-00aa7adca5809bf3003b7469bdf22140ac380041\", 1], [\"V1-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-b282b2b9281c7895c18e70e9a85f02e1acde5c15-0a8127ad87a9ab6630533750add635c52d003488\", 2]]", secondInvocationCompletedPayload.getString("execution_index"));
     }
 }

@@ -3,6 +3,7 @@ package cloud.filibuster.instrumentation.libraries.grpc;
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.exceptions.filibuster.FilibusterInstrumentationMissingDelegateException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
+import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
@@ -224,11 +225,13 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                     // Construct preliminary call site information.
                     // ******************************************************************************************
 
+                    CallsiteArguments callsiteArguments = new CallsiteArguments(message.getClass(), message.toString());
+
                     Callsite callsite = new Callsite(
                             serviceName,
                             grpcServiceName,
                             grpcFullMethodName,
-                            message.toString()
+                            callsiteArguments
                     );
 
                     // ******************************************************************************************

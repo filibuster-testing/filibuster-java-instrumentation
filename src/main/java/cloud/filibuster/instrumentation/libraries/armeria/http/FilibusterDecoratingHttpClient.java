@@ -2,6 +2,7 @@ package cloud.filibuster.instrumentation.libraries.armeria.http;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
+import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
@@ -161,7 +162,7 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
                     serviceName,
                     classOrModuleName,
                     req.method().toString(),
-                    String.join("-", serializedArguments));
+                    new CallsiteArguments(req.getClass(), String.join("-", serializedArguments)));
         } else { // GRPC call
             String classOrModuleName = "GrpcClient";
             String path = req.path();
@@ -171,8 +172,7 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
                     serviceName,
                     grpcServiceName,
                     grpcFullMethodName,
-                    String.join("-", serializedArguments)
-            );
+                    new CallsiteArguments(req.getClass(), String.join("-", serializedArguments)));
         }
 
 

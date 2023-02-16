@@ -4,6 +4,7 @@ import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.dei.DistributedExecutionIndexType;
 import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
+import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.datatypes.RequestId;
 import cloud.filibuster.instrumentation.datatypes.VectorClock;
@@ -610,7 +611,9 @@ final public class FilibusterClientInstrumentor {
         invocationPayload.put("source_service_name", serviceName);
         invocationPayload.put("module", callsite.getClassOrModuleName());
         invocationPayload.put("method", callsite.getMethodOrFunctionName());
-        invocationPayload.put("args", callsite.getSerializedArguments());
+        CallsiteArguments callsiteArguments = callsite.getSerializedArguments();
+        JSONObject invocationArguments = callsiteArguments.toJSONObject();
+        invocationPayload.put("args", invocationArguments);
         invocationPayload.put("kwargs", new JSONObject());
         invocationPayload.put("callsite_file", callsite.getFileName());
         invocationPayload.put("callsite_line", callsite.getLineNumber());

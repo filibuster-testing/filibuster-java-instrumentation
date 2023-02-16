@@ -25,7 +25,8 @@ public class ResponseBecomesRequestAnalyzer extends TestExecutionReportAnalyzer 
     void rpc(int RPC, DistributedExecutionIndex distributedExecutionIndex, JSONObject invocation, JSONObject response) {
         for (Map.Entry<Integer, Map.Entry<JSONObject, JSONObject>> previousResponse : rpcResponses) {
             int previousResponseInvocationNumber = previousResponse.getKey();
-            String invocationArgs = invocation.getString("args");
+            JSONObject invocationArgsObject = invocation.getJSONObject("args");
+            String invocationArgs = invocationArgsObject.getString("toString");
             JSONObject previousResponseInvocation = previousResponse.getValue().getKey();
             JSONObject previousResponseObject = previousResponse.getValue().getValue();
             String previousResponseInvocationMethod = previousResponseInvocation.getString("method");

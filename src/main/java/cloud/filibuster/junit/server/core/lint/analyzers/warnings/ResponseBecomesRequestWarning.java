@@ -14,12 +14,12 @@ public class ResponseBecomesRequestWarning extends FilibusterAnalyzerWarning {
 
     @Override
     public String getDescription() {
-        return "Response from RPC becomes part of the request to an immediately subsequent RPC.";
+        return "Response from RPC becomes part of the request to an immediately subsequent RPC to the same service.";
     }
 
     @Override
     public String getRecommendations() {
-        return "Consider altering the target RPC method to provide the desired response.";
+        return "Consider providing a combined RPC method to get the desired response and reduce RPC overhead.";
     }
 
     @Override

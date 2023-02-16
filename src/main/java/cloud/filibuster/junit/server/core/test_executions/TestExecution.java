@@ -112,7 +112,7 @@ public abstract class TestExecution {
         for (Map.Entry<DistributedExecutionIndex, JSONObject> entry : executedRPCs.entrySet()) {
             JSONObject executedRPCObject = entry.getValue();
 
-            if (executedRPCObject.getString("args").equals(serializedRequest)) {
+            if (executedRPCObject.getJSONObject("args").getString("toString").equals(serializedRequest)) {
                 DistributedExecutionIndex distributedExecutionIndex = entry.getKey();
 
                 if (faultsToInject.containsKey(distributedExecutionIndex)) {
@@ -205,7 +205,7 @@ public abstract class TestExecution {
                             return true;
                         } else {
                             JSONObject executedRPCObject = entry.getValue();
-                            if (executedRPCObject.getString("args").contains(contains)) {
+                            if (executedRPCObject.getJSONObject("args").getString("toString").contains(contains)) {
                                 return true;
                             }
                         }

@@ -99,7 +99,7 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerFakeNoFaultTest exte
         VectorClock assertVc = generateAssertionClock();
         assertEquals(assertVc.toString(), lastPayload.get("vclock").toString());
 
-        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-a4db5eb7244470407d1785effbc6c33e359615d4-146409d9c7d501362ce2f58ab555782fba01c7c6\", 1]]", lastPayload.getString("execution_index"));
+        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-a4db5eb7244470407d1785effbc6c33e359615d4-e3b858152435d0cadc132349ad51d97a785b20b4\", 1]]", lastPayload.getString("execution_index"));
 
         assertFalse(wasFaultInjected());
     }

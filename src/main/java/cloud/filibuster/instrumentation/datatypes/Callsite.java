@@ -33,7 +33,7 @@ public class Callsite {
     private final String serviceName;
     private final String classOrModuleName;
     private final String methodOrFunctionName;
-    private final String serializedArguments;
+    private final CallsiteArguments serializedArguments;
     private final String serializedStackTrace;
     private final String fileName;
     private final String lineNumber;
@@ -65,7 +65,7 @@ public class Callsite {
         String serviceName,
         String classOrModuleName,
         String methodOrFunctionName,
-        String serializedArguments
+        CallsiteArguments serializedArguments
     ) {
         this.serviceName = serviceName;
         this.classOrModuleName = classOrModuleName;
@@ -147,9 +147,11 @@ public class Callsite {
     /**
      * Return the serialized arguments.
      *
+     * TODO: Rename me.
+     *
      * @return string of serialized arguments.
      */
-    public String getSerializedArguments() {
+    public CallsiteArguments getSerializedArguments() {
         return serializedArguments;
     }
 

@@ -1,0 +1,197 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Filibuster Test Execution Report</title>
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script type="text/javascript" src="./summary.js"></script>
+    <style>
+        body {
+            font-size: 85%;
+
+			font-family: 'Gill Sans',
+				'Gill Sans MT', ' Calibri',
+				'Trebuchet MS', 'sans-serif';
+        }
+
+		table {
+			margin: 0 auto;
+			font-size: large;
+            table-layout: fixed;
+		}
+
+		h1 {
+			color: black;
+			font-size: xx-large;
+		}
+
+        div {
+			text-align: center;
+            margin: 0 auto;
+            width: 500px;
+            padding-bottom: 10px;
+        }
+
+        .fail {
+            font-weight: bold;
+            color: red;
+        }
+
+        .pass {
+            font-weight: bold;
+            color: green;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 12px 20px;
+            box-sizing: border-box;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            background-color: #f8f8f8;
+            font-size: 16px;
+            resize: none;
+        }
+
+        th {
+            background-color: lightgrey;
+        }
+
+		th,
+		td {
+			font-weight: bold;
+			padding: 10px;
+            vertical-align: top;
+		}
+
+		td {
+            font-weight: lighter;
+		}
+
+        tr.pass {
+            background-color: lightgreen;
+        }
+
+        tr.fail {
+            background-color: lightyellow;
+        }
+
+        tr.fault {
+            background-color: lightcoral;
+        }
+
+        td.warning {
+            vertical-align: top;
+            font-weight: 400;
+        }
+
+        tr.warning {
+            font-size: 14px;
+            background-color: lightyellow;
+        }
+
+        td.right {
+            text-align: right;
+        }
+
+        span.verysmall {
+            font-size: 10px;
+        }
+
+        td.generated_id {
+			text-align: center;
+        }
+
+        td.method, td.generated_id {
+            padding: 12px 20px;
+            font-family: 'Inconsolata';
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .class_name {
+            padding: 0;
+            margin-bottom: 10px;
+            font-family: 'Inconsolata';
+            font-size: 18px;
+            font-weight: 500;
+            width: 100%;
+            text-align: left;
+        }
+
+        div.summary {
+            width: 5%;
+            float: left;
+        }
+
+        table.reports {
+            float: left;
+            width: 80px;
+        }
+
+        div.results {
+            width: 90%;
+            float: left;
+        }
+
+        div.container {
+            float: left;
+            width: 100%;
+        }
+	</style>
+</head>
+
+<body>
+<section>
+    <h1 id='status'>Filibuster Test Coverage</h1>
+
+    <div class="container">
+        <div id="summary" class="summary">
+            <table id="reports" class="reports">
+                <tr>
+                    <th>Test<br /></th>
+                </tr>
+            </table>
+        </div>
+
+        <div id="results" class="results"></div>
+    </div>
+    </div>
+
+
+    <script>
+				$(document).ready(function () {
+                    console.log(summary);
+
+                    for (i in summary.reports) {
+                        var report = summary.reports[i];
+                        console.log(report);
+
+                        var row = '';
+
+                        if (report.iteration === 1) {
+                            var iframe = '<iframe frameborder="0" scrolling="auto" src="' + report.path + '" name="filibuster_frame" height="800px" width="100%"></iframe>';
+                            $('#results').append(iframe);
+                        }
+
+                        if (report.status === true) {
+                            row += '<tr class="pass">';
+                        } else {
+                            row += '<tr class="fail">';
+                        }
+
+                        row += '<td>';
+                        row += '<a target="filibuster_frame" href="' + report.path + '">' + report.iteration + '</a>';
+                        row += '</td>';
+
+                        row += '</tr>';
+
+						$('#reports').append(row);
+                    }
+				});
+			</script>
+</section>
+</body>
+
+</html>

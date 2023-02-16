@@ -1,6 +1,7 @@
 package cloud.filibuster.integration.instrumentation.libraries.armeria.http.tests;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
+import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.integration.instrumentation.FilibusterServerFake;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
 import cloud.filibuster.instrumentation.datatypes.VectorClock;
@@ -69,7 +70,7 @@ public class FilibusterDecoratingHttpClientTest extends FilibusterDecoratingHttp
         setInitialVectorClock(new VectorClock());
         setInitialOriginVectorClock(new VectorClock());
 
-        Callsite callsite = new Callsite("service", "class", "moduleName", "deadbeef");
+        Callsite callsite = new Callsite("service", "class", "moduleName", new CallsiteArguments(Object.class, "deadbeef"));
         DistributedExecutionIndex ei = createNewDistributedExecutionIndex();
         ei.push(callsite);
         setInitialDistributedExecutionIndex(ei.toString());

@@ -13,20 +13,17 @@
         }
 
 		table {
-			margin: 0 auto;
 			font-size: large;
-            table-layout: fixed;
             min-width: 1200px;
+            width: 100%;
 		}
 
 		h1 {
-			text-align: center;
 			color: black;
 			font-size: xx-large;
 		}
 
         div {
-			text-align: center;
             margin: 0 auto;
             width: 500px;
             padding-bottom: 10px;
@@ -96,7 +93,7 @@
         }
 
         span.verysmall {
-            font-size: 10px;
+            font-size: 8px;
         }
 
         td.generated_id {
@@ -124,11 +121,11 @@
 
 <body>
 <section>
-    <h1 id='status'></h1>
+    <h3 id='status'></h3>
 
     <table id='rpcs'>
         <tr>
-            <th>Sequence<br /><span class="verysmall">invocation order, for debugging only</span></th>
+            <th>#</th>
             <th>RPC Identifier<br /><span class="verysmall">Filibuster assigned<br />Distributed Execution Index</span></th>
             <th>RPC Method</th>
             <th>RPC Arguments</th>
@@ -149,9 +146,9 @@
                     var status = analysis.status;
                     var iteration = analysis.iteration;
                     if (status) {
-                        $('#status').html("Filibuster Generated Test Execution " + iteration + " <div class='pass'>Test Passed</div>");
+                        $('#status').html("Generated Test Execution " + iteration + " <br /><span class='pass'>Test Passed</span>");
                     } else {
-                        $('#status').html("Filibuster Generated Test Execution " + iteration + " <div class='fail'>Test Failed</div>");
+                        $('#status').html("Generated Test Execution " + iteration + " <br /><span class='fail'>Test Failed</span>");
                     }
 
                     for (i in analysis.rpcs) {

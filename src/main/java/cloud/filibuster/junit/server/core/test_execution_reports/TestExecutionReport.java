@@ -14,6 +14,7 @@ import org.json.JSONObject;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -188,8 +189,8 @@ public class TestExecutionReport {
 
                 // Write out index file.
                 Path indexPath = Paths.get(directory + "/index.html");
-                File resourceIndexPath = getFileFromResource("html/test_execution_report/index.html");
-                Files.write(indexPath, Files.readAllBytes(resourceIndexPath.toPath()));
+                byte[] indexBytes = getResourceAsBytes("html/test_execution_report/index.html");
+                Files.write(indexPath, indexBytes);
 
                 // Set materialized and it's location.
                 hasReportBeenMaterialized = true;
@@ -203,8 +204,6 @@ public class TestExecutionReport {
                                 "[FILIBUSTER-CORE]: Click me for tool view: http://filibuster.local" + indexPath + "\n");
             } catch (IOException e) {
                 throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution report: ", e);
-            } catch (URISyntaxException e) {
-                throw new FilibusterTestReportWriterException("Filibuster failed to open resource file: ", e);
             }
         }
     }
@@ -213,14 +212,23 @@ public class TestExecutionReport {
         return this.materializedReportMetadata;
     }
 
-    private File getFileFromResource(String fileName) throws URISyntaxException {
+    private byte[] getResourceAsBytes(String fileName) {
         ClassLoader classLoader = getClass().getClassLoader();
-        URL resource = classLoader.getResource(fileName);
+        InputStream resource = classLoader.getResourceAsStream(fileName);
 
         if (resource == null) {
-            throw new FilibusterTestReportWriterException("Filibuster failed to open resource file; this is possibly a file not found for file: " + fileName);
-        } else {
-            return new File(resource.toURI());
+            throw new FilibusterTestReportWriterException("Filibuster failed to open resource file because it is null; this is possibly a file not found for file: " + fileName);
         }
+
+        byte[] targetArray = new byte[0];
+
+        try {
+            targetArray = new byte[resource.available()];
+            resource.read(targetArray);
+        } catch (IOException e) {
+            throw new FilibusterTestReportWriterException("Filibuster failed to open resource file because of exception; this is possibly a file not found for file: " + fileName, e);
+        }
+
+        return targetArray;
     }
 }

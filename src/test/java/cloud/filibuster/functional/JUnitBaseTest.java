@@ -20,6 +20,7 @@ import static cloud.filibuster.integration.instrumentation.TestHelper.stopWorldS
 import static cloud.filibuster.instrumentation.helpers.Property.setCallsiteLineNumberProperty;
 import static cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor.clearDistributedExecutionIndexForRequestId;
 import static cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor.clearVectorClockForRequestId;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Base call for JUnit tests that starts/stops the required services and resets the Filibuster configuration.
@@ -67,5 +68,13 @@ public class JUnitBaseTest {
     protected void clearStateFromLastExecution() {
         clearDistributedExecutionIndexForRequestId();
         clearVectorClockForRequestId();
+    }
+
+    protected void assertEqualsUnlessFilibusterDisabledByEnvironment(int expected, int actual) {
+        if (System.getenv("FILIBUSTER_DISABLED") != null) {
+            assertEquals(0, actual);
+        } else {
+            assertEquals(expected, actual);
+        }
     }
 }

@@ -4,6 +4,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedServerBackend
 import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.server.backends.FilibusterDockerServerBackend;
 import cloud.filibuster.junit.server.FilibusterServerBackend;
+import cloud.filibuster.junit.server.latency.FilibusterLatencyProfile;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import io.micrometer.core.instrument.util.IOUtils;
 import org.json.JSONObject;
@@ -39,6 +40,8 @@ public class FilibusterConfiguration {
 
     private final Class<? extends RuntimeException> expected;
 
+    private final FilibusterLatencyProfile latencyProfile;
+
     private FilibusterConfiguration(Builder builder) {
         this.dynamicReduction = builder.dynamicReduction;
         this.suppressCombinations = builder.suppressCombinations;
@@ -49,6 +52,7 @@ public class FilibusterConfiguration {
         this.dockerImageName = builder.dockerImageName;
         this.degradeWhenServerInitializationFails = builder.degradeWhenServerInitializationFails;
         this.expected = builder.expected;
+        this.latencyProfile = builder.latencyProfile;
     }
 
     /**
@@ -112,6 +116,10 @@ public class FilibusterConfiguration {
      */
     public FilibusterSearchStrategy getSearchStrategy() {
         return this.searchStrategy;
+    }
+
+    public FilibusterLatencyProfile getLatencyProfile() {
+        return this.latencyProfile;
     }
 
     /**
@@ -183,6 +191,8 @@ public class FilibusterConfiguration {
         private boolean degradeWhenServerInitializationFails = false;
 
         private Class<? extends RuntimeException> expected;
+
+        private FilibusterLatencyProfile latencyProfile;
 
         /**
          * Should this configuration use dynamic reduction?
@@ -297,6 +307,20 @@ public class FilibusterConfiguration {
         @CanIgnoreReturnValue
         public Builder searchStrategy(FilibusterSearchStrategy searchStrategy) {
             this.searchStrategy = searchStrategy;
+            return this;
+        }
+
+        @CanIgnoreReturnValue
+        public Builder latencyProfile(Class<? extends FilibusterLatencyProfile> clazz) {
+            FilibusterLatencyProfile latencyProfile;
+
+            try {
+                latencyProfile = clazz.getDeclaredConstructor().newInstance();
+            } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                throw new FilibusterUnsupportedServerBackendException("Backend " + clazz + " is not supported.", e);
+            }
+
+            this.latencyProfile = latencyProfile;
             return this;
         }
 

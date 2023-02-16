@@ -9,6 +9,7 @@ import cloud.filibuster.instrumentation.datatypes.Callsite;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Objects;
 
 import static cloud.filibuster.dei.DistributedExecutionIndexType.V1;
@@ -202,12 +203,14 @@ public class DistributedExecutionIndexV1 extends DistributedExecutionIndexBase i
 
     public static class Key implements DistributedExecutionIndexKey {
         private final String source;
+        private final String destination;
         private final String signature;
         private final String synchronous;
         private final String asynchronous;
 
         public Key(Builder builder) {
             this.source = builder.source;
+            this.destination = builder.destination;
             this.signature = builder.signature;
             this.synchronous = builder.synchronous;
             this.asynchronous = builder.asynchronous;
@@ -232,6 +235,16 @@ public class DistributedExecutionIndexV1 extends DistributedExecutionIndexBase i
         }
 
         @Override
+        public String onlySignature() {
+            return this.signature;
+        }
+
+        @Override
+        public String onlyDestination() {
+            return this.destination;
+        }
+
+        @Override
         public int hashCode() {
             return Objects.hash(VERSION, source, signature, synchronous, asynchronous);
         }
@@ -250,6 +263,7 @@ public class DistributedExecutionIndexV1 extends DistributedExecutionIndexBase i
         public static class Builder {
             private static final DistributedExecutionIndexType version = V1;
             private String source;
+            private String destination;
             private String signature;
             private String synchronous;
             private String asynchronous;
@@ -257,6 +271,12 @@ public class DistributedExecutionIndexV1 extends DistributedExecutionIndexBase i
             @CanIgnoreReturnValue
             public Builder source(String source) {
                 this.source = source;
+                return this;
+            }
+
+            @CanIgnoreReturnValue
+            public Builder destination(String destination) {
+                this.destination = destination;
                 return this;
             }
 
@@ -356,10 +376,25 @@ public class DistributedExecutionIndexV1 extends DistributedExecutionIndexBase i
     public DistributedExecutionIndexKey convertCallsiteToDistributedExecutionIndexKey(Callsite callsite) {
         Key key = new Builder()
                 .source(generateRpcSourceFromCallsite(callsite))
+                .destination(callsite.getClassOrModuleName())
                 .signature(generateRpcSignatureFromCallsite(callsite))
                 .synchronous(generateRpcSynchronousComponentFromCallsite(callsite))
                 .asynchronous(generateRpcAsynchronousComponentFromCallsite(callsite))
                 .build();
         return key;
+    }
+
+    @Override
+    public String projectionLastKeyWithOnlySignature() {
+        Map.Entry<DistributedExecutionIndexKey, Integer> lastCallstackEntry = callstack.get(callstack.size() - 1);
+        DistributedExecutionIndexKey key = lastCallstackEntry.getKey();
+        return key.onlySignature().toString();
+    }
+
+    @Override
+    public String projectionLastKeyWithOnlyDestination() {
+        Map.Entry<DistributedExecutionIndexKey, Integer> lastCallstackEntry = callstack.get(callstack.size() - 1);
+        DistributedExecutionIndexKey key = lastCallstackEntry.getKey();
+        return key.onlyDestination().toString();
     }
 }

@@ -1,17 +1,30 @@
 package cloud.filibuster.junit.server.core.test_execution_reports;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
+import cloud.filibuster.exceptions.filibuster.FilibusterAnalysisFailureException;
 import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterException;
+import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.MultipleInvocationsForIndividualMutationsAnalyzer;
+import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.RedundantRPCAnalyzer;
+import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.ResponseBecomesRequestAnalyzer;
+import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.TestExecutionReportAnalyzer;
+import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.UnimplementedFailuresAnalyzer;
+import cloud.filibuster.junit.server.core.lint.analyzers.warnings.FilibusterAnalyzerWarning;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -34,6 +47,24 @@ public class TestExecutionReport {
     private final HashMap<DistributedExecutionIndex, JSONObject> deiResponses = new HashMap<>();
 
     private final HashMap<DistributedExecutionIndex, JSONObject> deiFaultsInjected = new HashMap<>();
+
+    private final List<FilibusterAnalyzerWarning> warnings = new ArrayList<>();
+
+    public List<FilibusterAnalyzerWarning> getWarnings() {
+        return this.warnings;
+    }
+
+    public Iterator<DistributedExecutionIndex> getInvocationOrderIterator() {
+        return deiInvocationOrder.iterator();
+    }
+
+    public JSONObject getInvocationObject(DistributedExecutionIndex distributedExecutionIndex) {
+        return deiInvocations.get(distributedExecutionIndex);
+    }
+
+    public JSONObject getResponseObject(DistributedExecutionIndex distributedExecutionIndex) {
+        return deiResponses.get(distributedExecutionIndex);
+    }
 
     public void recordInvocation(
             DistributedExecutionIndex distributedExecutionIndex,
@@ -66,18 +97,64 @@ public class TestExecutionReport {
         private static final String RESPONSE_KEY = "response";
         private static final String FAULT_KEY = "fault";
         private static final String RPCS_KEY = "rpcs";
+        private static final String WARNINGS_KEY = "warnings";
+        private static final String GENERATED_ID_KEY = "generated_id";
+    }
+
+    public static void addAnalyzer(Class<? extends TestExecutionReportAnalyzer> clazz) {
+        testExecutionReportAnalyzers.add(clazz);
+    }
+
+    public static ArrayList<Class<? extends TestExecutionReportAnalyzer>> testExecutionReportAnalyzers = new ArrayList<>();
+
+    static {
+        testExecutionReportAnalyzers.add(RedundantRPCAnalyzer.class);
+        testExecutionReportAnalyzers.add(UnimplementedFailuresAnalyzer.class);
+        testExecutionReportAnalyzers.add(ResponseBecomesRequestAnalyzer.class);
+        testExecutionReportAnalyzers.add(MultipleInvocationsForIndividualMutationsAnalyzer.class);
     }
 
     @SuppressWarnings("MemberName")
     private JSONObject toJSONObject() {
+        for (Class<? extends TestExecutionReportAnalyzer> clazz : testExecutionReportAnalyzers) {
+            try {
+                TestExecutionReportAnalyzer testExecutionReportAnalyzer = clazz.getDeclaredConstructor(TestExecutionReport.class).newInstance(this);
+                warnings.addAll(testExecutionReportAnalyzer.analyze());
+            } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                throw new FilibusterAnalysisFailureException("could not instantiate class " + clazz + " for analysis", e);
+            }
+        }
+
         ArrayList<JSONObject> RPCs = new ArrayList<>();
 
+        // This is totally faked because it should come from the report.  Effectively, we're using the array index here of invocation order.
+        int generatedId = 0;
+
         for (DistributedExecutionIndex dei : deiInvocationOrder) {
+            List<JSONObject> warningObjects = new ArrayList<>();
+
+            for (FilibusterAnalyzerWarning warning : warnings) {
+                if (warning.getDistributedExecutionIndex().equals(dei)) {
+                    JSONObject warningObject = new JSONObject();
+                    warningObject.put(Keys.DEI_KEY, warning.getDistributedExecutionIndex().toString());
+                    warningObject.put("name", warning.getName());
+                    warningObject.put("recommendation", warning.getRecommendations());
+                    warningObject.put("impact", warning.getImpact());
+                    warningObject.put("description", warning.getDescription());
+                    warningObject.put("details", warning.getDetails());
+                    warningObjects.add(warningObject);
+                }
+            }
+
+            generatedId++;
+
             JSONObject RPC = new JSONObject();
+            RPC.put(Keys.GENERATED_ID_KEY, String.valueOf(generatedId));
             RPC.put(Keys.DEI_KEY, dei.toString());
             RPC.put(Keys.REQUEST_KEY, deiInvocations.getOrDefault(dei, new JSONObject()));
             RPC.put(Keys.RESPONSE_KEY, deiResponses.getOrDefault(dei, new JSONObject()));
             RPC.put(Keys.FAULT_KEY, deiFaultsInjected.getOrDefault(dei, new JSONObject()));
+            RPC.put(Keys.WARNINGS_KEY, warningObjects);
             RPCs.add(RPC);
         }
 
@@ -85,6 +162,7 @@ public class TestExecutionReport {
         result.put(Keys.ITERATION_KEY, testExecutionNumber);
         result.put(Keys.STATUS_KEY, testExecutionPassed);
         result.put(Keys.RPCS_KEY, RPCs);
+
         return result;
     }
 
@@ -110,7 +188,8 @@ public class TestExecutionReport {
 
                 // Write out index file.
                 Path indexPath = Paths.get(directory + "/index.html");
-                Files.write(indexPath, htmlContent.getBytes(Charset.defaultCharset()));
+                File resourceIndexPath = getFileFromResource("html/test_execution_report/index.html");
+                Files.write(indexPath, Files.readAllBytes(resourceIndexPath.toPath()));
 
                 // Set materialized and it's location.
                 hasReportBeenMaterialized = true;
@@ -124,6 +203,8 @@ public class TestExecutionReport {
                                 "[FILIBUSTER-CORE]: Click me for tool view: http://filibuster.local" + indexPath + "\n");
             } catch (IOException e) {
                 throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution report: ", e);
+            } catch (URISyntaxException e) {
+                throw new FilibusterTestReportWriterException("Filibuster failed to open resource file: ", e);
             }
         }
     }
@@ -132,166 +213,14 @@ public class TestExecutionReport {
         return this.materializedReportMetadata;
     }
 
-    private static final String htmlContent = "<html lang=\"en\">\n" +
-            "\n" +
-            "<head>\n" +
-            "    <meta charset=\"UTF-8\">\n" +
-            "    <title>Filibuster Test Execution Report</title>\n" +
-            "    <script src=\"https://code.jquery.com/jquery-3.5.1.js\"></script>\n" +
-            "    <script type=\"text/javascript\" src=\"./analysis.js\"></script>\n" +
-            "    <style>\n" +
-            "\t\ttable {\n" +
-            "\t\t\tmargin: 0 auto;\n" +
-            "\t\t\tfont-size: large;\n" +
-            "\t\t\tborder: 1px solid black;\n" +
-            "            table-layout: fixed;\n" +
-            "\t\t}\n" +
-            "\n" +
-            "\t\th1 {\n" +
-            "\t\t\ttext-align: center;\n" +
-            "\t\t\tcolor: #006600;\n" +
-            "\t\t\tfont-size: xx-large;\n" +
-            "\t\t\tfont-family: 'Gill Sans',\n" +
-            "\t\t\t\t'Gill Sans MT', ' Calibri',\n" +
-            "\t\t\t\t'Trebuchet MS', 'sans-serif';\n" +
-            "\t\t}\n" +
-            "\n" +
-            "        div {\n" +
-            "\t\t\ttext-align: center;\n" +
-            "            margin: 0 auto;\n" +
-            "            width: 500px;\n" +
-            "            padding-bottom: 10px;\n" +
-            "        }\n" +
-            "\n" +
-            "        .fail { \n" +
-            "            font-weight: bold;\n" +
-            "            color: red;\n" +
-            "        }\n" +
-            "\n" +
-            "        .pass { \n" +
-            "            font-weight: bold;\n" +
-            "            color: green;\n" +
-            "        }\n" +
-            "\n" +
-            "\t\ttd {\n" +
-            "\t\t\tborder: 1px solid black;\n" +
-            "\t\t}\n" +
-            "\n" +
-            "\t\tth,\n" +
-            "\t\ttd {\n" +
-            "\t\t\tfont-weight: bold;\n" +
-            "\t\t\tborder: 1px solid black;\n" +
-            "\t\t\tpadding: 10px;\n" +
-            "\t\t\ttext-align: center;\n" +
-            "\t\t}\n" +
-            "\n" +
-            "\t\ttd {\n" +
-            "            font-weight: lighter;\n" +
-            "\t\t}\n" +
-            "\n" +
-            "        tr.success {\n" +
-            "            background-color: green;\n" +
-            "        }\n" +
-            "\n" +
-            "        tr.exception {\n" +
-            "            background-color: yellow;\n" +
-            "        }\n" +
-            "\n" +
-            "        tr.fault {\n" +
-            "            background-color: red;\n" +
-            "        }\n" +
-            "\t</style>\n" +
-            "</head>\n" +
-            "\n" +
-            "<body>\n" +
-            "<section>\n" +
-            "    <h1>Filibuster Test Execution Report</h1>\n" +
-            "\n" +
-            "    <div id='status'></div>\n" +
-            "\n" +
-            "    <table id='table'>\n" +
-            "        <tr>\n" +
-            "            <th>Distributed Execution Index</th>\n" +
-            "            <th>RPC Method</th>\n" +
-            "            <th>RPC Arguments</th>\n" +
-            "            <th>Response</th>\n" +
-            "            <th>Fault?</th>\n" +
-            "        </tr>\n" +
-            "\n" +
-            "        <script>\n" +
-            "                function isEmpty(obj) {\n" +
-            "                    return Object.keys(obj).length === 0;\n" +
-            "                }\n" +
-            "\n" +
-            "                function containsExceptionKey(obj) {\n" +
-            "                    return \"exception\" in obj;\n" +
-            "                }\n" +
-            "\n" +
-            "\t\t\t\t$(document).ready(function () {\n" +
-            "                    console.log(analysis);\n" +
-            "                    var status = analysis.status;\n" +
-            "                    var iteration = analysis.iteration;\n" +
-            "                    if (status) {\n" +
-            "                        $('#status').html(\"Test Execution \" + iteration + \" <div class='pass'>Test Passed</div>\");\n" +
-            "                    } else {\n" +
-            "                        $('#status').html(\"Test Execution \" + iteration + \" <div class='fail'>Test Failed</div>\");\n" +
-            "                    }\n" +
-            "\n" +
-            "                    for (i in analysis.rpcs) {\n" +
-            "                        var rpc = analysis.rpcs[i];\n" +
-            "                        var isFaulted = !isEmpty(rpc.fault);\n" +
-            "                        var isExceptionResponse = containsExceptionKey(rpc.response);\n" +
-            "                        console.log(rpc.response);\n" +
-            "\n" +
-            "                        var row = '';\n" +
-            "\n" +
-            "                        if (!isFaulted) {\n" +
-            "                            if (isExceptionResponse) {\n" +
-            "                                row += '<tr class=\"exception\">';\n" +
-            "                            } else {\n" +
-            "                                row += '<tr class=\"success\">';\n" +
-            "                            }\n" +
-            "                        } else {\n" +
-            "                            row += '<tr class=\"fault\">';\n" +
-            "                        }\n" +
-            "\n" +
-            "                        row += '<td class=\"dei\"><textarea>' + rpc.dei + '</textarea></td>';\n" +
-            "                        row += '<td class=\"method\">' + rpc.request.method + '</td>';\n" +
-            "                        row += '<td class=\"args\"><textarea>' + rpc.request.args + '</textarea></td>';\n" +
-            "\n" +
-            "                        if (isExceptionResponse) {\n" +
-            "                            row += '<td>';\n" +
-            "                            row += 'code = ' + rpc.response.exception.metadata.code + ', ';\n" +
-            "                            if (rpc.response.exception.metadata.cause === \"\") {\n" +
-            "                                row += 'cause = undefined';\n" +
-            "                            } else {\n" +
-            "                                row += 'cause = ' + rpc.response.exception.metadata.cause;\n" +
-            "                            }\n" +
-            "                            row += '</td>';\n" +
-            "                        } else {\n" +
-            "                            row += '<td class=\"response\"><textarea>' + rpc.response.return_value.toString + '</textarea></td>';\n" +
-            "                        }\n" +
-            "\n" +
-            "                        if (!isFaulted) {\n" +
-            "                            row += '<td></td>';\n" +
-            "                        } else {\n" +
-            "                            row += '<td>';\n" +
-            "                            row += 'code = ' + rpc.fault.forced_exception.metadata.code + ', ';\n" +
-            "                            if (rpc.fault.forced_exception.metadata.cause === \"\") {\n" +
-            "                                row += 'cause = null';\n" +
-            "                            } else {\n" +
-            "                                row += 'cause = ' + rpc.fault.forced_exception.metadata.cause;\n" +
-            "                            }\n" +
-            "                            row += '</td>';\n" +
-            "                        }\n" +
-            "\n" +
-            "                        row += '</tr>';\n" +
-            "\t\t\t\t\t\t$('#table').append(row);\n" +
-            "                    }\n" +
-            "\t\t\t\t});\n" +
-            "\t\t\t</script>\n" +
-            "</section>\n" +
-            "</body>\n" +
-            "\n" +
-            "</html>\n";
+    private File getFileFromResource(String fileName) throws URISyntaxException {
+        ClassLoader classLoader = getClass().getClassLoader();
+        URL resource = classLoader.getResource(fileName);
+
+        if (resource == null) {
+            throw new FilibusterTestReportWriterException("Filibuster failed to open resource file; this is possibly a file not found for file: " + fileName);
+        } else {
+            return new File(resource.toURI());
+        }
+    }
 }

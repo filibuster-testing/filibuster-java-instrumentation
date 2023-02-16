@@ -14,4 +14,8 @@ public interface DistributedExecutionIndex extends Cloneable {
 
     Object clone();
 
+    String projectionLastKeyWithOnlySignature();
+
+    String projectionLastKeyWithOnlyDestination();
+
 }

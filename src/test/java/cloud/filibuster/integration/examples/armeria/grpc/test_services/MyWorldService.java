@@ -111,4 +111,15 @@ public class MyWorldService extends WorldServiceGrpc.WorldServiceImplBase {
             logger.log(Level.SEVERE, "Failed to terminate channel: " + e);
         }
     }
+
+    @Override
+    public void worldRandom(Hello.WorldRequest req, StreamObserver<Hello.WorldReply> responseObserver) {
+        double random = Math.random();
+
+        Hello.WorldReply reply = Hello.WorldReply.newBuilder()
+                .setMessage(String.valueOf(random))
+                .build();
+        responseObserver.onNext(reply);
+        responseObserver.onCompleted();
+    }
 }

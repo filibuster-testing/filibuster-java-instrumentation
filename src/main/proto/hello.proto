@@ -16,6 +16,10 @@ service HelloService {
   rpc LotsOfGreetings (stream HelloRequest) returns (HelloReply) {}
   rpc BidiHello (stream HelloRequest) returns (stream HelloReply) {}
   rpc Unimplemented (HelloRequest) returns (HelloReply) {}
+  rpc SmellyRedundantRPC (HelloRequest) returns (HelloReply) {}
+  rpc SmellyUnimplementedFailures (HelloRequest) returns (HelloReply) {}
+  rpc SmellyResponseBecomesRequest (HelloRequest) returns (HelloReply) {}
+  rpc SmellyMultipleInvocationsForIndividualMutations (HelloRequest) returns (HelloReply) {}
 }
 
 message HelloRequest {
@@ -31,6 +35,7 @@ service WorldService {
   rpc WorldUnimplemented (WorldRequest) returns (WorldReply) {}
   rpc WorldExternalHttp (WorldRequest) returns (WorldReply) {}
   rpc WorldExternalGrpc (WorldRequest) returns (WorldReply) {}
+  rpc WorldRandom (WorldRequest) returns (WorldReply) {}
 }
 
 message WorldRequest {

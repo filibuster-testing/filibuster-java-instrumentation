@@ -4,14 +4,18 @@ import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.dei.implementations.DistributedExecutionIndexV1;
 import cloud.filibuster.exceptions.filibuster.FilibusterCoreLogicException;
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
+import cloud.filibuster.exceptions.filibuster.FilibusterLatencyInjectionException;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
+import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration.MatcherType;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
 import cloud.filibuster.junit.server.core.test_execution_reports.TestExecutionAggregateReport;
+import cloud.filibuster.junit.server.core.test_execution_reports.TestExecutionReport;
 import cloud.filibuster.junit.server.core.test_executions.ConcreteTestExecution;
 import cloud.filibuster.junit.server.core.test_executions.AbstractTestExecution;
 import cloud.filibuster.junit.server.core.test_executions.TestExecution;
+import cloud.filibuster.junit.server.latency.FilibusterLatencyProfile;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -91,6 +95,7 @@ public class FilibusterCore {
     private ConcreteTestExecution currentConcreteTestExecution = new ConcreteTestExecution();
 
     // Analysis file, populated only once received from the test suite.
+    // In the future, this could just bypass this completely because we have the FilibusterConfiguration?
     @Nullable
     private FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
@@ -99,6 +104,16 @@ public class FilibusterCore {
     private int numberOfAbstractExecutionsExecuted = 0;
 
     private int numberOfConcreteExecutionsExecuted = 0;
+
+    private static TestExecutionReport mostRecentInitialTestExecutionReport;
+
+    public static synchronized TestExecutionReport getMostRecentInitialTestExecutionReport() {
+        return mostRecentInitialTestExecutionReport;
+    }
+
+    public static synchronized void setMostRecentInitialTestExecutionReport(TestExecutionReport report) {
+        mostRecentInitialTestExecutionReport = report;
+    }
 
     // RPC hooks.
 
@@ -121,6 +136,7 @@ public class FilibusterCore {
 
         // Generate new abstract executions to run and queue them into the unexplored list.
         if (filibusterCustomAnalysisConfigurationFile != null) {
+            // Only works for GRPC right now.
             String moduleName = payload.getString("module");
             String methodName = payload.getString("method");
 
@@ -155,6 +171,18 @@ public class FilibusterCore {
                 JSONObject failureMetadataFaultObject = faultObject.getJSONObject("failure_metadata");
                 logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using failure_metadata: " + failureMetadataFaultObject.toString(4));
                 response.put("failure_metadata", failureMetadataFaultObject);
+            } else if (faultObject.has("latency")) {
+                JSONObject latencyObject = faultObject.getJSONObject("latency");
+                logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using latency: " + latencyObject.toString(4));
+
+                // Do we do this in the client instrumentation?  We need to if we want more than just local server support.
+                int millisecondsToDelay = latencyObject.getInt("milliseconds");
+
+                try {
+                    Thread.sleep(millisecondsToDelay);
+                } catch (InterruptedException e) {
+                    throw new FilibusterFaultInjectionException("Failed to inject latency for call: ", e);
+                }
             } else {
                 logger.info("[FILIBUSTER-CORE]: beginInvocation, failing to inject unknown fault: " + faultObject.toString(4));
                 throw new FilibusterFaultInjectionException("Unknown fault configuration: " + faultObject);
@@ -163,6 +191,32 @@ public class FilibusterCore {
 
         // Legacy, not used, but helpful in debugging and required by instrumentation libraries.
         response.put("generated_id", generatedId);
+
+        // This could be returned to the client and the delay done there.
+        FilibusterLatencyProfile filibusterLatencyProfile = filibusterConfiguration.getLatencyProfile();
+
+        if (filibusterLatencyProfile != null) {
+            int totalSleepMs = 0;
+
+            // Only works for GRPC right now.
+            int serviceSleepMs = filibusterLatencyProfile.getMsLatencyForService(payload.getString("module"));
+            int methodSleepMs = filibusterLatencyProfile.getMsLatencyForMethod(payload.getString("method"));
+
+            totalSleepMs += serviceSleepMs;
+            totalSleepMs += methodSleepMs;
+
+            logger.info("\n" +
+                    "[FILIBUSTER-CORE]: sleep based on latency profile: \n" +
+                    "serviceSleepMs: " + serviceSleepMs + "\n" +
+                    "methodSleepMs: " + methodSleepMs + "\n" +
+                    "totalSleepMs: " + totalSleepMs + "\n");
+
+            try {
+                Thread.sleep(totalSleepMs);
+            } catch (InterruptedException e) {
+                throw new FilibusterLatencyInjectionException("Failed to inject latency for call: ", e);
+            }
+        }
 
         logger.info("[FILIBUSTER-CORE]: beginInvocation returning, response: " + response.toString(4));
 
@@ -275,7 +329,11 @@ public class FilibusterCore {
 
         if (currentConcreteTestExecution != null) {
             // Add the test report to the aggregate report.
-            testExecutionAggregateReport.addTestExecutionReport(currentConcreteTestExecution.getTestExecutionReport());
+            TestExecutionReport testExecutionReport = currentConcreteTestExecution.getTestExecutionReport();
+            if (currentIteration == 1) {
+                setMostRecentInitialTestExecutionReport(testExecutionReport);
+            }
+            testExecutionAggregateReport.addTestExecutionReport(testExecutionReport);
 
             // We're executing a test and not just running empty iterations (i.e., JUnit maxIterations > number of actual tests.)
 
@@ -421,6 +479,21 @@ public class FilibusterCore {
                 filibusterAnalysisConfigurationBuilder.pattern(nameObject.getString("pattern"));
             }
 
+            if (nameObject.has("latencies")) {
+                JSONArray jsonArray = nameObject.getJSONArray("latencies");
+
+                for (Object obj : jsonArray) {
+                    JSONObject latencyObject = (JSONObject) obj;
+
+                    MatcherType matcherType = MatcherType.valueOf(latencyObject.getString("type"));
+                    String matcher = latencyObject.getString("matcher");
+                    int milliseconds = latencyObject.getInt("milliseconds");
+
+                    filibusterAnalysisConfigurationBuilder.latency(matcherType, matcher, milliseconds);
+                    logger.info("[FILIBUSTER-CORE]: analysisFile, found new configuration, matcherType: " + matcherType + ", matcher: " + matcher + ", milliseconds: " + milliseconds);
+                }
+            }
+
             if (nameObject.has("exceptions")) {
                 JSONArray jsonArray = nameObject.getJSONArray("exceptions");
 
@@ -482,6 +555,33 @@ public class FilibusterCore {
             for (FilibusterAnalysisConfiguration filibusterAnalysisConfiguration : filibusterCustomAnalysisConfigurationFile.getFilibusterAnalysisConfigurations()) {
                 // Second check here (concat) is a legacy check for the old Python server compatibility.
                 if (filibusterAnalysisConfiguration.isPatternMatch(methodName) || filibusterAnalysisConfiguration.isPatternMatch(moduleName + "." + methodName)) {
+                    // Latency.
+                    List<JSONObject> latencyFaultObjects = filibusterAnalysisConfiguration.getLatencyFaultObjects();
+
+                    for(JSONObject faultObject : latencyFaultObjects) {
+                        JSONObject latencyObject = faultObject.getJSONObject("latency");
+                        String latencyObjectMatcherType = latencyObject.getString("type");
+                        MatcherType matcherType = MatcherType.valueOf(latencyObjectMatcherType);
+                        String latencyObjectMatcher = latencyObject.getString("matcher");
+                        Pattern faultServiceNamePattern = Pattern.compile(latencyObjectMatcher, Pattern.CASE_INSENSITIVE);
+                        Matcher matcher;
+
+                        switch (matcherType) {
+                            case SERVICE:
+                                matcher = faultServiceNamePattern.matcher(moduleName);
+                                break;
+                            case METHOD:
+                                matcher = faultServiceNamePattern.matcher(methodName);
+                                break;
+                            default:
+                                throw new FilibusterFaultInjectionException("Unknown latency injection type: " + matcherType);
+                        }
+
+                        if (matcher.find()) {
+                            createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject);
+                        }
+                    }
+
                     // Exceptions.
                     List<JSONObject> exceptionFaultObjects = filibusterAnalysisConfiguration.getExceptionFaultObjects();
 

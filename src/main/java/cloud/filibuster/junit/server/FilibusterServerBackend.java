@@ -11,4 +11,6 @@ public interface FilibusterServerBackend {
     boolean stop(FilibusterConfiguration filibusterConfiguration) throws Throwable;
 
     List<FilibusterSearchStrategy> supportedSearchStrategies();
+
+    boolean latencyProfileSupported();
 }

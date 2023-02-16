@@ -462,4 +462,204 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
             logger.log(Level.SEVERE, "Failed to terminate channel: " + e);
         }
     }
+
+    @Override
+    public void smellyRedundantRPC(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
+        ManagedChannel originalChannel = ManagedChannelBuilder
+                .forAddress(Networking.getHost("world"), Networking.getPort("world"))
+                .usePlaintext()
+                .build();
+
+        // Setup interceptor.
+
+        ClientInterceptor clientInterceptor;
+
+        if (useOtelClientInterceptor) {
+            clientInterceptor = new OpenTelemetryFilibusterClientInterceptor("hello", null, null);
+        } else {
+            clientInterceptor = new FilibusterClientInterceptor("hello");
+        }
+
+        Channel channel = ClientInterceptors.intercept(originalChannel, clientInterceptor);
+
+        // Smell 1, RedundantRPC.
+
+        for (int i = 0; i < 4; i++) {
+            try {
+                performAsyncWorldRequest(channel, req.getName()).get();
+            } catch (InterruptedException | ExecutionException e) {
+                // Do nothing.
+            }
+        }
+
+        // Response.
+
+        Hello.HelloReply reply = Hello.HelloReply.newBuilder()
+                .setMessage("Hello, Smelly!")
+                .build();
+        responseObserver.onNext(reply);
+        responseObserver.onCompleted();
+
+        originalChannel.shutdownNow();
+
+        try {
+            originalChannel.awaitTermination(1000, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            logger.log(Level.SEVERE, "Failed to terminate channel: " + e);
+        }
+    }
+
+    private static CompletableFuture<String> performAsyncWorldUnimplementedRequest(Channel channel, String name) {
+        CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+            WorldServiceGrpc.WorldServiceBlockingStub blockingStub = WorldServiceGrpc.newBlockingStub(channel);
+            Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(name).build();
+            Hello.WorldReply worldReply = blockingStub.worldUnimplemented(request);
+            return worldReply.getMessage();
+        });
+
+        return future;
+    }
+
+    @Override
+    public void smellyUnimplementedFailures(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
+        ManagedChannel originalChannel = ManagedChannelBuilder
+                .forAddress(Networking.getHost("world"), Networking.getPort("world"))
+                .usePlaintext()
+                .build();
+
+        // Setup interceptor.
+
+        ClientInterceptor clientInterceptor;
+
+        if (useOtelClientInterceptor) {
+            clientInterceptor = new OpenTelemetryFilibusterClientInterceptor("hello", null, null);
+        } else {
+            clientInterceptor = new FilibusterClientInterceptor("hello");
+        }
+
+        Channel channel = ClientInterceptors.intercept(originalChannel, clientInterceptor);
+
+        // Smell 2, UnimplementedFailures.
+
+        try {
+            performAsyncWorldUnimplementedRequest(channel, req.getName()).get();
+        } catch (InterruptedException | ExecutionException e) {
+            // Do nothing.
+        }
+
+        // Response.
+
+        Hello.HelloReply reply = Hello.HelloReply.newBuilder()
+                .setMessage("Hello, Smelly!")
+                .build();
+        responseObserver.onNext(reply);
+        responseObserver.onCompleted();
+
+        originalChannel.shutdownNow();
+
+        try {
+            originalChannel.awaitTermination(1000, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            logger.log(Level.SEVERE, "Failed to terminate channel: " + e);
+        }
+    }
+
+    @Override
+    public void smellyResponseBecomesRequest(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
+        ManagedChannel originalChannel = ManagedChannelBuilder
+                .forAddress(Networking.getHost("world"), Networking.getPort("world"))
+                .usePlaintext()
+                .build();
+
+        // Setup interceptor.
+
+        ClientInterceptor clientInterceptor;
+
+        if (useOtelClientInterceptor) {
+            clientInterceptor = new OpenTelemetryFilibusterClientInterceptor("hello", null, null);
+        } else {
+            clientInterceptor = new FilibusterClientInterceptor("hello");
+        }
+
+        Channel channel = ClientInterceptors.intercept(originalChannel, clientInterceptor);
+
+        // Smell 3, ResponseBecomesRequest.
+        try {
+            String response = performAsyncWorldRequest(channel, req.getName()).get();
+            performAsyncWorldRequest(channel, "Some random stuff to prevent field + prefix response match, " + response).get();
+        } catch (InterruptedException | ExecutionException e) {
+            // Do nothing.
+        }
+
+        // Response.
+
+        Hello.HelloReply reply = Hello.HelloReply.newBuilder()
+                .setMessage("Hello, Smelly!")
+                .build();
+        responseObserver.onNext(reply);
+        responseObserver.onCompleted();
+
+        originalChannel.shutdownNow();
+
+        try {
+            originalChannel.awaitTermination(1000, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            logger.log(Level.SEVERE, "Failed to terminate channel: " + e);
+        }
+    }
+
+    private static CompletableFuture<String> performAsyncWorldRandomRequest(Channel channel, String name) {
+        CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+            WorldServiceGrpc.WorldServiceBlockingStub blockingStub = WorldServiceGrpc.newBlockingStub(channel);
+            Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(name).build();
+            Hello.WorldReply worldReply = blockingStub.worldRandom(request);
+            return worldReply.getMessage();
+        });
+
+        return future;
+    }
+
+    @Override
+    public void smellyMultipleInvocationsForIndividualMutations(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
+        ManagedChannel originalChannel = ManagedChannelBuilder
+                .forAddress(Networking.getHost("world"), Networking.getPort("world"))
+                .usePlaintext()
+                .build();
+
+        // Setup interceptor.
+
+        ClientInterceptor clientInterceptor;
+
+        if (useOtelClientInterceptor) {
+            clientInterceptor = new OpenTelemetryFilibusterClientInterceptor("hello", null, null);
+        } else {
+            clientInterceptor = new FilibusterClientInterceptor("hello");
+        }
+
+        Channel channel = ClientInterceptors.intercept(originalChannel, clientInterceptor);
+
+        // Smell 4, MultipleInvocationsForIndividualMutations.
+        try {
+            performAsyncWorldRandomRequest(channel, "Some really big shared component of the request, 1").get();
+            performAsyncWorldRandomRequest(channel, "Some really big shared component of the request, 2").get();
+        } catch (InterruptedException | ExecutionException e) {
+            // Do nothing.
+        }
+
+        // Response.
+
+        Hello.HelloReply reply = Hello.HelloReply.newBuilder()
+                .setMessage("Hello, Smelly!")
+                .build();
+        responseObserver.onNext(reply);
+        responseObserver.onCompleted();
+
+        originalChannel.shutdownNow();
+
+        try {
+            originalChannel.awaitTermination(1000, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            logger.log(Level.SEVERE, "Failed to terminate channel: " + e);
+        }
+    }
 }

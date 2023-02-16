@@ -19,7 +19,7 @@ public class ResponseBecomesRequestWarning extends FilibusterAnalyzerWarning {
 
     @Override
     public String getRecommendations() {
-        return "Consider altering the target RPC method to provide the desired response.";
+        return "Consider providing a combined RPC method to get the desired response and reduce RPC overhead.";
     }
 
     @Override

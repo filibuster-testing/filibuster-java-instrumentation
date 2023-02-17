@@ -6,6 +6,7 @@ import cloud.filibuster.junit.server.core.lint.analyzers.warnings.FilibusterAnal
 import cloud.filibuster.junit.server.core.test_execution_reports.TestExecutionReport;
 import org.json.JSONObject;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -19,7 +20,7 @@ public abstract class TestExecutionReportAnalyzer {
         this.testExecutionReport = testExecutionReport;
     }
 
-    abstract void rpc(int RPC, DistributedExecutionIndex distributedExecutionIndex, JSONObject invocation, JSONObject response);
+    abstract void rpc(int RPC, DistributedExecutionIndex distributedExecutionIndex, JSONObject invocation, @Nullable JSONObject response);
 
     public List<FilibusterAnalyzerWarning> getWarnings() {
         return this.warnings;

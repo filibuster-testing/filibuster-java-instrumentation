@@ -71,11 +71,20 @@
 
         tr.pass {
             background-color: lightgreen;
+            text-align: center;
+        }
+
+        tr.collapsable-pass {
+            display: none;
+        }
+
+        tr.collapsable-fail {
             display: none;
         }
 
         tr.fail {
             background-color: lightcoral;
+            text-align: center;
         }
 
         td.warning {
@@ -94,6 +103,7 @@
 
         span.verysmall {
             font-size: 10px;
+            color: black;
         }
 
         td.generated_id {
@@ -140,6 +150,10 @@
         .small {
             font-size: small;
         }
+
+        .verysmall {
+            font-size: 10px;
+        }
 	</style>
 </head>
 
@@ -155,7 +169,7 @@
                         <br />
                         <span id="total" class="small"></span>
                         <br />
-                        <a class="small" href="#" onClick="togglePasses();">Toggle Pass/Fail</a>
+                        <a class="verysmall" href="#" onClick="togglePasses();">Toggle Pass/Fail</a>
                     </th>
                 </tr>
             </table>
@@ -167,43 +181,54 @@
 
 
     <script>
+        function togglePasses() {
+            $('tr.collapsable-pass').toggle();
+        }
 
-                function togglePasses() {
-                    $('tr.pass').toggle();
+        $(document).ready(function () {
+            console.log(summary);
+
+            $('#total').html("(" + summary.reports.length + ")");
+
+            for (i in summary.reports) {
+                var report = summary.reports[i];
+                console.log(report);
+
+                var row = '';
+
+                if (report.iteration === 1) {
+                    var iframe = '<iframe frameborder="0" scrolling="auto" src="' + report.path + '" name="filibuster_frame" height="800px" width="100%"></iframe>';
+                    $('#results').append(iframe);
                 }
 
-				$(document).ready(function () {
-                    console.log(summary);
-
-                    $('#total').html("(" + summary.reports.length + ")");
-
-                    for (i in summary.reports) {
-                        var report = summary.reports[i];
-                        console.log(report);
-
-                        var row = '';
-
-                        if (report.iteration === 1) {
-                            var iframe = '<iframe frameborder="0" scrolling="auto" src="' + report.path + '" name="filibuster_frame" height="800px" width="100%"></iframe>';
-                            $('#results').append(iframe);
-                        }
-
-                        if (report.status === true) {
-                            row += '<tr class="pass">';
-                        } else {
-                            row += '<tr class="fail">';
-                        }
-
-                        row += '<td>';
-                        row += '<a target="filibuster_frame" href="' + report.path + '">' + report.iteration + '</a>';
-                        row += '</td>';
-
-                        row += '</tr>';
-
-						$('#reports').append(row);
+                if (report.iteration !== 1) {
+                    if (report.status === true) {
+                        row += '<tr class="pass collapsable-pass">';
+                    } else {
+                        row += '<tr class="fail collapsable-fail">';
                     }
-				});
-			</script>
+                } else {
+                    if (report.status === true) {
+                        row += '<tr class="pass">';
+                    } else {
+                        row += '<tr class="fail">';
+                    }
+                }
+
+                row += '<td>';
+                row += '<a target="filibuster_frame" href="' + report.path + '">' + report.iteration + '</a>';
+
+                if (report.iteration === 1) {
+                    row += '<br /><span class="verysmall">(fault-free)</span>';
+                }
+
+                row += '</td>';
+                row += '</tr>';
+
+                $('#reports').append(row);
+            }
+        });
+    </script>
 </section>
 </body>
 

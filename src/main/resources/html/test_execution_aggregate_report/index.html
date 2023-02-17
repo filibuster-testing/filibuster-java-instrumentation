@@ -71,13 +71,10 @@
 
         tr.pass {
             background-color: lightgreen;
+            display: none;
         }
 
         tr.fail {
-            background-color: lightyellow;
-        }
-
-        tr.fault {
             background-color: lightcoral;
         }
 
@@ -139,6 +136,10 @@
             float: left;
             width: 100%;
         }
+
+        .small {
+            font-size: small;
+        }
 	</style>
 </head>
 
@@ -150,7 +151,12 @@
         <div id="summary" class="summary">
             <table id="reports" class="reports">
                 <tr>
-                    <th>Test<br /></th>
+                    <th>Tests
+                        <br />
+                        <span id="total" class="small"></span>
+                        <br />
+                        <a class="small" href="#" onClick="togglePasses();">Toggle Pass/Fail</a>
+                    </th>
                 </tr>
             </table>
         </div>
@@ -161,8 +167,15 @@
 
 
     <script>
+
+                function togglePasses() {
+                    $('tr.pass').toggle();
+                }
+
 				$(document).ready(function () {
                     console.log(summary);
+
+                    $('#total').html("(" + summary.reports.length + ")");
 
                     for (i in summary.reports) {
                         var report = summary.reports[i];

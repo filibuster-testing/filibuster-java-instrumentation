@@ -1,6 +1,7 @@
 package cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
+import cloud.filibuster.exceptions.filibuster.FilibusterAnalysisFailureException;
 import cloud.filibuster.junit.server.core.lint.analyzers.warnings.FilibusterAnalyzerWarning;
 import cloud.filibuster.junit.server.core.test_execution_reports.TestExecutionReport;
 import org.json.JSONObject;
@@ -39,7 +40,11 @@ public abstract class TestExecutionReportAnalyzer {
             JSONObject invocationObject = testExecutionReport.getInvocationObject(distributedExecutionIndex);
             JSONObject responseObject = testExecutionReport.getResponseObject(distributedExecutionIndex);
 
-            rpc(i, distributedExecutionIndex, invocationObject, responseObject);
+            try {
+                rpc(i, distributedExecutionIndex, invocationObject, responseObject);
+            } catch (RuntimeException e) {
+                throw new FilibusterAnalysisFailureException("Analyzer " + this.getClass() + " failed with exception: " + e);
+            }
 
             i++;
         }

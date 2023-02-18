@@ -90,6 +90,12 @@
             background-color: lightyellow;
         }
 
+        td.empty_response_warning {
+            font-size: small;
+            background-color: lightyellow;
+            vertical-align: top;
+        }
+
         td.right {
             text-align: right;
         }
@@ -142,153 +148,157 @@
         </tr>
 
         <script>
-                function isEmpty(obj) {
-                    return Object.keys(obj).length === 0;
+            function isEmpty(obj) {
+                return Object.keys(obj).length === 0;
+            }
+
+            function containsExceptionKey(obj) {
+                return "exception" in obj;
+            }
+
+            function toggleDebug() {
+                $('tr.debug').toggle();
+            }
+
+            $(document).ready(function () {
+                var status = analysis.status;
+                var iteration = analysis.iteration;
+                if (status) {
+                    $('#status').html("Generated Test Execution " + iteration + " <br /><span class='pass'>Test Passed</span>");
+                } else {
+                    $('#status').html("Generated Test Execution " + iteration + " <br /><span class='fail'>Test Failed</span>");
                 }
 
-                function containsExceptionKey(obj) {
-                    return "exception" in obj;
-                }
+                for (i in analysis.rpcs) {
+                    var rpc = analysis.rpcs[i];
+                    var isFaulted = !isEmpty(rpc.fault);
+                    var isExceptionResponse = containsExceptionKey(rpc.response);
 
-                function toggleDebug() {
-                    $('tr.debug').toggle();
-                }
+                    var row = '';
 
-				$(document).ready(function () {
-                    var status = analysis.status;
-                    var iteration = analysis.iteration;
-                    if (status) {
-                        $('#status').html("Generated Test Execution " + iteration + " <br /><span class='pass'>Test Passed</span>");
+                    if (!isFaulted) {
+                        if (isEmpty(rpc.response)) {
+                            row += '<tr class="warning">';
+                        } else if (isExceptionResponse) {
+                            row += '<tr class="exception">';
+                        } else {
+                            row += '<tr class="success">';
+                        }
                     } else {
-                        $('#status').html("Generated Test Execution " + iteration + " <br /><span class='fail'>Test Failed</span>");
+                        row += '<tr class="fault">';
                     }
 
-                    for (i in analysis.rpcs) {
-                        var rpc = analysis.rpcs[i];
-                        var isFaulted = !isEmpty(rpc.fault);
-                        var isExceptionResponse = containsExceptionKey(rpc.response);
+                    var generated_id;
 
-                        var row = '';
+                    if ('generated_id' in rpc) {
+                        generated_id = rpc.generated_id;
+                    } else {
+                        generated_id = 'X';
+                    }
 
-                        if (!isFaulted) {
-                            if (isExceptionResponse) {
-                                row += '<tr class="exception">';
-                            } else {
-                                row += '<tr class="success">';
-                            }
-                        } else {
-                            row += '<tr class="fault">';
-                        }
+                    row += '<td class="generated_id">' + generated_id + '</td>';
 
-                        var generated_id;
+                    row += '<td class="method">' + rpc.request.method + '</td>';
 
-                        if ('generated_id' in rpc) {
-                            generated_id = rpc.generated_id;
-                        } else {
-                            generated_id = 'X';
-                        }
+                    row += '<td class="args">';
+                    row += '<div class="class_name">' + rpc.request.args.__class__ + '</div>';
+                    row += '<textarea>';
+                    row += rpc.request.args.toString;
+                    row += '</textarea>'
+                    row += '</td>';
 
-                        row += '<td class="generated_id">' + generated_id + '</td>';
-
-                        row += '<td class="method">' + rpc.request.method + '</td>';
-
-                        row += '<td class="args">';
-                        row += '<div class="class_name">' + rpc.request.args.__class__ + '</div>';
+                    if (isEmpty(rpc.response)) {
+                        row += '<td>⚠️ No RPC response was recorded.</td>';
+                    } else if (isExceptionResponse) {
+                        row += '<td>';
+                        row += '<div class="class_name">' + rpc.response.exception.name + '</div>';
                         row += '<textarea>';
-                        row += rpc.request.args.toString;
+                        row += 'code = ' + rpc.response.exception.metadata.code + ', ';
+                        if (rpc.response.exception.metadata.cause === "") {
+                            row += 'cause = ""';
+                        } else {
+                            row += 'cause = ' + rpc.response.exception.metadata.cause;
+                        }
+                        row += '</textarea></td>';
+                    } else {
+                        console.log(rpc.response.return_value);
+                        row += '<td class="response">';
+                        row += '<div class="class_name">' + rpc.response.return_value.__class__ + '</div>';
+                        row += '<textarea>';
+                        row += rpc.response.return_value.toString;
                         row += '</textarea>'
                         row += '</td>';
+                    }
 
-                        if (isExceptionResponse) {
+                    if (!isFaulted) {
+                        row += '<td></td>';
+                    } else {
+                        console.log(rpc.fault)
+
+                        if ('forced_exception' in rpc.fault) {
                             row += '<td>';
-                            row += '<div class="class_name">' + rpc.response.exception.name + '</div>';
+                            row += '<div class="class_name">' + rpc.fault.forced_exception.name + '</div>';
                             row += '<textarea>';
-                            row += 'code = ' + rpc.response.exception.metadata.code + ', ';
-                            if (rpc.response.exception.metadata.cause === "") {
+                            row += 'code = ' + rpc.fault.forced_exception.metadata.code + ', ';
+                            if (rpc.fault.forced_exception.metadata.cause === "") {
                                 row += 'cause = ""';
                             } else {
-                                row += 'cause = ' + rpc.response.exception.metadata.cause;
+                                row += 'cause = ' + rpc.fault.forced_exception.metadata.cause;
                             }
-                            row += '</textarea></td>';
-                        } else {
-                            console.log(rpc.response.return_value);
-                            row += '<td class="response">';
-                            row += '<div class="class_name">' + rpc.response.return_value.__class__ + '</div>';
+                            row += '</textarea>';
+                            row += '</td>';
+                        }
+
+                        if ('latency' in rpc.fault) {
+                            row += '<td>';
+                            row += '<div class="class_name">&nbsp;</div>';
                             row += '<textarea>';
-                            row += rpc.response.return_value.toString;
-                            row += '</textarea>'
+                            row += 'milliseconds = ' + rpc.fault.latency.milliseconds;
+                            row += '</textarea>';
                             row += '</td>';
-                        }
-
-                        if (!isFaulted) {
-                            row += '<td></td>';
-                        } else {
-                            console.log(rpc.fault)
-
-                            if ('forced_exception' in rpc.fault) {
-                                row += '<td>';
-                                row += '<div class="class_name">' + rpc.fault.forced_exception.name + '</div>';
-                                row += '<textarea>';
-                                row += 'code = ' + rpc.fault.forced_exception.metadata.code + ', ';
-                                if (rpc.fault.forced_exception.metadata.cause === "") {
-                                    row += 'cause = ""';
-                                } else {
-                                    row += 'cause = ' + rpc.fault.forced_exception.metadata.cause;
-                                }
-                                row += '</textarea>';
-                                row += '</td>';
-                            }
-
-                            if ('latency' in rpc.fault) {
-                                row += '<td>';
-                                row += '<div class="class_name">&nbsp;</div>';
-                                row += '<textarea>';
-                                row += 'milliseconds = ' + rpc.fault.latency.milliseconds;
-                                row += '</textarea>';
-                                row += '</td>';
-
-                            }
 
                         }
-
-                        row += '</tr>';
-						$('#rpcs').append(row);
-
-                        var row = '';
-                        row += '<tr class="debug">';
-                        row += '<td colspan="6" class="dei">';
-                        row += '<div class="class_name">' + 'cloud.filibuster.dei.DistributedExecutionIndexV1' + '</div>';
-                        row += '<textarea>';
-                        row += rpc.dei;
-                        row += '</textarea>'
-                        row += '</td>';
-                        row += '</tr>';
-						$('#rpcs').append(row);
-
-                        console.log(rpc.warnings);
-
-                        for (i in rpc.warnings) {
-                            var warning = rpc.warnings[i];
-                            var row = '';
-                            row += '<tr class="warning">';
-                            row += '<td class="warning"></td>';
-                            row += '<td class="warning right">⚠️</td>';
-                            row += '<td colspan="3" class="warning" style="text-align: left">';
-                            row += '<b>' + warning.name + '</b>: ' + warning.description + '<br />';
-                            row += '<i>' + warning.impact + '</i><br />';
-                            row += '<i>Details: ' + warning.details + '</i><br />';
-                            row += '<i>Recommendation: ' + warning.recommendation + '</i><br />';
-                            row += '</td>';
-                            row += '</tr>';
-                            $('#rpcs').append(row);
-                        }
-
-                        var spacerrow = '<tr class="spacer"><td colspan="5"></td></tr>';
-						$('#rpcs').append(spacerrow);
 
                     }
-				});
-			</script>
+
+                    row += '</tr>';
+                    $('#rpcs').append(row);
+
+                    var row = '';
+                    row += '<tr class="debug">';
+                    row += '<td colspan="6" class="dei">';
+                    row += '<div class="class_name">' + 'cloud.filibuster.dei.DistributedExecutionIndexV1' + '</div>';
+                    row += '<textarea>';
+                    row += rpc.dei;
+                    row += '</textarea>'
+                    row += '</td>';
+                    row += '</tr>';
+                    $('#rpcs').append(row);
+
+                    console.log(rpc.warnings);
+
+                    for (i in rpc.warnings) {
+                        var warning = rpc.warnings[i];
+                        var row = '';
+                        row += '<tr class="warning">';
+                        row += '<td class="warning"></td>';
+                        row += '<td class="warning right">⚠️</td>';
+                        row += '<td colspan="3" class="warning" style="text-align: left">';
+                        row += '<b>' + warning.name + '</b>: ' + warning.description + '<br />';
+                        row += '<i>' + warning.impact + '</i><br />';
+                        row += '<i>Details: ' + warning.details + '</i><br />';
+                        row += '<i>Recommendation: ' + warning.recommendation + '</i><br />';
+                        row += '</td>';
+                        row += '</tr>';
+                        $('#rpcs').append(row);
+                    }
+
+                    var spacerrow = '<tr class="spacer"><td colspan="5"></td></tr>';
+                    $('#rpcs').append(spacerrow);
+
+                }
+            });
+        </script>
 </section>
 </body>
 

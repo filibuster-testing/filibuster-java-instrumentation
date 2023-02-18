@@ -17,36 +17,39 @@ public class ResponseBecomesRequestAnalyzer extends TestExecutionReportAnalyzer 
         super(testExecutionReport);
     }
 
-    private final List<Map.Entry<Integer, Map.Entry<JSONObject, JSONObject>>> rpcResponses = new ArrayList<>();
+    private final List<Map.Entry<Integer, Map.Entry<JSONObject, JSONObject>>> previousRPCs = new ArrayList<>();
 
     private final static int threshold = 10;
 
     @Override
     void rpc(int RPC, DistributedExecutionIndex distributedExecutionIndex, JSONObject invocation, JSONObject response) {
-        for (Map.Entry<Integer, Map.Entry<JSONObject, JSONObject>> previousResponse : rpcResponses) {
-            int previousResponseInvocationNumber = previousResponse.getKey();
+        for (Map.Entry<Integer, Map.Entry<JSONObject, JSONObject>> previousRPC : previousRPCs) {
+            int previousResponseInvocationNumber = previousRPC.getKey();
             JSONObject invocationArgsObject = invocation.getJSONObject("args");
             String invocationArgs = invocationArgsObject.getString("toString");
-            JSONObject previousResponseInvocation = previousResponse.getValue().getKey();
-            JSONObject previousResponseObject = previousResponse.getValue().getValue();
-            String previousResponseInvocationMethod = previousResponseInvocation.getString("method");
+
+            JSONObject previousRPCInvocation = previousRPC.getValue().getKey();
+            String previousResponseInvocationMethod = previousRPCInvocation.getString("method");
             String currentRequestInvocationMethod = invocation.getString("method");
 
-            if (previousResponseObject.has("return_value")) {
-                JSONObject previousResponseObjectReturnValue = previousResponseObject.getJSONObject("return_value");
-                String lcs = computeLCS(invocationArgs, previousResponseObjectReturnValue.toString());
+            JSONObject previousRPCResponseObject = previousRPC.getValue().getValue();
+            if (previousRPCResponseObject != null) {
+                if (previousRPCResponseObject.has("return_value")) {
+                    JSONObject previousResponseObjectReturnValue = previousRPCResponseObject.getJSONObject("return_value");
+                    String lcs = computeLCS(invocationArgs, previousResponseObjectReturnValue.toString());
 
-                boolean lcsAboveThreshold = lcs.length() >= threshold;
-                boolean previousInvocationDirectlyBeforeRPC = (previousResponseInvocationNumber + 1) == RPC;
-                boolean sameServiceAsTarget = previousResponseInvocation.getString("module").equals(invocation.getString("module"));
+                    boolean lcsAboveThreshold = lcs.length() >= threshold;
+                    boolean previousInvocationDirectlyBeforeRPC = (previousResponseInvocationNumber + 1) == RPC;
+                    boolean sameServiceAsTarget = previousRPCInvocation.getString("module").equals(invocation.getString("module"));
 
-                if (lcsAboveThreshold && previousInvocationDirectlyBeforeRPC && sameServiceAsTarget) {
-                    this.addWarning(new ResponseBecomesRequestWarning(distributedExecutionIndex, "The following string (" + lcs + ") used in a request to " + currentRequestInvocationMethod + " was found in a previous response from " + previousResponseInvocationMethod));
+                    if (lcsAboveThreshold && previousInvocationDirectlyBeforeRPC && sameServiceAsTarget) {
+                        this.addWarning(new ResponseBecomesRequestWarning(distributedExecutionIndex, "The following string (" + lcs + ") used in a request to " + currentRequestInvocationMethod + " was found in a previous response from " + previousResponseInvocationMethod));
+                    }
                 }
             }
         }
 
-        rpcResponses.add(Pair.of(RPC, Pair.of(invocation, response)));
+        previousRPCs.add(Pair.of(RPC, Pair.of(invocation, response)));
     }
 
     @Override

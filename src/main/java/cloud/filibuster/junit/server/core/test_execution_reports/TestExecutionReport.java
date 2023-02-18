@@ -13,12 +13,9 @@ import cloud.filibuster.junit.server.core.lint.analyzers.warnings.FilibusterAnal
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -66,6 +63,10 @@ public class TestExecutionReport {
 
     public JSONObject getResponseObject(DistributedExecutionIndex distributedExecutionIndex) {
         return deiResponses.get(distributedExecutionIndex);
+    }
+
+    public JSONObject getFaultObject(DistributedExecutionIndex distributedExecutionIndex) {
+        return deiFaultsInjected.get(distributedExecutionIndex);
     }
 
     public void recordInvocation(
@@ -122,7 +123,7 @@ public class TestExecutionReport {
         for (Class<? extends TestExecutionReportAnalyzer> clazz : testExecutionReportAnalyzers) {
             try {
                 TestExecutionReportAnalyzer testExecutionReportAnalyzer = clazz.getDeclaredConstructor(TestExecutionReport.class).newInstance(this);
-                warnings.addAll(testExecutionReportAnalyzer.analyze());
+                warnings.addAll(testExecutionReportAnalyzer.analyze(testExecutionPassed));
             } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                 throw new FilibusterAnalysisFailureException("could not instantiate class " + clazz + " for analysis", e);
             }

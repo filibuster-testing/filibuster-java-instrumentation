@@ -11,7 +11,7 @@ public class UnimplementedFailuresAnalyzer extends TestExecutionReportAnalyzer {
     }
 
     @Override
-    void rpc(int RPC, DistributedExecutionIndex distributedExecutionIndex, JSONObject invocation, JSONObject response) {
+    void rpc(boolean testPassed, int RPC, DistributedExecutionIndex distributedExecutionIndex, JSONObject invocation, JSONObject fault, JSONObject response) {
         if (response != null) {
             if (response.has("exception")) {
                 JSONObject exception = response.getJSONObject("exception");
@@ -21,16 +21,30 @@ public class UnimplementedFailuresAnalyzer extends TestExecutionReportAnalyzer {
                         String code = metadata.getString("code");
                         if (code.equals("UNIMPLEMENTED")) {
                             String method = invocation.getString("method");
-                            this.addWarning(new UnimplementedFailuresWarning(distributedExecutionIndex, method));
+
+                            boolean injectedUnimplementedFault = false;
+
+                            if (fault != null) {
+                                if (fault.has("forced_exception")) {
+                                    JSONObject forcedException = fault.getJSONObject("forced_exception");
+
+                                    if (forcedException.has("metadata")) {
+                                        JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
+                                        String faultCode = forcedExceptionMetadata.getString("code");
+                                        if (faultCode.equals(code)) {
+                                            injectedUnimplementedFault = true;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (!injectedUnimplementedFault && testPassed) {
+                                this.addWarning(new UnimplementedFailuresWarning(distributedExecutionIndex, method));
+                            }
                         }
                     }
                 }
             }
         }
-    }
-
-    @Override
-    boolean shouldReportErrorBasedOnTestStatus(boolean testPassed) {
-        return testPassed;
     }
 }

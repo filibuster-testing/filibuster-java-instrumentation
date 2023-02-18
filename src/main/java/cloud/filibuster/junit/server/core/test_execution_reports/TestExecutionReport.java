@@ -65,6 +65,10 @@ public class TestExecutionReport {
         return deiResponses.get(distributedExecutionIndex);
     }
 
+    public JSONObject getFaultObject(DistributedExecutionIndex distributedExecutionIndex) {
+        return deiFaultsInjected.get(distributedExecutionIndex);
+    }
+
     public void recordInvocation(
             DistributedExecutionIndex distributedExecutionIndex,
             JSONObject invocationJsonObject

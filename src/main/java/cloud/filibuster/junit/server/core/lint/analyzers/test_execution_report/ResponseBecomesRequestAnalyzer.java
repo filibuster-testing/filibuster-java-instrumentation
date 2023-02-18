@@ -22,7 +22,7 @@ public class ResponseBecomesRequestAnalyzer extends TestExecutionReportAnalyzer 
     private final static int threshold = 10;
 
     @Override
-    void rpc(int RPC, DistributedExecutionIndex distributedExecutionIndex, JSONObject invocation, JSONObject response) {
+    void rpc(int RPC, DistributedExecutionIndex distributedExecutionIndex, JSONObject invocation, JSONObject fault, JSONObject response) {
         for (Map.Entry<Integer, Map.Entry<JSONObject, JSONObject>> previousRPC : previousRPCs) {
             int previousResponseInvocationNumber = previousRPC.getKey();
             JSONObject invocationArgsObject = invocation.getJSONObject("args");

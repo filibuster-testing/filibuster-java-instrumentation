@@ -16,7 +16,7 @@ public class IncompleteRPCAnalyzer extends TestExecutionReportAnalyzer {
     private final List<String> seenRPCs = new ArrayList<>();
 
     @Override
-    void rpc(int RPC, DistributedExecutionIndex distributedExecutionIndex, JSONObject invocation, JSONObject response) {
+    void rpc(int RPC, DistributedExecutionIndex distributedExecutionIndex, JSONObject invocation, JSONObject fault, JSONObject response) {
         String method = invocation.getString("method");
 
         if (response == null) {

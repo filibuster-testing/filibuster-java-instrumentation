@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class FilibusterSingleFaultAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
+public class FilibusterSingleFaultUnimplementedAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final List<String> exhaustiveGrpcErrorCodeList = new ArrayList<>();
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
@@ -21,7 +21,7 @@ public class FilibusterSingleFaultAnalysisConfigurationFile implements Filibuste
 
         // Google's gRPC exception types.
         // Taken from: https://grpc.github.io/grpc/core/md_doc_statuscodes.html
-        exhaustiveGrpcErrorCodeList.add("UNAVAILABLE");
+        exhaustiveGrpcErrorCodeList.add("UNIMPLEMENTED");
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderGrpcExceptions = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc.exceptions")

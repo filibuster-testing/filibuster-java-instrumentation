@@ -5,10 +5,10 @@ import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.functional.JUnitBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
-import cloud.filibuster.junit.configuration.FilibusterSingleFaultUnavailableAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.FilibusterSingleFaultUnimplementedAnalysisConfigurationFile;
 import cloud.filibuster.junit.server.core.FilibusterCore;
 import cloud.filibuster.junit.server.core.lint.analyzers.warnings.FilibusterAnalyzerWarning;
-import cloud.filibuster.junit.server.core.lint.analyzers.warnings.RedundantRPCWarning;
+import cloud.filibuster.junit.server.core.lint.analyzers.warnings.UnimplementedFailuresWarning;
 import cloud.filibuster.junit.server.core.test_execution_reports.TestExecutionReport;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -25,9 +25,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterTestSmellyRedundantRPC extends JUnitBaseTest {
+public class JUnitFilibusterTestSmellyUnimplementedFailuresWithUnimplementedFault extends JUnitBaseTest {
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest(analysisConfigurationFile=FilibusterSingleFaultUnavailableAnalysisConfigurationFile.class, maxIterations=2)
+    @FilibusterTest(analysisConfigurationFile=FilibusterSingleFaultUnimplementedAnalysisConfigurationFile.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -37,7 +37,7 @@ public class JUnitFilibusterTestSmellyRedundantRPC extends JUnitBaseTest {
 
         HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
         Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
-        Hello.HelloReply reply = blockingStub.smellyRedundantRPC(request);
+        Hello.HelloReply reply = blockingStub.smellyUnimplementedFailures(request);
         assertEquals("Hello, Smelly!", reply.getMessage());
 
         helloChannel.shutdownNow();
@@ -51,10 +51,10 @@ public class JUnitFilibusterTestSmellyRedundantRPC extends JUnitBaseTest {
             TestExecutionReport testExecutionReport = FilibusterCore.getMostRecentInitialTestExecutionReport();
             List<FilibusterAnalyzerWarning> warnings = testExecutionReport.getWarnings();
             for (FilibusterAnalyzerWarning warning : warnings) {
-                assertTrue(warning instanceof RedundantRPCWarning);
-                assertEquals("cloud.filibuster.examples.WorldService/World", warning.getDetails());
+                assertTrue(warning instanceof UnimplementedFailuresWarning);
+                assertEquals("cloud.filibuster.examples.WorldService/WorldUnimplemented", warning.getDetails());
             }
-            assertEquals(3, warnings.size());
+            assertEquals(1, warnings.size());
         }
     }
 }

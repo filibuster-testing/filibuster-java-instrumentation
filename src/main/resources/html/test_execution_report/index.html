@@ -208,7 +208,7 @@
                     row += '</td>';
 
                     if (isEmpty(rpc.response)) {
-                        row += '<td>⚠️ Test terminated before RPC completed.</td>';
+                        row += '<td>⚠️ No RPC response was recorded.</td>';
                     } else if (isExceptionResponse) {
                         row += '<td>';
                         row += '<div class="class_name">' + rpc.response.exception.name + '</div>';

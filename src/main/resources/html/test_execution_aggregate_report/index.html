@@ -74,11 +74,7 @@
             text-align: center;
         }
 
-        tr.collapsable-pass {
-            display: none;
-        }
-
-        tr.collapsable-fail {
+        tr.collapsable {
             display: none;
         }
 
@@ -203,9 +199,9 @@
 
                 if (report.iteration !== 1) {
                     if (report.status === true) {
-                        row += '<tr class="pass collapsable-pass">';
+                        row += '<tr class="pass collapsable">';
                     } else {
-                        row += '<tr class="fail collapsable-fail">';
+                        row += '<tr class="fail">';
                     }
                 } else {
                     if (report.status === true) {

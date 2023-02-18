@@ -123,7 +123,7 @@ public class TestExecutionReport {
         for (Class<? extends TestExecutionReportAnalyzer> clazz : testExecutionReportAnalyzers) {
             try {
                 TestExecutionReportAnalyzer testExecutionReportAnalyzer = clazz.getDeclaredConstructor(TestExecutionReport.class).newInstance(this);
-                warnings.addAll(testExecutionReportAnalyzer.analyze());
+                warnings.addAll(testExecutionReportAnalyzer.analyze(testExecutionPassed));
             } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                 throw new FilibusterAnalysisFailureException("could not instantiate class " + clazz + " for analysis", e);
             }

@@ -11,7 +11,7 @@ public class UnimplementedFailuresAnalyzer extends TestExecutionReportAnalyzer {
     }
 
     @Override
-    void rpc(int RPC, DistributedExecutionIndex distributedExecutionIndex, JSONObject invocation, JSONObject fault, JSONObject response) {
+    void rpc(boolean testPassed, int RPC, DistributedExecutionIndex distributedExecutionIndex, JSONObject invocation, JSONObject fault, JSONObject response) {
         if (response != null) {
             if (response.has("exception")) {
                 JSONObject exception = response.getJSONObject("exception");
@@ -38,7 +38,7 @@ public class UnimplementedFailuresAnalyzer extends TestExecutionReportAnalyzer {
                                 }
                             }
 
-                            if (!injectedUnimplementedFault) {
+                            if (!injectedUnimplementedFault && testPassed) {
                                 this.addWarning(new UnimplementedFailuresWarning(distributedExecutionIndex, method));
                             }
                         }
@@ -46,10 +46,5 @@ public class UnimplementedFailuresAnalyzer extends TestExecutionReportAnalyzer {
                 }
             }
         }
-    }
-
-    @Override
-    boolean shouldReportErrorBasedOnTestStatus(boolean testPassed) {
-        return testPassed;
     }
 }

@@ -22,7 +22,7 @@ public class MultipleInvocationsForIndividualMutationsAnalyzer extends TestExecu
     }
 
     @Override
-    void rpc(int RPC, DistributedExecutionIndex distributedExecutionIndex, JSONObject invocation, JSONObject fault, JSONObject response) {
+    void rpc(boolean testPassed, int RPC, DistributedExecutionIndex distributedExecutionIndex, JSONObject invocation, JSONObject fault, JSONObject response) {
         for (Map.Entry<Integer, Map.Entry<DistributedExecutionIndex, JSONObject>> previousInvocation: previousRpcInvocations) {
             int previousResponseInvocationNumber = previousInvocation.getKey();
             DistributedExecutionIndex previousDistributedExecutionIndex = previousInvocation.getValue().getKey();
@@ -44,10 +44,5 @@ public class MultipleInvocationsForIndividualMutationsAnalyzer extends TestExecu
         }
 
         previousRpcInvocations.add(Pair.of(RPC, Pair.of(distributedExecutionIndex, invocation)));
-    }
-
-    @Override
-    boolean shouldReportErrorBasedOnTestStatus(boolean testPassed) {
-        return true;
     }
 }

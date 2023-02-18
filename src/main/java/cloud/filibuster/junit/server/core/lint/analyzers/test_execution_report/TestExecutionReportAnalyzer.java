@@ -20,7 +20,7 @@ public abstract class TestExecutionReportAnalyzer {
         this.testExecutionReport = testExecutionReport;
     }
 
-    abstract void rpc(int RPC, DistributedExecutionIndex distributedExecutionIndex, JSONObject invocation, @Nullable JSONObject fault, @Nullable JSONObject response);
+    abstract void rpc(boolean testPassed, int RPC, DistributedExecutionIndex distributedExecutionIndex, JSONObject invocation, @Nullable JSONObject fault, @Nullable JSONObject response);
 
     public List<FilibusterAnalyzerWarning> getWarnings() {
         return this.warnings;
@@ -30,9 +30,7 @@ public abstract class TestExecutionReportAnalyzer {
         warnings.add(warning);
     }
 
-    abstract boolean shouldReportErrorBasedOnTestStatus(boolean testPassed);
-
-    public List<FilibusterAnalyzerWarning> analyze() {
+    public List<FilibusterAnalyzerWarning> analyze(boolean testPassed) {
         int i = 0;
 
         for (Iterator it = testExecutionReport.getInvocationOrderIterator(); it.hasNext(); ) {
@@ -43,7 +41,7 @@ public abstract class TestExecutionReportAnalyzer {
             JSONObject responseObject = testExecutionReport.getResponseObject(distributedExecutionIndex);
 
             try {
-                rpc(i, distributedExecutionIndex, invocationObject, faultObject, responseObject);
+                rpc(testPassed, i, distributedExecutionIndex, invocationObject, faultObject, responseObject);
             } catch (RuntimeException e) {
                 throw new FilibusterAnalysisFailureException("Analyzer " + this.getClass() + " failed with exception: " + e);
             }

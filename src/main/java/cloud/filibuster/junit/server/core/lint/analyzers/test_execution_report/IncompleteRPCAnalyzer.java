@@ -16,16 +16,11 @@ public class IncompleteRPCAnalyzer extends TestExecutionReportAnalyzer {
     private final List<String> seenRPCs = new ArrayList<>();
 
     @Override
-    void rpc(int RPC, DistributedExecutionIndex distributedExecutionIndex, JSONObject invocation, JSONObject fault, JSONObject response) {
+    void rpc(boolean testPassed, int RPC, DistributedExecutionIndex distributedExecutionIndex, JSONObject invocation, JSONObject fault, JSONObject response) {
         String method = invocation.getString("method");
 
         if (response == null) {
             this.addWarning(new IncompleteRPCWarning(distributedExecutionIndex, method));
         }
-    }
-
-    @Override
-    boolean shouldReportErrorBasedOnTestStatus(boolean testPassed) {
-        return true;
     }
 }

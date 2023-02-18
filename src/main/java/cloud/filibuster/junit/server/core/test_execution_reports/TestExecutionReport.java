@@ -13,12 +13,9 @@ import cloud.filibuster.junit.server.core.lint.analyzers.warnings.FilibusterAnal
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;

@@ -23,21 +23,26 @@ public class RedundantRPCAnalyzer extends TestExecutionReportAnalyzer {
         String invocationArgs = invocationArgsObject.getString("toString");
         String responseToEncode = "";
 
-        if (response.has("return_value")) {
-            responseToEncode = response.getJSONObject("return_value").toString();
-        } else if (response.has("exception")) {
-            responseToEncode = response.getJSONObject("exception").toString();
-        } else {
-            throw new FilibusterAnalysisFailureException("Response did not contain either a return value or an exception.");
-        }
+        // Could be null if the finish invocation didn't complete for some reason
+        // i.e., test terminated and Filibuster shutdown before thread had a chance to run, I think?
+        // We see this with coroutine usage, it could be a cancellation called after test completes and Filibuster shuts down.
+        if (response != null) {
+            if (response.has("return_value")) {
+                responseToEncode = response.getJSONObject("return_value").toString();
+            } else if (response.has("exception")) {
+                responseToEncode = response.getJSONObject("exception").toString();
+            } else {
+                throw new FilibusterAnalysisFailureException("Response did not contain either a return value or an exception.");
+            }
 
-        String key = deiKey + invocationArgs + responseToEncode;
-        String method = invocation.getString("method");
+            String key = deiKey + invocationArgs + responseToEncode;
+            String method = invocation.getString("method");
 
-        if (seenRPCs.contains(key)) {
-            this.addWarning(new RedundantRPCWarning(distributedExecutionIndex, method));
-        } else {
-            seenRPCs.add(key);
+            if (seenRPCs.contains(key)) {
+                this.addWarning(new RedundantRPCWarning(distributedExecutionIndex, method));
+            } else {
+                seenRPCs.add(key);
+            }
         }
     }
 

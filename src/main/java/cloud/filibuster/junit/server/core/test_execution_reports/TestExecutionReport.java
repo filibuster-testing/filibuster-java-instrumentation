@@ -3,6 +3,7 @@ package cloud.filibuster.junit.server.core.test_execution_reports;
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.exceptions.filibuster.FilibusterAnalysisFailureException;
 import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterException;
+import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.IncompleteRPCAnalyzer;
 import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.MultipleInvocationsForIndividualMutationsAnalyzer;
 import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.RedundantRPCAnalyzer;
 import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.ResponseBecomesRequestAnalyzer;
@@ -113,6 +114,7 @@ public class TestExecutionReport {
         testExecutionReportAnalyzers.add(UnimplementedFailuresAnalyzer.class);
         testExecutionReportAnalyzers.add(ResponseBecomesRequestAnalyzer.class);
         testExecutionReportAnalyzers.add(MultipleInvocationsForIndividualMutationsAnalyzer.class);
+        testExecutionReportAnalyzers.add(IncompleteRPCAnalyzer.class);
     }
 
     @SuppressWarnings("MemberName")

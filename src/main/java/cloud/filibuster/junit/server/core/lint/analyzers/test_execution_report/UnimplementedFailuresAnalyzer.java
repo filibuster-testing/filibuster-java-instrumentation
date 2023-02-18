@@ -12,15 +12,17 @@ public class UnimplementedFailuresAnalyzer extends TestExecutionReportAnalyzer {
 
     @Override
     void rpc(int RPC, DistributedExecutionIndex distributedExecutionIndex, JSONObject invocation, JSONObject response) {
-        if (response.has("exception")) {
-            JSONObject exception = response.getJSONObject("exception");
-            if (exception.has("metadata")) {
-                JSONObject metadata = exception.getJSONObject("metadata");
-                if (metadata.has("code")) {
-                    String code = metadata.getString("code");
-                    if (code.equals("UNIMPLEMENTED")) {
-                        String method = invocation.getString("method");
-                        this.addWarning(new UnimplementedFailuresWarning(distributedExecutionIndex, method));
+        if (response != null) {
+            if (response.has("exception")) {
+                JSONObject exception = response.getJSONObject("exception");
+                if (exception.has("metadata")) {
+                    JSONObject metadata = exception.getJSONObject("metadata");
+                    if (metadata.has("code")) {
+                        String code = metadata.getString("code");
+                        if (code.equals("UNIMPLEMENTED")) {
+                            String method = invocation.getString("method");
+                            this.addWarning(new UnimplementedFailuresWarning(distributedExecutionIndex, method));
+                        }
                     }
                 }
             }

@@ -5,13 +5,16 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 public class TestExecutionAggregateReport {
     private static final Logger logger = Logger.getLogger(TestExecutionAggregateReport.class.getName());
@@ -29,7 +32,14 @@ public class TestExecutionAggregateReport {
         try {
             Files.createDirectory(directory);
         } catch(FileAlreadyExistsException e) {
-            // ignored.
+            try (Stream<Path> filesInDirectoryStream  =  Files.walk(directory) ){
+                filesInDirectoryStream.sorted(Comparator.reverseOrder())
+                        .skip(1) // Don't delete the actual directory in the process
+                        .map(Path::toFile)
+                        .forEach(File::delete);
+            } catch (IOException ex) {
+                throw new FilibusterTestReportWriterException("Filibuster failed to delete content in the /tmp/filibuster/ directory ", e);
+            }
         } catch(IOException e) {
             throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution aggregate report: ", e);
         }

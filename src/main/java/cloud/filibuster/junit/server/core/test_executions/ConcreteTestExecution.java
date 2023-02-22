@@ -29,6 +29,13 @@ public class ConcreteTestExecution extends TestExecution implements Cloneable {
         return testExecutionReport;
     }
 
+    public void writePlaceHolderTestExecutionReport()
+    {
+        if (testExecutionReport != null) {
+            testExecutionReport.writePlaceholderTestReport();
+        }
+    }
+
     public void writeTestExecutionReport(int currentIteration, boolean exceptionOccurred) {
         if (testExecutionReport != null) {
             testExecutionReport.writeTestReport(currentIteration, exceptionOccurred);

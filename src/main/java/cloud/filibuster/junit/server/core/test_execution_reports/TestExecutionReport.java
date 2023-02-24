@@ -49,6 +49,8 @@ public class TestExecutionReport {
 
     private final List<FilibusterAnalyzerWarning> warnings = new ArrayList<>();
 
+    private final UUID uuid = UUID.randomUUID();
+
     public List<FilibusterAnalyzerWarning> getWarnings() {
         return this.warnings;
     }
@@ -175,6 +177,26 @@ public class TestExecutionReport {
         return "var analysis = " + jsonObject.toString(4) + ";";
     }
 
+    public void writePlaceholderTestReport()
+    {
+        try {
+            // Create new directory for analysis report.
+            Path directory = Paths.get("/tmp/filibuster/filibuster-test-execution-" + uuid.toString());
+            Files.createDirectory(directory);
+
+            // Write out index file.
+            Path indexPath = Paths.get(directory + "/index.html");
+            byte[] indexBytes = getResourceAsBytes("html/test_execution_report/index.html");
+            Files.write(indexPath, indexBytes);
+
+            logger.info(
+                    "" + "\n" +
+                            "[FILIBUSTER-CORE]: Placeholder Test Execution Report written to file://" + indexPath + "\n");
+        } catch (IOException e) {
+            throw new FilibusterTestReportWriterException("Filibuster failed to write out placeholder test report: ", e);
+        }
+    }
+
     public void writeTestReport(int currentIteration, boolean exceptionOccurred) {
         testExecutionNumber = currentIteration;
         testExecutionPassed = !exceptionOccurred;
@@ -182,18 +204,23 @@ public class TestExecutionReport {
         if (!hasReportBeenMaterialized) {
             try {
                 // Create new directory for analysis report.
-                UUID uuid = UUID.randomUUID();
-                Path directory = Paths.get("/tmp/filibuster/filibuster-test-execution-" + uuid.toString());
-                Files.createDirectory(directory);
-
-                // Write out the actual JSON data.
-                Path scriptFile = Files.createFile(Paths.get(directory.toString() + "/analysis.js"));
-                Files.write(scriptFile, toJavascript().getBytes(Charset.defaultCharset()));
-
-                // Write out index file.
+                Path directory = Paths.get("/tmp/filibuster/filibuster-test-execution-" + uuid);
+                Path scriptPath = Paths.get(directory + "/analysis.js");
                 Path indexPath = Paths.get(directory + "/index.html");
-                byte[] indexBytes = getResourceAsBytes("html/test_execution_report/index.html");
-                Files.write(indexPath, indexBytes);
+                if (!Files.exists(directory))
+                {
+                    logger.warning("\n[FILIBUSTER-CORE] Could not find placeholder directory");
+                    Files.createDirectory(directory);
+                }
+                if(!Files.exists(indexPath))
+                {
+                    logger.warning("\n[FILIBUSTER-CORE] Placeholder directory path doesn't have index.html");
+                    byte[] indexBytes = getResourceAsBytes("html/test_execution_report/index.html");
+                    Files.write(indexPath, indexBytes);
+                }
+
+                // Note by default Files.write overwrites existing files or create them if it doesn not exist.
+                Files.write(scriptPath, toJavascript().getBytes(Charset.defaultCharset()));
 
                 // Set materialized and it's location.
                 hasReportBeenMaterialized = true;

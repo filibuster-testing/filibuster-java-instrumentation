@@ -115,6 +115,18 @@ public class FilibusterCore {
         mostRecentInitialTestExecutionReport = report;
     }
 
+    public synchronized void writePlaceholderReport() {
+        logger.info("[FILIBUSTER-CORE]: writePlaceholderReport called");
+
+        if (currentConcreteTestExecution != null) {
+            currentConcreteTestExecution.writePlaceHolderTestExecutionReport();
+        } else {
+            throw new FilibusterCoreLogicException("currentConcreteTestExecution should not be null at this point, something fatal occurred.");
+        }
+        logger.info("[FILIBUSTER-CORE]: writePlaceholderReport returning");
+    }
+
+
     // RPC hooks.
 
     // Record an outgoing RPC and conditionally inject faults.
@@ -124,7 +136,6 @@ public class FilibusterCore {
         if (currentConcreteTestExecution == null) {
             throw new FilibusterCoreLogicException("currentConcreteTestExecution should not be null at this point, something fatal occurred.");
         }
-
         // Register the RPC using the distributed execution index.
         String distributedExecutionIndexString = payload.getString("execution_index");
         DistributedExecutionIndex distributedExecutionIndex = new DistributedExecutionIndexV1().deserialize(distributedExecutionIndexString);

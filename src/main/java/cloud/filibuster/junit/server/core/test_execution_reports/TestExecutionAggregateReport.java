@@ -34,8 +34,8 @@ public class TestExecutionAggregateReport {
         } catch(FileAlreadyExistsException e) {
             try (Stream<Path> filesInDirectoryStream  =  Files.walk(directory) ){
                 filesInDirectoryStream.sorted(Comparator.reverseOrder())
-                        .skip(1) // Don't delete the actual directory in the process
                         .map(Path::toFile)
+                        .filter(file -> file.toString().contains("filibuster-test-execution"))
                         .forEach(File::delete);
             } catch (IOException ex) {
                 throw new FilibusterTestReportWriterException("Filibuster failed to delete content in the /tmp/filibuster/ directory ", e);

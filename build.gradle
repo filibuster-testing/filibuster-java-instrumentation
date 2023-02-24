@@ -56,10 +56,9 @@ dependencies {
 
     implementation "com.github.cliftonlabs:json-simple:2.1.2"
     implementation "org.json:json:20210307"
-
     implementation 'org.jetbrains:annotations:16.0.2'
-
     implementation "io.grpc:grpc-netty-shaded:1.40.1"
+    implementation 'com.google.code.gson:gson:2.10.1'
 
     // JUnit annotations
     implementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
@@ -204,7 +203,7 @@ javadoc {
 
 group = "cloud.filibuster"
 archivesBaseName = "instrumentation"
-version = "1.1.16"
+version = "1.2.0"
 
 java {
     withJavadocJar()

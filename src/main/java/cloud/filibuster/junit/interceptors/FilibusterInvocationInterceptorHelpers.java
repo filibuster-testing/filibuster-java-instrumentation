@@ -4,6 +4,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.exceptions.filibuster.FilibusterNoopException;
 import cloud.filibuster.junit.server.FilibusterServerAPI;
+import cloud.filibuster.junit.server.core.FilibusterCore;
 import com.linecorp.armeria.client.WebClient;
 import org.junit.jupiter.api.extension.InvocationInterceptor;
 
@@ -11,6 +12,8 @@ import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendCanInvokeDirectlyProperty;
 
 public class FilibusterInvocationInterceptorHelpers {
     private static final Logger logger = Logger.getLogger(FilibusterInvocationInterceptorHelpers.class.getName());
@@ -34,6 +37,11 @@ public class FilibusterInvocationInterceptorHelpers {
                                               WebClient webClient,
                                               FilibusterConfiguration filibusterConfiguration) throws Throwable {
         try {
+            if (getServerBackendCanInvokeDirectlyProperty()) {
+                if (FilibusterCore.hasCurrentInstance()) {
+                    FilibusterCore.getCurrentInstance().writePlaceholderReport();
+                }
+            }
             invocation.proceed();
             FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */false);
         } catch (Throwable t) {

@@ -1,5 +1,6 @@
 package cloud.filibuster.integration.examples.test_servers;
 
+import cloud.filibuster.instrumentation.libraries.grpc.FilibusterServerInvocationInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.MyHelloService;
 import cloud.filibuster.integration.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
@@ -110,7 +111,7 @@ public class HelloServer {
         if (useOtelServerInterceptor) {
             interceptService = ServerInterceptors.intercept(new MyHelloService(), List.of(new OpenTelemetryFilibusterServerInterceptor(serviceName, null)));
         } else {
-            interceptService = ServerInterceptors.intercept(new MyHelloService(), List.of(new FilibusterServerInterceptor(serviceName)));
+            interceptService = ServerInterceptors.intercept(new MyHelloService(), List.of(new FilibusterServerInterceptor(serviceName), new FilibusterServerInvocationInterceptor()));
         }
 
         sb.service(GrpcService.builder().addService(interceptService).build());

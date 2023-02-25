@@ -2,7 +2,6 @@ package cloud.filibuster.junit.server.core.invocations;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterFakeDeserializationError;
 import com.google.gson.Gson;
-import io.grpc.Status;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;

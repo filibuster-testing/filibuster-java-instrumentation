@@ -32,16 +32,18 @@ public class TestExecutionAggregateReport {
         try {
             Files.createDirectory(directory);
         } catch(FileAlreadyExistsException e) {
-            try (Stream<Path> filesInDirectoryStream  =  Files.walk(directory) ){
-                filesInDirectoryStream.sorted(Comparator.reverseOrder())
-                        .map(Path::toFile)
-                        .filter(file -> file.toString().contains("filibuster-test-execution"))
-                        .forEach(File::delete);
-            } catch (IOException ex) {
-                throw new FilibusterTestReportWriterException("Filibuster failed to delete content in the /tmp/filibuster/ directory ", e);
-            }
-        } catch(IOException e) {
+            // Nothing, directory already exists.
+        } catch (IOException e) {
             throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution aggregate report: ", e);
+        }
+
+        try (Stream<Path> filesInDirectoryStream  =  Files.walk(directory) ){
+            filesInDirectoryStream.sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .filter(file -> file.toString().contains("filibuster-test-execution"))
+                    .forEach(File::delete);
+        } catch (IOException e) {
+            throw new FilibusterTestReportWriterException("Filibuster failed to delete content in the /tmp/filibuster/ directory ", e);
         }
 
         try {

@@ -16,12 +16,10 @@ import java.util.UUID;
 public class FilibusterServerInvocationInterceptor implements ServerInterceptor {
     private static class FilibusterServerCallListener<REQUEST> extends ForwardingServerCallListener.SimpleForwardingServerCallListener<REQUEST> {
         private final String requestId;
-        private final String fullMethodName;
 
-        protected FilibusterServerCallListener(Listener<REQUEST> delegate, String requestId, String fullMethodName) {
+        protected FilibusterServerCallListener(Listener<REQUEST> delegate, String requestId) {
             super(delegate);
             this.requestId = requestId;
-            this.fullMethodName = fullMethodName;
         }
 
         @Override
@@ -65,6 +63,6 @@ public class FilibusterServerInvocationInterceptor implements ServerInterceptor 
         String fullMethodName = call.getMethodDescriptor().getFullMethodName();
         String requestId = UUID.randomUUID().toString();
 
-        return new FilibusterServerCallListener<>(next.startCall(new FilibusterServerCall<REQUEST, RESPONSE>(call, requestId, fullMethodName), metadata), requestId, fullMethodName);
+        return new FilibusterServerCallListener<>(next.startCall(new FilibusterServerCall<REQUEST, RESPONSE>(call, requestId, fullMethodName), metadata), requestId);
     }
 }

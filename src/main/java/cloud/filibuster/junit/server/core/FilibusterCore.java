@@ -48,11 +48,11 @@ public class FilibusterCore {
             return serverInvocationAndResponses;
         }
 
-        public static void startServerInvocation(String requestId, GeneratedMessageV3 message) {
+        public static void beginServerInvocation(String requestId, GeneratedMessageV3 message) {
             incompleteServerInvocationAndResponses.put(requestId, message);
         }
 
-        public static void completeServerInvocation(String requestId, String fullMethodName, Status status, GeneratedMessageV3 responseMessage) {
+        public static void endServerInvocation(String requestId, String fullMethodName, Status status, GeneratedMessageV3 responseMessage) {
             GeneratedMessageV3 requestMessage = incompleteServerInvocationAndResponses.get(requestId);
             ServerInvocationAndResponse serverInvocationAndResponse = new ServerInvocationAndResponse(requestId, fullMethodName, requestMessage, status, responseMessage);
             serverInvocationAndResponses.add(serverInvocationAndResponse);

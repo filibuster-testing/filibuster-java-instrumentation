@@ -58,7 +58,7 @@ dependencies {
     implementation "org.json:json:20210307"
     implementation 'org.jetbrains:annotations:16.0.2'
     implementation "io.grpc:grpc-netty-shaded:1.40.1"
-    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'com.google.code.gson:gson:2.8.9'
 
     // JUnit annotations
     implementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'

@@ -104,6 +104,8 @@ public class TestExecutionReport {
         private static final String RPCS_KEY = "rpcs";
         private static final String WARNINGS_KEY = "warnings";
         private static final String GENERATED_ID_KEY = "generated_id";
+        private static final String UUID_KEY = "uuid";
+
     }
 
     public static void addAnalyzer(Class<? extends TestExecutionReportAnalyzer> clazz) {
@@ -168,6 +170,7 @@ public class TestExecutionReport {
         result.put(Keys.ITERATION_KEY, testExecutionNumber);
         result.put(Keys.STATUS_KEY, testExecutionPassed);
         result.put(Keys.RPCS_KEY, RPCs);
+        result.put(Keys.UUID_KEY, uuid);
 
         return result;
     }
@@ -181,7 +184,7 @@ public class TestExecutionReport {
     {
         try {
             // Create new directory for analysis report.
-            Path directory = Paths.get("/tmp/filibuster/filibuster-test-execution-" + uuid.toString());
+            Path directory = Paths.get("/tmp/filibuster/filibuster-test-execution-" + uuid);
             Files.createDirectory(directory);
 
             // Write out index file.
@@ -224,7 +227,7 @@ public class TestExecutionReport {
 
                 // Set materialized and it's location.
                 hasReportBeenMaterialized = true;
-                materializedReportMetadata = new MaterializedReportMetadata(testExecutionNumber, testExecutionPassed, indexPath);
+                materializedReportMetadata = new MaterializedReportMetadata(testExecutionNumber, testExecutionPassed, indexPath, uuid);
 
                 logger.info(
                         "" + "\n" +

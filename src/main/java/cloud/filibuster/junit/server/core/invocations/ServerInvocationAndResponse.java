@@ -62,6 +62,7 @@ public class ServerInvocationAndResponse {
             JSONObject newJSONObject = new JSONObject();
             newJSONObject.put("class", generatedMessageV3.getClass().getName());
             newJSONObject.put("gson", toJSONObjectWithOnlyGsonPayload(generatedMessageV3));
+            newJSONObject.put("toString", generatedMessageV3.toString());
             return newJSONObject;
         }
 
@@ -88,8 +89,13 @@ public class ServerInvocationAndResponse {
     public static class Status {
         public static JSONObject toJSONObject(io.grpc.Status status) {
             JSONObject jsonObject = new JSONObject();
+
+            // TODO: use keys.
             jsonObject.put("class", "io.grpc.Status");
             jsonObject.put("code", status.getCode().toString());
+            jsonObject.put("cause", status.getCause());
+            jsonObject.put("description", status.getDescription());
+
             return jsonObject;
         }
 
@@ -98,5 +104,39 @@ public class ServerInvocationAndResponse {
             io.grpc.Status.Code code = io.grpc.Status.Code.valueOf(codeStr);
             return io.grpc.Status.fromCode(code);
         }
+    }
+
+    static class Keys {
+        public static final String REQUEST_ID_KEY = "request_id";
+        public static final String METHOD_KEY = "method";
+        public static final String REQUEST_KEY = "request";
+        public static final String STATUS_KEY = "status";
+        public static final String RESPONSE_KEY = "response";
+    }
+
+    public JSONObject toJSONObject() {
+        JSONObject result = new JSONObject();
+        result.put(Keys.REQUEST_ID_KEY, requestId);
+        result.put(Keys.METHOD_KEY, fullMethodName);
+
+        if (requestMessage != null) {
+            result.put(Keys.REQUEST_KEY, GeneratedMessageV3.toJSONObject(requestMessage));
+        } else {
+            result.put(Keys.REQUEST_KEY, new JSONObject());
+        }
+
+        if (responseStatus != null) {
+            result.put(Keys.STATUS_KEY, Status.toJSONObject(responseStatus));
+        } else {
+            result.put(Keys.STATUS_KEY, new JSONObject());
+        }
+
+        if (responseMessage != null) {
+            result.put(Keys.RESPONSE_KEY, GeneratedMessageV3.toJSONObject(responseMessage));
+        } else {
+            result.put(Keys.RESPONSE_KEY, new JSONObject());
+        }
+
+        return result;
     }
 }

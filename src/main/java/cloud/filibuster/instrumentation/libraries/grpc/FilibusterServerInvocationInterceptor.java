@@ -1,6 +1,6 @@
 package cloud.filibuster.instrumentation.libraries.grpc;
 
-import cloud.filibuster.junit.server.core.FilibusterCore;
+import cloud.filibuster.junit.server.core.invocations.ServerInvocationAndResponseReport;
 import com.google.protobuf.GeneratedMessageV3;
 import io.grpc.ForwardingServerCall.SimpleForwardingServerCall;
 import io.grpc.ForwardingServerCallListener;
@@ -25,7 +25,7 @@ public class FilibusterServerInvocationInterceptor implements ServerInterceptor 
         @Override
         public void onMessage(REQUEST message) {
             GeneratedMessageV3 generatedMessage = (GeneratedMessageV3) message;
-            FilibusterCore.ServerInvocations.beginServerInvocation(requestId, generatedMessage);
+            ServerInvocationAndResponseReport.beginServerInvocation(requestId, generatedMessage);
             super.onMessage(message);
         }
     }
@@ -43,14 +43,14 @@ public class FilibusterServerInvocationInterceptor implements ServerInterceptor 
         @Override
         public void sendMessage(RESPONSE message) {
             GeneratedMessageV3 generatedMessage = (GeneratedMessageV3) message;
-            FilibusterCore.ServerInvocations.endServerInvocation(requestId, fullMethodName, Status.OK, generatedMessage);
+            ServerInvocationAndResponseReport.endServerInvocation(requestId, fullMethodName, Status.OK, generatedMessage);
             super.sendMessage(message);
         }
 
         @Override
         public void close(Status status, Metadata trailers) {
             if (!status.equals(Status.OK)) {
-                FilibusterCore.ServerInvocations.endServerInvocation(requestId, fullMethodName, status, null);
+                ServerInvocationAndResponseReport.endServerInvocation(requestId, fullMethodName, status, null);
             }
             super.close(status, trailers);
         }

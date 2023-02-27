@@ -112,7 +112,7 @@ public class TestExecutionAggregateReport {
 
         logger.info(
                 "" + "\n" +
-                        "[FILIBUSTER-CORE]: Test Execution Report written to file://" + indexPath + "\n");
+                        "[FILIBUSTER-CORE]: Test Execution Aggregate Report written to file://" + indexPath + "\n");
     }
 
     private JSONObject toJSONObject() {

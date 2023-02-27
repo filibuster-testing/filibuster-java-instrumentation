@@ -10,15 +10,13 @@ import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration.MatcherType;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
-import cloud.filibuster.junit.server.core.invocations.ServerInvocationAndResponse;
+import cloud.filibuster.junit.server.core.invocations.ServerInvocationAndResponseReport;
 import cloud.filibuster.junit.server.core.test_execution_reports.TestExecutionAggregateReport;
 import cloud.filibuster.junit.server.core.test_execution_reports.TestExecutionReport;
 import cloud.filibuster.junit.server.core.test_executions.ConcreteTestExecution;
 import cloud.filibuster.junit.server.core.test_executions.AbstractTestExecution;
 import cloud.filibuster.junit.server.core.test_executions.TestExecution;
 import cloud.filibuster.junit.server.latency.FilibusterLatencyProfile;
-import com.google.protobuf.GeneratedMessageV3;
-import io.grpc.Status;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -34,34 +32,6 @@ import java.util.regex.Pattern;
 @SuppressWarnings({"Varifier", "Var"})
 public class FilibusterCore {
     private static final Logger logger = Logger.getLogger(FilibusterCore.class.getName());
-
-    // *****************************************************************************************************************
-    // Start Server Invocations and Responses
-    // *****************************************************************************************************************
-
-    public static class ServerInvocations {
-        private static final List<ServerInvocationAndResponse> serverInvocationAndResponses = new ArrayList<>();
-
-        private static final HashMap<String, GeneratedMessageV3> incompleteServerInvocationAndResponses = new HashMap<>();
-
-        public static List<ServerInvocationAndResponse> getServerInvocationAndResponses() {
-            return serverInvocationAndResponses;
-        }
-
-        public static void beginServerInvocation(String requestId, GeneratedMessageV3 message) {
-            incompleteServerInvocationAndResponses.put(requestId, message);
-        }
-
-        public static void endServerInvocation(String requestId, String fullMethodName, Status status, GeneratedMessageV3 responseMessage) {
-            GeneratedMessageV3 requestMessage = incompleteServerInvocationAndResponses.get(requestId);
-            ServerInvocationAndResponse serverInvocationAndResponse = new ServerInvocationAndResponse(requestId, fullMethodName, requestMessage, status, responseMessage);
-            serverInvocationAndResponses.add(serverInvocationAndResponse);
-        }
-    }
-
-    // *****************************************************************************************************************
-    // End Server Invocations and Responses
-    // *****************************************************************************************************************
 
     // The current instance of the FilibusterCore.
     // Required as the instrumentation has no direct way of being instantiated with this object.
@@ -500,6 +470,8 @@ public class FilibusterCore {
         if (testExecutionAggregateReport != null) {
             testExecutionAggregateReport.writeTestExecutionAggregateReport();
         }
+
+        ServerInvocationAndResponseReport.writeServerInvocationReport();
 
         logger.info("[FILIBUSTER-CORE]: terminate returning.");
     }

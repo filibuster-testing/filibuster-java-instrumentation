@@ -53,10 +53,18 @@ public class ServerInvocationAndResponseReport {
             throw new FilibusterTestReportWriterException("Filibuster failed to write out the server invocation report: ", e);
         }
 
-        // Write out the actual JSON data.
+        // Write out the actual Javascript data.
         Path scriptFile = Paths.get(directory + "/server.js");
         try {
             Files.write(scriptFile, toJavascript().getBytes(Charset.defaultCharset()));
+        } catch (IOException e) {
+            throw new FilibusterTestReportWriterException("Filibuster failed to write out the server invocation report: ", e);
+        }
+
+        // Write out the actual JSON data.
+        Path jsonFile = Paths.get(directory + "/server.json");
+        try {
+            Files.write(jsonFile, toJSONObject().toString().getBytes(Charset.defaultCharset()));
         } catch (IOException e) {
             throw new FilibusterTestReportWriterException("Filibuster failed to write out the server invocation report: ", e);
         }

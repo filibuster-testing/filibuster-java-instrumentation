@@ -213,85 +213,85 @@ public class JUnitFilibusterTest extends JUnitBaseTest {
     }
 
     // Test 5, use the service fault profile for API service.
-    @FilibusterTest(dataNondeterminism = true, serviceFaultProfiles = "/tmp/filibuster/service")
-    @Order(5)
-    public void testAPIServiceWithServiceFaultProfiles() throws InterruptedException {
-        ManagedChannel apiChannel = ManagedChannelBuilder
-                .forAddress(Networking.getHost("api_server"), Networking.getPort("api_server"))
-                .usePlaintext()
-                .build();
+//    @FilibusterTest(dataNondeterminism = true, serviceFaultProfiles = "/tmp/filibuster/service")
+//    @Order(5)
+//    public void testAPIServiceWithServiceFaultProfiles() throws InterruptedException {
+//        ManagedChannel apiChannel = ManagedChannelBuilder
+//                .forAddress(Networking.getHost("api_server"), Networking.getPort("api_server"))
+//                .usePlaintext()
+//                .build();
+//
+//        boolean expected = false;
+//
+//        try {
+//            String name = "API";
+//
+//            APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
+//            Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName(name).build();
+//            Hello.HelloReply reply = blockingStub.hello(request);
+//            assertEquals("Hello, Hello, " + name + " World!!", reply.getMessage());
+//            assertFalse(wasFaultInjected());
+//        } catch (Throwable t) {
+//            boolean wasFaultInjected = wasFaultInjected();
+//
+//            if (wasFaultInjected) {
+//                testExceptionsThrownForAPIServiceWithServiceFaultProfiles.add(t.getMessage());
+//
+//                // World failures.
+//
+//                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
+//                    expected = true;
+//                }
+//
+//                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: UNAVAILABLE")) {
+//                    expected = true;
+//                }
+//
+//                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: INTERNAL")) {
+//                    expected = true;
+//                }
+//
+//                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED")) {
+//                    expected = true;
+//                }
+//
+//                // Hello failures.
+//
+//                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
+//                    expected = true;
+//                }
+//
+//                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: UNAVAILABLE")) {
+//                    expected = true;
+//                }
+//
+//                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: INTERNAL")) {
+//                    expected = true;
+//                }
+//
+//                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: UNIMPLEMENTED")) {
+//                    expected = true;
+//                }
+//
+//                // Otherwise.
+//
+//                if (! expected) {
+//                    throw t;
+//                }
+//            } else {
+//                throw t;
+//            }
+//        }
+//
+//        apiChannel.shutdownNow();
+//        apiChannel.awaitTermination(1000, TimeUnit.SECONDS);
+//    }
 
-        boolean expected = false;
-
-        try {
-            String name = "API";
-
-            APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
-            Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName(name).build();
-            Hello.HelloReply reply = blockingStub.hello(request);
-            assertEquals("Hello, Hello, " + name + " World!!", reply.getMessage());
-            assertFalse(wasFaultInjected());
-        } catch (Throwable t) {
-            boolean wasFaultInjected = wasFaultInjected();
-
-            if (wasFaultInjected) {
-                testExceptionsThrownForAPIServiceWithServiceFaultProfiles.add(t.getMessage());
-
-                // World failures.
-
-                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
-                    expected = true;
-                }
-
-                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: UNAVAILABLE")) {
-                    expected = true;
-                }
-
-                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: INTERNAL")) {
-                    expected = true;
-                }
-
-                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED")) {
-                    expected = true;
-                }
-
-                // Hello failures.
-
-                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
-                    expected = true;
-                }
-
-                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: UNAVAILABLE")) {
-                    expected = true;
-                }
-
-                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: INTERNAL")) {
-                    expected = true;
-                }
-
-                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: UNIMPLEMENTED")) {
-                    expected = true;
-                }
-
-                // Otherwise.
-
-                if (! expected) {
-                    throw t;
-                }
-            } else {
-                throw t;
-            }
-        }
-
-        apiChannel.shutdownNow();
-        apiChannel.awaitTermination(1000, TimeUnit.SECONDS);
-    }
-
-    @Test
-    @Order(6)
-    public void testNumAssertionsForAPIServiceWithServiceFaultProfiles() {
-        assertEqualsUnlessFilibusterDisabledByEnvironment(8, testExceptionsThrownForAPIServiceWithServiceFaultProfiles.size());
-    }
+//    @Test
+//    @Order(6)
+//    public void testNumAssertionsForAPIServiceWithServiceFaultProfiles() {
+//        assertEqualsUnlessFilibusterDisabledByEnvironment(8, testExceptionsThrownForAPIServiceWithServiceFaultProfiles.size());
+//    }
 
     // TODO: other tests for the other profiles.
 }

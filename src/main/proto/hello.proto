@@ -4,6 +4,7 @@ package cloud.filibuster.examples;
 
 service APIService {
   rpc Hello (HelloRequest) returns (HelloReply) {};
+  rpc HelloWithMock (HelloRequest) returns (HelloReply) {};
 }
 
 service HelloService {

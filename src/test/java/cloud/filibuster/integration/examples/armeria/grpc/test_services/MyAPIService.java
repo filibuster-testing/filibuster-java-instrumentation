@@ -23,32 +23,12 @@ import java.util.logging.Logger;
 public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     private static final Logger logger = Logger.getLogger(MyAPIService.class.getName());
 
-    public static boolean shouldReturnRuntimeExceptionWithDescription = false;
-    public static boolean shouldReturnRuntimeExceptionWithCause = false;
-    public static boolean shouldReturnExceptionWithDescription = false;
-    public static boolean shouldReturnExceptionWithCause = false;
-
-    public static boolean useOtelClientInterceptor = false;
-    public static boolean shouldUseDecorator = false;
-
-    @Override
-    public void hello(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
-        // build stub with decorator or interceptor
-        ManagedChannel originalChannel = ManagedChannelBuilder
-                .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
-                .usePlaintext()
-                .build();
-
-        ClientInterceptor clientInterceptor;
-
-        if (useOtelClientInterceptor) {
-            clientInterceptor = new OpenTelemetryFilibusterClientInterceptor("api_server", null, null);
-        } else {
-            clientInterceptor = new FilibusterClientInterceptor("api_server");
-        }
-
-        Channel channel = ClientInterceptors.intercept(originalChannel, clientInterceptor);
-
+    private void handleHelloRequest(
+            Hello.HelloRequest req,
+            StreamObserver<Hello.HelloReply> responseObserver,
+            ManagedChannel originalChannel,
+            Channel channel
+    ) {
         try {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(channel);
             Hello.HelloExtendedRequest request = Hello.HelloExtendedRequest.newBuilder().setName(req.getName()).build();
@@ -87,5 +67,27 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
                 logger.log(Level.SEVERE, "Failed to terminate channel: " + ie);
             }
         }
+    }
+
+    @Override
+    public void hello(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
+        ManagedChannel originalChannel = ManagedChannelBuilder
+                .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
+                .usePlaintext()
+                .build();
+        ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("api_server");
+        Channel channel = ClientInterceptors.intercept(originalChannel, clientInterceptor);
+        handleHelloRequest(req, responseObserver, originalChannel, channel);
+    }
+
+    @Override
+    public void helloWithMock(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
+        ManagedChannel originalChannel = ManagedChannelBuilder
+                .forAddress(Networking.getHost("hello-mock"), Networking.getPort("hello-mock"))
+                .usePlaintext()
+                .build();
+        ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("api_server");
+        Channel channel = ClientInterceptors.intercept(originalChannel, clientInterceptor);
+        handleHelloRequest(req, responseObserver, originalChannel, channel);
     }
 }

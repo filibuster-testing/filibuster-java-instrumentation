@@ -113,6 +113,7 @@ public class ServerInvocationAndResponseTest {
         JSONObject expectedRequestMessageJSONObject = new JSONObject();
         expectedRequestMessageJSONObject.put("class", "cloud.filibuster.examples.Hello$HelloRequest");
         expectedRequestMessageJSONObject.put("gson", expectedRequestMessageJSONObjectGson);
+        expectedRequestMessageJSONObject.put("toString", sir.getRequestMessage().toString());
 
         JSONObject requestMessageJSONObject = ServerInvocationAndResponse.GeneratedMessageV3.toJSONObjectWithClassIncluded(sir.getRequestMessage());
         assertEquals(true, requestMessageJSONObject.similar(expectedRequestMessageJSONObject));
@@ -128,6 +129,7 @@ public class ServerInvocationAndResponseTest {
         JSONObject expectedResponseMessageJSONObject = new JSONObject();
         expectedResponseMessageJSONObject.put("class", "cloud.filibuster.examples.Hello$HelloReply");
         expectedResponseMessageJSONObject.put("gson", expectedResponseMessageJSONObjectGson);
+        expectedResponseMessageJSONObject.put("toString", sir.getResponseMessage().toString());
 
         JSONObject responseMessageJSONObject = ServerInvocationAndResponse.GeneratedMessageV3.toJSONObjectWithClassIncluded(sir.getResponseMessage());
         assertEquals(true, responseMessageJSONObject.similar(expectedResponseMessageJSONObject));
@@ -148,6 +150,7 @@ public class ServerInvocationAndResponseTest {
         JSONObject expectedRequestMessageJSONObject = new JSONObject();
         expectedRequestMessageJSONObject.put("class", "cloud.filibuster.examples.Hello$HelloRequest");
         expectedRequestMessageJSONObject.put("gson", expectedRequestMessageJSONObjectGson);
+        expectedRequestMessageJSONObject.put("toString", sir.getRequestMessage().toString());
 
         assertEquals(true, ServerInvocationAndResponse.GeneratedMessageV3.toJSONObject(sir.getRequestMessage()).similar(expectedRequestMessageJSONObject));
 
@@ -161,6 +164,7 @@ public class ServerInvocationAndResponseTest {
         JSONObject expectedResponseMessageJSONObject = new JSONObject();
         expectedResponseMessageJSONObject.put("class", "cloud.filibuster.examples.Hello$HelloReply");
         expectedResponseMessageJSONObject.put("gson", expectedResponseMessageJSONObjectGson);
+        expectedResponseMessageJSONObject.put("toString", sir.getResponseMessage().toString());
 
         assertEquals(true, ServerInvocationAndResponse.GeneratedMessageV3.toJSONObject(sir.getResponseMessage()).similar(expectedResponseMessageJSONObject));
     }
@@ -179,6 +183,7 @@ public class ServerInvocationAndResponseTest {
         JSONObject expectedRequestMessageJSONObject = new JSONObject();
         expectedRequestMessageJSONObject.put("class", "cloud.filibuster.examples.Hello$HelloRequest");
         expectedRequestMessageJSONObject.put("gson", expectedRequestMessageJSONObjectGson);
+        expectedRequestMessageJSONObject.put("toString", sir.getRequestMessage().toString());
 
         JSONObject serializedRequestMessageToJSONObject = ServerInvocationAndResponse.GeneratedMessageV3.toJSONObject(sir.getRequestMessage());
         assertEquals(true, serializedRequestMessageToJSONObject.similar(expectedRequestMessageJSONObject));
@@ -196,6 +201,7 @@ public class ServerInvocationAndResponseTest {
         JSONObject expectedResponseMessageJSONObject = new JSONObject();
         expectedResponseMessageJSONObject.put("class", "cloud.filibuster.examples.Hello$HelloReply");
         expectedResponseMessageJSONObject.put("gson", expectedResponseMessageJSONObjectGson);
+        expectedResponseMessageJSONObject.put("toString", sir.getResponseMessage().toString());
 
         JSONObject serializedResponseMessageToJSONObject = ServerInvocationAndResponse.GeneratedMessageV3.toJSONObject(sir.getResponseMessage());
         assertEquals(true, serializedResponseMessageToJSONObject.similar(expectedResponseMessageJSONObject));

@@ -43,10 +43,10 @@ public class ServerInvocationAndResponseReport {
     }
 
     public static void writeServerInvocationReport() {
-        Path directory = Paths.get("/tmp/filibuster/");
+        Path reportDirectory = Paths.get("/tmp/filibuster/");
 
         try {
-            Files.createDirectory(directory);
+            Files.createDirectory(reportDirectory);
         } catch(FileAlreadyExistsException e) {
             // Ignore.
         } catch (IOException e) {
@@ -54,23 +54,15 @@ public class ServerInvocationAndResponseReport {
         }
 
         // Write out the actual Javascript data.
-        Path scriptFile = Paths.get(directory + "/server.js");
+        Path scriptFile = Paths.get(reportDirectory + "/server.js");
         try {
             Files.write(scriptFile, toJavascript().getBytes(Charset.defaultCharset()));
         } catch (IOException e) {
             throw new FilibusterTestReportWriterException("Filibuster failed to write out the server invocation report: ", e);
         }
 
-        // Write out the actual JSON data.
-        Path jsonFile = Paths.get(directory + "/server.json");
-        try {
-            Files.write(jsonFile, toJSONObject().toString().getBytes(Charset.defaultCharset()));
-        } catch (IOException e) {
-            throw new FilibusterTestReportWriterException("Filibuster failed to write out the server invocation report: ", e);
-        }
-
         // Write out index file.
-        Path indexPath = Paths.get(directory + "/server.html");
+        Path indexPath = Paths.get(reportDirectory + "/server.html");
         byte[] indexBytes = getResourceAsBytes("html/server_invocation_report/index.html");
         try {
             Files.write(indexPath, indexBytes);
@@ -81,6 +73,25 @@ public class ServerInvocationAndResponseReport {
         logger.info(
                 "" + "\n" +
                         "[FILIBUSTER-CORE]: Server Invocation Reports written to file://" + indexPath + "\n");
+
+        Path serverDirectory = Paths.get("/tmp/filibuster/server");
+
+        try {
+            Files.createDirectory(serverDirectory);
+        } catch(FileAlreadyExistsException e) {
+            // Ignore.
+        } catch (IOException e) {
+            throw new FilibusterTestReportWriterException("Filibuster failed to create server report directory ", e);
+        }
+
+        // Write out the actual JSON data.
+        Path jsonFile = Paths.get(serverDirectory + "/server.json");
+        try {
+            Files.write(jsonFile, toJSONObject().toString().getBytes(Charset.defaultCharset()));
+        } catch (IOException e) {
+            throw new FilibusterTestReportWriterException("Filibuster failed to write out the server report to report directory: ", e);
+        }
+
     }
 
     static class Keys {

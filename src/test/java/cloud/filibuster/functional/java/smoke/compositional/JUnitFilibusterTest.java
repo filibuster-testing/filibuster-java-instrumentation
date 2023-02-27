@@ -151,7 +151,7 @@ public class JUnitFilibusterTest extends JUnitBaseTest {
             if (wasFaultInjected) {
                 testExceptionsThrownForAPIService.add(t.getMessage());
 
-                // World Failures.
+                // World failures.
 
                 if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
                     expected = true;
@@ -169,7 +169,7 @@ public class JUnitFilibusterTest extends JUnitBaseTest {
                     expected = true;
                 }
 
-                // Hello Failures.
+                // Hello failures.
 
                 if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
                     expected = true;

@@ -287,7 +287,7 @@ public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
     public void testNumAssertionsForAPIServiceWithMock() {
         assertEqualsUnlessFilibusterDisabledByEnvironment(4, testExceptionsThrownForAPIServiceWithMock.size());
     }
-    
+
     // Test 7, test the API service using a mock and profile.
     // - It should test the correct number of failures (original, full graph, more than mock alone.)
     // TODO

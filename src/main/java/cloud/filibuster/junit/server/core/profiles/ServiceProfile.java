@@ -24,6 +24,22 @@ import java.util.Objects;
 public class ServiceProfile {
     private final HashMap<String, List<ServiceRequestAndResponse>> profile = new HashMap<>();
 
+    public boolean sawMethod(String method) {
+        return profile.containsKey(method);
+    }
+
+    public List<String> seenMethods() {
+        return new ArrayList<>(profile.keySet());
+    }
+
+    public List<ServiceRequestAndResponse> getServiceRequestAndResponsesForMethod(String method) {
+        if (!sawMethod(method)) {
+            return null;
+        }
+
+        return profile.get(method);
+    }
+
     public void addToProfile(String method, GeneratedMessageV3 request, Status status, @Nullable GeneratedMessageV3 response) {
         ServiceRequestAndResponse serviceRequestAndResponse = new ServiceRequestAndResponse(
                 request,
@@ -88,7 +104,7 @@ public class ServiceProfile {
         // Write out the actual JSON data.
         Path fspFile = Paths.get(directory + "/latest.fsp");
         try {
-            Files.write(fspFile, toJSONObject().toString().getBytes(Charset.defaultCharset()));
+            Files.write(fspFile, toJSONObject().toString(4).getBytes(Charset.defaultCharset()));
         } catch (IOException e) {
             throw new FilibusterServiceProfileWriterException("Filibuster failed to write out the service profile: ", e);
         }

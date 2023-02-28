@@ -23,11 +23,16 @@ public class ServerInvocationAndResponseReport {
 
     }
 
+    public static void clear() {
+        serverInvocationAndResponses = new ArrayList<>();
+        incompleteServerInvocationAndResponses = new HashMap<>();
+    }
+
     private static final Logger logger = Logger.getLogger(ServerInvocationAndResponseReport.class.getName());
 
-    private static final List<ServerInvocationAndResponse> serverInvocationAndResponses = new ArrayList<>();
+    private static List<ServerInvocationAndResponse> serverInvocationAndResponses = new ArrayList<>();
 
-    private static final HashMap<String, GeneratedMessageV3> incompleteServerInvocationAndResponses = new HashMap<>();
+    private static HashMap<String, GeneratedMessageV3> incompleteServerInvocationAndResponses = new HashMap<>();
 
     public static List<ServerInvocationAndResponse> getServerInvocationAndResponses() {
         return serverInvocationAndResponses;

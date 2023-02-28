@@ -1,6 +1,7 @@
 package cloud.filibuster.junit.server.core.reports;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterException;
+import cloud.filibuster.junit.server.core.profiles.ServiceProfile;
 import com.google.protobuf.GeneratedMessageV3;
 import io.grpc.Status;
 import org.json.JSONObject;
@@ -40,6 +41,20 @@ public class ServerInvocationAndResponseReport {
         GeneratedMessageV3 requestMessage = incompleteServerInvocationAndResponses.get(requestId);
         ServerInvocationAndResponse serverInvocationAndResponse = new ServerInvocationAndResponse(requestId, fullMethodName, requestMessage, status, responseMessage);
         serverInvocationAndResponses.add(serverInvocationAndResponse);
+    }
+
+    private static ServiceProfile toServiceProfile() {
+        ServiceProfile serviceProfile = new ServiceProfile();
+
+        for (ServerInvocationAndResponse sir : serverInvocationAndResponses) {
+            serviceProfile.addToProfile(sir.getFullMethodName(), sir.getRequestMessage(), sir.getResponseStatus(), sir.getResponseMessage());
+        }
+
+        return serviceProfile;
+    }
+
+    public static void writeServiceProfile() {
+        toServiceProfile().writeServiceProfile();
     }
 
     public static void writeServerInvocationReport() {

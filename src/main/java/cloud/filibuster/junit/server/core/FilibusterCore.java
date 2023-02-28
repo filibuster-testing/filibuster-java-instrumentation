@@ -473,6 +473,8 @@ public class FilibusterCore {
 
         ServerInvocationAndResponseReport.writeServerInvocationReport();
 
+        ServerInvocationAndResponseReport.writeServiceProfile();
+
         logger.info("[FILIBUSTER-CORE]: terminate returning.");
     }
 

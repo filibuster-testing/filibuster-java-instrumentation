@@ -1,6 +1,6 @@
 package cloud.filibuster.instrumentation.libraries.grpc;
 
-import cloud.filibuster.junit.server.core.invocations.ServerInvocationAndResponseReport;
+import cloud.filibuster.junit.server.core.reports.ServerInvocationAndResponseReport;
 import com.google.protobuf.GeneratedMessageV3;
 import io.grpc.ForwardingServerCall.SimpleForwardingServerCall;
 import io.grpc.ForwardingServerCallListener;

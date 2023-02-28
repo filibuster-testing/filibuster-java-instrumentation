@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.server.core.invocations;
+package cloud.filibuster.junit.server.core.reports;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterException;
 import com.google.protobuf.GeneratedMessageV3;
@@ -73,25 +73,6 @@ public class ServerInvocationAndResponseReport {
         logger.info(
                 "" + "\n" +
                         "[FILIBUSTER-CORE]: Server Invocation Reports written to file://" + indexPath + "\n");
-
-        Path serverDirectory = Paths.get("/tmp/filibuster/server");
-
-        try {
-            Files.createDirectory(serverDirectory);
-        } catch(FileAlreadyExistsException e) {
-            // Ignore.
-        } catch (IOException e) {
-            throw new FilibusterTestReportWriterException("Filibuster failed to create server report directory ", e);
-        }
-
-        // Write out the actual JSON data.
-        Path jsonFile = Paths.get(serverDirectory + "/server.json");
-        try {
-            Files.write(jsonFile, toJSONObject().toString().getBytes(Charset.defaultCharset()));
-        } catch (IOException e) {
-            throw new FilibusterTestReportWriterException("Filibuster failed to write out the server report to report directory: ", e);
-        }
-
     }
 
     static class Keys {

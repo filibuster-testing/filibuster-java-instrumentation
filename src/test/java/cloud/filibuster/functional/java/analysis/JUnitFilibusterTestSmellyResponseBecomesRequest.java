@@ -9,7 +9,7 @@ import cloud.filibuster.junit.configuration.FilibusterSingleFaultUnavailableAnal
 import cloud.filibuster.junit.server.core.FilibusterCore;
 import cloud.filibuster.junit.server.core.lint.analyzers.warnings.FilibusterAnalyzerWarning;
 import cloud.filibuster.junit.server.core.lint.analyzers.warnings.ResponseBecomesRequestWarning;
-import cloud.filibuster.junit.server.core.test_execution_reports.TestExecutionReport;
+import cloud.filibuster.junit.server.core.reports.TestExecutionReport;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.DisplayName;

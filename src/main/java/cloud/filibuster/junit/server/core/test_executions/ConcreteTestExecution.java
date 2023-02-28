@@ -1,7 +1,7 @@
 package cloud.filibuster.junit.server.core.test_executions;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
-import cloud.filibuster.junit.server.core.test_execution_reports.TestExecutionReport;
+import cloud.filibuster.junit.server.core.reports.TestExecutionReport;
 import org.json.JSONObject;
 
 @SuppressWarnings("Varifier")

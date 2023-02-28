@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.server.core.test_execution_reports;
+package cloud.filibuster.junit.server.core.reports;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterException;
 import org.json.JSONObject;
@@ -120,7 +120,7 @@ public class TestExecutionAggregateReport {
         ArrayList<JSONObject> materializedReportMetadatas = new ArrayList<>();
 
         for (TestExecutionReport ter : testExecutionReports) {
-            MaterializedReportMetadata mrm = ter.getMaterializedReportMetadata();
+            MaterializedTestExecutionReportMetadata mrm = ter.getMaterializedReportMetadata();
 
             if (mrm != null) {
                 materializedReportMetadatas.add(ter.getMaterializedReportMetadata().toJSONObject());

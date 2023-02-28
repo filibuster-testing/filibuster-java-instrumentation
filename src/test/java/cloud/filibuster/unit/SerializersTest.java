@@ -1,7 +1,9 @@
 package cloud.filibuster.unit;
 
 import cloud.filibuster.examples.Hello;
-import cloud.filibuster.junit.server.core.invocations.ServerInvocationAndResponse;
+import cloud.filibuster.junit.server.core.reports.ServerInvocationAndResponse;
+import cloud.filibuster.junit.server.core.serializers.GeneratedMessageV3Serializer;
+import cloud.filibuster.junit.server.core.serializers.StatusSerializer;
 import com.google.protobuf.GeneratedMessageV3;
 import io.grpc.Status;
 import org.json.JSONObject;
@@ -12,7 +14,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SuppressWarnings("UnnecessarilyFullyQualified")
-public class ServerInvocationAndResponseTest {
+public class SerializersTest {
     private static String generateRequestId() {
         return UUID.randomUUID().toString();
     }
@@ -21,15 +23,15 @@ public class ServerInvocationAndResponseTest {
         return "cloud.filibuster.examples.Hello/PartialHello";
     }
 
-    private static com.google.protobuf.GeneratedMessageV3 generateRequestMessage() {
+    private static GeneratedMessageV3 generateRequestMessage() {
         return Hello.HelloRequest.newBuilder().setName("Chris").build();
     }
 
-    private static io.grpc.Status generateResponseStatus() {
+    private static Status generateResponseStatus() {
         return Status.OK;
     }
 
-    private static com.google.protobuf.GeneratedMessageV3 generateResponseMessage() {
+    private static GeneratedMessageV3 generateResponseMessage() {
         return Hello.HelloReply.newBuilder().setMessage("Hi, Chris!").build();
     }
 
@@ -85,7 +87,7 @@ public class ServerInvocationAndResponseTest {
         expectedRequestMessageJSONObject.put("name_", "Chris");
         expectedRequestMessageJSONObject.put("unknownFields", new JSONObject().put("fields", new JSONObject()));
 
-        JSONObject requestMessageJSONObject = ServerInvocationAndResponse.GeneratedMessageV3.toJSONObjectWithOnlyGsonPayload(sir.getRequestMessage());
+        JSONObject requestMessageJSONObject = GeneratedMessageV3Serializer.toJSONObjectWithOnlyGsonPayload(sir.getRequestMessage());
         assertEquals(true, requestMessageJSONObject.similar(expectedRequestMessageJSONObject));
 
         JSONObject expectedResponseMessageJSONObject = new JSONObject();
@@ -95,7 +97,7 @@ public class ServerInvocationAndResponseTest {
         expectedResponseMessageJSONObject.put("message_", "Hi, Chris!");
         expectedResponseMessageJSONObject.put("unknownFields", new JSONObject().put("fields", new JSONObject()));
 
-        JSONObject responseMessageJSONObject = ServerInvocationAndResponse.GeneratedMessageV3.toJSONObjectWithOnlyGsonPayload(sir.getResponseMessage());
+        JSONObject responseMessageJSONObject = GeneratedMessageV3Serializer.toJSONObjectWithOnlyGsonPayload(sir.getResponseMessage());
         assertEquals(true, responseMessageJSONObject.similar(expectedResponseMessageJSONObject));
     }
 
@@ -115,9 +117,9 @@ public class ServerInvocationAndResponseTest {
         expectedRequestMessageJSONObject.put("gson", expectedRequestMessageJSONObjectGson);
         expectedRequestMessageJSONObject.put("toString", sir.getRequestMessage().toString());
 
-        JSONObject requestMessageJSONObject = ServerInvocationAndResponse.GeneratedMessageV3.toJSONObjectWithClassIncluded(sir.getRequestMessage());
+        JSONObject requestMessageJSONObject = GeneratedMessageV3Serializer.toJSONObjectWithClassIncluded(sir.getRequestMessage());
         assertEquals(true, requestMessageJSONObject.similar(expectedRequestMessageJSONObject));
-        assertEquals(true, ServerInvocationAndResponse.GeneratedMessageV3.toJSONObject(sir.getRequestMessage()).similar(expectedRequestMessageJSONObject));
+        assertEquals(true, GeneratedMessageV3Serializer.toJSONObject(sir.getRequestMessage()).similar(expectedRequestMessageJSONObject));
 
         JSONObject expectedResponseMessageJSONObjectGson = new JSONObject();
         expectedResponseMessageJSONObjectGson.put("memoizedHashCode", 0);
@@ -131,9 +133,9 @@ public class ServerInvocationAndResponseTest {
         expectedResponseMessageJSONObject.put("gson", expectedResponseMessageJSONObjectGson);
         expectedResponseMessageJSONObject.put("toString", sir.getResponseMessage().toString());
 
-        JSONObject responseMessageJSONObject = ServerInvocationAndResponse.GeneratedMessageV3.toJSONObjectWithClassIncluded(sir.getResponseMessage());
+        JSONObject responseMessageJSONObject = GeneratedMessageV3Serializer.toJSONObjectWithClassIncluded(sir.getResponseMessage());
         assertEquals(true, responseMessageJSONObject.similar(expectedResponseMessageJSONObject));
-        assertEquals(true, ServerInvocationAndResponse.GeneratedMessageV3.toJSONObject(sir.getResponseMessage()).similar(expectedResponseMessageJSONObject));
+        assertEquals(true, GeneratedMessageV3Serializer.toJSONObject(sir.getResponseMessage()).similar(expectedResponseMessageJSONObject));
     }
 
     @Test
@@ -152,7 +154,7 @@ public class ServerInvocationAndResponseTest {
         expectedRequestMessageJSONObject.put("gson", expectedRequestMessageJSONObjectGson);
         expectedRequestMessageJSONObject.put("toString", sir.getRequestMessage().toString());
 
-        assertEquals(true, ServerInvocationAndResponse.GeneratedMessageV3.toJSONObject(sir.getRequestMessage()).similar(expectedRequestMessageJSONObject));
+        assertEquals(true, GeneratedMessageV3Serializer.toJSONObject(sir.getRequestMessage()).similar(expectedRequestMessageJSONObject));
 
         JSONObject expectedResponseMessageJSONObjectGson = new JSONObject();
         expectedResponseMessageJSONObjectGson.put("memoizedHashCode", 0);
@@ -166,7 +168,7 @@ public class ServerInvocationAndResponseTest {
         expectedResponseMessageJSONObject.put("gson", expectedResponseMessageJSONObjectGson);
         expectedResponseMessageJSONObject.put("toString", sir.getResponseMessage().toString());
 
-        assertEquals(true, ServerInvocationAndResponse.GeneratedMessageV3.toJSONObject(sir.getResponseMessage()).similar(expectedResponseMessageJSONObject));
+        assertEquals(true, GeneratedMessageV3Serializer.toJSONObject(sir.getResponseMessage()).similar(expectedResponseMessageJSONObject));
     }
 
     @Test
@@ -185,10 +187,10 @@ public class ServerInvocationAndResponseTest {
         expectedRequestMessageJSONObject.put("gson", expectedRequestMessageJSONObjectGson);
         expectedRequestMessageJSONObject.put("toString", sir.getRequestMessage().toString());
 
-        JSONObject serializedRequestMessageToJSONObject = ServerInvocationAndResponse.GeneratedMessageV3.toJSONObject(sir.getRequestMessage());
+        JSONObject serializedRequestMessageToJSONObject = GeneratedMessageV3Serializer.toJSONObject(sir.getRequestMessage());
         assertEquals(true, serializedRequestMessageToJSONObject.similar(expectedRequestMessageJSONObject));
 
-        GeneratedMessageV3 requestMessageFromJSONObject = ServerInvocationAndResponse.GeneratedMessageV3.fromJSONObject(serializedRequestMessageToJSONObject);
+        GeneratedMessageV3 requestMessageFromJSONObject = GeneratedMessageV3Serializer.fromJSONObject(serializedRequestMessageToJSONObject);
         assertEquals(sir.getRequestMessage(), requestMessageFromJSONObject);
 
         JSONObject expectedResponseMessageJSONObjectGson = new JSONObject();
@@ -203,17 +205,17 @@ public class ServerInvocationAndResponseTest {
         expectedResponseMessageJSONObject.put("gson", expectedResponseMessageJSONObjectGson);
         expectedResponseMessageJSONObject.put("toString", sir.getResponseMessage().toString());
 
-        JSONObject serializedResponseMessageToJSONObject = ServerInvocationAndResponse.GeneratedMessageV3.toJSONObject(sir.getResponseMessage());
+        JSONObject serializedResponseMessageToJSONObject = GeneratedMessageV3Serializer.toJSONObject(sir.getResponseMessage());
         assertEquals(true, serializedResponseMessageToJSONObject.similar(expectedResponseMessageJSONObject));
 
-        GeneratedMessageV3 responseMessageFromJSONObject = ServerInvocationAndResponse.GeneratedMessageV3.fromJSONObject(serializedResponseMessageToJSONObject);
+        GeneratedMessageV3 responseMessageFromJSONObject = GeneratedMessageV3Serializer.fromJSONObject(serializedResponseMessageToJSONObject);
         assertEquals(sir.getResponseMessage(), responseMessageFromJSONObject);
     }
 
     @Test
     public void testStatusToJSONObject() {
         ServerInvocationAndResponse sir = generateServerInvocationAndResponse();
-        JSONObject statusObject = ServerInvocationAndResponse.Status.toJSONObject(sir.getResponseStatus());
+        JSONObject statusObject = StatusSerializer.toJSONObject(sir.getResponseStatus());
 
         JSONObject expectedStatusObject = new JSONObject();
         expectedStatusObject.put("class", "io.grpc.Status");
@@ -225,7 +227,7 @@ public class ServerInvocationAndResponseTest {
     @Test
     public void testStatusFromJSONObject() {
         ServerInvocationAndResponse sir = generateServerInvocationAndResponse();
-        JSONObject statusObject = ServerInvocationAndResponse.Status.toJSONObject(sir.getResponseStatus());
+        JSONObject statusObject = StatusSerializer.toJSONObject(sir.getResponseStatus());
 
         JSONObject expectedStatusObject = new JSONObject();
         expectedStatusObject.put("class", "io.grpc.Status");
@@ -233,7 +235,7 @@ public class ServerInvocationAndResponseTest {
 
         assertEquals(true, expectedStatusObject.similar(statusObject));
 
-        io.grpc.Status status = ServerInvocationAndResponse.Status.fromJSONObject(statusObject);
+        io.grpc.Status status = StatusSerializer.fromJSONObject(statusObject);
         assertEquals(sir.getResponseStatus(), status);
     }
 }

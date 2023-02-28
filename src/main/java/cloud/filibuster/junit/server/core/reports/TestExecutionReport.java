@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.server.core.test_execution_reports;
+package cloud.filibuster.junit.server.core.reports;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.exceptions.filibuster.FilibusterAnalysisFailureException;
@@ -33,7 +33,7 @@ public class TestExecutionReport {
     private boolean hasReportBeenMaterialized = false;
 
     @Nullable
-    private MaterializedReportMetadata materializedReportMetadata;
+    private MaterializedTestExecutionReportMetadata materializedTestExecutionReportMetadata;
 
     private int testExecutionNumber = 0;
 
@@ -227,7 +227,7 @@ public class TestExecutionReport {
 
                 // Set materialized and it's location.
                 hasReportBeenMaterialized = true;
-                materializedReportMetadata = new MaterializedReportMetadata(testExecutionNumber, testExecutionPassed, indexPath, uuid);
+                materializedTestExecutionReportMetadata = new MaterializedTestExecutionReportMetadata(testExecutionNumber, testExecutionPassed, indexPath, uuid);
 
                 logger.info(
                         "" + "\n" +
@@ -241,8 +241,8 @@ public class TestExecutionReport {
         }
     }
 
-    public MaterializedReportMetadata getMaterializedReportMetadata() {
-        return this.materializedReportMetadata;
+    public MaterializedTestExecutionReportMetadata getMaterializedReportMetadata() {
+        return this.materializedTestExecutionReportMetadata;
     }
 
     private byte[] getResourceAsBytes(String fileName) {

@@ -1,11 +1,11 @@
-package cloud.filibuster.junit.server.core.test_execution_reports;
+package cloud.filibuster.junit.server.core.reports;
 
 import org.json.JSONObject;
 
 import java.nio.file.Path;
 import java.util.UUID;
 
-public class MaterializedReportMetadata {
+public class MaterializedTestExecutionReportMetadata {
     private final int testExecutionNumber;
 
     private final boolean testExecutionPassed;
@@ -14,7 +14,7 @@ public class MaterializedReportMetadata {
 
     private final UUID uuid;
 
-    public MaterializedReportMetadata(int testExecutionNumber, boolean testExecutionPassed, Path reportPath, UUID uuid) {
+    public MaterializedTestExecutionReportMetadata(int testExecutionNumber, boolean testExecutionPassed, Path reportPath, UUID uuid) {
         this.testExecutionNumber = testExecutionNumber;
         this.testExecutionPassed = testExecutionPassed;
         this.reportPath = reportPath;
@@ -30,7 +30,7 @@ public class MaterializedReportMetadata {
 
     public JSONObject toJSONObject() {
         JSONObject result = new JSONObject();
-        result.put(Keys.ITERATION_KEY, uuid.toString());
+        result.put(Keys.UUID_KEY, uuid.toString());
         result.put(Keys.ITERATION_KEY, testExecutionNumber);
         result.put(Keys.STATUS_KEY, testExecutionPassed);
         result.put(Keys.PATH_KEY, reportPath.toString());

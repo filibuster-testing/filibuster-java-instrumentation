@@ -22,7 +22,7 @@ import java.util.logging.Logger;
 public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     private static final Logger logger = Logger.getLogger(MyAPIService.class.getName());
 
-    private void handleHelloRequest(
+    private static void handleHelloRequest(
             Hello.HelloRequest req,
             StreamObserver<Hello.HelloReply> responseObserver,
             ManagedChannel originalChannel,

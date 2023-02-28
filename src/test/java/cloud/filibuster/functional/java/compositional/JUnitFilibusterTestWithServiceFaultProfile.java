@@ -13,7 +13,6 @@ import io.grpc.ManagedChannelBuilder;
 import org.grpcmock.junit5.GrpcMockExtension;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -25,9 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
@@ -43,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@SuppressWarnings("Java8ApiChecker")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
 
@@ -66,7 +64,7 @@ public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
     //          Explicitly testing for 4 failures, but system produced 2 new failures (FAILED_PRECONDITION, DATA_LOSS.)
     // *****************************************************************************************************************
 
-    private static List<String> testExceptionsThrownForAPIService = new ArrayList<>();
+    private static final List<String> testExceptionsThrownForAPIService = new ArrayList<>();
 
     @FilibusterTest(dataNondeterminism = true)
     @Order(1)
@@ -171,7 +169,7 @@ public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
     //          Expedient, since World doesn't produce any interesting behavior and just returns the exact errors.
     // *****************************************************************************************************************
 
-    private static List<String> testExceptionsThrownForHelloService = new ArrayList<>();
+    private static final List<String> testExceptionsThrownForHelloService = new ArrayList<>();
 
     // Test 4
     // - Call Hello (which calls World) with a random set of arguments.
@@ -265,7 +263,7 @@ public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
     //          This is a negative result because the only code returned by Hello, DATA_LOSS, isn't tested.
     // *****************************************************************************************************************
 
-    private static List<String> testExceptionsThrownForAPIServiceWithMock = new ArrayList<>();
+    private static final List<String> testExceptionsThrownForAPIServiceWithMock = new ArrayList<>();
 
     // Test 7, test the API service using a mock.
     // - It should test fewer failures then when not using the mock.

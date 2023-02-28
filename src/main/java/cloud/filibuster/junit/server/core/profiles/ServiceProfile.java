@@ -32,6 +32,7 @@ public class ServiceProfile {
         return new ArrayList<>(profile.keySet());
     }
 
+    @Nullable
     public List<ServiceRequestAndResponse> getServiceRequestAndResponsesForMethod(String method) {
         if (!sawMethod(method)) {
             return null;

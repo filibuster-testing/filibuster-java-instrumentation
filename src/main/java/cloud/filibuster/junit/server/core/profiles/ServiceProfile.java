@@ -91,10 +91,19 @@ public class ServiceProfile {
     }
 
     public void writeServiceProfile() {
+        Path rootDirectory = Paths.get("/tmp/filibuster");
+
+        try {
+            Files.createDirectory(rootDirectory);
+        } catch(FileAlreadyExistsException e) {
+            // Nothing, directory already exists.
+        } catch (IOException e) {
+            throw new FilibusterServiceProfileWriterException("Filibuster failed to write out the service profile: ", e);
+        }
+
         Path directory = Paths.get("/tmp/filibuster/fsp");
 
         try {
-            Files.createDirectory(Paths.get("/tmp/filibuster"));
             Files.createDirectory(directory);
         } catch(FileAlreadyExistsException e) {
             // Nothing, directory already exists.

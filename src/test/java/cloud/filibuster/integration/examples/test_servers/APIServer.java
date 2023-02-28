@@ -6,7 +6,6 @@ import cloud.filibuster.instrumentation.libraries.armeria.http.FilibusterDecorat
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterServerInterceptor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterServerInvocationInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.MyAPIService;
-import cloud.filibuster.integration.instrumentation.libraries.opentelemetry.OpenTelemetryFilibusterServerInterceptor;
 import com.linecorp.armeria.common.HttpRequest;
 import com.linecorp.armeria.common.HttpResponse;
 import com.linecorp.armeria.server.AbstractHttpService;

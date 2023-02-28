@@ -94,6 +94,7 @@ public class ServiceProfile {
         Path directory = Paths.get("/tmp/filibuster/fsp");
 
         try {
+            Files.createDirectory(Paths.get("/tmp/filibuster"));
             Files.createDirectory(directory);
         } catch(FileAlreadyExistsException e) {
             // Nothing, directory already exists.

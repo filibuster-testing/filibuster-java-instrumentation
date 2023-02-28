@@ -6,7 +6,6 @@ import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.exceptions.CircuitBreakerException;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
-import cloud.filibuster.integration.instrumentation.libraries.opentelemetry.OpenTelemetryFilibusterClientInterceptor;
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
 import io.grpc.ClientInterceptors;

@@ -42,5 +42,9 @@ public class ServiceProfileTest {
         assertEquals(true, serviceProfileJSONObject.similar(newServiceProfileJSONObject));
 
         assertEquals(serviceProfile, newServiceProfile);
+
+        serviceProfile.writeServiceProfile();
+        ServiceProfile serviceProfileRead = ServiceProfile.readServiceProfile("/tmp/filibuster/fsp/latest.fsp");
+        assertEquals(serviceProfile, serviceProfileRead);
     }
 }

@@ -7,6 +7,7 @@ import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import com.linecorp.armeria.client.WebClient;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -42,7 +43,7 @@ public class FilibusterServerLifecycle {
 
     @Nullable
     @SuppressWarnings({"StaticAssignmentOfThrowable", "InterruptedExceptionSwallowed"})
-    public static synchronized WebClient startServer(FilibusterConfiguration filibusterConfiguration) {
+    public static synchronized WebClient startServer(FilibusterConfiguration filibusterConfiguration, String testGroupName) {
         initializationFailed = false;
         initializationFailedException = null;
 

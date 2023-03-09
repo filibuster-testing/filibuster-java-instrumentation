@@ -61,12 +61,12 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
 
     /**
      * Invocation interceptor for running tests with Filibuster.
-     *
+     * <p>
      * Automatically starts, stops the external Filibuster server and performs necessary IPC.
      *
      * @param filibusterConfiguration configuration of Filibuster server.
-     * @param currentIteration the current iteration that is being executed.
-     * @param maxIterations upper bound on allowable executions.
+     * @param currentIteration        the current iteration that is being executed.
+     * @param maxIterations           upper bound on allowable executions.
      * @param invocationCompletionMap tracks whether teardown has been completed for a given test.
      */
     public FilibusterInvocationInterceptor(
@@ -160,7 +160,8 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
 
             // First iteration always needs to start the server unless we are reusing an external server process.
             if (shouldInitializeFilibusterServer) {
-                setWebClient(FilibusterServerLifecycle.startServer(filibusterConfiguration));
+                setWebClient(FilibusterServerLifecycle.startServer(filibusterConfiguration,
+                        extensionContext.getParent().map(ExtensionContext::getDisplayName).orElse("FilibusterTest")));
             } else {
                 setWebClient(getNewWebClient());
             }

@@ -49,6 +49,8 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
         int specifiedMaxIterations = maxIterations(filibusterTest, testMethod);
         int maxIterations = specifiedMaxIterations + 1;
 
+        System.out.println("Peter here lol" + context.getDisplayName());
+
         FilibusterTestDisplayNameFormatter formatter = displayNameFormatter(filibusterTest, testMethod, displayName);
 
         if (! filibusterTest.analysisFile().isEmpty()) {

@@ -280,3 +280,75 @@ Build-time: ${java.time.LocalDateTime.now()}
 }
 
 sourceSets.main.output.dir genOutputDir, builtBy: generateVersionTxt
+
+task unitTest(type: Test) {
+    useJUnitPlatform()
+
+    filter {
+        includeTestsMatching('cloud.filibuster.unit.*')
+    }
+}
+
+task integrationTest(type: Test) {
+    useJUnitPlatform()
+
+    filter {
+        includeTestsMatching('cloud.filibuster.integration.*')
+    }
+}
+
+task functionalJavaSmokeTest(type: Test) {
+    useJUnitPlatform()
+
+    filter {
+        includeTestsMatching('cloud.filibuster.functional.java.smoke.*')
+    }
+}
+
+task functionalJavaHelloTest(type: Test) {
+    useJUnitPlatform()
+
+    filter {
+        includeTestsMatching('cloud.filibuster.functional.java.hello.*')
+    }
+}
+
+task functionalJavaAnalysisTest(type: Test) {
+    useJUnitPlatform()
+
+    filter {
+        includeTestsMatching('cloud.filibuster.functional.java.analysis.*')
+    }
+}
+
+task functionalJavaLatencyTest(type: Test) {
+    useJUnitPlatform()
+
+    filter {
+        includeTestsMatching('cloud.filibuster.functional.java.latency.*')
+    }
+}
+
+task functionalJavaCompositionalTest(type: Test) {
+    useJUnitPlatform()
+
+    filter {
+        includeTestsMatching('cloud.filibuster.functional.java.compositional.*')
+    }
+}
+
+task functionalPythonTest(type: Test) {
+    useJUnitPlatform()
+
+    filter {
+        includeTestsMatching('cloud.filibuster.functional.python.*')
+    }
+}
+
+task functionalDockerTest(type: Test) {
+    useJUnitPlatform()
+
+    filter {
+        includeTestsMatching('cloud.filibuster.functional.docker.*')
+    }
+}

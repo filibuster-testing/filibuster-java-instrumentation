@@ -165,6 +165,8 @@ tasks.withType(JavaCompile).configureEach {
         disable("InlineMeSuggester")
         disable("DoNotCallSuggester")
 
+        disable("UnnecessarilyFullyQualified")
+
         if (name.contains("Jmh") || name.contains("Test")) {
             disable("MemberName")
         }

@@ -292,6 +292,8 @@ task unitTest(type: Test) {
 task integrationTest(type: Test) {
     useJUnitPlatform()
 
+    timeout = Duration.ofMinutes(25)
+
     filter {
         includeTestsMatching('cloud.filibuster.integration.*')
     }

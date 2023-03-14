@@ -302,6 +302,8 @@ task integrationTest(type: Test) {
 task functionalJavaSmokeTest(type: Test) {
     useJUnitPlatform()
 
+    timeout = Duration.ofMinutes(25)
+
     filter {
         includeTestsMatching('cloud.filibuster.functional.java.smoke.*')
     }
@@ -309,6 +311,8 @@ task functionalJavaSmokeTest(type: Test) {
 
 task functionalJavaHelloTest(type: Test) {
     useJUnitPlatform()
+
+    timeout = Duration.ofMinutes(25)
 
     filter {
         includeTestsMatching('cloud.filibuster.functional.java.hello.*')

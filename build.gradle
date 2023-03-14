@@ -292,8 +292,12 @@ task unitTest(type: Test) {
 task integrationTest(type: Test) {
     useJUnitPlatform()
 
-    timeout = Duration.ofMinutes(25)
-
+    maxParallelForks = 1
+    timeout = Duration.ofMinutes(60)
+    minHeapSize = "128m" // initial heap size
+    maxHeapSize = "2048m" // maximum heap size
+    jvmArgs '-XX:MaxPermSize=256m' // mem argument for the test JVM
+    
     filter {
         includeTestsMatching('cloud.filibuster.integration.*')
     }

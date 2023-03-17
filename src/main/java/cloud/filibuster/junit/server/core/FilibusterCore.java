@@ -11,7 +11,7 @@ import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration.Matc
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
 import cloud.filibuster.junit.server.core.reports.ServerInvocationAndResponseReport;
-import cloud.filibuster.junit.server.core.reports.TestExecutionAggregateReport;
+import cloud.filibuster.junit.server.core.reports.TestReport;
 import cloud.filibuster.junit.server.core.reports.TestExecutionReport;
 import cloud.filibuster.junit.server.core.test_executions.ConcreteTestExecution;
 import cloud.filibuster.junit.server.core.test_executions.AbstractTestExecution;
@@ -53,10 +53,11 @@ public class FilibusterCore {
 
     public FilibusterCore(FilibusterConfiguration filibusterConfiguration) {
         currentInstance = this;
-
+        currentConcreteTestExecution = new ConcreteTestExecution(filibusterConfiguration.getTestName());
         this.filibusterConfiguration = filibusterConfiguration;
-        this.testExecutionAggregateReport = new TestExecutionAggregateReport();
-        testExecutionAggregateReport.writeOutPlaceholder();
+
+        this.testReport = new TestReport();
+        testReport.writeOutPlaceholder();
 
         if (filibusterConfiguration.getSearchStrategy() == FilibusterSearchStrategy.DFS) {
             this.exploredTestExecutions = new TestExecutionStack<>();
@@ -70,7 +71,7 @@ public class FilibusterCore {
     }
 
     // Aggregate test execution report.
-    private final TestExecutionAggregateReport testExecutionAggregateReport;
+    private final TestReport testReport;
 
     // The current configuration of Filibuster being used.
     private final FilibusterConfiguration filibusterConfiguration;
@@ -93,7 +94,7 @@ public class FilibusterCore {
     // * a prefix execution that matches the abstract test execution.
     // * the same fault profile of the current, concrete test execution.
     @Nullable
-    private ConcreteTestExecution currentConcreteTestExecution = new ConcreteTestExecution();
+    private ConcreteTestExecution currentConcreteTestExecution;
 
     // Analysis file, populated only once received from the test suite.
     // In the future, this could just bypass this completely because we have the FilibusterConfiguration?
@@ -345,7 +346,7 @@ public class FilibusterCore {
             if (currentIteration == 1) {
                 setMostRecentInitialTestExecutionReport(testExecutionReport);
             }
-            testExecutionAggregateReport.addTestExecutionReport(testExecutionReport);
+            testReport.addTestExecutionReport(testExecutionReport);
 
             // We're executing a test and not just running empty iterations (i.e., JUnit maxIterations > number of actual tests.)
 
@@ -383,7 +384,7 @@ public class FilibusterCore {
 
                 // Set the abstract execution, which drives fault injection and copy the faults into the concrete execution for the record.
                 currentAbstractTestExecution = nextAbstractTestExecution;
-                currentConcreteTestExecution = new ConcreteTestExecution(nextAbstractTestExecution);
+                currentConcreteTestExecution = new ConcreteTestExecution(nextAbstractTestExecution, this.filibusterConfiguration.getTestName());
             }
         }
 
@@ -467,8 +468,8 @@ public class FilibusterCore {
     public synchronized void terminateFilibuster() {
         logger.info("[FILIBUSTER-CORE]: terminate called.");
 
-        if (testExecutionAggregateReport != null) {
-            testExecutionAggregateReport.writeTestExecutionAggregateReport();
+        if (testReport != null) {
+            testReport.writeTestReport();
         }
 
         ServerInvocationAndResponseReport.writeServerInvocationReport();

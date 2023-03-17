@@ -16,8 +16,8 @@ import java.util.Comparator;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-public class TestExecutionAggregateReport {
-    private static final Logger logger = Logger.getLogger(TestExecutionAggregateReport.class.getName());
+public class TestReport {
+    private static final Logger logger = Logger.getLogger(TestReport.class.getName());
 
     private final ArrayList<TestExecutionReport> testExecutionReports = new ArrayList<>();
 
@@ -48,17 +48,17 @@ public class TestExecutionAggregateReport {
 
         try {
             Path constructionGifPath = Paths.get(directory + "/construction.gif");
-            byte[] constructionGifBytes = getResourceAsBytes("html/test_execution_aggregate_report/construction.gif");
+            byte[] constructionGifBytes = getResourceAsBytes("html/test_report/construction.gif");
             Files.write(constructionGifPath, constructionGifBytes);
         } catch (IOException e) {
-            throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution aggregate report: ", e);
+            throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution report: ", e);
         }
 
         try {
-            byte[] indexBytes = getResourceAsBytes("html/test_execution_aggregate_report/waiting.html");
+            byte[] indexBytes = getResourceAsBytes("html/test_report/waiting.html");
             Files.write(indexPath, indexBytes);
         } catch (IOException e) {
-            throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution aggregate report: ", e);
+            throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution report: ", e);
         }
     }
 
@@ -82,7 +82,7 @@ public class TestExecutionAggregateReport {
         return targetArray;
     }
 
-    public void writeTestExecutionAggregateReport() {
+    public void writeTestReport() {
         Path directory = Paths.get("/tmp/filibuster/");
 
         try {
@@ -90,7 +90,7 @@ public class TestExecutionAggregateReport {
         } catch(FileAlreadyExistsException e) {
             // Ignore.
         } catch (IOException e) {
-            throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution aggregate report: ", e);
+            throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution report: ", e);
         }
 
         // Write out the actual JSON data.
@@ -98,16 +98,16 @@ public class TestExecutionAggregateReport {
         try {
             Files.write(scriptFile, toJavascript().getBytes(Charset.defaultCharset()));
         } catch (IOException e) {
-            throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution aggregate report: ", e);
+            throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution report: ", e);
         }
 
         // Write out index file.
         Path indexPath = Paths.get(directory + "/index.html");
         try {
-            byte[] indexBytes = getResourceAsBytes("html/test_execution_aggregate_report/index.html");
+            byte[] indexBytes = getResourceAsBytes("html/test_report/index.html");
             Files.write(indexPath, indexBytes);
         } catch (IOException e) {
-            throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution aggregate report: ", e);
+            throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution report: ", e);
         }
 
         logger.info(

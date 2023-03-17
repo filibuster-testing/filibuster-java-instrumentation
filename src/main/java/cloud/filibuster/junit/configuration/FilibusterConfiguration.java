@@ -42,6 +42,8 @@ public class FilibusterConfiguration {
 
     private final FilibusterLatencyProfile latencyProfile;
 
+    private final String testName;
+
     private FilibusterConfiguration(Builder builder) {
         this.dynamicReduction = builder.dynamicReduction;
         this.suppressCombinations = builder.suppressCombinations;
@@ -53,6 +55,7 @@ public class FilibusterConfiguration {
         this.degradeWhenServerInitializationFails = builder.degradeWhenServerInitializationFails;
         this.expected = builder.expected;
         this.latencyProfile = builder.latencyProfile;
+        this.testName = builder.testName;
     }
 
     /**
@@ -120,6 +123,10 @@ public class FilibusterConfiguration {
 
     public FilibusterLatencyProfile getLatencyProfile() {
         return this.latencyProfile;
+    }
+
+    public String getTestName() {
+        return this.testName;
     }
 
     /**
@@ -193,6 +200,8 @@ public class FilibusterConfiguration {
         private Class<? extends RuntimeException> expected;
 
         private FilibusterLatencyProfile latencyProfile;
+
+        private String testName;
 
         /**
          * Should this configuration use dynamic reduction?
@@ -307,6 +316,12 @@ public class FilibusterConfiguration {
         @CanIgnoreReturnValue
         public Builder searchStrategy(FilibusterSearchStrategy searchStrategy) {
             this.searchStrategy = searchStrategy;
+            return this;
+        }
+
+        @CanIgnoreReturnValue
+        public Builder testName(String testName) {
+            this.testName = testName;
             return this;
         }
 

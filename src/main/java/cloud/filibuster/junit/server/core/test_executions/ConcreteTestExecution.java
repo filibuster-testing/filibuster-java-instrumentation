@@ -6,13 +6,14 @@ import org.json.JSONObject;
 
 @SuppressWarnings("Varifier")
 public class ConcreteTestExecution extends TestExecution implements Cloneable {
-    private final TestExecutionReport testExecutionReport = new TestExecutionReport();
+    private final TestExecutionReport testExecutionReport;
 
-    public ConcreteTestExecution() {
-
+    public ConcreteTestExecution(String testName) {
+        testExecutionReport = new TestExecutionReport(testName);
     }
 
-    public ConcreteTestExecution(AbstractTestExecution abstractTestExecution) {
+    public ConcreteTestExecution(AbstractTestExecution abstractTestExecution,String testName) {
+        testExecutionReport = new TestExecutionReport(testName);
         faultsToInject.putAll(abstractTestExecution.faultsToInject);
         testExecutionReport.setFaultsInjected(faultsToInject);
     }
@@ -44,7 +45,7 @@ public class ConcreteTestExecution extends TestExecution implements Cloneable {
 
     @Override
     protected Object clone() {
-        ConcreteTestExecution concreteTestExecution = new ConcreteTestExecution();
+        ConcreteTestExecution concreteTestExecution = new ConcreteTestExecution(testExecutionReport.getTestName());
         concreteTestExecution.generatedId = this.generatedId;
         concreteTestExecution.firstRequestSeenByService.putAll(firstRequestSeenByService);
         concreteTestExecution.executedRPCs.putAll(executedRPCs);

@@ -51,6 +51,13 @@ public class TestExecutionReport {
 
     private final UUID uuid = UUID.randomUUID();
 
+    private final String testName;
+
+    public TestExecutionReport(String testName)
+    {
+        this.testName = testName;
+    }
+
     public List<FilibusterAnalyzerWarning> getWarnings() {
         return this.warnings;
     }
@@ -94,6 +101,10 @@ public class TestExecutionReport {
         deiFaultsInjected.putAll(faultsToInject);
     }
 
+    public String getTestName()
+    {
+        return this.testName;
+    }
     static class Keys {
         private static final String ITERATION_KEY = "iteration";
         private static final String STATUS_KEY = "status";
@@ -105,6 +116,8 @@ public class TestExecutionReport {
         private static final String WARNINGS_KEY = "warnings";
         private static final String GENERATED_ID_KEY = "generated_id";
         private static final String UUID_KEY = "uuid";
+
+        private static final String TEST_NAME = "test_name";
 
     }
 
@@ -171,6 +184,7 @@ public class TestExecutionReport {
         result.put(Keys.STATUS_KEY, testExecutionPassed);
         result.put(Keys.RPCS_KEY, RPCs);
         result.put(Keys.UUID_KEY, uuid);
+        result.put(Keys.TEST_NAME, testName);
 
         return result;
     }

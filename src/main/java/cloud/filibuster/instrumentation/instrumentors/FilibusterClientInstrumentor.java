@@ -611,7 +611,7 @@ final public class FilibusterClientInstrumentor {
         invocationPayload.put("source_service_name", serviceName);
         invocationPayload.put("module", callsite.getClassOrModuleName());
         invocationPayload.put("method", callsite.getMethodOrFunctionName());
-        CallsiteArguments callsiteArguments = callsite.getSerializedArguments();
+        CallsiteArguments callsiteArguments = callsite.getCallsiteArguments();
         JSONObject invocationArguments = callsiteArguments.toJSONObject();
         invocationPayload.put("args", invocationArguments);
         invocationPayload.put("kwargs", new JSONObject());

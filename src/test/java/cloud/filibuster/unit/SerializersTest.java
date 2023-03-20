@@ -39,7 +39,7 @@ public class SerializersTest {
     private static Status generateResponseStatusWithFailureCause() {
         return Status.fromThrowable(new CircuitBreakerException("circuit breaker is opened"));
     }
-    
+
     private static GeneratedMessageV3 generateResponseMessage() {
         return Hello.HelloReply.newBuilder().setMessage("Hi, Chris!").build();
     }

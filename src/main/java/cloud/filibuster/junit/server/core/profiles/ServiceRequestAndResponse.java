@@ -25,6 +25,18 @@ public class ServiceRequestAndResponse {
         this.response = response;
     }
 
+    public boolean isSuccess() {
+        if (this.status.getCode().equals(Status.OK.getCode())) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public Status getStatus() {
+        return this.status;
+    }
+
     public JSONObject toJSONObject() {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("request", GeneratedMessageV3Serializer.toJSONObject(request));

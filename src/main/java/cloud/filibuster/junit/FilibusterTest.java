@@ -14,6 +14,7 @@ import cloud.filibuster.junit.extensions.FilibusterTestExtension;
 import cloud.filibuster.junit.interceptors.FilibusterEnvironmentSkipInvocationInterceptor;
 import cloud.filibuster.junit.server.FilibusterServerBackend;
 import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
+import cloud.filibuster.junit.server.core.profiles.ServiceProfileBehavior;
 import cloud.filibuster.junit.server.latency.FilibusterLatencyProfile;
 import cloud.filibuster.junit.server.latency.FilibusterNoLatencyProfile;
 import org.apiguardian.api.API;
@@ -200,4 +201,18 @@ public @interface FilibusterTest {
      * @return latency profile implementing class.
      */
     Class<? extends FilibusterLatencyProfile> latencyProfile() default FilibusterNoLatencyProfile.class;
+
+    /**
+     * Directory containing service profiles.
+     *
+     * @return directory
+     */
+    String serviceProfilesPath() default "";
+
+    /**
+     * How service profiles should be used.
+     *
+     * @return service profile behavior
+     */
+    ServiceProfileBehavior serviceProfileBehavior() default ServiceProfileBehavior.NONE;
 }

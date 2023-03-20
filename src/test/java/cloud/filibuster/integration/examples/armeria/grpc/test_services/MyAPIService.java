@@ -52,6 +52,9 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
             if (e.getCause() instanceof CircuitBreakerException) {
                 Status status = Status.INTERNAL.withDescription(e.toString());
                 responseObserver.onError(status.asRuntimeException());
+            } else if (e.getStatus().getCode().equals(Status.DATA_LOSS.getCode())) {
+                Status status = Status.RESOURCE_EXHAUSTED.withDescription(e.toString());
+                responseObserver.onError(status.asRuntimeException());
             } else {
                 Status status = Status.FAILED_PRECONDITION.withDescription(e.toString());
                 responseObserver.onError(status.asRuntimeException());

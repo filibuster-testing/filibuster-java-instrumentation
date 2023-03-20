@@ -6,8 +6,10 @@ import com.google.protobuf.GeneratedMessageV3;
 import io.grpc.Status;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.FileAlreadyExistsException;
@@ -130,6 +132,33 @@ public class ServiceProfile {
             return serviceProfile;
         } catch (IOException e) {
             throw new FilibusterServiceProfileReaderException("Filibuster failed to read the service profile at " + fileName, e);
+        }
+    }
+
+    public static List<ServiceProfile> loadFromDirectory(Path directory) {
+        List<ServiceProfile> serviceProfiles = new ArrayList<>();
+        Iterator it = FileUtils.iterateFiles(directory.toFile(), null, /* recursive= */ false);
+
+        while(it.hasNext()) {
+            File nextFile = (File) it.next();
+            Path nextFilePath = nextFile.toPath();
+
+            if (Files.isRegularFile(nextFilePath)) {
+                ServiceProfile serviceProfile = ServiceProfile.loadFromFile(nextFilePath);
+                serviceProfiles.add(serviceProfile);
+            }
+        }
+
+        return serviceProfiles;
+    }
+
+    public static ServiceProfile loadFromFile(Path path) {
+        try {
+            String content = new String(Files.readAllBytes(path), Charset.defaultCharset());
+            JSONObject jsonObject = new JSONObject(content);
+            return ServiceProfile.fromJSONObject(jsonObject);
+        } catch (IOException e) {
+            throw new FilibusterServiceProfileReaderException("Cannot load service profile from file " + path + ": " + e, e);
         }
     }
 

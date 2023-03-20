@@ -1,6 +1,7 @@
 package cloud.filibuster.unit;
 
 import cloud.filibuster.examples.Hello;
+import cloud.filibuster.exceptions.CircuitBreakerException;
 import cloud.filibuster.junit.server.core.reports.ServerInvocationAndResponse;
 import cloud.filibuster.junit.server.core.serializers.GeneratedMessageV3Serializer;
 import cloud.filibuster.junit.server.core.serializers.StatusSerializer;
@@ -31,6 +32,16 @@ public class SerializersTest {
         return Status.OK;
     }
 
+    private static Status generateResponseStatusWithFailureCodeAndDescription() {
+        return Status.fromCode(Status.FAILED_PRECONDITION.getCode()).withDescription("blah");
+    }
+
+    private static Status generateResponseStatusWithFailureCause() {
+        return Status.fromThrowable(new CircuitBreakerException("circuit breaker is opened"));
+    }
+
+    // TODO: cause
+
     private static GeneratedMessageV3 generateResponseMessage() {
         return Hello.HelloReply.newBuilder().setMessage("Hi, Chris!").build();
     }
@@ -40,6 +51,42 @@ public class SerializersTest {
         String fullMethodName = generateFullMethodName();
         GeneratedMessageV3 requestMessage = generateRequestMessage();
         Status responseStatus = generateResponseStatus();
+        GeneratedMessageV3 responseMessage = generateResponseMessage();
+
+        ServerInvocationAndResponse sir = new ServerInvocationAndResponse(
+                requestId,
+                fullMethodName,
+                requestMessage,
+                responseStatus,
+                responseMessage
+        );
+
+        return sir;
+    }
+
+    private static ServerInvocationAndResponse generateServerInvocationAndResponseWithFailureCodeAndDescription() {
+        String requestId = generateRequestId();
+        String fullMethodName = generateFullMethodName();
+        GeneratedMessageV3 requestMessage = generateRequestMessage();
+        Status responseStatus = generateResponseStatusWithFailureCodeAndDescription();
+        GeneratedMessageV3 responseMessage = generateResponseMessage();
+
+        ServerInvocationAndResponse sir = new ServerInvocationAndResponse(
+                requestId,
+                fullMethodName,
+                requestMessage,
+                responseStatus,
+                responseMessage
+        );
+
+        return sir;
+    }
+
+    private static ServerInvocationAndResponse generateServerInvocationAndResponseWithFailureCause() {
+        String requestId = generateRequestId();
+        String fullMethodName = generateFullMethodName();
+        GeneratedMessageV3 requestMessage = generateRequestMessage();
+        Status responseStatus = generateResponseStatusWithFailureCause();
         GeneratedMessageV3 responseMessage = generateResponseMessage();
 
         ServerInvocationAndResponse sir = new ServerInvocationAndResponse(
@@ -237,5 +284,66 @@ public class SerializersTest {
 
         io.grpc.Status status = StatusSerializer.fromJSONObject(statusObject);
         assertEquals(sir.getResponseStatus(), status);
+    }
+
+    @Test
+    public void testStatusToJSONObjectWithFailureCodeAndDescription() {
+        ServerInvocationAndResponse sir = generateServerInvocationAndResponseWithFailureCodeAndDescription();
+        JSONObject statusObject = StatusSerializer.toJSONObject(sir.getResponseStatus());
+
+        JSONObject expectedStatusObject = new JSONObject();
+        expectedStatusObject.put("class", "io.grpc.Status");
+        expectedStatusObject.put("code", "FAILED_PRECONDITION");
+        expectedStatusObject.put("description", "blah");
+
+        assertEquals(true, expectedStatusObject.similar(statusObject));
+    }
+
+    @Test
+    public void testStatusFromJSONObjectWithFailureCodeAndDescription() {
+        ServerInvocationAndResponse sir = generateServerInvocationAndResponseWithFailureCodeAndDescription();
+        JSONObject statusObject = StatusSerializer.toJSONObject(sir.getResponseStatus());
+
+        JSONObject expectedStatusObject = new JSONObject();
+        expectedStatusObject.put("class", "io.grpc.Status");
+        expectedStatusObject.put("code", "FAILED_PRECONDITION");
+        expectedStatusObject.put("description", "blah");
+
+        assertEquals(true, expectedStatusObject.similar(statusObject));
+
+        io.grpc.Status status = StatusSerializer.fromJSONObject(statusObject);
+        assertEquals(sir.getResponseStatus().getCode(), status.getCode());
+        assertEquals(sir.getResponseStatus().getDescription(), status.getDescription());
+    }
+
+    @Test
+    public void testStatusToJSONObjectWithFailureCause() {
+        ServerInvocationAndResponse sir = generateServerInvocationAndResponseWithFailureCause();
+        JSONObject statusObject = StatusSerializer.toJSONObject(sir.getResponseStatus());
+
+        JSONObject expectedStatusObject = new JSONObject();
+        expectedStatusObject.put("class", "io.grpc.Status");
+        expectedStatusObject.put("code", "UNKNOWN");
+        expectedStatusObject.put("cause", "cloud.filibuster.exceptions.CircuitBreakerException: circuit breaker is opened");
+
+        assertEquals(true, expectedStatusObject.similar(statusObject));
+    }
+
+    @Test
+    public void testStatusFromJSONObjectWithFailureCause() {
+        ServerInvocationAndResponse sir = generateServerInvocationAndResponseWithFailureCause();
+        JSONObject statusObject = StatusSerializer.toJSONObject(sir.getResponseStatus());
+
+        JSONObject expectedStatusObject = new JSONObject();
+        expectedStatusObject.put("class", "io.grpc.Status");
+        expectedStatusObject.put("code", "UNKNOWN");
+        expectedStatusObject.put("cause", "cloud.filibuster.exceptions.CircuitBreakerException: circuit breaker is opened");
+
+        assertEquals(true, expectedStatusObject.similar(statusObject));
+
+        io.grpc.Status status = StatusSerializer.fromJSONObject(statusObject);
+        assertEquals(sir.getResponseStatus().getCode(), status.getCode());
+        assertEquals(sir.getResponseStatus().getDescription(), status.getDescription());
+        assertEquals(null, status.getCause()); // cause does not serialize across service boundaries.
     }
 }

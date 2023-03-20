@@ -7,6 +7,7 @@ import cloud.filibuster.functional.JUnitBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.server.core.profiles.ServiceProfile;
+import cloud.filibuster.junit.server.core.profiles.ServiceProfileBehavior;
 import cloud.filibuster.junit.server.core.reports.ServerInvocationAndResponseReport;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -92,19 +93,19 @@ public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
 
                 // World failures.
 
-                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
+                if (t.getMessage().equals("RESOURCE_EXHAUSTED: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
                     expected = true;
                 }
 
-                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: UNAVAILABLE")) {
+                if (t.getMessage().equals("RESOURCE_EXHAUSTED: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: UNAVAILABLE")) {
                     expected = true;
                 }
 
-                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: INTERNAL")) {
+                if (t.getMessage().equals("RESOURCE_EXHAUSTED: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: INTERNAL")) {
                     expected = true;
                 }
 
-                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED")) {
+                if (t.getMessage().equals("RESOURCE_EXHAUSTED: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED")) {
                     expected = true;
                 }
 
@@ -349,5 +350,105 @@ public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
         ServerInvocationAndResponseReport.clear();
     }
 
-    // TODO
+    // *****************************************************************************************************************
+    // Phase 4: Test API server with a mock of Hello and using the Hello service profile.
+    //          This should execute the original number of tests.
+    // *****************************************************************************************************************
+
+    private static final List<String> testExceptionsThrownForAPIServiceWithMockAndServiceProfile = new ArrayList<>();
+
+    // Test 10, test the API service using a mock.
+    // - It should test the correct number of failures using the mock and service profile together.
+    @FilibusterTest(dataNondeterminism = true, serviceProfilesPath = "/tmp/filibuster/fsp/", serviceProfileBehavior = ServiceProfileBehavior.FAULT)
+    @Order(10)
+    public void testAPIServiceWithMockAndServiceProfile() throws InterruptedException {
+        ManagedChannel apiChannel = ManagedChannelBuilder
+                .forAddress(Networking.getHost("api_server"), Networking.getPort("api_server"))
+                .usePlaintext()
+                .build();
+
+        boolean expected = false;
+
+        String name = "API";
+
+        Hello.HelloExtendedReply response1 = Hello.HelloExtendedReply.newBuilder()
+                .setName(name)
+                .setFirstMessage("Hello, " + name + " World!!")
+                .setSecondMessage(String.valueOf(Math.random()))
+                .setCreatedAt("2023-01-01 01:02:03")
+                .build();
+
+        stubFor(unaryMethod(HelloServiceGrpc.getCompositionalHelloMethod()).willReturn(response1));
+
+        try {
+            APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
+            Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName(name).build();
+            Hello.HelloReply reply = blockingStub.helloWithMock(request);
+            assertEquals("Hello, Hello, " + name + " World!!", reply.getMessage());
+            assertFalse(wasFaultInjected());
+        } catch (Throwable t) {
+            boolean wasFaultInjected = wasFaultInjected();
+
+            if (wasFaultInjected) {
+                testExceptionsThrownForAPIServiceWithMockAndServiceProfile.add(t.getMessage());
+
+                // World failures.
+
+                if (t.getMessage().equals("RESOURCE_EXHAUSTED: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
+                    expected = true;
+                }
+
+                if (t.getMessage().equals("RESOURCE_EXHAUSTED: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: UNAVAILABLE")) {
+                    expected = true;
+                }
+
+                if (t.getMessage().equals("RESOURCE_EXHAUSTED: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: INTERNAL")) {
+                    expected = true;
+                }
+
+                if (t.getMessage().equals("RESOURCE_EXHAUSTED: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED")) {
+                    expected = true;
+                }
+
+                // Hello failures.
+
+                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
+                    expected = true;
+                }
+
+                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: UNAVAILABLE")) {
+                    expected = true;
+                }
+
+                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: INTERNAL")) {
+                    expected = true;
+                }
+
+                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: UNIMPLEMENTED")) {
+                    expected = true;
+                }
+
+                // Otherwise.
+
+                if (! expected) {
+                    throw t;
+                }
+            } else {
+                throw t;
+            }
+        }
+
+        apiChannel.shutdownNow();
+        apiChannel.awaitTermination(1000, TimeUnit.SECONDS);
+    }
+
+    // Test 11
+    // - Verify Filibuster generated the right number of tests for API Service using a mock only.
+    @Test
+    @Order(11)
+    public void testNumAssertionsForAPIServiceWithMockAndServiceProfile() {
+        assertEqualsUnlessFilibusterDisabledByEnvironment(8, testExceptionsThrownForAPIServiceWithMockAndServiceProfile.size());
+    }
+
+    // Voila!
 }

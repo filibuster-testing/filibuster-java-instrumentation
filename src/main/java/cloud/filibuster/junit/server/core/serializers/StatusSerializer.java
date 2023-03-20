@@ -21,7 +21,7 @@ public class StatusSerializer {
 
         if (cause != null) {
             jsonObject.put(Keys.CAUSE_KEY, status.getCause().toString());
-        } 
+        }
 
         jsonObject.put(Keys.DESCRIPTION_KEY, status.getDescription());
 

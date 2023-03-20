@@ -3,6 +3,7 @@ package cloud.filibuster.functional.java.smoke.suppress_combinations;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
 import cloud.filibuster.functional.JUnitBaseTest;
@@ -31,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@FilibusterConditionalByEnvironmentSuite
 public class JUnitFilibusterHelloPartialHelloExternalGrpcWithSuppressCombinationsTest extends JUnitBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
@@ -151,20 +153,20 @@ public class JUnitFilibusterHelloPartialHelloExternalGrpcWithSuppressCombination
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEqualsUnlessFilibusterDisabledByEnvironment(8, testExceptionsThrown.size());
+        assertEquals(8, testExceptionsThrown.size());
     }
 
     @DisplayName("Verify correct number of executed tests.")
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEqualsUnlessFilibusterDisabledByEnvironment(9, numberOfTestsExecuted);
+        assertEquals(9, numberOfTestsExecuted);
     }
 
     @DisplayName("Verify correct number of exceptions thrown.")
     @Test
     @Order(4)
     public void numberOfExceptionsThrown() {
-        assertEqualsUnlessFilibusterDisabledByEnvironment(8, numberOfExceptionsThrown);
+        assertEquals(8, numberOfExceptionsThrown);
     }
 }

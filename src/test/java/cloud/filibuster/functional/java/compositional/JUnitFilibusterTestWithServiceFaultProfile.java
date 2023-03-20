@@ -146,7 +146,7 @@ public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
     @Test
     @Order(2)
     public void testNumAssertionsForAPIService() {
-        assertEqualsUnlessFilibusterDisabledByEnvironment(8, testExceptionsThrownForAPIService.size());
+        assertEquals(8, testExceptionsThrownForAPIService.size());
     }
 
     // Test 3
@@ -243,7 +243,7 @@ public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
     @Test
     @Order(5)
     public void testNumAssertionsForHelloService() {
-        assertEqualsUnlessFilibusterDisabledByEnvironment(4, testExceptionsThrownForHelloService.size());
+        assertEquals(4, testExceptionsThrownForHelloService.size());
     }
 
     // Test 6
@@ -334,7 +334,7 @@ public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
     @Test
     @Order(8)
     public void testNumAssertionsForAPIServiceWithMock() {
-        assertEqualsUnlessFilibusterDisabledByEnvironment(4, testExceptionsThrownForAPIServiceWithMock.size());
+        assertEquals(4, testExceptionsThrownForAPIServiceWithMock.size());
     }
 
     // Test 9
@@ -447,7 +447,7 @@ public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
     @Test
     @Order(11)
     public void testNumAssertionsForAPIServiceWithMockAndServiceProfile() {
-        assertEqualsUnlessFilibusterDisabledByEnvironment(8, testExceptionsThrownForAPIServiceWithMockAndServiceProfile.size());
+        assertEquals(8, testExceptionsThrownForAPIServiceWithMockAndServiceProfile.size());
     }
 
     // Voila!

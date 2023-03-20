@@ -3,6 +3,7 @@ package cloud.filibuster.functional.java.smoke.nondeterministic;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
 import cloud.filibuster.functional.JUnitBaseTest;
@@ -25,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@FilibusterConditionalByEnvironmentSuite
 public class JUnitFilibusterNoFaultsNoTerminationTest extends JUnitBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
@@ -71,7 +73,7 @@ public class JUnitFilibusterNoFaultsNoTerminationTest extends JUnitBaseTest {
     @Order(3)
     public void testNumberOfTestsExecuted() {
         // maxIterations executed because of no termination.
-        assertEqualsUnlessFilibusterDisabledByEnvironment(10, numberOfTestsExecuted);
+        assertEquals(10, numberOfTestsExecuted);
     }
 
     @DisplayName("Verify correct number of exceptions thrown.")

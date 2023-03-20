@@ -76,6 +76,11 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
         String causeString = forcedExceptionMetadata.getString("cause");
         String codeStr = forcedExceptionMetadata.getString("code");
 
+        String descriptionStr = null;
+        if (forcedExceptionMetadata.has("description")) {
+            descriptionStr = forcedExceptionMetadata.getString("description");
+        }
+
         // Status object to return to the user.
         Status status;
 

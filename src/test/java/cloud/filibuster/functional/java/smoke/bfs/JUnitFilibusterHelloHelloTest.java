@@ -5,6 +5,7 @@ import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.functional.JUnitBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
+import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
 import io.grpc.ManagedChannel;
@@ -27,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@FilibusterConditionalByEnvironmentSuite
 public class JUnitFilibusterHelloHelloTest extends JUnitBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
@@ -57,13 +59,13 @@ public class JUnitFilibusterHelloHelloTest extends JUnitBaseTest {
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEqualsUnlessFilibusterDisabledByEnvironment(0, testExceptionsThrown.size());
+        assertEquals(0, testExceptionsThrown.size());
     }
 
     @DisplayName("Verify correct number of executed tests.")
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEqualsUnlessFilibusterDisabledByEnvironment(1, numberOfTestsExecuted);
+        assertEquals(1, numberOfTestsExecuted);
     }
 }

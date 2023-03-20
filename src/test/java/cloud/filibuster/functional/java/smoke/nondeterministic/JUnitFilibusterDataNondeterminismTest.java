@@ -3,6 +3,7 @@ package cloud.filibuster.functional.java.smoke.nondeterministic;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
 import cloud.filibuster.functional.JUnitBaseTest;
@@ -23,6 +24,7 @@ import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethodWherePayloadContains;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnRequest;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -30,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@FilibusterConditionalByEnvironmentSuite
 public class JUnitFilibusterDataNondeterminismTest extends JUnitBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
@@ -109,20 +112,20 @@ public class JUnitFilibusterDataNondeterminismTest extends JUnitBaseTest {
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEqualsUnlessFilibusterDisabledByEnvironment(4, testExceptionsThrown.size());
+        assertEquals(4, testExceptionsThrown.size());
     }
 
     @DisplayName("Verify correct number of executed tests.")
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEqualsUnlessFilibusterDisabledByEnvironment(5, numberOfTestsExecuted);
+        assertEquals(5, numberOfTestsExecuted);
     }
 
     @DisplayName("Verify correct number of exceptions thrown.")
     @Test
     @Order(4)
     public void numberOfExceptionsThrown() {
-        assertEqualsUnlessFilibusterDisabledByEnvironment(4, numberOfExceptionsThrown);
+        assertEquals(4, numberOfExceptionsThrown);
     }
 }

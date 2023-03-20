@@ -2,6 +2,11 @@ syntax = "proto3";
 
 package cloud.filibuster.examples;
 
+service APIService {
+  rpc Hello (HelloRequest) returns (HelloReply) {};
+  rpc HelloWithMock (HelloRequest) returns (HelloReply) {};
+}
+
 service HelloService {
   rpc Hello (HelloRequest) returns (HelloReply) {}
   rpc PartialHello (HelloRequest) returns (HelloReply) {}
@@ -20,6 +25,7 @@ service HelloService {
   rpc SmellyUnimplementedFailures (HelloRequest) returns (HelloReply) {}
   rpc SmellyResponseBecomesRequest (HelloRequest) returns (HelloReply) {}
   rpc SmellyMultipleInvocationsForIndividualMutations (HelloRequest) returns (HelloReply) {}
+  rpc CompositionalHello (HelloExtendedRequest) returns (HelloExtendedReply) {}
 }
 
 message HelloRequest {
@@ -28,6 +34,24 @@ message HelloRequest {
 
 message HelloReply {
   string message = 1;
+}
+
+message HelloExtendedRequest {
+  string name = 1;
+}
+
+message HelloExtendedReply {
+  // contains name, directly mapped through.
+  string name = 1;
+
+  // contains part of the name, should form a partial match on the argument.
+  string first_message = 2;
+
+  // contains nothing from the response.
+  string second_message = 3;
+
+  // contains a random datetime.
+  string created_at = 4;
 }
 
 service WorldService {

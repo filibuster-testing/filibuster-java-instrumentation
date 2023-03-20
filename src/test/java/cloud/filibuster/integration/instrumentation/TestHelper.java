@@ -4,6 +4,7 @@ import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.exceptions.FilibusterServerUnavailabilityException;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.armeria.http.FilibusterDecoratingHttpClient;
+import cloud.filibuster.integration.examples.test_servers.APIServer;
 import cloud.filibuster.integration.examples.test_servers.ExternalServer;
 import cloud.filibuster.integration.examples.test_servers.HelloServer;
 import cloud.filibuster.integration.examples.test_servers.WorldServer;
@@ -31,6 +32,8 @@ import java.util.logging.Logger;
 
 public class TestHelper {
     private static final Logger logger = Logger.getLogger(TestHelper.class.getName());
+
+    private static Server apiServer;
 
     private static Server helloServer;
 
@@ -325,5 +328,53 @@ public class TestHelper {
                 .serializationFormat(GrpcSerializationFormats.PROTO)
                 .responseTimeoutMillis(10000)
                 .decorator(delegate -> new FilibusterDecoratingHttpClient(delegate, serviceName));
+    }
+
+    public static void startAPIServerAndWaitUntilAvailable() throws InterruptedException, IOException {
+        apiServer = APIServer.serve();
+        CompletableFuture<Void> apiServerFuture = apiServer.start();
+
+        // Wait up to 10 seconds for APIServer to start.
+        boolean online = false;
+
+        for (int i = 0; i < 10; i++) {
+            logger.log(Level.INFO, "Waiting for APIServer to come online...");
+
+            try {
+                // Get remote resource.
+                String baseURI = "http://" + Networking.getHost("api_server") + ":" + Networking.getPort("api_server") + "/";
+                WebClient webClient = getTestWebClient(baseURI);
+                RequestHeaders getHeaders = RequestHeaders.of(
+                        HttpMethod.GET, "/health-check", HttpHeaderNames.ACCEPT, "application/json");
+                AggregatedHttpResponse response = webClient.execute(getHeaders).aggregate().join();
+
+                // Get headers and verify a 200 OK response.
+                ResponseHeaders headers = response.headers();
+                String statusCode = headers.get(HttpHeaderNames.STATUS);
+
+                if (statusCode.equals("200")) {
+                    logger.log(Level.INFO, "Available!");
+                    online = true;
+                    break;
+                } else {
+                    logger.log(Level.INFO, "Didn't get proper response, status code: " + statusCode);
+                }
+            } catch (RuntimeException e) {
+                logger.log(Level.SEVERE, "Runtime exception occurred: " + e);
+            }
+
+            logger.log(Level.INFO, "Sleeping one second...");
+            Thread.sleep(1000);
+        }
+
+        if (!online) {
+            logger.log(Level.INFO, "APIServer never came online!");
+            throw new FilibusterServerUnavailabilityException();
+        }
+    }
+
+    public static void stopAPIServerAndWaitUntilUnavailable() throws InterruptedException {
+        apiServer.close();
+        apiServer.blockUntilShutdown();
     }
 }

@@ -1,0 +1,4 @@
+1.2.0:
+   - (cmeiklejohn) First prototype of compositional Filibuster
+   - (cmeiklejohn) Add ability to write assertions using ServiceModuleGrpc.getMethodNamedThis().
+   - (cmeiklejohn) Fix issue where the FILIBUSTER_DISABLED=true option introduced too much overhead in test generation by introducing the @FilibusterConditionalByEnvironmentSuite annotation.

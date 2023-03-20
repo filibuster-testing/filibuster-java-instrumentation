@@ -76,6 +76,11 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
         String causeString = forcedExceptionMetadata.getString("cause");
         String codeStr = forcedExceptionMetadata.getString("code");
 
+        String descriptionStr = null;
+        if (forcedExceptionMetadata.has("description")) {
+            descriptionStr = forcedExceptionMetadata.getString("description");
+        }
+
         // Status object to return to the user.
         Status status;
 
@@ -90,7 +95,12 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
         } else if (!codeStr.isEmpty()) {
             // Code is checked secondary and ignored if cause is present.
             Status.Code code = Status.Code.valueOf(codeStr);
-            status = Status.fromCode(code);
+
+            if (descriptionStr != null) {
+                status = Status.fromCode(code).withDescription(descriptionStr);
+            } else {
+                status = Status.fromCode(code);
+            }
         } else {
             // Otherwise, we do not know what to inject.
             throw new FilibusterFaultInjectionException("No code or cause provided for injection of io.grpc.StatusRuntimeException.");

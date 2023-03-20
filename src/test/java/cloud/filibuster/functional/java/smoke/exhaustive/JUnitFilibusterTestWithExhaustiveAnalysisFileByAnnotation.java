@@ -3,6 +3,7 @@ package cloud.filibuster.functional.java.smoke.exhaustive;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.configuration.FilibusterGrpcExhaustiveAnalysisConfigurationFile;
 import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
@@ -25,6 +26,7 @@ import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@FilibusterConditionalByEnvironmentSuite
 @SuppressWarnings("Java8ApiChecker")
 public class JUnitFilibusterTestWithExhaustiveAnalysisFileByAnnotation extends JUnitBaseTest {
     private static final List<String> exhaustiveGrpcErrorCodeList = new ArrayList<>();
@@ -93,6 +95,6 @@ public class JUnitFilibusterTestWithExhaustiveAnalysisFileByAnnotation extends J
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEqualsUnlessFilibusterDisabledByEnvironment(16, testExceptionsThrown.size());
+        assertEquals(16, testExceptionsThrown.size());
     }
 }

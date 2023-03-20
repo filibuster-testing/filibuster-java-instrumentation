@@ -33,7 +33,7 @@ public class Callsite {
     private final String serviceName;
     private final String classOrModuleName;
     private final String methodOrFunctionName;
-    private final CallsiteArguments serializedArguments;
+    private final CallsiteArguments callsiteArguments;
     private final String serializedStackTrace;
     private final String fileName;
     private final String lineNumber;
@@ -59,18 +59,18 @@ public class Callsite {
      * @param serviceName service name that is being invoked.
      * @param classOrModuleName class or module name of the stub that is being used during the invocation.
      * @param methodOrFunctionName remote RPC method that is being invoked.
-     * @param serializedArguments serialized arguments supplied to the RPC method.
+     * @param callsiteArguments serialized arguments supplied to the RPC method.
      */
     public Callsite(
         String serviceName,
         String classOrModuleName,
         String methodOrFunctionName,
-        CallsiteArguments serializedArguments
+        CallsiteArguments callsiteArguments
     ) {
         this.serviceName = serviceName;
         this.classOrModuleName = classOrModuleName;
         this.methodOrFunctionName = methodOrFunctionName;
-        this.serializedArguments = serializedArguments;
+        this.callsiteArguments = callsiteArguments;
 
         computeFilteredStackTrace();
 
@@ -145,14 +145,12 @@ public class Callsite {
     }
 
     /**
-     * Return the serialized arguments.
-     *
-     * TODO: Rename me.
-     *
+     * Return the callsite arguments.
+     **
      * @return string of serialized arguments.
      */
-    public CallsiteArguments getSerializedArguments() {
-        return serializedArguments;
+    public CallsiteArguments getCallsiteArguments() {
+        return callsiteArguments;
     }
 
     /**

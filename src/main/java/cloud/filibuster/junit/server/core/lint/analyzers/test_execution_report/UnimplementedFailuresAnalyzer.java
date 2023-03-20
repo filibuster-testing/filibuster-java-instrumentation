@@ -2,7 +2,7 @@ package cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.junit.server.core.lint.analyzers.warnings.UnimplementedFailuresWarning;
-import cloud.filibuster.junit.server.core.test_execution_reports.TestExecutionReport;
+import cloud.filibuster.junit.server.core.reports.TestExecutionReport;
 import org.json.JSONObject;
 
 public class UnimplementedFailuresAnalyzer extends TestExecutionReportAnalyzer {

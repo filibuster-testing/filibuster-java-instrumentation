@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.server.core.test_execution_reports;
+package cloud.filibuster.junit.server.core.reports;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterException;
 import org.json.JSONObject;
@@ -32,16 +32,18 @@ public class TestExecutionAggregateReport {
         try {
             Files.createDirectory(directory);
         } catch(FileAlreadyExistsException e) {
-            try (Stream<Path> filesInDirectoryStream  =  Files.walk(directory) ){
-                filesInDirectoryStream.sorted(Comparator.reverseOrder())
-                        .map(Path::toFile)
-                        .filter(file -> file.toString().contains("filibuster-test-execution"))
-                        .forEach(File::delete);
-            } catch (IOException ex) {
-                throw new FilibusterTestReportWriterException("Filibuster failed to delete content in the /tmp/filibuster/ directory ", e);
-            }
-        } catch(IOException e) {
+            // Nothing, directory already exists.
+        } catch (IOException e) {
             throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution aggregate report: ", e);
+        }
+
+        try (Stream<Path> filesInDirectoryStream  =  Files.walk(directory) ){
+            filesInDirectoryStream.sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .filter(file -> file.toString().contains("filibuster-test-execution"))
+                    .forEach(File::delete);
+        } catch (IOException e) {
+            throw new FilibusterTestReportWriterException("Filibuster failed to delete content in the /tmp/filibuster/ directory ", e);
         }
 
         try {
@@ -110,7 +112,7 @@ public class TestExecutionAggregateReport {
 
         logger.info(
                 "" + "\n" +
-                        "[FILIBUSTER-CORE]: Test Execution Report written to file://" + indexPath + "\n");
+                        "[FILIBUSTER-CORE]: Test Execution Aggregate Report written to file://" + indexPath + "\n");
     }
 
     private JSONObject toJSONObject() {
@@ -118,7 +120,7 @@ public class TestExecutionAggregateReport {
         ArrayList<JSONObject> materializedReportMetadatas = new ArrayList<>();
 
         for (TestExecutionReport ter : testExecutionReports) {
-            MaterializedReportMetadata mrm = ter.getMaterializedReportMetadata();
+            MaterializedTestExecutionReportMetadata mrm = ter.getMaterializedReportMetadata();
 
             if (mrm != null) {
                 materializedReportMetadatas.add(ter.getMaterializedReportMetadata().toJSONObject());

@@ -41,6 +41,10 @@ public class Networking {
                     return 5003;
                 case "external":
                     return 5004;
+                case "api_server":
+                    return 5006;
+                case "hello-mock":
+                    return 6002;
                 default:
                     RuntimeException re = new MissingServiceSpecificationException();
                     re.initCause(e);

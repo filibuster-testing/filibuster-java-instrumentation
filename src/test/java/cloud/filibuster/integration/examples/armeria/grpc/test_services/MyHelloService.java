@@ -662,4 +662,91 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
             logger.log(Level.SEVERE, "Failed to terminate channel: " + e);
         }
     }
+
+    @Override
+    public void compositionalHello(Hello.HelloExtendedRequest req, StreamObserver<Hello.HelloExtendedReply> responseObserver) {
+        // build stub with decorator or interceptor
+        if (!shouldUseDecorator) {
+            ManagedChannel originalChannel = ManagedChannelBuilder
+                    .forAddress(Networking.getHost("world"), Networking.getPort("world"))
+                    .usePlaintext()
+                    .build();
+
+            ClientInterceptor clientInterceptor;
+
+            if (useOtelClientInterceptor) {
+                clientInterceptor = new OpenTelemetryFilibusterClientInterceptor("hello", null, null);
+            } else {
+                clientInterceptor = new FilibusterClientInterceptor("hello");
+            }
+
+            Channel channel = ClientInterceptors.intercept(originalChannel, clientInterceptor);
+
+            try {
+                WorldServiceGrpc.WorldServiceBlockingStub blockingStub = WorldServiceGrpc.newBlockingStub(channel);
+                Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(req.getName()).build();
+                Hello.WorldReply worldReply = blockingStub.world(request);
+
+                Hello.HelloExtendedReply reply = Hello.HelloExtendedReply.newBuilder()
+                        .setName(req.getName())
+                        .setFirstMessage("Hello, " + worldReply.getMessage())
+                        .setSecondMessage(String.valueOf(Math.random()))
+                        .setCreatedAt("2023-01-01 01:02:03")
+                        .build();
+                responseObserver.onNext(reply);
+                responseObserver.onCompleted();
+
+                originalChannel.shutdownNow();
+                try {
+                    while (! originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+                        Thread.sleep(4000);
+                    }
+                } catch (InterruptedException ie) {
+                    logger.log(Level.SEVERE, "Failed to terminate channel: " + ie);
+                }
+
+            } catch (StatusRuntimeException e) {
+                if (e.getCause() instanceof CircuitBreakerException) {
+                    Status status = Status.INTERNAL.withDescription(e.toString());
+                    responseObserver.onError(status.asRuntimeException());
+                } else {
+                    Status status = Status.DATA_LOSS.withDescription(e.toString());
+                    responseObserver.onError(status.asRuntimeException());
+                }
+
+                originalChannel.shutdownNow();
+                try {
+                    while (! originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+                        Thread.sleep(4000);
+                    }
+                } catch (InterruptedException ie) {
+                    logger.log(Level.SEVERE, "Failed to terminate channel: " + ie);
+                }
+
+                return;
+            }
+        } else {    // build stub with decorator
+            String serviceName = "test";
+            String baseURI = "http://" + Networking.getHost("world") + ":" + Networking.getPort("world") + "/";
+            GrpcClientBuilder grpcClientBuilder = TestHelper.getGrpcClientBuilder(baseURI, serviceName);
+            try {
+                WorldServiceGrpc.WorldServiceBlockingStub blockingStub =
+                        grpcClientBuilder.build(WorldServiceGrpc.WorldServiceBlockingStub.class);
+                Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(req.getName()).build();
+                Hello.WorldReply worldReply = blockingStub.world(request);
+
+                Hello.HelloExtendedReply reply = Hello.HelloExtendedReply.newBuilder()
+                        .setName(req.getName())
+                        .setFirstMessage("Hello, " + worldReply.getMessage())
+                        .setSecondMessage(String.valueOf(Math.random()))
+                        .setCreatedAt("2023-01-01 01:02:03")
+                        .build();
+                responseObserver.onNext(reply);
+                responseObserver.onCompleted();
+            } catch (StatusRuntimeException e) {
+                Status status = Status.DATA_LOSS.withDescription(e.toString());
+                responseObserver.onError(status.asRuntimeException());
+            }
+        }
+    }
 }

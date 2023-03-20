@@ -3,6 +3,7 @@ package cloud.filibuster.functional.java.smoke.suppress_combinations;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
 import cloud.filibuster.functional.JUnitBaseTest;
@@ -26,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@FilibusterConditionalByEnvironmentSuite
 public class JUnitFilibusterHelloParallelPartialHelloWithSuppressCombinationsTest extends JUnitBaseTest {
     private final static Set<String> responsesReceived = new HashSet<>();
 
@@ -63,13 +65,13 @@ public class JUnitFilibusterHelloParallelPartialHelloWithSuppressCombinationsTes
     @Test
     @Order(2)
     public void testResponsesReceived() {
-        assertEqualsUnlessFilibusterDisabledByEnvironment(possibleResponses.size(), responsesReceived.size());
+        assertEquals(possibleResponses.size(), responsesReceived.size());
     }
 
     @DisplayName("Verify correct number of executed tests.")
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEqualsUnlessFilibusterDisabledByEnvironment(9, numberOfTestsExecuted);
+        assertEquals(9, numberOfTestsExecuted);
     }
 }

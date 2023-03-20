@@ -410,8 +410,8 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
 
         RuntimeException exceptionToThrow;
 
-        if ("com.linecorp.armeria.client.UnprocessedRequestException".equals(exceptionNameString)) {
-            if ("io.netty.channel.ConnectTimeoutException".equals(causeString)) {// Create the exception.
+        if (exceptionNameString.equals("com.linecorp.armeria.client.UnprocessedRequestException")) {
+            if (causeString.equals("io.netty.channel.ConnectTimeoutException")) {
                 String message = "connection timed out: " + hostname + "/" + hostnameForExceptionBody + ":" + port;
                 ConnectTimeoutException cause = new ConnectTimeoutException(message);
                 exceptionToThrow = UnprocessedRequestException.of(cause);

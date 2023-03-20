@@ -3,6 +3,7 @@ package cloud.filibuster.functional.java.smoke.basic;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
 import cloud.filibuster.functional.JUnitBaseTest;
@@ -29,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@FilibusterConditionalByEnvironmentSuite
 public class JUnitFilibusterTest extends JUnitBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
@@ -101,6 +103,6 @@ public class JUnitFilibusterTest extends JUnitBaseTest {
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEqualsUnlessFilibusterDisabledByEnvironment(4, testExceptionsThrown.size());
+        assertEquals(4, testExceptionsThrown.size());
     }
 }

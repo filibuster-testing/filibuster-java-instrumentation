@@ -2,7 +2,9 @@ package cloud.filibuster.functional.java.smoke.macros;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
+import cloud.filibuster.examples.WorldServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
 import cloud.filibuster.functional.JUnitBaseTest;
@@ -26,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@FilibusterConditionalByEnvironmentSuite
 public class JUnitFilibusterTestExtendedMacroAssertion extends JUnitBaseTest {
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
@@ -63,7 +66,10 @@ public class JUnitFilibusterTestExtendedMacroAssertion extends JUnitBaseTest {
             boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("WorldService");
             assertTrue(wasFaultInjectedOnWorldService);
 
-            boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World");
+            boolean wasFaultInjectedOnWorldMethodByString = wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World");
+            assertTrue(wasFaultInjectedOnWorldMethodByString);
+
+            boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod(WorldServiceGrpc.getWorldMethod());
             assertTrue(wasFaultInjectedOnWorldMethod);
 
             if (! expected) {

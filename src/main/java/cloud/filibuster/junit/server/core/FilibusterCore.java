@@ -666,21 +666,23 @@ public class FilibusterCore {
 
                         List<ServiceRequestAndResponse> serviceRequestAndResponseList = serviceProfile.getServiceRequestAndResponsesForMethod(methodName);
 
-                        for (ServiceRequestAndResponse serviceRequestAndResponse : serviceRequestAndResponseList) {
-                            if (!serviceRequestAndResponse.isSuccess()) {
-                                // Get error.
-                                Status status = serviceRequestAndResponse.getStatus();
-                                Code code = status.getCode();
-                                String description = status.getDescription();
+                        if (serviceRequestAndResponseList != null) {
+                            for (ServiceRequestAndResponse serviceRequestAndResponse : serviceRequestAndResponseList) {
+                                if (!serviceRequestAndResponse.isSuccess()) {
+                                    // Get error.
+                                    Status status = serviceRequestAndResponse.getStatus();
+                                    Code code = status.getCode();
+                                    String description = status.getDescription();
 
-                                // Build error map.
-                                Map<String,String> errorMap = new HashMap<>();
-                                errorMap.put("cause", "");
-                                errorMap.put("code", code.toString());
-                                errorMap.put("description", description);
+                                    // Build error map.
+                                    Map<String,String> errorMap = new HashMap<>();
+                                    errorMap.put("cause", "");
+                                    errorMap.put("code", code.toString());
+                                    errorMap.put("description", description);
 
-                                // Add to configuration.
-                                filibusterAnalysisConfigurationBuilder.exception("io.grpc.StatusRuntimeException", errorMap);
+                                    // Add to configuration.
+                                    filibusterAnalysisConfigurationBuilder.exception("io.grpc.StatusRuntimeException", errorMap);
+                                }
                             }
                         }
 

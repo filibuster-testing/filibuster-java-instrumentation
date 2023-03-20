@@ -25,6 +25,13 @@ public class StatusSerializer {
     public static Status fromJSONObject(JSONObject jsonObject) {
         String codeStr = jsonObject.getString(Keys.CODE_KEY);
         Status.Code code = Status.Code.valueOf(codeStr);
-        return Status.fromCode(code);
+        Status status = Status.fromCode(code);
+
+        if (jsonObject.has(Keys.DESCRIPTION_KEY)) {
+            String descriptionStr = jsonObject.getString(Keys.DESCRIPTION_KEY);
+            status = Status.fromCode(code).withDescription(descriptionStr);
+        }
+
+        return status;
     }
 }

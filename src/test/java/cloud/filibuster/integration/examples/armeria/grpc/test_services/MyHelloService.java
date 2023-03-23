@@ -749,4 +749,55 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
             }
         }
     }
+
+    @Override
+    public void simplePartialHello(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
+        ManagedChannel originalChannel = ManagedChannelBuilder
+                .forAddress(Networking.getHost("world"), Networking.getPort("world"))
+                .usePlaintext()
+                .build();
+        ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("hello");
+        Channel channel = ClientInterceptors.intercept(originalChannel, clientInterceptor);
+
+        try {
+            WorldServiceGrpc.WorldServiceBlockingStub blockingStub = WorldServiceGrpc.newBlockingStub(channel);
+            Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(req.getName()).build();
+            Hello.WorldReply worldReply = blockingStub.world(request);
+
+            Hello.HelloReply reply = Hello.HelloReply.newBuilder()
+                    .setMessage("Hello, " + worldReply.getMessage())
+                    .build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+
+            originalChannel.shutdownNow();
+
+            try {
+                while (! originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+                    Thread.sleep(4000);
+                }
+            } catch (InterruptedException ie) {
+                logger.log(Level.SEVERE, "Failed to terminate channel: " + ie);
+            }
+
+        } catch (StatusRuntimeException e) {
+            if (e.getCause() instanceof CircuitBreakerException) {
+                Status status = Status.FAILED_PRECONDITION.withDescription(e.toString());
+                responseObserver.onError(status.asRuntimeException());
+            } else {
+                Status status = Status.ABORTED.withDescription(e.toString());
+                responseObserver.onError(status.asRuntimeException());
+            }
+
+            originalChannel.shutdownNow();
+
+            try {
+                while (! originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+                    Thread.sleep(4000);
+                }
+            } catch (InterruptedException ie) {
+                logger.log(Level.SEVERE, "Failed to terminate channel: " + ie);
+            }
+        }
+    }
 }

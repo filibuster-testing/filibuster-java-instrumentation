@@ -6,7 +6,6 @@ import cloud.filibuster.functional.JUnitBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.FilibusterTest;
-import cloud.filibuster.junit.configuration.FilibusterCircuitBreakerOnlyAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterGrpcCodeWithDescriptionAnalysisConfigurationFile;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;

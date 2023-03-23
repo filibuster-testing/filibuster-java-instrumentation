@@ -6,12 +6,14 @@ public class FilibusterCircuitBreakerOnlyAnalysisConfigurationFile implements Fi
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
     static {
+        String code = "UNKNOWN";
+        String cause = "cloud.filibuster.exceptions.CircuitBreakerException";
+        String description = "";
+
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilder = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc")
                 .pattern("(.*/.*)")
-                .exception("io.grpc.StatusRuntimeException", Map.of(
-                        "cause", "cloud.filibuster.exceptions.CircuitBreakerException",
-                        "code", "UNKNOWN"));
+                .exception("io.grpc.StatusRuntimeException", FilibusterAnalysisConfigurationFile.createGrpcErrorMap(code, cause, description));
         FilibusterAnalysisConfiguration filibusterAnalysisConfiguration = filibusterAnalysisConfigurationBuilder.build();
         filibusterCustomAnalysisConfigurationFile = new FilibusterCustomAnalysisConfigurationFile.Builder()
                 .analysisConfiguration(filibusterAnalysisConfiguration)

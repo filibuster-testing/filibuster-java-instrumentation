@@ -47,6 +47,9 @@ public class FilibusterLocalServerBackend implements FilibusterServerBackend {
             filibusterServer = null;
         }
 
+        // Poke the GC once we dereference the FilibusterCore object (via FilibusterServer.)
+        System.gc();
+
         setServerBackendCanInvokeDirectlyProperty(false);
 
         return true;

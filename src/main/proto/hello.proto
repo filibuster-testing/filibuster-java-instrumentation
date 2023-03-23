@@ -26,6 +26,7 @@ service HelloService {
   rpc SmellyResponseBecomesRequest (HelloRequest) returns (HelloReply) {}
   rpc SmellyMultipleInvocationsForIndividualMutations (HelloRequest) returns (HelloReply) {}
   rpc CompositionalHello (HelloExtendedRequest) returns (HelloExtendedReply) {}
+  rpc SimplePartialHello (HelloRequest) returns (HelloReply) {}
 }
 
 message HelloRequest {

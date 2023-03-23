@@ -73,7 +73,6 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
         // Get description of the fault.
         String exceptionNameString = forcedException.getString("name");
         JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
-        String causeString = forcedExceptionMetadata.getString("cause");
         String codeStr = forcedExceptionMetadata.getString("code");
 
         String descriptionStr = null;
@@ -81,13 +80,29 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
             descriptionStr = forcedExceptionMetadata.getString("description");
         }
 
+        String causeString = null;
+        if (forcedExceptionMetadata.has("cause")) {
+            causeString = forcedExceptionMetadata.getString("cause");
+        }
+
+        String causeMessageString = null;
+        if (forcedExceptionMetadata.has("cause_message")) {
+            causeMessageString = forcedExceptionMetadata.getString("cause_message");
+        }
+
         // Status object to return to the user.
         Status status;
 
-        if (!causeString.isEmpty()) {
+        if (causeString != null && !causeString.isEmpty()) {
             // Cause always takes priority in gRPC because it implies a UNKNOWN response.
             try {
-                Throwable throwable = (Throwable) Class.forName(causeString).getConstructor(new Class[] { String.class }).newInstance("Filibuster generated exception.");
+                String throwableMessage = "Filibuster generated exception.";
+
+                if (causeMessageString != null && !causeMessageString.isEmpty()) {
+                    throwableMessage = causeMessageString;
+                }
+
+                Throwable throwable = (Throwable) Class.forName(causeString).getConstructor(new Class[] { String.class }).newInstance(throwableMessage);
                 status = Status.fromThrowable(throwable);
             } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException | InvocationTargetException e) {
                 throw new FilibusterFaultInjectionException("Unable to generate custom exception from string '" + causeString + "':" + e, e);

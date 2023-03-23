@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.smoke.exhaustive.circuitbreaker;
+package cloud.filibuster.functional.java.hello.circuitbreaker;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;

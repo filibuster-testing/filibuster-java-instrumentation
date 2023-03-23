@@ -7,6 +7,10 @@ public interface FilibusterAnalysisConfigurationFile {
     FilibusterCustomAnalysisConfigurationFile toFilibusterCustomAnalysisConfigurationFile();
 
     static Map<String, String> createGrpcErrorMap(String code, String cause, String description) {
+        return createGrpcErrorMap(code, cause, description, /* causeMessage */ null);
+    }
+
+    static Map<String, String> createGrpcErrorMap(String code, String cause, String description, String causeMessage) {
         Map<String,String> myMap = new HashMap<>();
 
         if (cause != null) {
@@ -25,6 +29,12 @@ public interface FilibusterAnalysisConfigurationFile {
             myMap.put("description", description);
         } else {
             myMap.put("description", "");
+        }
+
+        if (causeMessage != null) {
+            myMap.put("cause_message", causeMessage);
+        } else {
+            myMap.put("cause_message", "");
         }
 
         return myMap;

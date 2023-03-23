@@ -1,7 +1,5 @@
 package cloud.filibuster.junit.configuration;
 
-import java.util.Map;
-
 public class FilibusterCircuitBreakerOnlyAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 

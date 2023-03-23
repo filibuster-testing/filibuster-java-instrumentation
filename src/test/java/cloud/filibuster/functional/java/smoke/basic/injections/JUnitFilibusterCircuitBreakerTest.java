@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.smoke.basic;
+package cloud.filibuster.functional.java.smoke.basic.injections;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
@@ -53,7 +53,7 @@ public class JUnitFilibusterCircuitBreakerTest extends JUnitBaseTest {
         try {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
-            Hello.HelloReply reply = blockingStub.partialHello(request);
+            Hello.HelloReply reply = blockingStub.simplePartialHello(request);
             assertEquals("Hello, Armerian World!!", reply.getMessage());
             assertFalse(wasFaultInjected());
         } catch (Throwable t) {
@@ -62,8 +62,7 @@ public class JUnitFilibusterCircuitBreakerTest extends JUnitBaseTest {
             if (wasFaultInjected) {
                 testExceptionsThrown.add(t.getMessage());
 
-                // INTERNAL is expected here -- actually explicitly manually thrown.
-                if (t.getMessage().equals("INTERNAL: io.grpc.StatusRuntimeException: UNKNOWN")) {
+                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: UNKNOWN")) {
                     expected = true;
                 }
 

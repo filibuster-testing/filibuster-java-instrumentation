@@ -6,7 +6,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterAllowedTimeExceededExcep
 import cloud.filibuster.functional.JUnitBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
-import cloud.filibuster.junit.configuration.FilibusterLatencyOnlyAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.FilibusterLatencyOnlyAnalysisConfigurationFile;
 import cloud.filibuster.junit.server.latency.Filibuster1000msLatencyProfile;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;

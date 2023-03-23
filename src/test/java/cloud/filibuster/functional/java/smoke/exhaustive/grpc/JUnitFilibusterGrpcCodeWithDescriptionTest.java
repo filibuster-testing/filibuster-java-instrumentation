@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.smoke.exhaustive;
+package cloud.filibuster.functional.java.smoke.exhaustive.grpc;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
@@ -6,7 +6,7 @@ import cloud.filibuster.functional.JUnitBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.FilibusterTest;
-import cloud.filibuster.junit.configuration.FilibusterGrpcCodeWithDescriptionAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.FilibusterGrpcCodeWithDescriptionAnalysisConfigurationFile;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.DisplayName;

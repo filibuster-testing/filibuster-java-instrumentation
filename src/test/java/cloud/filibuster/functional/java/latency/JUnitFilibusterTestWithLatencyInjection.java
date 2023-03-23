@@ -5,7 +5,7 @@ import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.functional.JUnitBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
-import cloud.filibuster.junit.configuration.FilibusterLatencyOnlyAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.FilibusterLatencyOnlyAnalysisConfigurationFile;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.DisplayName;

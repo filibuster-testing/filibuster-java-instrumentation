@@ -26,19 +26,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Test simple annotation usage.
- */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @FilibusterConditionalByEnvironmentSuite
 public class JUnitFilibusterCircuitBreakerTest extends JUnitBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
-    /**
-     * Inject faults between Hello and World using Filibuster and assert proper faults are injected.
-     *
-     * @throws InterruptedException if teardown of gRPC channel fails.
-     */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @FilibusterTest(analysisConfigurationFile=FilibusterCircuitBreakerOnlyAnalysisConfigurationFile.class)
     @Order(1)
@@ -84,9 +76,6 @@ public class JUnitFilibusterCircuitBreakerTest extends JUnitBaseTest {
         helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
     }
 
-    /**
-     * Verify that Filibuster generated the correct number of fault injections.
-     */
     @DisplayName("Verify correct number of generated Filibuster tests.")
     @Test
     @Order(2)

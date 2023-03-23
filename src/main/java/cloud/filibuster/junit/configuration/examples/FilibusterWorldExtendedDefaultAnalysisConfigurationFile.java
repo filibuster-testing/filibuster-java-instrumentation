@@ -1,5 +1,8 @@
-package cloud.filibuster.junit.configuration;
+package cloud.filibuster.junit.configuration.examples;
 
+import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
+import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
 import org.json.JSONObject;
 
 import java.util.ArrayList;

@@ -7,7 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
-import cloud.filibuster.junit.configuration.FilibusterDefaultAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.FilibusterDefaultAnalysisConfigurationFile;
 import cloud.filibuster.exceptions.filibuster.FilibusterNoopException;
 import cloud.filibuster.junit.extensions.FilibusterTestExtension;
 

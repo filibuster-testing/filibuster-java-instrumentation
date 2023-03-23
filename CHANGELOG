@@ -1,3 +1,6 @@
+1.2.1:
+   - (cmeiklejohn) Add support for custom descriptions in injectable cause messages.
+   - (cmeiklejohn) Fix issue where missing cause in grpc fault injection would crash Filibuster.
 1.2.0:
    - (cmeiklejohn) First prototype of compositional Filibuster
    - (cmeiklejohn) Add ability to write assertions using ServiceModuleGrpc.getMethodNamedThis().

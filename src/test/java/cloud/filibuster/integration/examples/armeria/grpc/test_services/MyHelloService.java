@@ -782,7 +782,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
 
         } catch (StatusRuntimeException e) {
             if (e.getCause() instanceof CircuitBreakerException) {
-                Status status = Status.FAILED_PRECONDITION.withDescription(e.toString());
+                Status status = Status.FAILED_PRECONDITION.withDescription(e.getCause().toString());
                 responseObserver.onError(status.asRuntimeException());
             } else {
                 Status status = Status.ABORTED.withDescription(e.toString());

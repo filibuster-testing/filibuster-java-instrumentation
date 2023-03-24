@@ -59,7 +59,7 @@ public class JUnitFilibusterTestWithLatencyProfile extends JUnitBaseTest {
     @Test
     @Order(2)
     public void testNumberOfTestsExecuted() {
-        assertEquals(5, numberOfTestsExecuted);
+        assertEquals(6, numberOfTestsExecuted);
     }
 
     @Test

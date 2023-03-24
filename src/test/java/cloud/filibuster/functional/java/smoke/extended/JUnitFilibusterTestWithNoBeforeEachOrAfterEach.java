@@ -102,6 +102,10 @@ public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
                     expected = true;
                 }
 
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNKNOWN")) {
+                    expected = true;
+                }
+
                 if (! expected) {
                     throw t;
                 }
@@ -125,14 +129,6 @@ public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEqualsUnlessFilibusterDisabledByEnvironment(4, testExceptionsThrown.size());
-    }
-
-    private static void assertEqualsUnlessFilibusterDisabledByEnvironment(int expected, int actual) {
-        if (System.getenv("FILIBUSTER_DISABLED") != null) {
-            Assert.assertEquals(0, actual);
-        } else {
-            Assert.assertEquals(expected, actual);
-        }
+        Assert.assertEquals(5, testExceptionsThrown.size());
     }
 }

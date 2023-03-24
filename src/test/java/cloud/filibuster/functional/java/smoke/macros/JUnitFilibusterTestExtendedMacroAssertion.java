@@ -63,6 +63,10 @@ public class JUnitFilibusterTestExtendedMacroAssertion extends JUnitBaseTest {
                 expected = true;
             }
 
+            if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNKNOWN")) {
+                expected = true;
+            }
+
             boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("WorldService");
             assertTrue(wasFaultInjectedOnWorldService);
 

@@ -35,6 +35,7 @@ public class JUnitFilibusterTestWithBasicAnalysisFileByAnnotation extends JUnitB
         basicGrpcErrorCodeList.add("UNAVAILABLE");
         basicGrpcErrorCodeList.add("INTERNAL");
         basicGrpcErrorCodeList.add("UNIMPLEMENTED");
+        basicGrpcErrorCodeList.add("UNKNOWN");
     }
 
     private final static Set<String> testExceptionsThrown = new HashSet<>();
@@ -82,6 +83,6 @@ public class JUnitFilibusterTestWithBasicAnalysisFileByAnnotation extends JUnitB
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(4, testExceptionsThrown.size());
+        assertEquals(5, testExceptionsThrown.size());
     }
 }

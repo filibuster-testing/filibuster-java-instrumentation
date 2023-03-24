@@ -72,6 +72,6 @@ public class JUnitFilibusterHelloParallelPartialHelloWithSuppressCombinationsTes
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEquals(9, numberOfTestsExecuted);
+        assertEquals(11, numberOfTestsExecuted);
     }
 }

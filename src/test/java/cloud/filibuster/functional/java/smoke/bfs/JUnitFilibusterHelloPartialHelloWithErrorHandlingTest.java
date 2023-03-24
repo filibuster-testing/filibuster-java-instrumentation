@@ -63,6 +63,6 @@ public class JUnitFilibusterHelloPartialHelloWithErrorHandlingTest extends JUnit
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEquals(5, numberOfTestsExecuted);
+        assertEquals(6, numberOfTestsExecuted);
     }
 }

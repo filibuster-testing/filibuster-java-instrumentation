@@ -37,6 +37,7 @@ public class FilibusterDefaultAnalysisConfigurationFile implements FilibusterAna
         exhaustiveGrpcErrorCodeList.add("INTERNAL");
         exhaustiveGrpcErrorCodeList.add("UNAVAILABLE");
         exhaustiveGrpcErrorCodeList.add("DEADLINE_EXCEEDED");
+        exhaustiveGrpcErrorCodeList.add("UNKNOWN");
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderGrpcExceptions = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc.exceptions")

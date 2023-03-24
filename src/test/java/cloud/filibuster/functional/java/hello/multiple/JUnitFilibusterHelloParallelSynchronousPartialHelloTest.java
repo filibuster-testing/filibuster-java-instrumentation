@@ -71,6 +71,6 @@ public class JUnitFilibusterHelloParallelSynchronousPartialHelloTest extends JUn
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEquals(25, numberOfTestsExecuted);
+        assertEquals(36, numberOfTestsExecuted);
     }
 }

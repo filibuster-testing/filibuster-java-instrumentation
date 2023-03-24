@@ -89,6 +89,11 @@ public class JUnitFilibusterHelloPartialHelloExternalGrpcTest extends JUnitBaseT
                     firstRPCFailed = true;
                 }
 
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNKNOWN")) {
+                    expected = true;
+                    firstRPCFailed = true;
+                }
+
                 if (firstRPCFailed) {
                     boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("WorldService");
                     assertTrue(wasFaultInjectedOnWorldService);
@@ -128,6 +133,11 @@ public class JUnitFilibusterHelloPartialHelloExternalGrpcTest extends JUnitBaseT
                     secondRPCFailed = true;
                 }
 
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: UNKNOWN")) {
+                    expected = true;
+                    secondRPCFailed = true;
+                }
+
                 if (secondRPCFailed) {
                     boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("HelloService");
                     assertTrue(wasFaultInjectedOnWorldService);
@@ -154,20 +164,20 @@ public class JUnitFilibusterHelloPartialHelloExternalGrpcTest extends JUnitBaseT
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(8, testExceptionsThrown.size());
+        assertEquals(10, testExceptionsThrown.size());
     }
 
     @DisplayName("Verify correct number of executed tests.")
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEquals(9, numberOfTestsExecuted);
+        assertEquals(11, numberOfTestsExecuted);
     }
 
     @DisplayName("Verify correct number of exceptions thrown.")
     @Test
     @Order(4)
     public void numberOfExceptionsThrown() {
-        assertEquals(8, numberOfExceptionsThrown);
+        assertEquals(10, numberOfExceptionsThrown);
     }
 }

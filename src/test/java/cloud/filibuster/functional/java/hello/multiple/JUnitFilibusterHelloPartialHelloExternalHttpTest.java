@@ -59,7 +59,8 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitBaseT
             assertEquals("Hello, Armerian World!!", reply.getMessage());
 //            assertFalse(wasFaultInjected());
         } catch (Throwable t) {
-            if (numberOfTestsExecuted == 10) {
+            if (numberOfTestsExecuted == 11) {
+                // Too many synthesized tests.
                 assertFalse(true);
             }
 
@@ -92,6 +93,10 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitBaseT
                     firstRPCFailed = true;
                 }
 
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNKNOWN")) {
+                    expected = true;
+                }
+
                 if (firstRPCFailed) {
                     boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("WorldService");
                     assertTrue(wasFaultInjectedOnWorldService);
@@ -107,10 +112,6 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitBaseT
                 }
 
                 // Second RPC failed.
-
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNKNOWN")) {
-                    expected = true;
-                }
 
                 if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: FAILED_PRECONDITION: HTTP RPC returned: 500")) {
                     expected = true;

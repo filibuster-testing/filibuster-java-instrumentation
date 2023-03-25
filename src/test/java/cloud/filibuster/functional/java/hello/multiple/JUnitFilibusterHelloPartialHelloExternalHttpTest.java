@@ -148,13 +148,13 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitBaseT
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEquals(9, numberOfTestsExecuted);
+        assertEquals(10, numberOfTestsExecuted);
     }
 
     @DisplayName("Verify correct number of exceptions thrown.")
     @Test
     @Order(4)
     public void numberOfExceptionsThrown() {
-        assertEquals(8, numberOfExceptionsThrown);
+        assertEquals(9, numberOfExceptionsThrown);
     }
 }

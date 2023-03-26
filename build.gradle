@@ -377,6 +377,8 @@ task functionalDockerTest(type: Test) {
 task functionalJavaSpecificsTest(type: Test) {
     useJUnitPlatform()
 
+    timeout = Duration.ofMinutes(60)
+
     filter {
         includeTestsMatching('cloud.filibuster.functional.java.specifics.*')
     }

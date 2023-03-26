@@ -1,12 +1,15 @@
-package cloud.filibuster.functional.java.smoke.nondeterministic;
+package cloud.filibuster.functional.java.specifics.bfs;
 
-import cloud.filibuster.examples.Hello;
+import cloud.filibuster.examples.Hello.HelloReply;
+import cloud.filibuster.examples.Hello.HelloRequest;
 import cloud.filibuster.examples.HelloServiceGrpc;
+import cloud.filibuster.examples.HelloServiceGrpc.HelloServiceBlockingStub;
+import cloud.filibuster.functional.JUnitBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
-import cloud.filibuster.functional.JUnitBaseTest;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.DisplayName;
@@ -33,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @FilibusterConditionalByEnvironmentSuite
-public class JUnitFilibusterDataNondeterminismTest extends JUnitBaseTest {
+public class JUnitFilibusterHelloUnimplementedTest extends JUnitBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     private static int numberOfTestsExecuted = 0;
@@ -41,7 +44,7 @@ public class JUnitFilibusterDataNondeterminismTest extends JUnitBaseTest {
     private static int numberOfExceptionsThrown = 0;
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, dataNondeterminism=true, maxIterations=10)
+    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, searchStrategy= FilibusterSearchStrategy.BFS, maxIterations=10)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -53,21 +56,22 @@ public class JUnitFilibusterDataNondeterminismTest extends JUnitBaseTest {
 
         numberOfTestsExecuted++;
 
-        HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
-        Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian " + Math.random()).build();
+        HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
+        HelloRequest request = HelloRequest.newBuilder().setName("Armerian").build();
 
         try {
-            Hello.HelloReply reply = blockingStub.partialHello(request);
-            assertTrue(reply.getMessage().contains("Hello, Armerian"));
+            HelloReply reply = blockingStub.unimplemented(request);
+
+            // Should never reach these assertions.
+            assertEquals("Hello, Armerian World!!", reply.getMessage());
             assertFalse(wasFaultInjected());
         } catch (Throwable t) {
             numberOfExceptionsThrown++;
+            testExceptionsThrown.add(t.getMessage());
 
             boolean wasFaultInjected = wasFaultInjected();
 
             if (wasFaultInjected) {
-                testExceptionsThrown.add(t.getMessage());
-
                 if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
                     expected = true;
                 }
@@ -104,7 +108,13 @@ public class JUnitFilibusterDataNondeterminismTest extends JUnitBaseTest {
                     throw t;
                 }
             } else {
-                throw t;
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED: Method cloud.filibuster.examples.WorldService/WorldUnimplemented is unimplemented")) {
+                    expected = true;
+                }
+
+                if (!expected) {
+                    throw t;
+                }
             }
         }
 
@@ -112,11 +122,11 @@ public class JUnitFilibusterDataNondeterminismTest extends JUnitBaseTest {
         helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
     }
 
-    @DisplayName("Verify correct number of thrown exceptions.")
+    @DisplayName("Verify correct exceptions thrown.")
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(5, testExceptionsThrown.size());
+        assertEquals(6, testExceptionsThrown.size());
     }
 
     @DisplayName("Verify correct number of executed tests.")
@@ -130,6 +140,6 @@ public class JUnitFilibusterDataNondeterminismTest extends JUnitBaseTest {
     @Test
     @Order(4)
     public void numberOfExceptionsThrown() {
-        assertEquals(5, numberOfExceptionsThrown);
+        assertEquals(6, numberOfExceptionsThrown);
     }
 }

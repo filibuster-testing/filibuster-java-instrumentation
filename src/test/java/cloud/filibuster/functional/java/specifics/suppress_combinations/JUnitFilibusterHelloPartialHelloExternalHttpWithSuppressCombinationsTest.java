@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.smoke.suppress_combinations;
+package cloud.filibuster.functional.java.specifics.suppress_combinations;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;

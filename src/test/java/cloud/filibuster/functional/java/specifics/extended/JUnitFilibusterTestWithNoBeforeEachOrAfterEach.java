@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.smoke.extended;
+package cloud.filibuster.functional.java.specifics.extended;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;

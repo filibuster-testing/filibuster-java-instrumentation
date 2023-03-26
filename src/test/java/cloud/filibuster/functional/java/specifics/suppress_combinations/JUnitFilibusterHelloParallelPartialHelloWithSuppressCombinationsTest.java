@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.smoke.nondeterministic;
+package cloud.filibuster.functional.java.specifics.suppress_combinations;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
@@ -15,27 +15,32 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @FilibusterConditionalByEnvironmentSuite
-public class JUnitFilibusterNoFaultsNoTerminationTest extends JUnitBaseTest {
-    private final static Set<String> testExceptionsThrown = new HashSet<>();
+public class JUnitFilibusterHelloParallelPartialHelloWithSuppressCombinationsTest extends JUnitBaseTest {
+    private final static Set<String> responsesReceived = new HashSet<>();
+
+    private final List possibleResponses = Arrays.asList(
+            "Hello, Armerian World!! Hello, Parallel World!!",
+            "Hello, Parallel World!!",
+            "Hello, Armerian World!!"
+    );
 
     private static int numberOfTestsExecuted = 0;
 
-    private static int numberOfExceptionsThrown = 0;
-
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, maxIterations=10)
+    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, suppressCombinations=true, maxIterations=20)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -45,42 +50,28 @@ public class JUnitFilibusterNoFaultsNoTerminationTest extends JUnitBaseTest {
 
         numberOfTestsExecuted++;
 
-        try {
-            HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
-            Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian " + Math.random()).build();
-            Hello.HelloReply reply = blockingStub.partialHello(request);
-            assertTrue(reply.getMessage().contains("Hello, Armerian"));
-        } catch (RuntimeException e) {
-            numberOfExceptionsThrown++;
-            // Shouldn't ever get here.
-        }
+        HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
+        Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
 
+        Hello.HelloReply reply = blockingStub.parallelPartialHello(request);
+        assertEquals(true, possibleResponses.contains(reply.getMessage()));
+        responsesReceived.add(reply.getMessage());
 
         helloChannel.shutdownNow();
         helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
     }
 
-    @DisplayName("Verify correct number of thrown exceptions.")
+    @DisplayName("Verify correct number of possible responses.")
     @Test
     @Order(2)
-    public void testNumAssertions() {
-        // No fault injections because of no DEI matches.
-        assertEquals(0, testExceptionsThrown.size());
+    public void testResponsesReceived() {
+        assertEquals(possibleResponses.size(), responsesReceived.size());
     }
 
     @DisplayName("Verify correct number of executed tests.")
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        // maxIterations executed because of no termination.
-        assertEquals(10, numberOfTestsExecuted);
-    }
-
-    @DisplayName("Verify correct number of exceptions thrown.")
-    @Test
-    @Order(4)
-    public void numberOfExceptionsThrown() {
-        // No fault injections because of no DEI matches.
-        assertEquals(0, numberOfExceptionsThrown);
+        assertEquals(11, numberOfTestsExecuted);
     }
 }

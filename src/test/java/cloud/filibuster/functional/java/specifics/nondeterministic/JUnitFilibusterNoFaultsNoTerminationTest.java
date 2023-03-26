@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.smoke.extended;
+package cloud.filibuster.functional.java.specifics.nondeterministic;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
@@ -15,33 +15,27 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Test simple annotation usage.
+ */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @FilibusterConditionalByEnvironmentSuite
-@SuppressWarnings("Java8ApiChecker")
-public class JUnitFilibusterTestWithBasicAnalysisFileByAnnotation extends JUnitBaseTest {
-    private static final List<String> basicGrpcErrorCodeList = new ArrayList<>();
-
-    static {
-        basicGrpcErrorCodeList.add("DEADLINE_EXCEEDED");
-        basicGrpcErrorCodeList.add("UNAVAILABLE");
-        basicGrpcErrorCodeList.add("INTERNAL");
-        basicGrpcErrorCodeList.add("UNIMPLEMENTED");
-        basicGrpcErrorCodeList.add("UNKNOWN");
-    }
-
+public class JUnitFilibusterNoFaultsNoTerminationTest extends JUnitBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
+    private static int numberOfTestsExecuted = 0;
+
+    private static int numberOfExceptionsThrown = 0;
+
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class)
+    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, maxIterations=10)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -49,40 +43,44 @@ public class JUnitFilibusterTestWithBasicAnalysisFileByAnnotation extends JUnitB
                 .usePlaintext()
                 .build();
 
+        numberOfTestsExecuted++;
+
         try {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
-            Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
+            Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian " + Math.random()).build();
             Hello.HelloReply reply = blockingStub.partialHello(request);
-            assertEquals("Hello, Armerian World!!", reply.getMessage());
-        } catch (Throwable t) {
-            if (wasFaultInjected()) {
-                testExceptionsThrown.add(t.getMessage());
-
-                boolean found = false;
-
-                for (String errorCode: basicGrpcErrorCodeList) {
-                    String expectedString = "DATA_LOSS: io.grpc.StatusRuntimeException: " + errorCode;
-                    if(t.getMessage().equals(expectedString)) {
-                        found = true;
-                    }
-                }
-
-                if (! found) {
-                    throw t;
-                }
-            } else {
-                throw t;
-            }
+            assertTrue(reply.getMessage().contains("Hello, Armerian"));
+        } catch (RuntimeException e) {
+            numberOfExceptionsThrown++;
+            // Shouldn't ever get here.
         }
+
 
         helloChannel.shutdownNow();
         helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
     }
 
-    @DisplayName("Verify correct number of generated Filibuster tests.")
+    @DisplayName("Verify correct number of thrown exceptions.")
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(5, testExceptionsThrown.size());
+        // No fault injections because of no DEI matches.
+        assertEquals(0, testExceptionsThrown.size());
+    }
+
+    @DisplayName("Verify correct number of executed tests.")
+    @Test
+    @Order(3)
+    public void testNumberOfTestsExecuted() {
+        // maxIterations executed because of no termination.
+        assertEquals(10, numberOfTestsExecuted);
+    }
+
+    @DisplayName("Verify correct number of exceptions thrown.")
+    @Test
+    @Order(4)
+    public void numberOfExceptionsThrown() {
+        // No fault injections because of no DEI matches.
+        assertEquals(0, numberOfExceptionsThrown);
     }
 }

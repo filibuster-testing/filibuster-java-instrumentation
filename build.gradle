@@ -373,3 +373,11 @@ task functionalDockerTest(type: Test) {
         includeTestsMatching('cloud.filibuster.functional.docker.*')
     }
 }
+
+task functionalJavaSpecificsTest(type: Test) {
+    useJUnitPlatform()
+
+    filter {
+        includeTestsMatching('cloud.filibuster.functional.java.specifics.*')
+    }
+}

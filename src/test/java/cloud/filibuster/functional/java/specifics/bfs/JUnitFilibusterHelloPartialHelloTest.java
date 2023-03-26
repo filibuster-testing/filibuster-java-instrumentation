@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.smoke.bfs;
+package cloud.filibuster.functional.java.specifics.bfs;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;

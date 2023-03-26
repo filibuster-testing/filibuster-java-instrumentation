@@ -306,7 +306,7 @@ task integrationTest(type: Test) {
     }
 }
 
-task functionalJavaSmokeTest(type: Test) {
+task functionalJavaTest(type: Test) {
     useJUnitPlatform()
 
     maxParallelForks = 1
@@ -316,45 +316,7 @@ task functionalJavaSmokeTest(type: Test) {
     jvmArgs '-XX:MaxPermSize=256m' // mem argument for the test JVM
 
     filter {
-        includeTestsMatching('cloud.filibuster.functional.java.smoke.*')
-    }
-}
-
-task functionalJavaHelloTest(type: Test) {
-    useJUnitPlatform()
-
-    maxParallelForks = 1
-    timeout = Duration.ofMinutes(60)
-    minHeapSize = "128m" // initial heap size
-    maxHeapSize = "2048m" // maximum heap size
-    jvmArgs '-XX:MaxPermSize=256m' // mem argument for the test JVM
-
-    filter {
-        includeTestsMatching('cloud.filibuster.functional.java.hello.*')
-    }
-}
-
-task functionalJavaAnalysisTest(type: Test) {
-    useJUnitPlatform()
-
-    filter {
-        includeTestsMatching('cloud.filibuster.functional.java.analysis.*')
-    }
-}
-
-task functionalJavaLatencyTest(type: Test) {
-    useJUnitPlatform()
-
-    filter {
-        includeTestsMatching('cloud.filibuster.functional.java.latency.*')
-    }
-}
-
-task functionalJavaCompositionalTest(type: Test) {
-    useJUnitPlatform()
-
-    filter {
-        includeTestsMatching('cloud.filibuster.functional.java.compositional.*')
+        includeTestsMatching('cloud.filibuster.functional.java.*')
     }
 }
 
@@ -371,15 +333,5 @@ task functionalDockerTest(type: Test) {
 
     filter {
         includeTestsMatching('cloud.filibuster.functional.docker.*')
-    }
-}
-
-task functionalJavaSpecificsTest(type: Test) {
-    useJUnitPlatform()
-
-    timeout = Duration.ofMinutes(60)
-
-    filter {
-        includeTestsMatching('cloud.filibuster.functional.java.specifics.*')
     }
 }

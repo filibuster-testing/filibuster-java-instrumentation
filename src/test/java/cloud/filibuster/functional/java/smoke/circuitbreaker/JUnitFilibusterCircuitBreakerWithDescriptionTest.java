@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.smoke.basic;
+package cloud.filibuster.functional.java.smoke.circuitbreaker;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
@@ -6,6 +6,7 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.FilibusterTest;
+import cloud.filibuster.junit.configuration.examples.FilibusterCircuitBreakerWithCustomDescriptionOnlyAnalysisConfigurationFile;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.DisplayName;
@@ -25,21 +26,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Test simple annotation usage.
- */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @FilibusterConditionalByEnvironmentSuite
-public class JUnitFilibusterTest extends JUnitAnnotationBaseTest {
+public class JUnitFilibusterCircuitBreakerWithDescriptionTest extends JUnitAnnotationBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
-    /**
-     * Inject faults between Hello and World using Filibuster and assert proper faults are injected.
-     *
-     * @throws InterruptedException if teardown of gRPC channel fails.
-     */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest()
+    @FilibusterTest(analysisConfigurationFile= FilibusterCircuitBreakerWithCustomDescriptionOnlyAnalysisConfigurationFile.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -52,7 +45,7 @@ public class JUnitFilibusterTest extends JUnitAnnotationBaseTest {
         try {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
-            Hello.HelloReply reply = blockingStub.partialHello(request);
+            Hello.HelloReply reply = blockingStub.simplePartialHello(request);
             assertEquals("Hello, Armerian World!!", reply.getMessage());
             assertFalse(wasFaultInjected());
         } catch (Throwable t) {
@@ -61,23 +54,7 @@ public class JUnitFilibusterTest extends JUnitAnnotationBaseTest {
             if (wasFaultInjected) {
                 testExceptionsThrown.add(t.getMessage());
 
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
-                    expected = true;
-                }
-
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNAVAILABLE")) {
-                    expected = true;
-                }
-
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED")) {
-                    expected = true;
-                }
-
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: INTERNAL")) {
-                    expected = true;
-                }
-
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNKNOWN")) {
+                if (t.getMessage().equals("FAILED_PRECONDITION: cloud.filibuster.exceptions.CircuitBreakerException: Circuit breaker prevented this request.")) {
                     expected = true;
                 }
 
@@ -99,13 +76,10 @@ public class JUnitFilibusterTest extends JUnitAnnotationBaseTest {
         helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
     }
 
-    /**
-     * Verify that Filibuster generated the correct number of fault injections.
-     */
     @DisplayName("Verify correct number of generated Filibuster tests.")
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(5, testExceptionsThrown.size());
+        assertEquals(1, testExceptionsThrown.size());
     }
 }

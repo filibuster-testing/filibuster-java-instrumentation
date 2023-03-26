@@ -1,11 +1,12 @@
-package cloud.filibuster.functional.java.smoke.basic;
+package cloud.filibuster.functional.java.smoke.hello;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.FilibusterTest;
+import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
+import cloud.filibuster.functional.JUnitBaseTest;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.DisplayName;
@@ -20,6 +21,8 @@ import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
+import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethodWherePayloadContains;
+import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnRequest;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -29,17 +32,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@FilibusterConditionalByEnvironmentSuite
-public class JUnitFilibusterTest extends JUnitAnnotationBaseTest {
+public class JUnitFilibusterHelloPartialHelloTest extends JUnitAnnotationBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
-    /**
-     * Inject faults between Hello and World using Filibuster and assert proper faults are injected.
-     *
-     * @throws InterruptedException if teardown of gRPC channel fails.
-     */
+    private static int numberOfTestsExecuted = 0;
+
+    private static int numberOfExceptionsThrown = 0;
+
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest()
+    @FilibusterTest(maxIterations=10)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -49,13 +50,18 @@ public class JUnitFilibusterTest extends JUnitAnnotationBaseTest {
 
         boolean expected = false;
 
+        numberOfTestsExecuted++;
+
+        HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
+        Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
+
         try {
-            HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
-            Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
             Hello.HelloReply reply = blockingStub.partialHello(request);
             assertEquals("Hello, Armerian World!!", reply.getMessage());
             assertFalse(wasFaultInjected());
         } catch (Throwable t) {
+            numberOfExceptionsThrown++;
+
             boolean wasFaultInjected = wasFaultInjected();
 
             if (wasFaultInjected) {
@@ -87,7 +93,13 @@ public class JUnitFilibusterTest extends JUnitAnnotationBaseTest {
                 boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World");
                 assertTrue(wasFaultInjectedOnWorldMethod);
 
-                if (! expected) {
+                boolean wasFaultInjectedOnRequest = wasFaultInjectedOnRequest(request.toString());
+                assertTrue(wasFaultInjectedOnRequest);
+
+                boolean wasFaultInjectedOnWorldMethodWithPayload = wasFaultInjectedOnMethodWherePayloadContains("cloud.filibuster.examples.WorldService/World", request.toString());
+                assertTrue(wasFaultInjectedOnWorldMethodWithPayload);
+
+                if (!expected) {
                     throw t;
                 }
             } else {
@@ -99,13 +111,24 @@ public class JUnitFilibusterTest extends JUnitAnnotationBaseTest {
         helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
     }
 
-    /**
-     * Verify that Filibuster generated the correct number of fault injections.
-     */
-    @DisplayName("Verify correct number of generated Filibuster tests.")
+    @DisplayName("Verify correct number of thrown exceptions.")
     @Test
     @Order(2)
     public void testNumAssertions() {
         assertEquals(5, testExceptionsThrown.size());
+    }
+
+    @DisplayName("Verify correct number of executed tests.")
+    @Test
+    @Order(3)
+    public void testNumberOfTestsExecuted() {
+        assertEquals(6, numberOfTestsExecuted);
+    }
+
+    @DisplayName("Verify correct number of exceptions thrown.")
+    @Test
+    @Order(4)
+    public void numberOfExceptionsThrown() {
+        assertEquals(5, numberOfExceptionsThrown);
     }
 }

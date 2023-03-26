@@ -3,14 +3,14 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Java (Functional Tests, Java Integration)
+name: Java (Functional Tests, Java Integration, FILIBUSTER_DISABLED=true)
 
 on: [push]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 26
+    timeout-minutes: 25
 
     steps:
       - uses: actions/checkout@v2
@@ -23,3 +23,5 @@ jobs:
         uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
       - name: Test with Gradle
         run: ./gradlew functionalJavaTest
+        env:
+          FILIBUSTER_DISABLED: true

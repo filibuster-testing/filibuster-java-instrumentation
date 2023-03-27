@@ -124,6 +124,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
         // Notify Filibuster of failure.
         HashMap<String, String> additionalMetadata = new HashMap<>();
         additionalMetadata.put("code", codeStr);
+        additionalMetadata.put("description", descriptionStr);
         filibusterClientInstrumentor.afterInvocationWithException(exceptionNameString, causeString, additionalMetadata);
 
         return status;
@@ -441,6 +442,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                 // Notify Filibuster of error.
                 HashMap<String, String> additionalMetadata = new HashMap<>();
                 additionalMetadata.put("code", status.getCode().toString());
+                additionalMetadata.put("description", status.getDescription());
                 String exceptionName = "io.grpc.StatusRuntimeException";
 
                 // Exception is always null because it doesn't propagate across RPC boundaries.

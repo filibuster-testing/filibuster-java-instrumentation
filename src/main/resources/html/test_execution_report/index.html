@@ -213,12 +213,20 @@
                         row += '<td>';
                         row += '<div class="class_name">' + rpc.response.exception.name + '</div>';
                         row += '<textarea>';
-                        row += 'code = ' + rpc.response.exception.metadata.code + ', ';
-                        if (rpc.response.exception.metadata.cause === "") {
-                            row += 'cause = ""';
+                        row += 'code = ' + rpc.response.exception.metadata.code;
+
+                        if (rpc.response.exception.metadata.cause === "" || rpc.response.exception.metadata.cause === undefined) {
+                            // Do nothing.
                         } else {
-                            row += 'cause = ' + rpc.response.exception.metadata.cause;
+                            row += '\ncause = ' + rpc.response.exception.metadata.cause;
                         }
+
+                        if (rpc.response.exception.metadata.description == "" || rpc.response.exception.metadata.description === undefined) {
+                            // Do nothing.
+                        } else {
+                            row += '\ndescription = ' + rpc.response.exception.metadata.description;
+                        }
+
                         row += '</textarea></td>';
                     } else {
                         console.log(rpc.response.return_value);
@@ -239,12 +247,20 @@
                             row += '<td>';
                             row += '<div class="class_name">' + rpc.fault.forced_exception.name + '</div>';
                             row += '<textarea>';
-                            row += 'code = ' + rpc.fault.forced_exception.metadata.code + ', ';
-                            if (rpc.fault.forced_exception.metadata.cause === "") {
-                                row += 'cause = ""';
+                            row += 'code = ' + rpc.fault.forced_exception.metadata.code;
+
+                            if (rpc.fault.forced_exception.metadata.cause === "" || rpc.fault.forced_exception.metadata.cause === undefined) {
+                                // Do nothing.
                             } else {
-                                row += 'cause = ' + rpc.fault.forced_exception.metadata.cause;
+                                row += '\ncause = ' + rpc.fault.forced_exception.metadata.cause;
                             }
+
+                            if (rpc.fault.forced_exception.metadata.description === "" || rpc.fault.forced_exception.metadata.cause === undefined) {
+                                // Do nothing.
+                            } else {
+                                row += '\ndescription = ' + rpc.fault.forced_exception.metadata.description;
+                            }
+
                             row += '</textarea>';
                             row += '</td>';
                         }

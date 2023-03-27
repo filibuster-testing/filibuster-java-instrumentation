@@ -255,6 +255,12 @@
                                 row += '\ncause = ' + rpc.fault.forced_exception.metadata.cause;
                             }
 
+                            if (rpc.fault.forced_exception.metadata.cause === "" || rpc.fault.forced_exception.metadata.cause === undefined) {
+                                // Do nothing.
+                            } else {
+                                row += '\ncause_message = ' + rpc.fault.forced_exception.metadata.cause_message;
+                            }
+
                             if (rpc.fault.forced_exception.metadata.description === "" || rpc.fault.forced_exception.metadata.cause === undefined) {
                                 // Do nothing.
                             } else {

@@ -63,7 +63,6 @@ dependencies {
 
     // JUnit annotations
     implementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
-    implementation 'org.junit.jupiter:junit-jupiter-params:5.7.0'
 
     // Test Containers
     implementation "org.testcontainers:testcontainers:1.17.5"

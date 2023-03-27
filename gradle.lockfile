@@ -158,7 +158,6 @@ org.jetbrains:annotations:17.0.0=compileClasspath,compileProtoPath,runtimeClassp
 org.json:json:20220924=compileClasspath,compileProtoPath,runtimeClasspath,testCompileClasspath,testCompileProtoPath,testRuntimeClasspath
 org.junit.jupiter:junit-jupiter-api:5.7.0=compileClasspath,compileProtoPath,runtimeClasspath,testCompileClasspath,testCompileProtoPath,testRuntimeClasspath
 org.junit.jupiter:junit-jupiter-engine:5.7.0=testRuntimeClasspath
-org.junit.jupiter:junit-jupiter-params:5.7.0=compileClasspath,compileProtoPath,runtimeClasspath,testCompileClasspath,testCompileProtoPath,testRuntimeClasspath
 org.junit.platform:junit-platform-commons:1.7.0=compileClasspath,compileProtoPath,runtimeClasspath,testCompileClasspath,testCompileProtoPath,testRuntimeClasspath
 org.junit.platform:junit-platform-engine:1.7.0=testRuntimeClasspath
 org.junit:junit-bom:5.7.0=compileClasspath,compileProtoPath,runtimeClasspath,testCompileClasspath,testCompileProtoPath,testRuntimeClasspath

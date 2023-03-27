@@ -1,3 +1,8 @@
+1.3.0:
+   - (cmeiklejohn) Ensure causeMessage renders in the UX, when supplied.
+   - (cmeiklejohn) Ensure the description of the exception renders in the UX, when supplied.
+   - (cmeiklejohn) Change default analysis configuration for JUnit to inject the UNKNOWN grpc error code.
+   - (cmeiklejohn) Add additional tests for causeMessage, description, circuit breaker, UNKNOWN exception types and codes.
 1.2.1:
    - (cmeiklejohn) Add support for custom descriptions in injectable cause messages.
    - (cmeiklejohn) Fix issue where missing cause in grpc fault injection would crash Filibuster.

@@ -3,7 +3,7 @@ package cloud.filibuster.functional.java.latency;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.exceptions.filibuster.FilibusterAllowedTimeExceededException;
-import cloud.filibuster.functional.JUnitBaseTest;
+import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.server.latency.Filibuster1000msLatencyProfile;
@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterTestWithLatencyProfile extends JUnitBaseTest {
+public class JUnitFilibusterTestWithLatencyProfile extends JUnitAnnotationBaseTest {
     private static int numberOfTestsExecuted = 0;
 
     private static int numberOfExceptions = 0;
@@ -59,7 +59,7 @@ public class JUnitFilibusterTestWithLatencyProfile extends JUnitBaseTest {
     @Test
     @Order(2)
     public void testNumberOfTestsExecuted() {
-        assertEquals(5, numberOfTestsExecuted);
+        assertEquals(6, numberOfTestsExecuted);
     }
 
     @Test

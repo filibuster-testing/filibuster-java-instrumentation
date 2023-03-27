@@ -76,6 +76,10 @@ public class JUnitFilibusterDockerBackendTestCorrectImage extends JUnitBaseTest 
                     expected = true;
                 }
 
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNKNOWN")) {
+                    expected = true;
+                }
+
                 boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("world");
                 assertTrue(wasFaultInjectedOnWorldService);
 
@@ -101,6 +105,6 @@ public class JUnitFilibusterDockerBackendTestCorrectImage extends JUnitBaseTest 
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(4, testExceptionsThrown.size());
+        assertEquals(5, testExceptionsThrown.size());
     }
 }

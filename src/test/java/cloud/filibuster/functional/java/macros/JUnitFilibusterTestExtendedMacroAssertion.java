@@ -1,19 +1,19 @@
-package cloud.filibuster.functional.python.macros;
+package cloud.filibuster.functional.java.macros;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
+import cloud.filibuster.examples.WorldServiceGrpc;
+import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.FilibusterTest;
-import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
-import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
-import cloud.filibuster.functional.JUnitBaseTest;
+import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.opentest4j.AssertionFailedError;
 
 import java.util.concurrent.TimeUnit;
@@ -28,11 +28,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterTestExtendedMacroAssertion extends JUnitBaseTest {
+@FilibusterConditionalByEnvironmentSuite
+public class JUnitFilibusterTestExtendedMacroAssertion extends JUnitAnnotationBaseTest {
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
-    @FilibusterTest(serverBackend=FilibusterLocalProcessServerBackend.class)
+    @FilibusterTest()
     public void testMyHelloAndMyWorldServiceWithFilibusterWithMacro() throws Throwable {
         ManagedChannel helloChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
@@ -67,10 +67,13 @@ public class JUnitFilibusterTestExtendedMacroAssertion extends JUnitBaseTest {
                 expected = true;
             }
 
-            boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("world");
+            boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("WorldService");
             assertTrue(wasFaultInjectedOnWorldService);
 
-            boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World");
+            boolean wasFaultInjectedOnWorldMethodByString = wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World");
+            assertTrue(wasFaultInjectedOnWorldMethodByString);
+
+            boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod(WorldServiceGrpc.getWorldMethod());
             assertTrue(wasFaultInjectedOnWorldMethod);
 
             if (! expected) {
@@ -83,8 +86,7 @@ public class JUnitFilibusterTestExtendedMacroAssertion extends JUnitBaseTest {
     }
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
-    @FilibusterTest(serverBackend=FilibusterLocalProcessServerBackend.class, expected = StatusRuntimeException.class)
+    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, expected=StatusRuntimeException.class)
     public void testMyHelloAndMyWorldServiceWithFilibusterWithMacroAndFailure() throws Throwable {
         ManagedChannel helloChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("hello"), 8765)

@@ -5,6 +5,8 @@ import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.functional.JUnitBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.MyHelloService;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.server.core.profiles.ServiceProfile;
 import cloud.filibuster.junit.server.core.profiles.ServiceProfileBehavior;
@@ -14,6 +16,7 @@ import io.grpc.ManagedChannelBuilder;
 import org.grpcmock.junit5.GrpcMockExtension;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -28,8 +31,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static cloud.filibuster.instrumentation.helpers.Property.setCallsiteLineNumberProperty;
+import static cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor.clearDistributedExecutionIndexForRequestId;
+import static cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor.clearVectorClockForRequestId;
 import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
+import static cloud.filibuster.integration.instrumentation.TestHelper.startExternalServerAndWaitUntilAvailable;
+import static cloud.filibuster.integration.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
+import static cloud.filibuster.integration.instrumentation.TestHelper.startWorldServerAndWaitUntilAvailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopAPIServerAndWaitUntilUnavailable;
+import static cloud.filibuster.integration.instrumentation.TestHelper.stopExternalServerAndWaitUntilUnavailable;
+import static cloud.filibuster.integration.instrumentation.TestHelper.stopHelloServerAndWaitUntilUnavailable;
+import static cloud.filibuster.integration.instrumentation.TestHelper.stopWorldServerAndWaitUntilUnavailable;
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
@@ -41,9 +53,27 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+//
+// Application:
+//
+// - ApiService -> HelloService -> WorldService
+//
+// - Hello -> World
+//    - wraps any error of World in DATA_LOSS, propagates upstream
+// - APIServer -> Hello
+//    - Hello returns DATA_LOSS error -> RESOURCE_EXHAUSTED
+//    - communications failure of Hello -> FAILED_PRECONDITION wrapping error.
+//
+// Fault Configuration:
+// - UNAVAILABLE
+// - UNKNOWN
+// - INTERNAL
+// - UNIMPLEMENTED
+// - DEADLINE_EXCEEDED
+//
 @SuppressWarnings("Java8ApiChecker")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
+public class JUnitFilibusterTestWithServiceFaultProfile {
 
     @RegisterExtension
     static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
@@ -51,13 +81,54 @@ public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
             .build();
 
     @BeforeAll
-    public static void startAPIServer() throws IOException, InterruptedException {
+    public static void startAllServices() throws IOException, InterruptedException {
         startAPIServerAndWaitUntilAvailable();
+        startHelloServerAndWaitUntilAvailable();
+        startWorldServerAndWaitUntilAvailable();
+        startExternalServerAndWaitUntilAvailable();
     }
 
     @AfterAll
-    public static void stopAPIServer() throws InterruptedException {
+    public static void stopAllServices() throws InterruptedException {
+        stopExternalServerAndWaitUntilUnavailable();
+        stopWorldServerAndWaitUntilUnavailable();
+        stopHelloServerAndWaitUntilUnavailable();
         stopAPIServerAndWaitUntilUnavailable();
+    }
+
+    @BeforeEach
+    protected void resetMyHelloServiceState() {
+        MyHelloService.shouldReturnRuntimeExceptionWithCause = false;
+        MyHelloService.shouldReturnRuntimeExceptionWithDescription = false;
+        MyHelloService.shouldReturnExceptionWithDescription = false;
+        MyHelloService.shouldReturnExceptionWithCause = false;
+    }
+
+    @BeforeEach
+    protected void resetFilibusterState() {
+        FilibusterClientInstrumentor.clearDistributedExecutionIndexForRequestId();
+        FilibusterClientInstrumentor.clearVectorClockForRequestId();
+    }
+
+    @BeforeAll
+    protected static void enablePrettyDistributedExecutionIndexes() {
+        setCallsiteLineNumberProperty(false);
+    }
+
+    @AfterAll
+    protected static void disablePrettyDistributedExecutionIndexes() {
+        setCallsiteLineNumberProperty(true);
+    }
+
+    @BeforeEach
+    protected void clearStateFromLastExecution() {
+        clearDistributedExecutionIndexForRequestId();
+        clearVectorClockForRequestId();
+    }
+
+    @BeforeAll
+    public static void cleanState() {
+        ServerInvocationAndResponseReport.clear();
     }
 
     // *****************************************************************************************************************
@@ -109,6 +180,10 @@ public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
                     expected = true;
                 }
 
+                if (t.getMessage().equals("RESOURCE_EXHAUSTED: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: UNKNOWN")) {
+                    expected = true;
+                }
+
                 // Hello failures.
 
                 if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
@@ -124,6 +199,10 @@ public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
                 }
 
                 if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: UNIMPLEMENTED")) {
+                    expected = true;
+                }
+
+                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: UNKNOWN")) {
                     expected = true;
                 }
 
@@ -146,7 +225,7 @@ public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
     @Test
     @Order(2)
     public void testNumAssertionsForAPIService() {
-        assertEquals(8, testExceptionsThrownForAPIService.size());
+        assertEquals(10, testExceptionsThrownForAPIService.size());
     }
 
     // Test 3
@@ -158,8 +237,8 @@ public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
         assertEquals(true, serviceProfile.sawMethod("cloud.filibuster.examples.HelloService/CompositionalHello"));
         assertEquals(true, serviceProfile.sawMethod("cloud.filibuster.examples.APIService/Hello"));
         assertEquals(2, serviceProfile.seenMethods().size());
-        assertEquals(5, serviceProfile.getServiceRequestAndResponsesForMethod("cloud.filibuster.examples.HelloService/CompositionalHello").size());
-        assertEquals(9, serviceProfile.getServiceRequestAndResponsesForMethod("cloud.filibuster.examples.APIService/Hello").size());
+        assertEquals(6, serviceProfile.getServiceRequestAndResponsesForMethod("cloud.filibuster.examples.HelloService/CompositionalHello").size());
+        assertEquals(11, serviceProfile.getServiceRequestAndResponsesForMethod("cloud.filibuster.examples.APIService/Hello").size());
         Files.delete(Path.of("/tmp/filibuster/fsp/latest.fsp"));
         ServerInvocationAndResponseReport.clear();
     }
@@ -220,6 +299,10 @@ public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
                     expected = true;
                 }
 
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNKNOWN")) {
+                    expected = true;
+                }
+
                 boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("WorldService");
                 assertTrue(wasFaultInjectedOnWorldService);
 
@@ -243,7 +326,7 @@ public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
     @Test
     @Order(5)
     public void testNumAssertionsForHelloService() {
-        assertEquals(4, testExceptionsThrownForHelloService.size());
+        assertEquals(5, testExceptionsThrownForHelloService.size());
     }
 
     // Test 6
@@ -254,7 +337,7 @@ public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
         ServiceProfile serviceProfile = ServiceProfile.readServiceProfile("/tmp/filibuster/fsp/latest.fsp");
         assertEquals(true, serviceProfile.sawMethod("cloud.filibuster.examples.HelloService/CompositionalHello"));
         assertEquals(1, serviceProfile.seenMethods().size());
-        assertEquals(5, serviceProfile.getServiceRequestAndResponsesForMethod("cloud.filibuster.examples.HelloService/CompositionalHello").size());
+        assertEquals(6, serviceProfile.getServiceRequestAndResponsesForMethod("cloud.filibuster.examples.HelloService/CompositionalHello").size());
         Files.move(Path.of("/tmp/filibuster/fsp/latest.fsp"), Path.of("/tmp/filibuster/fsp/hello.fsp"), StandardCopyOption.REPLACE_EXISTING);
         ServerInvocationAndResponseReport.clear();
     }
@@ -317,6 +400,10 @@ public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
                     expected = true;
                 }
 
+                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: UNKNOWN")) {
+                    expected = true;
+                }
+
                 if (! expected) {
                     throw t;
                 }
@@ -334,7 +421,7 @@ public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
     @Test
     @Order(8)
     public void testNumAssertionsForAPIServiceWithMock() {
-        assertEquals(4, testExceptionsThrownForAPIServiceWithMock.size());
+        assertEquals(5, testExceptionsThrownForAPIServiceWithMock.size());
     }
 
     // Test 9
@@ -345,7 +432,7 @@ public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
         ServiceProfile serviceProfile = ServiceProfile.readServiceProfile("/tmp/filibuster/fsp/latest.fsp");
         assertEquals(true, serviceProfile.sawMethod("cloud.filibuster.examples.APIService/HelloWithMock"));
         assertEquals(1, serviceProfile.seenMethods().size());
-        assertEquals(5, serviceProfile.getServiceRequestAndResponsesForMethod("cloud.filibuster.examples.APIService/HelloWithMock").size());
+        assertEquals(6, serviceProfile.getServiceRequestAndResponsesForMethod("cloud.filibuster.examples.APIService/HelloWithMock").size());
         Files.delete(Path.of("/tmp/filibuster/fsp/latest.fsp"));
         ServerInvocationAndResponseReport.clear();
     }
@@ -410,6 +497,10 @@ public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
                     expected = true;
                 }
 
+                if (t.getMessage().equals("RESOURCE_EXHAUSTED: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: UNKNOWN")) {
+                    expected = true;
+                }
+
                 // Hello failures.
 
                 if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
@@ -425,6 +516,10 @@ public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
                 }
 
                 if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: UNIMPLEMENTED")) {
+                    expected = true;
+                }
+
+                if (t.getMessage().equals("FAILED_PRECONDITION: io.grpc.StatusRuntimeException: UNKNOWN")) {
                     expected = true;
                 }
 
@@ -447,7 +542,7 @@ public class JUnitFilibusterTestWithServiceFaultProfile extends JUnitBaseTest {
     @Test
     @Order(11)
     public void testNumAssertionsForAPIServiceWithMockAndServiceProfile() {
-        assertEquals(8, testExceptionsThrownForAPIServiceWithMockAndServiceProfile.size());
+        assertEquals(10, testExceptionsThrownForAPIServiceWithMockAndServiceProfile.size());
     }
 
     // Voila!

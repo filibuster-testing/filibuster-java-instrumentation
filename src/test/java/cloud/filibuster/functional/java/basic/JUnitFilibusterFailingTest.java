@@ -1,13 +1,14 @@
-package cloud.filibuster.functional.python.basic;
+package cloud.filibuster.functional.java.basic;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
+import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.FilibusterTest;
-import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
-import cloud.filibuster.functional.JUnitBaseTest;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -29,7 +30,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterTest extends JUnitBaseTest {
+@FilibusterConditionalByEnvironmentSuite
+public class JUnitFilibusterFailingTest extends JUnitAnnotationBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     /**
@@ -38,11 +40,12 @@ public class JUnitFilibusterTest extends JUnitBaseTest {
      * @throws InterruptedException if teardown of gRPC channel fails.
      */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest(serverBackend=FilibusterLocalProcessServerBackend.class)
+    @FilibusterTest(expected=StatusRuntimeException.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
+        // Intentionally use a bad port.
         ManagedChannel helloChannel = ManagedChannelBuilder
-                .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
+                .forAddress(Networking.getHost("hello"), 9999)
                 .usePlaintext()
                 .build();
 
@@ -105,6 +108,6 @@ public class JUnitFilibusterTest extends JUnitBaseTest {
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(5, testExceptionsThrown.size());
+        assertEquals(0, testExceptionsThrown.size());
     }
 }

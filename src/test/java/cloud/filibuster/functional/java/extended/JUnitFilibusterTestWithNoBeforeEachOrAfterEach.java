@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.python.extended;
+package cloud.filibuster.functional.java.extended;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
@@ -7,17 +7,17 @@ import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterServerInterceptor;
+import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.FilibusterTest;
-import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
-import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
+import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import org.junit.Assert;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Verify that fault injection works with Filibuster when no beforeEach or afterEach is present.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@FilibusterConditionalByEnvironmentSuite
 public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
@@ -47,8 +48,7 @@ public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
      * @throws IOException thrown when trying to start up dependent servers.
      */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
-    @FilibusterTest(serverBackend=FilibusterLocalProcessServerBackend.class)
+    @FilibusterTest()
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException, IOException {
         MyHelloService.shouldReturnRuntimeExceptionWithCause = false;
@@ -126,10 +126,9 @@ public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
      * Verify that Filibuster generates the correct number of tests.
      */
     @DisplayName("Verify correct number of generated Filibuster tests.")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(5, testExceptionsThrown.size());
+        Assert.assertEquals(5, testExceptionsThrown.size());
     }
 }

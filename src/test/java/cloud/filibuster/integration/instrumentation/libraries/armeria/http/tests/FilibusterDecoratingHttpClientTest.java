@@ -86,11 +86,11 @@ public class FilibusterDecoratingHttpClientTest extends FilibusterDecoratingHttp
         resetInitialVectorClock();
     }
 
-    public void startFilibuster() throws InterruptedException, IOException {
+    public static void startFilibuster() throws InterruptedException, IOException {
         startMockFilibusterServerAndWaitUntilAvailable();
     }
 
-    public void stopFilibuster() throws InterruptedException {
+    public static void stopFilibuster() throws InterruptedException {
         stopMockFilibusterServerAndWaitUntilUnavailable();
     }
 
@@ -115,11 +115,11 @@ public class FilibusterDecoratingHttpClientTest extends FilibusterDecoratingHttp
         }
     }
 
-    public void startExternalServer() throws InterruptedException, IOException {
+    public static void startExternalServer() throws InterruptedException, IOException {
         startExternalServerAndWaitUntilAvailable();
     }
 
-    public void stopExternalServer() throws InterruptedException {
+    public static void stopExternalServer() throws InterruptedException {
         stopExternalServerAndWaitUntilUnavailable();
     }
 

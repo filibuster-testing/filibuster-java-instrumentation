@@ -24,35 +24,35 @@ public class HelloGrpcServerTest extends FilibusterBaseTest {
         clearVectorClockForRequestId();
     }
 
-    public void startHello() throws InterruptedException, IOException {
+    public static void startHello() throws InterruptedException, IOException {
         startHelloServerAndWaitUntilAvailable();
     }
 
-    public void stopHello() throws InterruptedException {
+    public static void stopHello() throws InterruptedException {
         stopHelloServerAndWaitUntilUnavailable();
     }
 
-    public void startWorld() throws InterruptedException, IOException {
+    public static void startWorld() throws InterruptedException, IOException {
         startWorldServerAndWaitUntilAvailable();
     }
 
-    public void stopWorld() throws InterruptedException {
+    public static void stopWorld() throws InterruptedException {
         stopWorldServerAndWaitUntilUnavailable();
     }
 
-    public void startFilibuster() throws InterruptedException, IOException {
+    public static void startFilibuster() throws InterruptedException, IOException {
         startMockFilibusterServerAndWaitUntilAvailable();
     }
 
-    public void stopFilibuster() throws InterruptedException {
+    public static void stopFilibuster() throws InterruptedException {
         stopMockFilibusterServerAndWaitUntilUnavailable();
     }
 
-    public void startExternalServer() throws InterruptedException, IOException {
+    public static void startExternalServer() throws InterruptedException, IOException {
         startExternalServerAndWaitUntilAvailable();
     }
 
-    public void stopExternalServer() throws InterruptedException {
+    public static void stopExternalServer() throws InterruptedException {
         stopExternalServerAndWaitUntilUnavailable();
     }
 

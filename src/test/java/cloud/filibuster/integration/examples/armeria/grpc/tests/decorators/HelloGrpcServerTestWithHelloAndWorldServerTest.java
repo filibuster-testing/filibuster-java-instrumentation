@@ -10,7 +10,9 @@ import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientIntercept
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterServerInterceptor;
 import com.linecorp.armeria.client.grpc.GrpcClientBuilder;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,15 +22,15 @@ import java.io.IOException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class HelloGrpcServerTestWithHelloAndWorldServerTest extends HelloGrpcServerTest {
-    @BeforeEach
-    public void startServices() throws IOException, InterruptedException {
+    @BeforeAll
+    public static void startServices() throws IOException, InterruptedException {
         startHello();
         startWorld();
         startExternalServer();
     }
 
-    @AfterEach
-    public void stopServices() throws InterruptedException {
+    @AfterAll
+    public static void stopServices() throws InterruptedException {
         stopWorld();
         stopHello();
         stopExternalServer();

@@ -13,7 +13,9 @@ import cloud.filibuster.instrumentation.libraries.grpc.FilibusterServerIntercept
 import com.linecorp.armeria.client.grpc.GrpcClientBuilder;
 import io.grpc.StatusRuntimeException;
 import org.json.JSONObject;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,14 +31,14 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerFakeFaultTest extend
     private GrpcClientBuilder grpcClientBuilder;
     private static final String serviceName = "test";
 
-    @BeforeEach
-    public void startServices() throws IOException, InterruptedException {
+    @BeforeAll
+    public static void startServices() throws IOException, InterruptedException {
         startHello();
         startFilibuster();
     }
 
-    @AfterEach
-    public void stopServices() throws InterruptedException {
+    @AfterAll
+    public static void stopServices() throws InterruptedException {
         stopFilibuster();
         stopHello();
     }
@@ -101,12 +103,12 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerFakeFaultTest extend
 
         JSONObject firstInvocationPayload = FilibusterServerFake.payloadsReceived.get(0);
         assertEquals("invocation", firstInvocationPayload.getString("instrumentation_type"));
-        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-4785660e27df4252b84e45fa14c98d2cead81284-e3b858152435d0cadc132349ad51d97a785b20b4\", 1]]", firstInvocationPayload.getString("execution_index"));
+        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-3bae2985594d5e1ad15f7de50b0e62cb540a2862-e3b858152435d0cadc132349ad51d97a785b20b4\", 1]]", firstInvocationPayload.getString("execution_index"));
         assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationPayload.getJSONObject("vclock").toString());
 
         JSONObject firstInvocationCompletePayload = FilibusterServerFake.payloadsReceived.get(1);
         assertEquals("invocation_complete", firstInvocationCompletePayload.getString("instrumentation_type"));
-        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-4785660e27df4252b84e45fa14c98d2cead81284-e3b858152435d0cadc132349ad51d97a785b20b4\", 1]]", firstInvocationCompletePayload.getString("execution_index"));
+        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-3bae2985594d5e1ad15f7de50b0e62cb540a2862-e3b858152435d0cadc132349ad51d97a785b20b4\", 1]]", firstInvocationCompletePayload.getString("execution_index"));
         assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationCompletePayload.getJSONObject("vclock").toString());
     }
 }

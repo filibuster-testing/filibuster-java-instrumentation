@@ -23,7 +23,9 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 
 import org.json.JSONObject;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,13 +39,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class HelloGrpcServerTestWithHelloServerTest extends HelloGrpcServerTest {
-    @BeforeEach
-    public void startServices() throws IOException, InterruptedException {
+    @BeforeAll
+    public static void startServices() throws IOException, InterruptedException {
         startHello();
     }
 
-    @AfterEach
-    public void stopServices() throws InterruptedException {
+    @AfterAll
+    public static void stopServices() throws InterruptedException {
         stopHello();
     }
 

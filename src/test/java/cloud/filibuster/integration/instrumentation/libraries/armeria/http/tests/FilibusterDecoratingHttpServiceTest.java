@@ -48,24 +48,16 @@ public class FilibusterDecoratingHttpServiceTest extends FilibusterDecoratingHtt
         ThreadLocalContextStorage.useGlobalContext = true;
     }
 
-    @BeforeEach
-    public void startFilibuster() throws IOException, InterruptedException {
+    @BeforeAll
+    public static void startServices() throws IOException, InterruptedException {
+        startHelloServerAndWaitUntilAvailable();
         startMockFilibusterServerAndWaitUntilAvailable();
     }
 
-    @AfterEach
-    public void stopFilibuster() throws InterruptedException {
-        stopMockFilibusterServerAndWaitUntilUnavailable();
-    }
-
-    @BeforeEach
-    public void startHello() throws IOException, InterruptedException {
-        startHelloServerAndWaitUntilAvailable();
-    }
-
-    @AfterEach
-    public void stopHello() throws InterruptedException {
+    @AfterAll
+    public static void stopServices() throws InterruptedException {
         stopHelloServerAndWaitUntilUnavailable();
+        stopMockFilibusterServerAndWaitUntilUnavailable();
     }
 
     @AfterAll

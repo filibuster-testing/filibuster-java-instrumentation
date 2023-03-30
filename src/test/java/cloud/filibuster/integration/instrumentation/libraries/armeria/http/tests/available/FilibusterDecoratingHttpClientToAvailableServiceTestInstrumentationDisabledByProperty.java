@@ -12,7 +12,9 @@ import com.linecorp.armeria.common.HttpHeaderNames;
 import com.linecorp.armeria.common.HttpMethod;
 import com.linecorp.armeria.common.RequestHeaders;
 import com.linecorp.armeria.common.ResponseHeaders;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,14 +26,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class FilibusterDecoratingHttpClientToAvailableServiceTestInstrumentationDisabledByProperty extends FilibusterDecoratingHttpClientTest {
     private final String baseExternalURI = "http://" + Networking.getHost("external") + ":" + Networking.getPort("external") + "/";
 
-    @BeforeEach
-    public void startServices() throws IOException, InterruptedException {
+    @BeforeAll
+    public static void startServices() throws IOException, InterruptedException {
         startFilibuster();
         startExternalServer();
     }
 
-    @AfterEach
-    public void stopServices() throws InterruptedException {
+    @AfterAll
+    public static void stopServices() throws InterruptedException {
         stopFilibuster();
         stopExternalServer();
     }

@@ -14,7 +14,9 @@ import com.linecorp.armeria.common.HttpMethod;
 import com.linecorp.armeria.common.RequestHeaders;
 import com.linecorp.armeria.common.ResponseHeaders;
 import org.json.JSONObject;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,27 +27,34 @@ import static cloud.filibuster.integration.examples.test_servers.HelloServer.res
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class OpenTelemetryHelloServerWithHelloAndWorldAndFilibusterServerFakeTest extends HelloServerTest {
-    @BeforeEach
-    public void startServices() throws IOException, InterruptedException {
-        super.startHelloServer();
-        super.startWorldServer();
-        super.startExternalServer();
-        super.startFilibuster();
+    @BeforeAll
+    public static void startServices() throws IOException, InterruptedException {
+        startHelloServer();
+        startWorldServer();
+        startExternalServer();
+        startFilibuster();
+    }
 
+    @AfterAll
+    public static void stopServices() throws InterruptedException {
+        stopHelloServer();
+        stopWorldServer();
+        stopExternalServer();
+        stopFilibuster();
+    }
+
+    @BeforeEach
+    public void resetConfigurationBeforeAll() {
         FilibusterServerFake.oneNewTestExecution = true;
+        FilibusterServerFake.resetPayloadsReceived();
     }
 
     @AfterEach
-    public void stopServices() throws InterruptedException {
-        super.stopHelloServer();
-        super.stopWorldServer();
-        super.stopExternalServer();
-        super.stopFilibuster();
-
+    public void resetConfigurationAfterAll() {
         FilibusterServerFake.noNewTestExecution = false;
-
         resetInitialDistributedExecutionIndex();
     }
+
 
     @BeforeEach
     public void enableFilibuster() {

@@ -10,7 +10,9 @@ import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.HttpHeaderNames;
 import com.linecorp.armeria.common.HttpMethod;
 import com.linecorp.armeria.common.RequestHeaders;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,13 +26,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class FilibusterDecoratingHttpClientToUnavailableServiceTest extends FilibusterDecoratingHttpClientTest {
-    @BeforeEach
-    public void startFilibusterServer() throws IOException, InterruptedException {
+    @BeforeAll
+    public static void startFilibusterServer() throws IOException, InterruptedException {
         startFilibuster();
     }
 
-    @AfterEach
-    public void stopFilibusterServer() throws InterruptedException {
+    @AfterAll
+    public static void stopFilibusterServer() throws InterruptedException {
         stopFilibuster();
     }
 

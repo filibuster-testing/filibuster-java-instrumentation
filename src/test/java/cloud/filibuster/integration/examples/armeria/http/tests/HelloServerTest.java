@@ -14,35 +14,35 @@ import static cloud.filibuster.integration.instrumentation.TestHelper.stopHelloS
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopWorldServerAndWaitUntilUnavailable;
 
 public class HelloServerTest extends FilibusterBaseTest {
-    public void startFilibuster() throws InterruptedException, IOException {
+    public static void startFilibuster() throws InterruptedException, IOException {
         startMockFilibusterServerAndWaitUntilAvailable();
     }
 
-    public void stopFilibuster() throws InterruptedException {
+    public static void stopFilibuster() throws InterruptedException {
         stopMockFilibusterServerAndWaitUntilUnavailable();
     }
 
-    public void startExternalServer() throws InterruptedException, IOException {
+    public static void startExternalServer() throws InterruptedException, IOException {
         startExternalServerAndWaitUntilAvailable();
     }
 
-    public void stopExternalServer() throws InterruptedException {
+    public static void stopExternalServer() throws InterruptedException {
         stopExternalServerAndWaitUntilUnavailable();
     }
 
-    public void startWorldServer() throws InterruptedException, IOException {
+    public static void startWorldServer() throws InterruptedException, IOException {
         startWorldServerAndWaitUntilAvailable();
     }
 
-    public void stopWorldServer() throws InterruptedException {
+    public static void stopWorldServer() throws InterruptedException {
         stopWorldServerAndWaitUntilUnavailable();
     }
 
-    public void startHelloServer() throws InterruptedException, IOException {
+    public static void startHelloServer() throws InterruptedException, IOException {
         startHelloServerAndWaitUntilAvailable();
     }
 
-    public void stopHelloServer() throws InterruptedException {
+    public static void stopHelloServer() throws InterruptedException {
         stopHelloServerAndWaitUntilUnavailable();
     }
 }

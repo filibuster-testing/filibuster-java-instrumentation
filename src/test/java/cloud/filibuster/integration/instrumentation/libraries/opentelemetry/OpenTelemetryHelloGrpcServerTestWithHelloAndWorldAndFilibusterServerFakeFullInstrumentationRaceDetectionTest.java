@@ -12,7 +12,9 @@ import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientIntercept
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterServerInterceptor;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,23 +28,32 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServerFakeFullInstrumentationRaceDetectionTest extends OpenTelemetryHelloGrpcServerTest {
     static final private int ITERATIONS = 100;
 
-    @BeforeEach
-    public void startServices() throws IOException, InterruptedException {
+    @BeforeAll
+    public static void startServices() throws IOException, InterruptedException {
         startHello();
         startWorld();
+        startExternalServer();
         startFilibuster();
+    }
 
+    @AfterAll
+    public static void stopServices() throws InterruptedException {
+        stopFilibuster();
+        stopExternalServer();
+        stopWorld();
+        stopHello();
+    }
+
+    @BeforeEach
+    public void resetConfigurationBeforeAll() {
         FilibusterServerFake.oneNewTestExecution = true;
     }
 
     @AfterEach
-    public void stopServices() throws InterruptedException {
-        stopFilibuster();
-        stopWorld();
-        stopHello();
-
+    public void resetConfigurationAfterAll() {
         FilibusterServerFake.noNewTestExecution = false;
     }
+
 
     @BeforeEach
     public void resetMyHelloServiceState() {

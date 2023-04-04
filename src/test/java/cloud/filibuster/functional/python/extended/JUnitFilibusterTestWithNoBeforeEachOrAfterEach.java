@@ -102,6 +102,10 @@ public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
                     expected = true;
                 }
 
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNKNOWN")) {
+                    expected = true;
+                }
+
                 if (! expected) {
                     throw t;
                 }
@@ -126,6 +130,6 @@ public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(4, testExceptionsThrown.size());
+        assertEquals(5, testExceptionsThrown.size());
     }
 }

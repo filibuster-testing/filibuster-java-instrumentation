@@ -15,7 +15,9 @@ import cloud.filibuster.integration.examples.test_servers.HelloServer;
 import com.linecorp.armeria.client.grpc.GrpcClientBuilder;
 import io.grpc.StatusRuntimeException;
 import org.json.JSONObject;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,14 +32,14 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerFakeWithDescriptionT
     private GrpcClientBuilder grpcClientBuilder;
     private static final String serviceName = "test";
 
-    @BeforeEach
-    public void startServices() throws IOException, InterruptedException {
+    @BeforeAll
+    public static void startServices() throws IOException, InterruptedException {
         startHello();
         startFilibuster();
     }
 
-    @AfterEach
-    public void stopServices() throws InterruptedException {
+    @AfterAll
+    public static void stopServices() throws InterruptedException {
         stopFilibuster();
         stopHello();
     }
@@ -99,6 +101,6 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerFakeWithDescriptionT
         VectorClock assertVc = generateAssertionClock();
         assertEquals(assertVc.toString(), lastPayload.get("vclock").toString());
 
-        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-fbd88dbbc04a4157652e05c3596445b85b46df91-e3b858152435d0cadc132349ad51d97a785b20b4\", 1]]", lastPayload.getString("execution_index"));
+        assertEquals("[[\"V1-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-f8bde40fd4ee4de09c9727c7a8727dd53113de56-e3b858152435d0cadc132349ad51d97a785b20b4\", 1]]", lastPayload.getString("execution_index"));
     }
 }

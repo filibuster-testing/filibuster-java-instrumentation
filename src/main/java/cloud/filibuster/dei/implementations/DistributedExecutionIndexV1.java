@@ -358,7 +358,7 @@ public class DistributedExecutionIndexV1 extends DistributedExecutionIndexBase i
 
         public static String generateRpcAsynchronousComponentFromCallsite(Callsite callsite) {
             ArrayList<String> rpcAsynchronousElements = new ArrayList<>();
-            CallsiteArguments callsiteArguments = callsite.getSerializedArguments();
+            CallsiteArguments callsiteArguments = callsite.getCallsiteArguments();
             rpcAsynchronousElements.add(callsiteArguments.getStringClass());
             rpcAsynchronousElements.add(callsiteArguments.getToStringResult());
             String rpcAsynchronous = "";

@@ -2,6 +2,7 @@ package cloud.filibuster.functional.java.hello.multiple;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
+import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
@@ -31,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitBaseTest {
+public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitAnnotationBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     private static int numberOfTestsExecuted = 0;
@@ -39,7 +40,7 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitBaseT
     private static int numberOfExceptionsThrown = 0;
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, maxIterations=10)
+    @FilibusterTest(maxIterations=10)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -59,7 +60,8 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitBaseT
             assertEquals("Hello, Armerian World!!", reply.getMessage());
 //            assertFalse(wasFaultInjected());
         } catch (Throwable t) {
-            if (numberOfTestsExecuted == 10) {
+            if (numberOfTestsExecuted == 11) {
+                // Too many synthesized tests.
                 assertFalse(true);
             }
 
@@ -92,6 +94,10 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitBaseT
                     firstRPCFailed = true;
                 }
 
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNKNOWN")) {
+                    expected = true;
+                }
+
                 if (firstRPCFailed) {
                     boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("WorldService");
                     assertTrue(wasFaultInjectedOnWorldService);
@@ -107,10 +113,6 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitBaseT
                 }
 
                 // Second RPC failed.
-
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNKNOWN")) {
-                    expected = true;
-                }
 
                 if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: FAILED_PRECONDITION: HTTP RPC returned: 500")) {
                     expected = true;
@@ -147,13 +149,13 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitBaseT
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEquals(9, numberOfTestsExecuted);
+        assertEquals(10, numberOfTestsExecuted);
     }
 
     @DisplayName("Verify correct number of exceptions thrown.")
     @Test
     @Order(4)
     public void numberOfExceptionsThrown() {
-        assertEquals(8, numberOfExceptionsThrown);
+        assertEquals(9, numberOfExceptionsThrown);
     }
 }

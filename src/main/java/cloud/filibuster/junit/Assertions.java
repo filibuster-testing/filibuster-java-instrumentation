@@ -17,6 +17,7 @@ import com.linecorp.armeria.common.RequestHeaders;
 import com.linecorp.armeria.common.ResponseHeaders;
 import org.json.JSONObject;
 import org.junit.jupiter.api.function.ThrowingConsumer;
+import io.grpc.MethodDescriptor;
 
 import java.util.Objects;
 import java.util.logging.Level;
@@ -297,6 +298,22 @@ public class Assertions {
      * @return was fault injected
      */
     public static boolean wasFaultInjectedOnMethod(String fullyQualifiedMethodName) {
+        if (getServerBackendCanInvokeDirectlyProperty()) {
+            String[] split = fullyQualifiedMethodName.split("/", 2);
+
+            if (FilibusterCore.hasCurrentInstance()) {
+                return FilibusterCore.getCurrentInstance().wasFaultInjectedOnMethod(split[0], split[1]);
+            } else {
+                return false;
+            }
+        } else {
+            return wasFaultInjected("/filibuster/fault-injected/method/" + fullyQualifiedMethodName);
+        }
+    }
+
+    public static boolean wasFaultInjectedOnMethod(MethodDescriptor methodDescriptor) {
+        String fullyQualifiedMethodName = methodDescriptor.getFullMethodName();
+
         if (getServerBackendCanInvokeDirectlyProperty()) {
             String[] split = fullyQualifiedMethodName.split("/", 2);
 

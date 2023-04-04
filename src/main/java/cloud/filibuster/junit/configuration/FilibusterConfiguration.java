@@ -4,6 +4,8 @@ import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedServerBackend
 import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.server.backends.FilibusterDockerServerBackend;
 import cloud.filibuster.junit.server.FilibusterServerBackend;
+import cloud.filibuster.junit.server.core.profiles.ServiceProfile;
+import cloud.filibuster.junit.server.core.profiles.ServiceProfileBehavior;
 import cloud.filibuster.junit.server.latency.FilibusterLatencyProfile;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import io.micrometer.core.instrument.util.IOUtils;
@@ -16,6 +18,7 @@ import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,7 +45,12 @@ public class FilibusterConfiguration {
 
     private final FilibusterLatencyProfile latencyProfile;
 
+
     private final String testName;
+    
+    private final List<ServiceProfile> serviceProfiles;
+
+    private final ServiceProfileBehavior serviceProfileBehavior;
 
     private FilibusterConfiguration(Builder builder) {
         this.dynamicReduction = builder.dynamicReduction;
@@ -56,6 +64,8 @@ public class FilibusterConfiguration {
         this.expected = builder.expected;
         this.latencyProfile = builder.latencyProfile;
         this.testName = builder.testName;
+        this.serviceProfiles = builder.serviceProfiles;
+        this.serviceProfileBehavior = builder.serviceProfileBehavior;
     }
 
     /**
@@ -121,12 +131,35 @@ public class FilibusterConfiguration {
         return this.searchStrategy;
     }
 
+    /**
+     * Which latency profile should Filibuster use?
+     *
+     * @return latency profile
+     */
     public FilibusterLatencyProfile getLatencyProfile() {
         return this.latencyProfile;
     }
 
     public String getTestName() {
         return this.testName;
+    }
+
+    /**
+     * What service profiles should Filibuster use?
+     *
+     * @return service profiles
+     */
+    public List<ServiceProfile> getServiceProfiles() {
+        return this.serviceProfiles;
+    }
+
+    /**
+     * How should service profiles be used?
+     *
+     * @return service profile behavior
+     */
+    public ServiceProfileBehavior getServiceProfileBehavior() {
+        return this.serviceProfileBehavior;
     }
 
     /**
@@ -202,6 +235,9 @@ public class FilibusterConfiguration {
         private FilibusterLatencyProfile latencyProfile;
 
         private String testName;
+        private List<ServiceProfile> serviceProfiles;
+
+        private ServiceProfileBehavior serviceProfileBehavior;
 
         /**
          * Should this configuration use dynamic reduction?
@@ -336,6 +372,25 @@ public class FilibusterConfiguration {
             }
 
             this.latencyProfile = latencyProfile;
+            return this;
+        }
+
+        @CanIgnoreReturnValue
+        @SuppressWarnings("Java8ApiChecker")
+        public Builder serviceProfilesPath(String serviceProfilesPath) {
+            if (!serviceProfilesPath.isEmpty()) {
+                Path path = Path.of(serviceProfilesPath);
+                List<ServiceProfile> serviceProfiles = ServiceProfile.loadFromDirectory(path);
+                this.serviceProfiles = serviceProfiles;
+            }
+
+            return this;
+        }
+
+        @CanIgnoreReturnValue
+        @SuppressWarnings("Java8ApiChecker")
+        public Builder serviceProfileBehavior(ServiceProfileBehavior serviceProfileBehavior) {
+            this.serviceProfileBehavior = serviceProfileBehavior;
             return this;
         }
 

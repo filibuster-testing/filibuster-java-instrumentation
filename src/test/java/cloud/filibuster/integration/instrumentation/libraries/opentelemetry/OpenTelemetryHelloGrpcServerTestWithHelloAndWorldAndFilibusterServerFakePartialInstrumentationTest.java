@@ -15,7 +15,9 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 
 import org.json.JSONObject;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,23 +29,34 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class OpenTelemetryHelloGrpcServerTestWithHelloAndWorldAndFilibusterServerFakePartialInstrumentationTest extends OpenTelemetryHelloGrpcServerTest {
-    @BeforeEach
-    public void startServices() throws IOException, InterruptedException {
+
+    @BeforeAll
+    public static void startServices() throws IOException, InterruptedException {
         startHello();
         startWorld();
+        startExternalServer();
         startFilibuster();
+    }
 
+    @AfterAll
+    public static void stopServices() throws InterruptedException {
+        stopFilibuster();
+        stopExternalServer();
+        stopWorld();
+        stopHello();
+    }
+
+    @BeforeEach
+    public void resetConfigurationBeforeAll() {
         FilibusterServerFake.oneNewTestExecution = true;
+        FilibusterServerFake.resetPayloadsReceived();
     }
 
     @AfterEach
-    public void stopServices() throws InterruptedException {
-        stopFilibuster();
-        stopWorld();
-        stopHello();
-
+    public void resetConfigurationAfterAll() {
         FilibusterServerFake.noNewTestExecution = false;
     }
+
 
     @BeforeEach
     public void resetMyHelloServiceState() {

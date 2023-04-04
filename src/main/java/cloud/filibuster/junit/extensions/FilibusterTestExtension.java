@@ -80,6 +80,8 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
                 .expected(filibusterTest.expected())
                 .latencyProfile(filibusterTest.latencyProfile())
                 .testName(displayName)
+                .serviceProfilesPath(filibusterTest.serviceProfilesPath())
+                .serviceProfileBehavior(filibusterTest.serviceProfileBehavior())
                 .build();
 
         validateSearchBackend(filibusterTest, filibusterConfiguration);

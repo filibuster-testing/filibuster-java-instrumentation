@@ -16,7 +16,13 @@ public class StatusSerializer {
 
         jsonObject.put(Keys.CLASS_KEY, "io.grpc.Status");
         jsonObject.put(Keys.CODE_KEY, status.getCode().toString());
-        jsonObject.put(Keys.CAUSE_KEY, status.getCause());
+
+        Throwable cause = status.getCause();
+
+        if (cause != null) {
+            jsonObject.put(Keys.CAUSE_KEY, status.getCause().toString());
+        }
+
         jsonObject.put(Keys.DESCRIPTION_KEY, status.getDescription());
 
         return jsonObject;
@@ -25,6 +31,15 @@ public class StatusSerializer {
     public static Status fromJSONObject(JSONObject jsonObject) {
         String codeStr = jsonObject.getString(Keys.CODE_KEY);
         Status.Code code = Status.Code.valueOf(codeStr);
-        return Status.fromCode(code);
+        Status status = Status.fromCode(code);
+
+        if (jsonObject.has(Keys.DESCRIPTION_KEY)) {
+            String descriptionStr = jsonObject.getString(Keys.DESCRIPTION_KEY);
+            status = Status.fromCode(code).withDescription(descriptionStr);
+        }
+
+        // cause does not serialize across service boundaries, therefore it's ignored as part of service profile creation/restoration.
+
+        return status;
     }
 }

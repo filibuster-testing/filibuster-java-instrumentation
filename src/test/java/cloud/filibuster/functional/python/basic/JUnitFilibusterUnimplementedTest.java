@@ -69,6 +69,6 @@ public class JUnitFilibusterUnimplementedTest extends JUnitBaseTest {
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(4, testExceptionsThrown.size());
+        assertEquals(5, testExceptionsThrown.size());
     }
 }

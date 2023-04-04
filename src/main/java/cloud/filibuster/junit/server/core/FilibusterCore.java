@@ -10,6 +10,9 @@ import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration.MatcherType;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
+import cloud.filibuster.junit.server.core.profiles.ServiceProfile;
+import cloud.filibuster.junit.server.core.profiles.ServiceProfileBehavior;
+import cloud.filibuster.junit.server.core.profiles.ServiceRequestAndResponse;
 import cloud.filibuster.junit.server.core.reports.ServerInvocationAndResponseReport;
 import cloud.filibuster.junit.server.core.reports.TestReport;
 import cloud.filibuster.junit.server.core.reports.TestExecutionReport;
@@ -17,6 +20,8 @@ import cloud.filibuster.junit.server.core.test_executions.ConcreteTestExecution;
 import cloud.filibuster.junit.server.core.test_executions.AbstractTestExecution;
 import cloud.filibuster.junit.server.core.test_executions.TestExecution;
 import cloud.filibuster.junit.server.latency.FilibusterLatencyProfile;
+import io.grpc.Status;
+import io.grpc.Status.Code;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -25,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import java.util.Map;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -560,16 +566,16 @@ public class FilibusterCore {
 
     // Private functions.
 
-    private void generateFaultsUsingAnalysisConfiguration(
-            FilibusterConfiguration filibusterConfiguration,
+    private void generateFaultsUsingSpecificAnalysisConfiguration(
+            FilibusterCustomAnalysisConfigurationFile customAnalysisConfigurationFile,
             DistributedExecutionIndex distributedExecutionIndex,
             String moduleName,
             String methodName
     ) {
-        logger.info("[FILIBUSTER-CORE]: generateFaultsUsingAnalysisConfiguration called.");
+        logger.info("[FILIBUSTER-CORE]: generateFaultsUsingSpecificAnalysisConfiguration called.");
 
-        if (filibusterCustomAnalysisConfigurationFile != null) {
-            for (FilibusterAnalysisConfiguration filibusterAnalysisConfiguration : filibusterCustomAnalysisConfigurationFile.getFilibusterAnalysisConfigurations()) {
+        if (customAnalysisConfigurationFile != null) {
+            for (FilibusterAnalysisConfiguration filibusterAnalysisConfiguration : customAnalysisConfigurationFile.getFilibusterAnalysisConfigurations()) {
                 // Second check here (concat) is a legacy check for the old Python server compatibility.
                 if (filibusterAnalysisConfiguration.isPatternMatch(methodName) || filibusterAnalysisConfiguration.isPatternMatch(moduleName + "." + methodName)) {
                     // Latency.
@@ -629,6 +635,75 @@ public class FilibusterCore {
                     }
                 }
             }
+        }
+
+        logger.info("[FILIBUSTER-CORE]: generateFaultsUsingSpecificAnalysisConfiguration returning.");
+    }
+
+
+    private void generateFaultsUsingAnalysisConfiguration(
+            FilibusterConfiguration filibusterConfiguration,
+            DistributedExecutionIndex distributedExecutionIndex,
+            String moduleName,
+            String methodName
+    ) {
+        logger.info("[FILIBUSTER-CORE]: generateFaultsUsingAnalysisConfiguration called.");
+
+        List<FilibusterCustomAnalysisConfigurationFile> customAnalysisConfigurationFiles = new ArrayList<>();
+
+        // Service profile faults.
+
+        if (filibusterConfiguration.getServiceProfileBehavior().equals(ServiceProfileBehavior.FAULT)) {
+            List<ServiceProfile> serviceProfiles = filibusterConfiguration.getServiceProfiles();
+
+            if (serviceProfiles != null) {
+                for (ServiceProfile serviceProfile : serviceProfiles) {
+                    // could be much more efficient if we just build these objects ourselves
+                    // this is just done for maximum reuse.
+                    if (serviceProfile.sawMethod(methodName)) {
+                        FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilder = new FilibusterAnalysisConfiguration.Builder()
+                                .name("java.grpc." + methodName)
+                                .pattern("(" + methodName + ")");
+
+                        List<ServiceRequestAndResponse> serviceRequestAndResponseList = serviceProfile.getServiceRequestAndResponsesForMethod(methodName);
+
+                        if (serviceRequestAndResponseList != null) {
+                            for (ServiceRequestAndResponse serviceRequestAndResponse : serviceRequestAndResponseList) {
+                                if (!serviceRequestAndResponse.isSuccess()) {
+                                    // Get error.
+                                    Status status = serviceRequestAndResponse.getStatus();
+                                    Code code = status.getCode();
+                                    String description = status.getDescription();
+
+                                    // Build error map.
+                                    Map<String,String> errorMap = new HashMap<>();
+                                    errorMap.put("cause", "");
+                                    errorMap.put("code", code.toString());
+                                    errorMap.put("description", description);
+
+                                    // Add to configuration.
+                                    filibusterAnalysisConfigurationBuilder.exception("io.grpc.StatusRuntimeException", errorMap);
+                                }
+                            }
+                        }
+
+                        // Add to list of faults to inject.
+                        FilibusterAnalysisConfiguration filibusterAnalysisConfiguration = filibusterAnalysisConfigurationBuilder.build();
+                        FilibusterCustomAnalysisConfigurationFile filibusterServiceProfileConfigurationFile = new FilibusterCustomAnalysisConfigurationFile.Builder()
+                                .analysisConfiguration(filibusterAnalysisConfiguration)
+                                .build();
+                        customAnalysisConfigurationFiles.add(filibusterServiceProfileConfigurationFile);
+                    }
+                }
+            }
+        }
+
+        // Standard faults.
+
+        customAnalysisConfigurationFiles.add(filibusterCustomAnalysisConfigurationFile);
+
+        for (FilibusterCustomAnalysisConfigurationFile customAnalysisConfigurationFile : customAnalysisConfigurationFiles) {
+            generateFaultsUsingSpecificAnalysisConfiguration(customAnalysisConfigurationFile, distributedExecutionIndex, moduleName, methodName);
         }
 
         logger.info("[FILIBUSTER-CORE]: generateFaultsUsingAnalysisConfiguration returning.");

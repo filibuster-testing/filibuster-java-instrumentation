@@ -3,19 +3,16 @@ package cloud.filibuster.junit.server.core.reports;
 import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.File;
 import java.nio.charset.Charset;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.logging.Logger;
-import java.util.stream.Stream;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 public class TestReport {
     private static final Logger logger = Logger.getLogger(TestReport.class.getName());
@@ -24,8 +21,7 @@ public class TestReport {
 
     private final UUID testUUID;
 
-    public TestReport(UUID testUUID)
-    {
+    public TestReport(UUID testUUID) {
         this.testUUID = testUUID;
     }
 
@@ -34,20 +30,18 @@ public class TestReport {
         testExecutionReports.add(testExecutionReport);
     }
 
-    private Path getDirectoryPath()
-    {
-        return Paths.get("/tmp/filibuster/"+testUUID.toString()+"/");
+    private File getDirectoryPath() {
+        return new File("/tmp/filibuster/", testUUID.toString());
     }
 
     public void writeOutPlaceholder() {
-        Path directory = getDirectoryPath();
-        Path indexPath = Paths.get(directory + "/index.html");
+        File directory = getDirectoryPath();
+        File indexPath = new File(directory, "index.html");
 
         try {
-            Files.createDirectory(directory);
-        } catch(FileAlreadyExistsException e) {
-            // Nothing, directory already exists.
-        } catch (IOException e) {
+            //noinspection ResultOfMethodCallIgnored
+            directory.mkdirs();
+        } catch (SecurityException e) {
             throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution aggregate report: ", e);
         }
 
@@ -70,7 +64,7 @@ public class TestReport {
 
         try {
             byte[] indexBytes = getResourceAsBytes("html/test_report/waiting.html");
-            Files.write(indexPath, indexBytes);
+            Files.write(indexPath.toPath(), indexBytes);
         } catch (IOException e) {
             throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution report: ", e);
         }
@@ -97,13 +91,12 @@ public class TestReport {
     }
 
     public void writeTestReport() {
-        Path directory = getDirectoryPath();
+        File directory = getDirectoryPath();
 
         try {
-            Files.createDirectory(directory);
-        } catch(FileAlreadyExistsException e) {
-            // Ignore.
-        } catch (IOException e) {
+            //noinspection ResultOfMethodCallIgnored
+            directory.mkdirs();
+        } catch (SecurityException e) {
             throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution report: ", e);
         }
 

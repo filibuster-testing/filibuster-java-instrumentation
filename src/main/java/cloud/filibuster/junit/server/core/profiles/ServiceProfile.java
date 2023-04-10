@@ -12,7 +12,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -89,23 +88,20 @@ public class ServiceProfile {
     }
 
     public void writeServiceProfile(UUID testUUID) {
-        Path rootDirectory = Paths.get("/tmp/filibuster/" + testUUID.toString() + "/");
-
+        File rootDirectory = new File("/tmp/filibuster/", testUUID.toString());
         try {
-            Files.createDirectory(rootDirectory);
-        } catch (FileAlreadyExistsException e) {
-            // Nothing, directory already exists.
-        } catch (IOException e) {
+            //noinspection ResultOfMethodCallIgnored
+            rootDirectory.mkdirs();
+        } catch (SecurityException e) {
             throw new FilibusterServiceProfileWriterException("Filibuster failed to write out the service profile: ", e);
         }
 
-        Path directory = Paths.get(rootDirectory + "/fsp/");
+        File directory = new File(rootDirectory, "fsp/");
 
         try {
-            Files.createDirectory(directory);
-        } catch (FileAlreadyExistsException e) {
-            // Nothing, directory already exists.
-        } catch (IOException e) {
+            //noinspection ResultOfMethodCallIgnored
+            directory.mkdirs();
+        } catch (SecurityException e) {
             throw new FilibusterServiceProfileWriterException("Filibuster failed to write out the service profile: ", e);
         }
 

@@ -13,6 +13,7 @@ import cloud.filibuster.junit.server.core.lint.analyzers.warnings.FilibusterAnal
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -60,8 +61,8 @@ public class TestExecutionReport {
         this.testUUID = testUUID;
     }
 
-    private Path getDirectoryPath() {
-        return Paths.get("/tmp/filibuster/" + testUUID.toString()+"/");
+    private File getDirectoryPath() {
+        return new File("/tmp/filibuster/", testUUID.toString());
     }
 
     public List<FilibusterAnalyzerWarning> getWarnings() {
@@ -208,8 +209,9 @@ public class TestExecutionReport {
     public void writePlaceholderTestReport() {
         try {
             // Create new directory for analysis report.
-            Path directory = Paths.get(getDirectoryPath()+ "/filibuster-test-execution-" + uuid);
-            Files.createDirectory(directory);
+            File directory = new File(getDirectoryPath(), "/filibuster-test-execution-" + uuid);
+            //noinspection ResultOfMethodCallIgnored
+            directory.mkdirs();
 
             // Write out index file.
             Path indexPath = Paths.get(directory + "/index.html");
@@ -231,7 +233,7 @@ public class TestExecutionReport {
         if (!hasReportBeenMaterialized) {
             try {
                 // Create new directory for analysis report.
-                Path directory = Paths.get(getDirectoryPath()+"/filibuster-test-execution-" + uuid);
+                Path directory = Paths.get(getDirectoryPath() + "/filibuster-test-execution-" + uuid);
                 Path scriptPath = Paths.get(directory + "/analysis.js");
                 Path indexPath = Paths.get(directory + "/index.html");
                 if (!Files.exists(directory)) {

@@ -6,6 +6,7 @@ import com.google.protobuf.GeneratedMessageV3;
 import io.grpc.Status;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -64,13 +65,11 @@ public class ServerInvocationAndResponseReport {
     }
 
     public static void writeServerInvocationReport(UUID testUUID) {
-        Path reportDirectory = Paths.get("/tmp/filibuster/" + testUUID.toString() + "/");
+        File reportDirectory = new File ("/tmp/filibuster/" , testUUID.toString());
 
         try {
-            Files.createDirectory(reportDirectory);
-        } catch (FileAlreadyExistsException e) {
-            // Ignore.
-        } catch (IOException e) {
+            reportDirectory.mkdirs();
+        }  catch (SecurityException e) {
             throw new FilibusterTestReportWriterException("Filibuster failed to write out the server invocation report: ", e);
         }
 

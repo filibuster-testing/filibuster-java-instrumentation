@@ -59,6 +59,7 @@ public class FilibusterCore {
     private final UUID testUUID = UUID.randomUUID();
 
     public FilibusterCore(FilibusterConfiguration filibusterConfiguration) {
+        GlobalFilibusterInterceptor.getInstance();
         currentInstance = this;
         currentConcreteTestExecution = new ConcreteTestExecution(filibusterConfiguration.getTestName(), testUUID);
         this.filibusterConfiguration = filibusterConfiguration;
@@ -479,9 +480,9 @@ public class FilibusterCore {
             testReport.writeTestReport();
         }
 
-        ServerInvocationAndResponseReport.writeServerInvocationReport(testUUID);
+        ServerInvocationAndResponseReport.writeServerInvocationReport();
 
-        ServerInvocationAndResponseReport.writeServiceProfile(testUUID);
+        ServerInvocationAndResponseReport.writeServiceProfile();
 
         logger.info("[FILIBUSTER-CORE]: terminate returning.");
     }

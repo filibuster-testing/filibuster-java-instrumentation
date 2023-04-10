@@ -31,7 +31,7 @@ public class TestReport {
     }
 
     private File getDirectoryPath() {
-        return new File("/tmp/filibuster/", testUUID.toString());
+        return new File("/tmp/filibuster/","filibuster-test-"+ testUUID.toString());
     }
 
     public void writeOutPlaceholder() {

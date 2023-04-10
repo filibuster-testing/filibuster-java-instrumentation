@@ -62,7 +62,7 @@ public class TestExecutionReport {
     }
 
     private File getDirectoryPath() {
-        return new File("/tmp/filibuster/", testUUID.toString());
+        return new File("/tmp/filibuster/","filibuster-test-"+ testUUID.toString());
     }
 
     public List<FilibusterAnalyzerWarning> getWarnings() {

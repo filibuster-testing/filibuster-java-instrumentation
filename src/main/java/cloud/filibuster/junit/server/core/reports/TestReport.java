@@ -15,18 +15,32 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+import java.util.UUID;
 
 public class TestReport {
     private static final Logger logger = Logger.getLogger(TestReport.class.getName());
 
     private final ArrayList<TestExecutionReport> testExecutionReports = new ArrayList<>();
 
+    private final UUID testUUID;
+
+    public TestReport(UUID testUUID)
+    {
+        this.testUUID = testUUID;
+    }
+
+
     public void addTestExecutionReport(TestExecutionReport testExecutionReport) {
         testExecutionReports.add(testExecutionReport);
     }
 
+    private Path getDirectoryPath()
+    {
+        return Paths.get("/tmp/filibuster/"+testUUID.toString()+"/");
+    }
+
     public void writeOutPlaceholder() {
-        Path directory = Paths.get("/tmp/filibuster");
+        Path directory = getDirectoryPath();
         Path indexPath = Paths.get(directory + "/index.html");
 
         try {
@@ -37,14 +51,14 @@ public class TestReport {
             throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution aggregate report: ", e);
         }
 
-        try (Stream<Path> filesInDirectoryStream  =  Files.walk(directory) ){
-            filesInDirectoryStream.sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    .filter(file -> file.toString().contains("filibuster-test-execution"))
-                    .forEach(File::delete);
-        } catch (IOException e) {
-            throw new FilibusterTestReportWriterException("Filibuster failed to delete content in the /tmp/filibuster/ directory ", e);
-        }
+//        try (Stream<Path> filesInDirectoryStream  =  Files.walk(directory) ){
+//            filesInDirectoryStream.sorted(Comparator.reverseOrder())
+//                    .map(Path::toFile)
+//                    .filter(file -> file.toString().contains("filibuster-test-execution"))
+//                    .forEach(File::delete);
+//        } catch (IOException e) {
+//            throw new FilibusterTestReportWriterException("Filibuster failed to delete content in the /tmp/filibuster/ directory ", e);
+//        }
 
         try {
             Path constructionGifPath = Paths.get(directory + "/construction.gif");
@@ -83,7 +97,7 @@ public class TestReport {
     }
 
     public void writeTestReport() {
-        Path directory = Paths.get("/tmp/filibuster/");
+        Path directory = getDirectoryPath();
 
         try {
             Files.createDirectory(directory);

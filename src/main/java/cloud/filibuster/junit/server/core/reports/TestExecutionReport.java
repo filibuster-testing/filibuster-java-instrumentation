@@ -51,11 +51,17 @@ public class TestExecutionReport {
 
     private final UUID uuid = UUID.randomUUID();
 
+    private final UUID testUUID;
+
     private final String testName;
 
-    public TestExecutionReport(String testName)
-    {
+    public TestExecutionReport(String testName, UUID testUUID) {
         this.testName = testName;
+        this.testUUID = testUUID;
+    }
+
+    private Path getDirectoryPath() {
+        return Paths.get("/tmp/filibuster/" + testUUID.toString()+"/");
     }
 
     public List<FilibusterAnalyzerWarning> getWarnings() {
@@ -101,10 +107,14 @@ public class TestExecutionReport {
         deiFaultsInjected.putAll(faultsToInject);
     }
 
-    public String getTestName()
-    {
+    public String getTestName() {
         return this.testName;
     }
+
+    public UUID getTestUUID() {
+        return this.testUUID;
+    }
+
     static class Keys {
         private static final String ITERATION_KEY = "iteration";
         private static final String STATUS_KEY = "status";
@@ -141,7 +151,8 @@ public class TestExecutionReport {
             try {
                 TestExecutionReportAnalyzer testExecutionReportAnalyzer = clazz.getDeclaredConstructor(TestExecutionReport.class).newInstance(this);
                 warnings.addAll(testExecutionReportAnalyzer.analyze(testExecutionPassed));
-            } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            } catch (InstantiationException | NoSuchMethodException | IllegalAccessException |
+                     InvocationTargetException e) {
                 throw new FilibusterAnalysisFailureException("could not instantiate class " + clazz + " for analysis", e);
             }
         }
@@ -194,11 +205,10 @@ public class TestExecutionReport {
         return "var analysis = " + jsonObject.toString(4) + ";";
     }
 
-    public void writePlaceholderTestReport()
-    {
+    public void writePlaceholderTestReport() {
         try {
             // Create new directory for analysis report.
-            Path directory = Paths.get("/tmp/filibuster/filibuster-test-execution-" + uuid);
+            Path directory = Paths.get(getDirectoryPath()+ "/filibuster-test-execution-" + uuid);
             Files.createDirectory(directory);
 
             // Write out index file.
@@ -221,16 +231,14 @@ public class TestExecutionReport {
         if (!hasReportBeenMaterialized) {
             try {
                 // Create new directory for analysis report.
-                Path directory = Paths.get("/tmp/filibuster/filibuster-test-execution-" + uuid);
+                Path directory = Paths.get(getDirectoryPath()+"/filibuster-test-execution-" + uuid);
                 Path scriptPath = Paths.get(directory + "/analysis.js");
                 Path indexPath = Paths.get(directory + "/index.html");
-                if (!Files.exists(directory))
-                {
+                if (!Files.exists(directory)) {
                     logger.warning("\n[FILIBUSTER-CORE] Could not find placeholder directory");
                     Files.createDirectory(directory);
                 }
-                if(!Files.exists(indexPath))
-                {
+                if (!Files.exists(indexPath)) {
                     logger.warning("\n[FILIBUSTER-CORE] Placeholder directory path doesn't have index.html");
                     byte[] indexBytes = getResourceAsBytes("html/test_execution_report/index.html");
                     Files.write(indexPath, indexBytes);

@@ -16,12 +16,7 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class ServiceProfile {
     private final HashMap<String, List<ServiceRequestAndResponse>> profile = new HashMap<>();
@@ -54,7 +49,7 @@ public class ServiceProfile {
     }
 
     private void addToProfile(String method, ServiceRequestAndResponse serviceRequestAndResponse) {
-        if (! profile.containsKey(method)) {
+        if (!profile.containsKey(method)) {
             profile.put(method, new ArrayList<>());
         }
 
@@ -83,7 +78,7 @@ public class ServiceProfile {
             String key = it.next();
             JSONArray jsonArray = jsonObject.getJSONArray(key);
 
-            for(int i = 0; i < jsonArray.length(); i++) {
+            for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject obj = jsonArray.getJSONObject(i);
                 ServiceRequestAndResponse srr = ServiceRequestAndResponse.fromJSONObject(obj);
                 serviceProfile.addToProfile(key, srr);
@@ -93,22 +88,22 @@ public class ServiceProfile {
         return serviceProfile;
     }
 
-    public void writeServiceProfile() {
-        Path rootDirectory = Paths.get("/tmp/filibuster");
+    public void writeServiceProfile(UUID testUUID) {
+        Path rootDirectory = Paths.get("/tmp/filibuster/" + testUUID.toString() + "/");
 
         try {
             Files.createDirectory(rootDirectory);
-        } catch(FileAlreadyExistsException e) {
+        } catch (FileAlreadyExistsException e) {
             // Nothing, directory already exists.
         } catch (IOException e) {
             throw new FilibusterServiceProfileWriterException("Filibuster failed to write out the service profile: ", e);
         }
 
-        Path directory = Paths.get("/tmp/filibuster/fsp");
+        Path directory = Paths.get(rootDirectory + "/fsp/");
 
         try {
             Files.createDirectory(directory);
-        } catch(FileAlreadyExistsException e) {
+        } catch (FileAlreadyExistsException e) {
             // Nothing, directory already exists.
         } catch (IOException e) {
             throw new FilibusterServiceProfileWriterException("Filibuster failed to write out the service profile: ", e);
@@ -139,7 +134,7 @@ public class ServiceProfile {
         List<ServiceProfile> serviceProfiles = new ArrayList<>();
         Iterator it = FileUtils.iterateFiles(directory.toFile(), null, /* recursive= */ false);
 
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             File nextFile = (File) it.next();
             Path nextFilePath = nextFile.toPath();
 

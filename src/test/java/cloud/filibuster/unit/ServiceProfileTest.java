@@ -7,6 +7,8 @@ import io.grpc.Status.Code;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
+import java.util.UUID;
+
 import static org.junit.Assert.assertEquals;
 
 public class ServiceProfileTest {
@@ -43,8 +45,10 @@ public class ServiceProfileTest {
 
         assertEquals(serviceProfile, newServiceProfile);
 
-        serviceProfile.writeServiceProfile();
-        ServiceProfile serviceProfileRead = ServiceProfile.readServiceProfile("/tmp/filibuster/fsp/latest.fsp");
+        UUID testUUID = UUID.randomUUID();
+        serviceProfile.writeServiceProfile(testUUID);
+        ServiceProfile serviceProfileRead = ServiceProfile.readServiceProfile("/tmp/filibuster/" +
+                testUUID.toString() + "/fsp/latest.fsp");
         assertEquals(serviceProfile, serviceProfileRead);
     }
 }

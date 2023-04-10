@@ -6,6 +6,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterCoreLogicException;
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.exceptions.filibuster.FilibusterLatencyInjectionException;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
+import cloud.filibuster.junit.GlobalFilibusterInterceptor;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration.MatcherType;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
@@ -26,11 +27,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
-import java.util.Map;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -46,6 +44,7 @@ public class FilibusterCore {
     // The current instance of the FilibusterCore.
     // Required as the instrumentation has no direct way of being instantiated with this object.
     public static synchronized FilibusterCore getCurrentInstance() {
+        GlobalFilibusterInterceptor.getInstance();
         if (currentInstance == null) {
             throw new FilibusterCoreLogicException("Current instance is null, this indicates a problem!");
         }
@@ -57,12 +56,14 @@ public class FilibusterCore {
         return currentInstance != null;
     }
 
+    private final UUID testUUID = UUID.randomUUID();
+
     public FilibusterCore(FilibusterConfiguration filibusterConfiguration) {
         currentInstance = this;
-        currentConcreteTestExecution = new ConcreteTestExecution(filibusterConfiguration.getTestName());
+        currentConcreteTestExecution = new ConcreteTestExecution(filibusterConfiguration.getTestName(), testUUID);
         this.filibusterConfiguration = filibusterConfiguration;
 
-        this.testReport = new TestReport();
+        this.testReport = new TestReport(testUUID);
         testReport.writeOutPlaceholder();
 
         if (filibusterConfiguration.getSearchStrategy() == FilibusterSearchStrategy.DFS) {
@@ -390,7 +391,7 @@ public class FilibusterCore {
 
                 // Set the abstract execution, which drives fault injection and copy the faults into the concrete execution for the record.
                 currentAbstractTestExecution = nextAbstractTestExecution;
-                currentConcreteTestExecution = new ConcreteTestExecution(nextAbstractTestExecution, filibusterConfiguration.getTestName());
+                currentConcreteTestExecution = new ConcreteTestExecution(nextAbstractTestExecution, filibusterConfiguration.getTestName(), testUUID);
             }
         }
 
@@ -478,9 +479,9 @@ public class FilibusterCore {
             testReport.writeTestReport();
         }
 
-        ServerInvocationAndResponseReport.writeServerInvocationReport();
+        ServerInvocationAndResponseReport.writeServerInvocationReport(testUUID);
 
-        ServerInvocationAndResponseReport.writeServiceProfile();
+        ServerInvocationAndResponseReport.writeServiceProfile(testUUID);
 
         logger.info("[FILIBUSTER-CORE]: terminate returning.");
     }
@@ -581,7 +582,7 @@ public class FilibusterCore {
                     // Latency.
                     List<JSONObject> latencyFaultObjects = filibusterAnalysisConfiguration.getLatencyFaultObjects();
 
-                    for(JSONObject faultObject : latencyFaultObjects) {
+                    for (JSONObject faultObject : latencyFaultObjects) {
                         JSONObject latencyObject = faultObject.getJSONObject("latency");
                         String latencyObjectMatcherType = latencyObject.getString("type");
                         MatcherType matcherType = MatcherType.valueOf(latencyObjectMatcherType);
@@ -608,14 +609,14 @@ public class FilibusterCore {
                     // Exceptions.
                     List<JSONObject> exceptionFaultObjects = filibusterAnalysisConfiguration.getExceptionFaultObjects();
 
-                    for(JSONObject faultObject : exceptionFaultObjects) {
+                    for (JSONObject faultObject : exceptionFaultObjects) {
                         createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject);
                     }
 
                     // Errors.
                     List<JSONObject> errorFaultObjects = filibusterAnalysisConfiguration.getErrorFaultObjects();
 
-                    for(JSONObject faultObject : errorFaultObjects) {
+                    for (JSONObject faultObject : errorFaultObjects) {
                         JSONObject failureMetadataObject = faultObject.getJSONObject("failure_metadata");
 
                         String faultServiceName = failureMetadataObject.getString("service_name");
@@ -676,7 +677,7 @@ public class FilibusterCore {
                                     String description = status.getDescription();
 
                                     // Build error map.
-                                    Map<String,String> errorMap = new HashMap<>();
+                                    Map<String, String> errorMap = new HashMap<>();
                                     errorMap.put("cause", "");
                                     errorMap.put("code", code.toString());
                                     errorMap.put("description", description);

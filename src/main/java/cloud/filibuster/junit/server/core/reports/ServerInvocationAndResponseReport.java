@@ -16,6 +16,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 public class ServerInvocationAndResponseReport {
@@ -58,16 +59,16 @@ public class ServerInvocationAndResponseReport {
         return serviceProfile;
     }
 
-    public static void writeServiceProfile() {
-        toServiceProfile().writeServiceProfile();
+    public static void writeServiceProfile(UUID testUUID) {
+        toServiceProfile().writeServiceProfile(testUUID);
     }
 
-    public static void writeServerInvocationReport() {
-        Path reportDirectory = Paths.get("/tmp/filibuster/");
+    public static void writeServerInvocationReport(UUID testUUID) {
+        Path reportDirectory = Paths.get("/tmp/filibuster/" + testUUID.toString() + "/");
 
         try {
             Files.createDirectory(reportDirectory);
-        } catch(FileAlreadyExistsException e) {
+        } catch (FileAlreadyExistsException e) {
             // Ignore.
         } catch (IOException e) {
             throw new FilibusterTestReportWriterException("Filibuster failed to write out the server invocation report: ", e);

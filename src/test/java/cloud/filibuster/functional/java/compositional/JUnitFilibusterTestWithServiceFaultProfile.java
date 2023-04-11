@@ -3,11 +3,10 @@ package cloud.filibuster.functional.java.compositional;
 import cloud.filibuster.examples.APIServiceGrpc;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
-import cloud.filibuster.functional.JUnitBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.MyHelloService;
-import cloud.filibuster.junit.FilibusterTest;
+import cloud.filibuster.junit.TestWithFaultInjection;
 import cloud.filibuster.junit.server.core.profiles.ServiceProfile;
 import cloud.filibuster.junit.server.core.profiles.ServiceProfileBehavior;
 import cloud.filibuster.junit.server.core.reports.ServerInvocationAndResponseReport;
@@ -138,7 +137,7 @@ public class JUnitFilibusterTestWithServiceFaultProfile {
 
     private static final List<String> testExceptionsThrownForAPIService = new ArrayList<>();
 
-    @FilibusterTest(dataNondeterminism = true)
+    @TestWithFaultInjection(dataNondeterminism = true)
     @Order(1)
     public void testAPIService() throws InterruptedException {
         ManagedChannel apiChannel = ManagedChannelBuilder
@@ -256,7 +255,7 @@ public class JUnitFilibusterTestWithServiceFaultProfile {
     // Produces:
     // - Server failure profile for Hello with the possible failure responses.
     // - Server profile that contains various requests and responses for none of the inputs we will provide.
-    @FilibusterTest(dataNondeterminism = true)
+    @TestWithFaultInjection(dataNondeterminism = true)
     @Order(4)
     public void testHelloService() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -351,7 +350,7 @@ public class JUnitFilibusterTestWithServiceFaultProfile {
 
     // Test 7, test the API service using a mock.
     // - It should test fewer failures then when not using the mock.
-    @FilibusterTest(dataNondeterminism = true)
+    @TestWithFaultInjection(dataNondeterminism = true)
     @Order(7)
     public void testAPIServiceWithMock() throws InterruptedException {
         ManagedChannel apiChannel = ManagedChannelBuilder
@@ -446,7 +445,7 @@ public class JUnitFilibusterTestWithServiceFaultProfile {
 
     // Test 10, test the API service using a mock.
     // - It should test the correct number of failures using the mock and service profile together.
-    @FilibusterTest(dataNondeterminism = true, serviceProfilesPath = "/tmp/filibuster/fsp/", serviceProfileBehavior = ServiceProfileBehavior.FAULT)
+    @TestWithFaultInjection(dataNondeterminism = true, serviceProfilesPath = "/tmp/filibuster/fsp/", serviceProfileBehavior = ServiceProfileBehavior.FAULT)
     @Order(10)
     public void testAPIServiceWithMockAndServiceProfile() throws InterruptedException {
         ManagedChannel apiChannel = ManagedChannelBuilder

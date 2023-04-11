@@ -88,16 +88,29 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
 
         HashMap<Integer, Boolean> invocationCompletionMap = new HashMap<>();
 
-        // @formatter:off
-        return IntStream
-                .rangeClosed(1, maxIterations)
-                .mapToObj(iteration -> new FilibusterTestInvocationContext(
-                        iteration,
-                        maxIterations,
-                        formatter,
-                        filibusterConfiguration,
-                        invocationCompletionMap));
-        // @formatter:on
+        if (System.getenv("FILIBUSTER_DEGRADE") != null) {
+            // @formatter:off
+            return IntStream
+                    .rangeClosed(1, 1)
+                    .mapToObj(iteration -> new FilibusterTestInvocationContext(
+                            iteration,
+                            maxIterations,
+                            formatter,
+                            filibusterConfiguration,
+                            invocationCompletionMap));
+            // @formatter:on
+        } else {
+            // @formatter:off
+            return IntStream
+                    .rangeClosed(1, maxIterations)
+                    .mapToObj(iteration -> new FilibusterTestInvocationContext(
+                            iteration,
+                            maxIterations,
+                            formatter,
+                            filibusterConfiguration,
+                            invocationCompletionMap));
+            // @formatter:on
+        }
     }
 
     private static void classToCustomAnalysisConfigurationFile(FilibusterTest filibusterTest, String analysisFile) {

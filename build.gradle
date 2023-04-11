@@ -206,7 +206,7 @@ javadoc {
 
 group = "cloud.filibuster"
 archivesBaseName = "instrumentation"
-version = "1.3.0"
+version = "1.3.1"
 
 java {
     withJavadocJar()
@@ -316,6 +316,20 @@ task functionalJavaTest(type: Test) {
 
     filter {
         includeTestsMatching('cloud.filibuster.functional.java.*')
+    }
+}
+
+task functionalDegradeJavaTest(type: Test) {
+    useJUnitPlatform()
+
+    maxParallelForks = 1
+    timeout = Duration.ofMinutes(60)
+    minHeapSize = "128m" // initial heap size
+    maxHeapSize = "2048m" // maximum heap size
+    jvmArgs '-XX:MaxPermSize=256m' // mem argument for the test JVM
+
+    filter {
+        includeTestsMatching('cloud.filibuster.functional.java.degrade.*')
     }
 }
 

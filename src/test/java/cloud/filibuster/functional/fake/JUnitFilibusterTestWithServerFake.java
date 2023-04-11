@@ -1,4 +1,4 @@
-package cloud.filibuster.functional;
+package cloud.filibuster.functional.fake;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;

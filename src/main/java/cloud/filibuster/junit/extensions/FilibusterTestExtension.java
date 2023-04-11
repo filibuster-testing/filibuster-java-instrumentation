@@ -88,16 +88,29 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
 
         HashMap<Integer, Boolean> invocationCompletionMap = new HashMap<>();
 
-        // @formatter:off
-        return IntStream
-                .rangeClosed(1, maxIterations)
-                .mapToObj(iteration -> new FilibusterTestInvocationContext(
-                        iteration,
-                        maxIterations,
-                        formatter,
-                        filibusterConfiguration,
-                        invocationCompletionMap));
-        // @formatter:on
+        if (System.getenv("FILIBUSTER_DEGRADE") != null) {
+            // @formatter:off
+            return IntStream
+                    .rangeClosed(1, 1)
+                    .mapToObj(iteration -> new FilibusterTestInvocationContext(
+                            iteration,
+                            maxIterations,
+                            formatter,
+                            filibusterConfiguration,
+                            invocationCompletionMap));
+            // @formatter:on
+        } else {
+            // @formatter:off
+            return IntStream
+                    .rangeClosed(1, maxIterations)
+                    .mapToObj(iteration -> new FilibusterTestInvocationContext(
+                            iteration,
+                            maxIterations,
+                            formatter,
+                            filibusterConfiguration,
+                            invocationCompletionMap));
+            // @formatter:on
+        }
     }
 
     private static void classToCustomAnalysisConfigurationFile(FilibusterTest filibusterTest, String analysisFile) {
@@ -143,8 +156,10 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
     }
 
     private static FilibusterTestDisplayNameFormatter displayNameFormatter(FilibusterTest filibusterTest, Method method, String displayName) {
-        String pattern = Preconditions.notBlank(filibusterTest.name().trim(), () -> String.format(
+        String initialName = Preconditions.notBlank(filibusterTest.initialName().trim(), () -> String.format(
                 "Configuration error: @FilibusterTest on method [%s] must be declared with a non-empty name.", method));
-        return new FilibusterTestDisplayNameFormatter(pattern, displayName);
+        String generatedName = Preconditions.notBlank(filibusterTest.name().trim(), () -> String.format(
+                "Configuration error: @FilibusterTest on method [%s] must be declared with a non-empty name.", method));
+        return new FilibusterTestDisplayNameFormatter(initialName, generatedName, displayName);
     }
 }

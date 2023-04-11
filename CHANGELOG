@@ -1,3 +1,6 @@
+1.3.1:
+   - (cmeiklejohn) Alter the generated test names to make clear the first execution is fault-free.
+   - (cmeiklejohn) Add degraded mode (FILIBUSTER_DEGRADED=true) which only executes the first, fault-free execution.
 1.3.0:
    - (cmeiklejohn) Ensure causeMessage renders in the UX, when supplied.
    - (cmeiklejohn) Ensure the description of the exception renders in the UX, when supplied.

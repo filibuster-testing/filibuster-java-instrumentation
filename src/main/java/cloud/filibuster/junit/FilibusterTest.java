@@ -66,6 +66,18 @@ public @interface FilibusterTest {
     String SHORT_DISPLAY_NAME = "Filibuster generated test #" + CURRENT_ITERATION_PLACEHOLDER; // + " of #" + TOTAL_ITERATIONS_PLACEHOLDER + "";
 
     /**
+     * Placeholder name used for the initial generated test.
+     */
+    String INITIAL_SHORT_DISPLAY_NAME = "Fault-free Execution " + SHORT_DISPLAY_NAME;
+
+    /**
+     * Name of the generated test.
+     *
+     * @return name of the generated test.
+     */
+    String initialName() default INITIAL_SHORT_DISPLAY_NAME;
+
+    /**
      * Name of the generated test.
      *
      * @return name of the generated test.

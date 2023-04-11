@@ -143,8 +143,10 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
     }
 
     private static FilibusterTestDisplayNameFormatter displayNameFormatter(FilibusterTest filibusterTest, Method method, String displayName) {
-        String pattern = Preconditions.notBlank(filibusterTest.name().trim(), () -> String.format(
+        String initialName = Preconditions.notBlank(filibusterTest.initialName().trim(), () -> String.format(
                 "Configuration error: @FilibusterTest on method [%s] must be declared with a non-empty name.", method));
-        return new FilibusterTestDisplayNameFormatter(pattern, displayName);
+        String generatedName = Preconditions.notBlank(filibusterTest.name().trim(), () -> String.format(
+                "Configuration error: @FilibusterTest on method [%s] must be declared with a non-empty name.", method));
+        return new FilibusterTestDisplayNameFormatter(initialName, generatedName, displayName);
     }
 }

@@ -48,7 +48,7 @@ public class TestSuiteReport {
      * A map where the keys are the display name of the tests and the value is a list of the UUIDs associated with each execution
      */
     private final ArrayList<FilibusterTestReportSummary> testReportSummaries = new ArrayList<>();
- 
+
     public static synchronized TestSuiteReport getInstance() {
         if (instance == null) {
             instance = new TestSuiteReport();

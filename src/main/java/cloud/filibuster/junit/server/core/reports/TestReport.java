@@ -60,7 +60,6 @@ public class TestReport {
             byte[] indexBytes = ReportUtilities.getResourceAsBytes(getClass().getClassLoader(), "html/test_report/index.html");
             Files.write(indexPath.toPath(), indexBytes);
         } catch (IOException e) {
-            System.out.println(e);
             throw new FilibusterTestReportWriterException("Filibuster failed to write out the test aggregate report: ", e);
         }
     }

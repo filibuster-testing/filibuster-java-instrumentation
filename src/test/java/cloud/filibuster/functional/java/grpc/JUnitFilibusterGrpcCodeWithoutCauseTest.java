@@ -2,11 +2,10 @@ package cloud.filibuster.functional.java.grpc;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
-import cloud.filibuster.functional.JUnitBaseTest;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
-import cloud.filibuster.junit.FilibusterTest;
+import cloud.filibuster.junit.TestWithFaultInjection;
 import cloud.filibuster.junit.configuration.examples.FilibusterGrpcCodeWithoutCauseAnalysisConfigurationFile;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -33,7 +32,7 @@ public class JUnitFilibusterGrpcCodeWithoutCauseTest extends JUnitAnnotationBase
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest(analysisConfigurationFile= FilibusterGrpcCodeWithoutCauseAnalysisConfigurationFile.class)
+    @TestWithFaultInjection(analysisConfigurationFile= FilibusterGrpcCodeWithoutCauseAnalysisConfigurationFile.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder

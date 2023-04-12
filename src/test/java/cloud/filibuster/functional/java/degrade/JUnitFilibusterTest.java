@@ -1,10 +1,9 @@
-package cloud.filibuster.functional.java.bfs;
+package cloud.filibuster.functional.java.degrade;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.TestWithFaultInjection;
 import io.grpc.ManagedChannel;
@@ -21,29 +20,24 @@ import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethodWherePayloadContains;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnRequest;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Test simple annotation usage.
- */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @FilibusterConditionalByEnvironmentSuite
-public class JUnitFilibusterHelloPartialHelloTest extends JUnitAnnotationBaseTest {
+public class JUnitFilibusterTest extends JUnitAnnotationBaseTest {
+    private static int numberOfTestInvocations = 0;
+
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
-    private static int numberOfTestsExecuted = 0;
-
-    private static int numberOfExceptionsThrown = 0;
-
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @TestWithFaultInjection(searchStrategy= FilibusterSearchStrategy.BFS, maxIterations=10)
+    @TestWithFaultInjection()
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
+        numberOfTestInvocations++;
+
         ManagedChannel helloChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
                 .usePlaintext()
@@ -51,18 +45,13 @@ public class JUnitFilibusterHelloPartialHelloTest extends JUnitAnnotationBaseTes
 
         boolean expected = false;
 
-        numberOfTestsExecuted++;
-
-        HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
-        Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
-
         try {
+            HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
+            Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
             Hello.HelloReply reply = blockingStub.partialHello(request);
             assertEquals("Hello, Armerian World!!", reply.getMessage());
             assertFalse(wasFaultInjected());
         } catch (Throwable t) {
-            numberOfExceptionsThrown++;
-
             boolean wasFaultInjected = wasFaultInjected();
 
             if (wasFaultInjected) {
@@ -94,13 +83,7 @@ public class JUnitFilibusterHelloPartialHelloTest extends JUnitAnnotationBaseTes
                 boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World");
                 assertTrue(wasFaultInjectedOnWorldMethod);
 
-                boolean wasFaultInjectedOnRequest = wasFaultInjectedOnRequest(request.toString());
-                assertTrue(wasFaultInjectedOnRequest);
-
-                boolean wasFaultInjectedOnWorldMethodWithPayload = wasFaultInjectedOnMethodWherePayloadContains("cloud.filibuster.examples.WorldService/World", request.toString());
-                assertTrue(wasFaultInjectedOnWorldMethodWithPayload);
-
-                if (!expected) {
+                if (! expected) {
                     throw t;
                 }
             } else {
@@ -112,24 +95,25 @@ public class JUnitFilibusterHelloPartialHelloTest extends JUnitAnnotationBaseTes
         helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
     }
 
-    @DisplayName("Verify correct number of thrown exceptions.")
+    @DisplayName("Verify correct number of test executions.")
     @Test
     @Order(2)
-    public void testNumAssertions() {
-        assertEquals(5, testExceptionsThrown.size());
+    public void testNumberOfTestExecutions() {
+        if (System.getenv("FILIBUSTER_DEGRADE") != null) {
+            assertEquals(1, numberOfTestInvocations);
+        } else {
+            assertEquals(6, numberOfTestInvocations);
+        }
     }
 
-    @DisplayName("Verify correct number of executed tests.")
+    @DisplayName("Verify correct number of thrown exceptions from Filibuster-generated tests.")
     @Test
     @Order(3)
-    public void testNumberOfTestsExecuted() {
-        assertEquals(6, numberOfTestsExecuted);
-    }
-
-    @DisplayName("Verify correct number of exceptions thrown.")
-    @Test
-    @Order(4)
-    public void numberOfExceptionsThrown() {
-        assertEquals(5, numberOfExceptionsThrown);
+    public void testNumberOfExceptionsThrown() {
+        if (System.getenv("FILIBUSTER_DEGRADE") != null) {
+            assertEquals(0, testExceptionsThrown.size());
+        } else {
+            assertEquals(5, testExceptionsThrown.size());
+        }
     }
 }

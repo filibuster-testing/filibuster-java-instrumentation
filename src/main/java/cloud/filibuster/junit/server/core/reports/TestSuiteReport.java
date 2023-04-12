@@ -29,8 +29,7 @@ public class TestSuiteReport {
 
     }
 
-    @SuppressWarnings("InnerClassMayBeStatic")
-    private class FilibusterTestReportSummary {
+    private static class FilibusterTestReportSummary {
         private final String testName;
         private final File testPath;
         private final boolean status;
@@ -50,7 +49,7 @@ public class TestSuiteReport {
      */
     private final ArrayList<FilibusterTestReportSummary> testReportSummaries = new ArrayList<>();
 
-    public static TestSuiteReport getInstance() {
+    public static synchronized TestSuiteReport getInstance() {
         if (instance == null) {
             instance = new TestSuiteReport();
         }

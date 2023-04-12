@@ -124,18 +124,13 @@
         }
 
         div.summary {
-            width: 5%;
+            width: 100%;
             float: left;
         }
 
         table.reports {
             float: left;
-            width: 80px;
-        }
-
-        div.results {
-            width: 90%;
-            float: left;
+            width: 100%;
         }
 
         div.container {
@@ -165,6 +160,11 @@
 <body>
 <section>
     <h1 id='status'>Filibuster Test Coverage</h1>
+
+    <span class="server">
+    <a href="server.html" target="filibuster_frame" class="verysmall">Show Server Invocation Information</a>
+    </span>
+
     <div class="container">
         <div id="summary" class="summary">
             <table id="reports" class="reports">
@@ -178,9 +178,9 @@
                 </tr>
             </table>
         </div>
-
-        <div id="results" class="results"></div>
     </div>
+    <div class="container">
+        <iframe id="filibuster_frame" frameborder="0" scrolling="auto" name="filibuster_frame" height="800px" width="100%"></iframe>
     </div>
 
 
@@ -200,31 +200,17 @@
 
                 var row = '';
 
-                if (report.iteration === 1) {
-                    var iframe = '<iframe frameborder="0" scrolling="auto" src="' + report.path + '" name="filibuster_frame" height="800px" width="100%"></iframe>';
-                    $('#results').append(iframe);
+                if (i === 0) {
+                    $('#filibuster_frame').attr('src', report.path)
                 }
-
-                if (report.iteration !== 1) {
-                    if (report.status === true) {
-                        row += '<tr class="pass collapsable">';
-                    } else {
-                        row += '<tr class="fail">';
-                    }
+                if (report.status === true) {
+                    row += '<tr class="pass">';
                 } else {
-                    if (report.status === true) {
-                        row += '<tr class="pass">';
-                    } else {
-                        row += '<tr class="fail">';
-                    }
+                    row += '<tr class="fail">';
                 }
 
                 row += '<td>';
-                row += '<a target="filibuster_frame" href="' + report.path + '">' + report.iteration + '</a>';
-
-                if (report.iteration === 1) {
-                    row += '<br /><span class="verysmall">(fault-free)</span>';
-                }
+                row += `<a target="filibuster_frame" href=${report.path}#summary>${report.test_name}</a>`;
 
                 row += '</td>';
                 row += '</tr>';

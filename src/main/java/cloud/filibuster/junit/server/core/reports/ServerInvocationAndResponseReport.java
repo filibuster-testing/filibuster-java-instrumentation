@@ -7,7 +7,6 @@ import io.grpc.Status;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -16,7 +15,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
 import java.util.logging.Logger;
 
 public class ServerInvocationAndResponseReport {
@@ -84,7 +82,7 @@ public class ServerInvocationAndResponseReport {
 
         // Write out index file.
         Path indexPath = Paths.get(reportDirectory + "/server.html");
-        byte[] indexBytes = getResourceAsBytes("html/server_invocation_report/index.html");
+        byte[] indexBytes = ReportUtilities.getResourceAsBytes(ServerInvocationAndResponseReport.class.getClassLoader(),"html/server_invocation_report/index.html");
         try {
             Files.write(indexPath, indexBytes);
         } catch (IOException e) {
@@ -115,25 +113,5 @@ public class ServerInvocationAndResponseReport {
     private static String toJavascript() {
         JSONObject jsonObject = toJSONObject();
         return "var serverInvocationReports = " + jsonObject.toString(4) + ";";
-    }
-
-    private static byte[] getResourceAsBytes(String fileName) {
-        ClassLoader classLoader = ServerInvocationAndResponseReport.class.getClassLoader();
-        InputStream resource = classLoader.getResourceAsStream(fileName);
-
-        if (resource == null) {
-            throw new FilibusterTestReportWriterException("Filibuster failed to open resource file because it is null; this is possibly a file not found for file: " + fileName);
-        }
-
-        byte[] targetArray = new byte[0];
-
-        try {
-            targetArray = new byte[resource.available()];
-            resource.read(targetArray);
-        } catch (IOException e) {
-            throw new FilibusterTestReportWriterException("Filibuster failed to open resource file because of exception; this is possibly a file not found for file: " + fileName, e);
-        }
-
-        return targetArray;
     }
 }

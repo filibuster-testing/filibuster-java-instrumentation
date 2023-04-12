@@ -5,7 +5,6 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,75 +19,52 @@ public class TestReport {
     private final ArrayList<TestExecutionReport> testExecutionReports = new ArrayList<>();
 
     private final UUID testUUID;
+    private final String testName;
 
-    public TestReport(UUID testUUID) {
+    public TestReport(String testName, UUID testUUID) {
         this.testUUID = testUUID;
+        this.testName = testName;
     }
 
+    public UUID getTestUUID() {
+        return testUUID;
+    }
+
+    public String getTestName() {
+        return testName;
+    }
 
     public void addTestExecutionReport(TestExecutionReport testExecutionReport) {
         testExecutionReports.add(testExecutionReport);
     }
 
     private File getDirectoryPath() {
-        return new File("/tmp/filibuster/","filibuster-test-"+ testUUID.toString());
+        return new File(ReportUtilities.GetBaseDirectoryPath(), "filibuster-test-" + testUUID.toString());
+    }
+
+    public File getReportPath() {
+        File directory = getDirectoryPath();
+        return new File(directory, "index.html");
     }
 
     public void writeOutPlaceholder() {
-        File directory = getDirectoryPath();
-        File indexPath = new File(directory, "index.html");
-
+        File indexPath = getReportPath();
         try {
             //noinspection ResultOfMethodCallIgnored
-            directory.mkdirs();
+            indexPath.getParentFile().mkdirs();
         } catch (SecurityException e) {
-            throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution aggregate report: ", e);
-        }
-
-//        try (Stream<Path> filesInDirectoryStream  =  Files.walk(directory) ){
-//            filesInDirectoryStream.sorted(Comparator.reverseOrder())
-//                    .map(Path::toFile)
-//                    .filter(file -> file.toString().contains("filibuster-test-execution"))
-//                    .forEach(File::delete);
-//        } catch (IOException e) {
-//            throw new FilibusterTestReportWriterException("Filibuster failed to delete content in the /tmp/filibuster/ directory ", e);
-//        }
-
-        try {
-            Path constructionGifPath = Paths.get(directory + "/construction.gif");
-            byte[] constructionGifBytes = getResourceAsBytes("html/test_report/construction.gif");
-            Files.write(constructionGifPath, constructionGifBytes);
-        } catch (IOException e) {
-            throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution report: ", e);
+            throw new FilibusterTestReportWriterException("Filibuster failed to write out the test aggregate report: ", e);
         }
 
         try {
-            byte[] indexBytes = getResourceAsBytes("html/test_report/waiting.html");
+            byte[] indexBytes = ReportUtilities.getResourceAsBytes(getClass().getClassLoader(), "html/test_report/index.html");
             Files.write(indexPath.toPath(), indexBytes);
         } catch (IOException e) {
-            throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution report: ", e);
+            System.out.println(e);
+            throw new FilibusterTestReportWriterException("Filibuster failed to write out the test aggregate report: ", e);
         }
     }
 
-    private byte[] getResourceAsBytes(String fileName) {
-        ClassLoader classLoader = getClass().getClassLoader();
-        InputStream resource = classLoader.getResourceAsStream(fileName);
-
-        if (resource == null) {
-            throw new FilibusterTestReportWriterException("Filibuster failed to open resource file because it is null; this is possibly a file not found for file: " + fileName);
-        }
-
-        byte[] targetArray = new byte[0];
-
-        try {
-            targetArray = new byte[resource.available()];
-            resource.read(targetArray);
-        } catch (IOException e) {
-            throw new FilibusterTestReportWriterException("Filibuster failed to open resource file because of exception; this is possibly a file not found for file: " + fileName, e);
-        }
-
-        return targetArray;
-    }
 
     public void writeTestReport() {
         File directory = getDirectoryPath();
@@ -111,7 +87,7 @@ public class TestReport {
         // Write out index file.
         Path indexPath = Paths.get(directory + "/index.html");
         try {
-            byte[] indexBytes = getResourceAsBytes("html/test_report/index.html");
+            byte[] indexBytes = ReportUtilities.getResourceAsBytes(getClass().getClassLoader(), "html/test_report/index.html");
             Files.write(indexPath, indexBytes);
         } catch (IOException e) {
             throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution report: ", e);
@@ -141,5 +117,9 @@ public class TestReport {
     private String toJavascript() {
         JSONObject jsonObject = toJSONObject();
         return "var summary = " + jsonObject.toString(4) + ";";
+    }
+
+    public ArrayList<TestExecutionReport> getTestExecutionReports() {
+        return testExecutionReports;
     }
 }

@@ -3,29 +3,19 @@ package cloud.filibuster.junit.server.core.reports;
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.exceptions.filibuster.FilibusterAnalysisFailureException;
 import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterException;
-import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.IncompleteRPCAnalyzer;
-import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.MultipleInvocationsForIndividualMutationsAnalyzer;
-import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.RedundantRPCAnalyzer;
-import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.ResponseBecomesRequestAnalyzer;
-import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.TestExecutionReportAnalyzer;
-import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.UnimplementedFailuresAnalyzer;
+import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.*;
 import cloud.filibuster.junit.server.core.lint.analyzers.warnings.FilibusterAnalyzerWarning;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class TestExecutionReport {
@@ -62,7 +52,16 @@ public class TestExecutionReport {
     }
 
     private File getDirectoryPath() {
-        return new File("/tmp/filibuster/","filibuster-test-"+ testUUID.toString());
+        return new File(ReportUtilities.GetBaseDirectoryPath(), "filibuster-test-" + testUUID.toString());
+    }
+
+    private File getSubdirectoryPath() {
+        return new File(getDirectoryPath(), "filibuster-test-execution-" + uuid);
+    }
+
+
+    public boolean isTestExecutionPassed() {
+        return testExecutionPassed;
     }
 
     public List<FilibusterAnalyzerWarning> getWarnings() {
@@ -127,7 +126,6 @@ public class TestExecutionReport {
         private static final String WARNINGS_KEY = "warnings";
         private static final String GENERATED_ID_KEY = "generated_id";
         private static final String UUID_KEY = "uuid";
-
         private static final String TEST_NAME = "test_name";
 
     }
@@ -207,22 +205,22 @@ public class TestExecutionReport {
     }
 
     public void writePlaceholderTestReport() {
+        // Create new directory for analysis report.
+        File directory = getSubdirectoryPath();
         try {
-            // Create new directory for analysis report.
-            File directory = new File(getDirectoryPath(), "/filibuster-test-execution-" + uuid);
             //noinspection ResultOfMethodCallIgnored
             directory.mkdirs();
 
             // Write out index file.
             Path indexPath = Paths.get(directory + "/index.html");
-            byte[] indexBytes = getResourceAsBytes("html/test_execution_report/index.html");
+            byte[] indexBytes = ReportUtilities.getResourceAsBytes(getClass().getClassLoader(), "html/test_execution_report/index.html");
             Files.write(indexPath, indexBytes);
 
             logger.info(
                     "" + "\n" +
                             "[FILIBUSTER-CORE]: Placeholder Test Execution Report written to file://" + indexPath + "\n");
         } catch (IOException e) {
-            throw new FilibusterTestReportWriterException("Filibuster failed to write out placeholder test report: ", e);
+            throw new FilibusterTestReportWriterException("Filibuster failed to write out placeholder test execution report: ", e);
         }
     }
 
@@ -233,7 +231,7 @@ public class TestExecutionReport {
         if (!hasReportBeenMaterialized) {
             try {
                 // Create new directory for analysis report.
-                Path directory = Paths.get(getDirectoryPath() + "/filibuster-test-execution-" + uuid);
+                Path directory = getSubdirectoryPath().toPath();
                 Path scriptPath = Paths.get(directory + "/analysis.js");
                 Path indexPath = Paths.get(directory + "/index.html");
                 if (!Files.exists(directory)) {
@@ -242,11 +240,12 @@ public class TestExecutionReport {
                 }
                 if (!Files.exists(indexPath)) {
                     logger.warning("\n[FILIBUSTER-CORE] Placeholder directory path doesn't have index.html");
-                    byte[] indexBytes = getResourceAsBytes("html/test_execution_report/index.html");
+                    byte[] indexBytes = ReportUtilities.getResourceAsBytes(getClass().getClassLoader(),
+                            "html/test_execution_report/index.html");
                     Files.write(indexPath, indexBytes);
                 }
 
-                // Note by default Files.write overwrites existing files or create them if it doesn not exist.
+                // Note by default Files.write overwrites existing files or create them if it does not exist.
                 Files.write(scriptPath, toJavascript().getBytes(Charset.defaultCharset()));
 
                 // Set materialized and it's location.
@@ -267,25 +266,5 @@ public class TestExecutionReport {
 
     public MaterializedTestExecutionReportMetadata getMaterializedReportMetadata() {
         return this.materializedTestExecutionReportMetadata;
-    }
-
-    private byte[] getResourceAsBytes(String fileName) {
-        ClassLoader classLoader = getClass().getClassLoader();
-        InputStream resource = classLoader.getResourceAsStream(fileName);
-
-        if (resource == null) {
-            throw new FilibusterTestReportWriterException("Filibuster failed to open resource file because it is null; this is possibly a file not found for file: " + fileName);
-        }
-
-        byte[] targetArray = new byte[0];
-
-        try {
-            targetArray = new byte[resource.available()];
-            resource.read(targetArray);
-        } catch (IOException e) {
-            throw new FilibusterTestReportWriterException("Filibuster failed to open resource file because of exception; this is possibly a file not found for file: " + fileName, e);
-        }
-
-        return targetArray;
     }
 }

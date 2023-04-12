@@ -6,7 +6,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterCoreLogicException;
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.exceptions.filibuster.FilibusterLatencyInjectionException;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
-import cloud.filibuster.junit.GlobalFilibusterInterceptor;
+import cloud.filibuster.junit.server.core.reports.TestSuiteReport;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration.MatcherType;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
@@ -44,7 +44,7 @@ public class FilibusterCore {
     // The current instance of the FilibusterCore.
     // Required as the instrumentation has no direct way of being instantiated with this object.
     public static synchronized FilibusterCore getCurrentInstance() {
-        GlobalFilibusterInterceptor.getInstance();
+        TestSuiteReport.getInstance();
         if (currentInstance == null) {
             throw new FilibusterCoreLogicException("Current instance is null, this indicates a problem!");
         }
@@ -59,12 +59,12 @@ public class FilibusterCore {
     private final UUID testUUID = UUID.randomUUID();
 
     public FilibusterCore(FilibusterConfiguration filibusterConfiguration) {
-        GlobalFilibusterInterceptor.getInstance();
         currentInstance = this;
-        currentConcreteTestExecution = new ConcreteTestExecution(filibusterConfiguration.getTestName(), testUUID);
+        String testName = filibusterConfiguration.getTestName();
+        currentConcreteTestExecution = new ConcreteTestExecution(testName, testUUID);
         this.filibusterConfiguration = filibusterConfiguration;
 
-        this.testReport = new TestReport(testUUID);
+        this.testReport = new TestReport(testName, testUUID);
         testReport.writeOutPlaceholder();
 
         if (filibusterConfiguration.getSearchStrategy() == FilibusterSearchStrategy.DFS) {
@@ -76,6 +76,8 @@ public class FilibusterCore {
         } else {
             throw new FilibusterCoreLogicException("Unsupported search strategy: " + filibusterConfiguration.getSearchStrategy());
         }
+        // This statement ensures the placeholders and written
+        TestSuiteReport.getInstance();
     }
 
     // Aggregate test execution report.
@@ -355,7 +357,6 @@ public class FilibusterCore {
                 setMostRecentInitialTestExecutionReport(testExecutionReport);
             }
             testReport.addTestExecutionReport(testExecutionReport);
-
             // We're executing a test and not just running empty iterations (i.e., JUnit maxIterations > number of actual tests.)
 
             // Add both the current concrete and abstract execution to the explored list.
@@ -478,6 +479,7 @@ public class FilibusterCore {
 
         if (testReport != null) {
             testReport.writeTestReport();
+            TestSuiteReport.getInstance().addTestReport(testReport);
         }
 
         ServerInvocationAndResponseReport.writeServerInvocationReport();

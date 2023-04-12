@@ -6,7 +6,7 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.Assertions;
 import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
-import cloud.filibuster.junit.FilibusterTest;
+import cloud.filibuster.junit.TestWithFaultInjection;
 import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class JUnitFilibusterTestMacroAssertion extends JUnitAnnotationBaseTest {
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest()
+    @TestWithFaultInjection()
     public void testMyHelloAndMyWorldServiceWithFilibusterWithMacro() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
@@ -46,7 +46,7 @@ public class JUnitFilibusterTestMacroAssertion extends JUnitAnnotationBaseTest {
     }
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest(serverBackend=FilibusterLocalServerBackend.class, expected=StatusRuntimeException.class)
+    @TestWithFaultInjection(serverBackend=FilibusterLocalServerBackend.class, expected=StatusRuntimeException.class)
     public void testMyHelloAndMyWorldServiceWithFilibusterWithMacroAndFailure() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("hello"), 8765)

@@ -1,3 +1,10 @@
+1.4.0:
+   - (cmeiklejohn) Rename the test annotation from FilibusterTest to TestWithFaultInjection.
+1.3.2:
+   - (cmeiklejohn) Empty release for Sonatype debugging.
+1.3.1:
+   - (cmeiklejohn) Alter the generated test names to make clear the first execution is fault-free.
+   - (cmeiklejohn) Add degraded mode (FILIBUSTER_DEGRADED=true) which only executes the first, fault-free execution.
 1.3.0:
    - (cmeiklejohn) Ensure causeMessage renders in the UX, when supplied.
    - (cmeiklejohn) Ensure the description of the exception renders in the UX, when supplied.
@@ -7,6 +14,6 @@
    - (cmeiklejohn) Add support for custom descriptions in injectable cause messages.
    - (cmeiklejohn) Fix issue where missing cause in grpc fault injection would crash Filibuster.
 1.2.0:
-   - (cmeiklejohn) First prototype of compositional Filibuster
+   - (cmeiklejohn) First prototype of compositional Filibuster.
    - (cmeiklejohn) Add ability to write assertions using ServiceModuleGrpc.getMethodNamedThis().
    - (cmeiklejohn) Fix issue where the FILIBUSTER_DISABLED=true option introduced too much overhead in test generation by introducing the @FilibusterConditionalByEnvironmentSuite annotation.

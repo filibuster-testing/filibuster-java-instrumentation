@@ -1,5 +1,6 @@
 package cloud.filibuster.junit.configuration;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -7,10 +8,10 @@ public interface FilibusterAnalysisConfigurationFile {
     FilibusterCustomAnalysisConfigurationFile toFilibusterCustomAnalysisConfigurationFile();
 
     static Map<String, String> createGrpcErrorMap(String code, String cause, String description) {
-        return createGrpcErrorMap(code, cause, description, /* causeMessage */ null);
+        return createGrpcErrorMap(code, cause, description, /* causeMessage= */ null);
     }
 
-    static Map<String, String> createGrpcErrorMap(String code, String cause, String description, String causeMessage) {
+    static Map<String, String> createGrpcErrorMap(String code, String cause, String description, @Nullable String causeMessage) {
         Map<String,String> myMap = new HashMap<>();
 
         if (cause != null) {

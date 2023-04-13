@@ -2,7 +2,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Filibuster Test Execution Report</title>
+    <title>Filibuster Test Suite Report</title>
     <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
     <script type="text/javascript" src="./summary.js"></script>
     <style>
@@ -159,7 +159,7 @@
 
 <body>
 <section>
-    <h1 id='status'>Filibuster Test Coverage</h1>
+    <h1 id='status'>Filibuster Test Suite Report</h1>
 
     <span class="server">
     <a href="server.html" target="filibuster_frame" class="verysmall">Show Server Invocation Information</a>
@@ -194,13 +194,13 @@
 
             $('#total').html("(" + summary.reports.length + ")");
 
-            for (i in summary.reports) {
-                var report = summary.reports[i];
+            for (let i in summary.reports) {
+                let report = summary.reports[i];
                 console.log(report);
 
                 var row = '';
 
-                if (i === 0) {
+                if (i == 0) {
                     $('#filibuster_frame').attr('src', report.path)
                 }
                 if (report.status === true) {

@@ -1,6 +1,7 @@
 package cloud.filibuster.junit.server.core.reports;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterException;
+import cloud.filibuster.instrumentation.helpers.Property;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -57,9 +58,11 @@ public class TestSuiteReport {
     }
 
     private TestSuiteReport() {
-        Thread testSuiteCompleteHook = new Thread(this::testSuiteCompleted);
-        Runtime.getRuntime().addShutdownHook(testSuiteCompleteHook);
-        startTestSuite();
+        if(Property.getReportsTestSuiteReportEnabledProperty()) {
+            Thread testSuiteCompleteHook = new Thread(this::testSuiteCompleted);
+            Runtime.getRuntime().addShutdownHook(testSuiteCompleteHook);
+            startTestSuite();
+        }
     }
 
     private void startTestSuite() {

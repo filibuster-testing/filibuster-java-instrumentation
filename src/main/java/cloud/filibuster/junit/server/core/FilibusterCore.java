@@ -5,6 +5,7 @@ import cloud.filibuster.dei.implementations.DistributedExecutionIndexV1;
 import cloud.filibuster.exceptions.filibuster.FilibusterCoreLogicException;
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.exceptions.filibuster.FilibusterLatencyInjectionException;
+import cloud.filibuster.instrumentation.helpers.Property;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.server.core.reports.TestSuiteReport;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
@@ -55,6 +56,10 @@ public class FilibusterCore {
         return currentInstance != null;
     }
 
+    /**
+     * A unique identifier associated with one filibuster test,
+     * in other word, each time the Filibuster server is started, a new test UUID will be issued.
+     */
     private final UUID testUUID = UUID.randomUUID();
 
     public FilibusterCore(FilibusterConfiguration filibusterConfiguration) {
@@ -478,7 +483,9 @@ public class FilibusterCore {
 
         if (testReport != null) {
             testReport.writeTestReport();
-            TestSuiteReport.getInstance().addTestReport(testReport);
+            if(Property.getReportsTestSuiteReportEnabledProperty()) {
+                TestSuiteReport.getInstance().addTestReport(testReport);
+            }
         }
 
         ServerInvocationAndResponseReport.writeServerInvocationReport();

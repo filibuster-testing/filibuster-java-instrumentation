@@ -54,6 +54,7 @@ dependencies {
         implementation "com.linecorp.armeria:${it}:1.14.0"
     }
 
+    implementation "io.lettuce:lettuce-core:6.2.3.RELEASE"
     implementation "com.github.cliftonlabs:json-simple:2.1.2"
     implementation "org.json:json:20220924"
     implementation 'org.jetbrains:annotations:16.0.2'

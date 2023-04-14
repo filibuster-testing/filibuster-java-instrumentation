@@ -1,5 +1,6 @@
 package cloud.filibuster.junit.server.backends;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterServerNullException;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.junit.server.FilibusterServerBackend;
@@ -10,7 +11,6 @@ import com.linecorp.armeria.server.Server;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
 import static cloud.filibuster.instrumentation.helpers.Property.setServerBackendCanInvokeDirectlyProperty;
@@ -24,13 +24,17 @@ public class FilibusterLocalServerBackend implements FilibusterServerBackend {
 
     @Override
     public synchronized boolean start(FilibusterConfiguration filibusterConfiguration) throws InterruptedException {
-        // This allocation may seem unnecessary, but this populates the static currentInstance of FilibusterCore
-        FilibusterCore filibusterCore = new FilibusterCore(filibusterConfiguration);
+        // Even though the value of the new appears unused. It is necessary since this FilibusterCore
+        // object can be accessed via FilibusterCore.getCurrentInstance
+        new FilibusterCore(filibusterConfiguration);
 
         if (filibusterServer == null) {
             filibusterServer = FilibusterServer.serve();
         }
-
+        if(filibusterServer == null)
+        {
+            throw new FilibusterServerNullException("The Filibuster Server should not be null at this point.");
+        }
         filibusterServer.start();
 
         setServerBackendCanInvokeDirectlyProperty(true);
@@ -39,7 +43,7 @@ public class FilibusterLocalServerBackend implements FilibusterServerBackend {
     }
 
     @Override
-    public synchronized boolean stop(FilibusterConfiguration filibusterConfiguration) throws InterruptedException {
+    public synchronized boolean stop(FilibusterConfiguration filibusterConfiguration) {
         if (filibusterServer != null) {
             filibusterServer.stop();
         }

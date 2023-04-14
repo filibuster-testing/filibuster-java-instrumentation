@@ -120,4 +120,38 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         responseObserver.onNext(reply);
         responseObserver.onCompleted();
     }
+
+    @Override
+    public void redisHello(Hello.RedisReadRequest req, StreamObserver<Hello.RedisReply> responseObserver) {
+        Hello.RedisReply reply = null;
+        try {
+            StatefulRedisConnection<String, String> connection = RedisConnection.getInstance().connection;
+            String retrievedValue = connection.sync().get(req.getKey());
+
+            if (retrievedValue != null) {  // Return cache value if there is a hit
+                reply = Hello.RedisReply.newBuilder().setValue(retrievedValue).build();
+            } else {  // Else make a call to the Hello service
+                ManagedChannel helloChannel = ManagedChannelBuilder
+                        .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
+                        .usePlaintext()
+                        .build();
+                ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("api_server");
+                Channel channel = ClientInterceptors.intercept(helloChannel, clientInterceptor);
+
+                HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(channel);
+                Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName(req.getKey()).build();
+                Hello.HelloReply throwException = blockingStub.throwException(request);
+
+                reply = Hello.RedisReply.newBuilder()
+                        .setValue(throwException.getMessage())
+                        .build();
+                responseObserver.onNext(reply);
+                responseObserver.onCompleted();
+            }
+        } catch (Exception e) {
+            reply = Hello.RedisReply.newBuilder().setValue(e.toString()).build();
+        }
+        responseObserver.onNext(reply);
+        responseObserver.onCompleted();
+    }
 }

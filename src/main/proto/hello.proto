@@ -7,6 +7,7 @@ service APIService {
   rpc HelloWithMock (HelloRequest) returns (HelloReply) {};
   rpc RedisWrite (RedisWriteRequest) returns (RedisReply) {};
   rpc RedisRead (RedisReadRequest) returns (RedisReply) {};
+  rpc RedisHello (RedisReadRequest) returns (RedisReply) {};
 }
 
 service HelloService {
@@ -29,6 +30,7 @@ service HelloService {
   rpc SmellyMultipleInvocationsForIndividualMutations (HelloRequest) returns (HelloReply) {}
   rpc CompositionalHello (HelloExtendedRequest) returns (HelloExtendedReply) {}
   rpc SimplePartialHello (HelloRequest) returns (HelloReply) {}
+  rpc ThrowException (HelloRequest) returns (HelloReply) {}
 }
 
 message HelloRequest {

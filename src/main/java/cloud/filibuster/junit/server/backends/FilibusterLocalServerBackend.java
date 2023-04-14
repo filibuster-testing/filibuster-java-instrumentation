@@ -29,11 +29,9 @@ public class FilibusterLocalServerBackend implements FilibusterServerBackend {
 
         if (filibusterServer == null) {
             filibusterServer = FilibusterServer.serve();
-
-            if (filibusterServer != null) {
-                CompletableFuture<Void> filibusterServerFuture = filibusterServer.start();
-            }
         }
+
+        filibusterServer.start();
 
         setServerBackendCanInvokeDirectlyProperty(true);
 
@@ -43,9 +41,7 @@ public class FilibusterLocalServerBackend implements FilibusterServerBackend {
     @Override
     public synchronized boolean stop(FilibusterConfiguration filibusterConfiguration) throws InterruptedException {
         if (filibusterServer != null) {
-            filibusterServer.close();
-            filibusterServer.blockUntilShutdown();
-            filibusterServer = null;
+            filibusterServer.stop();
         }
 
         // Poke the GC once we dereference the FilibusterCore object (via FilibusterServer.)

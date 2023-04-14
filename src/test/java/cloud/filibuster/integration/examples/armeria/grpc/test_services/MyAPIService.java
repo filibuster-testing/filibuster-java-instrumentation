@@ -14,6 +14,7 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
+import io.lettuce.core.api.StatefulRedisConnection;
 
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -91,5 +92,32 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("api_server");
         Channel channel = ClientInterceptors.intercept(originalChannel, clientInterceptor);
         handleHelloRequest(req, responseObserver, originalChannel, channel);
+    }
+    @Override
+    public void redisWrite(Hello.RedisWriteRequest req, StreamObserver<Hello.RedisReply> responseObserver) {
+        Hello.RedisReply reply = null;
+        try {
+            StatefulRedisConnection<String, String> connection = RedisConnection.getInstance().connection;
+            connection.sync().set(req.getKey(), req.getValue());
+            reply = Hello.RedisReply.newBuilder().setValue("1").build();
+        } catch (Exception e) {
+            reply = Hello.RedisReply.newBuilder().setValue(e.toString()).build();
+        }
+        responseObserver.onNext(reply);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void redisRead(Hello.RedisReadRequest req, StreamObserver<Hello.RedisReply> responseObserver) {
+        Hello.RedisReply reply = null;
+        try {
+            StatefulRedisConnection<String, String> connection = RedisConnection.getInstance().connection;
+            String value = connection.sync().get(req.getKey());
+            reply = Hello.RedisReply.newBuilder().setValue(value).build();
+        } catch (Exception e) {
+            reply = Hello.RedisReply.newBuilder().setValue(e.toString()).build();
+        }
+        responseObserver.onNext(reply);
+        responseObserver.onCompleted();
     }
 }

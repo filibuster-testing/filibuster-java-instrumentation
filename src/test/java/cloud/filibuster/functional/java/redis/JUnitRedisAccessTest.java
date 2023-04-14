@@ -1,7 +1,7 @@
 package cloud.filibuster.functional.java.redis;
 
+import cloud.filibuster.examples.APIServiceGrpc;
 import cloud.filibuster.examples.Hello;
-import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisConnection;
@@ -10,6 +10,9 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.*;
 
+import java.io.IOException;
+
+import static cloud.filibuster.integration.instrumentation.TestHelper.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @FilibusterConditionalByEnvironmentSuite
@@ -20,19 +23,25 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
         RedisConnection.getInstance();
     }
 
+    @BeforeAll
+    public static void startAllServices() throws IOException, InterruptedException {
+        startAPIServerAndWaitUntilAvailable();
+        startHelloServerAndWaitUntilAvailable();
+    }
+
     @Test
     public void testRedisWriteAndRead() {
-        ManagedChannel helloChannel = ManagedChannelBuilder
-                .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
+        ManagedChannel apiChannel = ManagedChannelBuilder
+                .forAddress(Networking.getHost("api_server"), Networking.getPort("api_server"))
                 .usePlaintext()
                 .build();
         String key = "test";
         String value = "example";
 
-        HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
+        APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
         Hello.RedisWriteRequest writeRequest = Hello.RedisWriteRequest.newBuilder().setKey(key).setValue(value).build();
         Hello.RedisReply reply = blockingStub.redisWrite(writeRequest);
-        assertEquals("1", reply.getValue());
+        assertEquals("1", reply.getValue());  // "1" indicates that the key-value-pair was inserted successfully
 
         Hello.RedisReadRequest readRequest = Hello.RedisReadRequest.newBuilder().setKey(key).build();
         reply = blockingStub.redisRead(readRequest);

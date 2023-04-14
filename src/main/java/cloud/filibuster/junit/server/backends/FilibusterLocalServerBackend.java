@@ -24,10 +24,11 @@ public class FilibusterLocalServerBackend implements FilibusterServerBackend {
 
     @Override
     public synchronized boolean start(FilibusterConfiguration filibusterConfiguration) throws InterruptedException {
+        // This allocation may seem unnecessary, but this populates the static currentInstance of FilibusterCore
         FilibusterCore filibusterCore = new FilibusterCore(filibusterConfiguration);
 
         if (filibusterServer == null) {
-            filibusterServer = FilibusterServer.serve(filibusterCore);
+            filibusterServer = FilibusterServer.serve();
 
             if (filibusterServer != null) {
                 CompletableFuture<Void> filibusterServerFuture = filibusterServer.start();

@@ -45,6 +45,9 @@ public class FilibusterConfiguration {
 
     private final FilibusterLatencyProfile latencyProfile;
 
+
+    private final String testName;
+    
     private final List<ServiceProfile> serviceProfiles;
 
     private final ServiceProfileBehavior serviceProfileBehavior;
@@ -60,6 +63,7 @@ public class FilibusterConfiguration {
         this.degradeWhenServerInitializationFails = builder.degradeWhenServerInitializationFails;
         this.expected = builder.expected;
         this.latencyProfile = builder.latencyProfile;
+        this.testName = builder.testName;
         this.serviceProfiles = builder.serviceProfiles;
         this.serviceProfileBehavior = builder.serviceProfileBehavior;
     }
@@ -134,6 +138,10 @@ public class FilibusterConfiguration {
      */
     public FilibusterLatencyProfile getLatencyProfile() {
         return this.latencyProfile;
+    }
+
+    public String getTestName() {
+        return this.testName;
     }
 
     /**
@@ -226,6 +234,7 @@ public class FilibusterConfiguration {
 
         private FilibusterLatencyProfile latencyProfile;
 
+        private String testName;
         private List<ServiceProfile> serviceProfiles;
 
         private ServiceProfileBehavior serviceProfileBehavior;
@@ -343,6 +352,12 @@ public class FilibusterConfiguration {
         @CanIgnoreReturnValue
         public Builder searchStrategy(FilibusterSearchStrategy searchStrategy) {
             this.searchStrategy = searchStrategy;
+            return this;
+        }
+
+        @CanIgnoreReturnValue
+        public Builder testName(String testName) {
+            this.testName = testName;
             return this;
         }
 

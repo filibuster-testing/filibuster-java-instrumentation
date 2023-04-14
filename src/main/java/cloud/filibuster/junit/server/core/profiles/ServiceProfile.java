@@ -54,7 +54,7 @@ public class ServiceProfile {
     }
 
     private void addToProfile(String method, ServiceRequestAndResponse serviceRequestAndResponse) {
-        if (! profile.containsKey(method)) {
+        if (!profile.containsKey(method)) {
             profile.put(method, new ArrayList<>());
         }
 
@@ -83,7 +83,7 @@ public class ServiceProfile {
             String key = it.next();
             JSONArray jsonArray = jsonObject.getJSONArray(key);
 
-            for(int i = 0; i < jsonArray.length(); i++) {
+            for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject obj = jsonArray.getJSONObject(i);
                 ServiceRequestAndResponse srr = ServiceRequestAndResponse.fromJSONObject(obj);
                 serviceProfile.addToProfile(key, srr);
@@ -139,7 +139,7 @@ public class ServiceProfile {
         List<ServiceProfile> serviceProfiles = new ArrayList<>();
         Iterator it = FileUtils.iterateFiles(directory.toFile(), null, /* recursive= */ false);
 
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             File nextFile = (File) it.next();
             Path nextFilePath = nextFile.toPath();
 

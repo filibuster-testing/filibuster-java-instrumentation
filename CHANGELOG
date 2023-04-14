@@ -1,3 +1,5 @@
+1.4.2:
+   - (jiujiu1123) Fix small memory leak issue where references to FilibusterCore was kept
 1.4.1:
    - (jiujiu1123) Add the ability for a test suite report to be generated
 1.4.0:

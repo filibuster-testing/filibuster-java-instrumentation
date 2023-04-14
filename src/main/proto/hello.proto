@@ -27,6 +27,8 @@ service HelloService {
   rpc SmellyMultipleInvocationsForIndividualMutations (HelloRequest) returns (HelloReply) {}
   rpc CompositionalHello (HelloExtendedRequest) returns (HelloExtendedReply) {}
   rpc SimplePartialHello (HelloRequest) returns (HelloReply) {}
+  rpc RedisWrite (RedisWriteRequest) returns (RedisReply) {};
+  rpc RedisRead (RedisReadRequest) returns (RedisReply) {};
 }
 
 message HelloRequest {
@@ -69,4 +71,17 @@ message WorldRequest {
 
 message WorldReply {
   string message = 1;
+}
+
+message RedisReadRequest {
+  string key = 1;
+}
+
+message RedisWriteRequest {
+  string key = 1;
+  string value = 2;
+}
+
+message RedisReply {
+  string value = 1;
 }

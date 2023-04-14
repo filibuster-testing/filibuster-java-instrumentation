@@ -1,38 +1,41 @@
 package cloud.filibuster.functional.java.redis;
 
-import io.lettuce.core.RedisClient;
-import io.lettuce.core.api.StatefulRedisConnection;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.utility.DockerImageName;
+import cloud.filibuster.examples.Hello;
+import cloud.filibuster.examples.HelloServiceGrpc;
+import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
+import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisConnection;
+import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-public class JUnitRedisAccessTest {
 
-    private StatefulRedisConnection<String, String> connection;
-
-    public static GenericContainer<?> redis = new GenericContainer<>(DockerImageName.parse("redis:5.0.3-alpine"))
-            .withExposedPorts(6379);
+@FilibusterConditionalByEnvironmentSuite
+public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
 
     @BeforeAll
     public static void setUp() {
-        redis.start();
-    }
-    @BeforeEach
-    public void setUpContainer() {
-        String address = redis.getHost();
-        Integer port = redis.getFirstMappedPort();
-        RedisClient client = RedisClient.create(String.format("redis://%s:%d/0", address, port));
-        connection = client.connect();
+        RedisConnection.getInstance();
     }
 
     @Test
-    public void testSimplePutAndGet() {
-        connection.sync().set("test", "example");
+    public void testRedisWriteAndRead() {
+        ManagedChannel helloChannel = ManagedChannelBuilder
+                .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
+                .usePlaintext()
+                .build();
+        String key = "test";
+        String value = "example";
 
-        String retrieved = connection.sync().get("test");
-        assertEquals(retrieved, "example");
+        HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
+        Hello.RedisWriteRequest writeRequest = Hello.RedisWriteRequest.newBuilder().setKey(key).setValue(value).build();
+        Hello.RedisReply reply = blockingStub.redisWrite(writeRequest);
+        assertEquals("1", reply.getValue());
+
+        Hello.RedisReadRequest readRequest = Hello.RedisReadRequest.newBuilder().setKey(key).build();
+        reply = blockingStub.redisRead(readRequest);
+        assertEquals(value, reply.getValue());
     }
 }

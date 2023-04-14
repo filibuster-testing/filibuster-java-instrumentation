@@ -17,6 +17,7 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
+import io.lettuce.core.api.StatefulRedisConnection;
 
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
@@ -41,10 +42,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
 
         // build stub with decorator or interceptor
         if (!shouldUseDecorator) {
-            ManagedChannel originalChannel = ManagedChannelBuilder
-                    .forAddress(Networking.getHost("world"), Networking.getPort("world"))
-                    .usePlaintext()
-                    .build();
+            ManagedChannel originalChannel = ManagedChannelBuilder.forAddress(Networking.getHost("world"), Networking.getPort("world")).usePlaintext().build();
 
             ClientInterceptor clientInterceptor;
 
@@ -61,15 +59,13 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
                 Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(req.getName()).build();
                 Hello.WorldReply worldReply = blockingStub.world(request);
 
-                Hello.HelloReply reply = Hello.HelloReply.newBuilder()
-                        .setMessage("Hello, " + worldReply.getMessage())
-                        .build();
+                Hello.HelloReply reply = Hello.HelloReply.newBuilder().setMessage("Hello, " + worldReply.getMessage()).build();
                 responseObserver.onNext(reply);
                 responseObserver.onCompleted();
 
                 originalChannel.shutdownNow();
                 try {
-                    while (! originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+                    while (!originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
                         Thread.sleep(4000);
                     }
                 } catch (InterruptedException ie) {
@@ -87,7 +83,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
 
                 originalChannel.shutdownNow();
                 try {
-                    while (! originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+                    while (!originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
                         Thread.sleep(4000);
                     }
                 } catch (InterruptedException ie) {
@@ -101,14 +97,11 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
             String baseURI = "http://" + Networking.getHost("world") + ":" + Networking.getPort("world") + "/";
             GrpcClientBuilder grpcClientBuilder = TestHelper.getGrpcClientBuilder(baseURI, serviceName);
             try {
-                WorldServiceGrpc.WorldServiceBlockingStub blockingStub =
-                        grpcClientBuilder.build(WorldServiceGrpc.WorldServiceBlockingStub.class);
+                WorldServiceGrpc.WorldServiceBlockingStub blockingStub = grpcClientBuilder.build(WorldServiceGrpc.WorldServiceBlockingStub.class);
                 Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(req.getName()).build();
                 Hello.WorldReply worldReply = blockingStub.world(request);
 
-                Hello.HelloReply reply = Hello.HelloReply.newBuilder()
-                        .setMessage("Hello, " + worldReply.getMessage())
-                        .build();
+                Hello.HelloReply reply = Hello.HelloReply.newBuilder().setMessage("Hello, " + worldReply.getMessage()).build();
                 responseObserver.onNext(reply);
                 responseObserver.onCompleted();
             } catch (StatusRuntimeException e) {
@@ -145,9 +138,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
             return;
         }
 
-        Hello.HelloReply reply = Hello.HelloReply.newBuilder()
-                .setMessage("Hello, " + req.getName() + "!!")
-                .build();
+        Hello.HelloReply reply = Hello.HelloReply.newBuilder().setMessage("Hello, " + req.getName() + "!!").build();
         responseObserver.onNext(reply);
         responseObserver.onCompleted();
     }
@@ -166,10 +157,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
 
     @Override
     public void parallelPartialHello(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
-        ManagedChannel originalChannel = ManagedChannelBuilder
-                .forAddress(Networking.getHost("world"), Networking.getPort("world"))
-                .usePlaintext()
-                .build();
+        ManagedChannel originalChannel = ManagedChannelBuilder.forAddress(Networking.getHost("world"), Networking.getPort("world")).usePlaintext().build();
 
         ClientInterceptor clientInterceptor;
 
@@ -207,9 +195,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
 
         // Respond to the client.
 
-        Hello.HelloReply reply = Hello.HelloReply.newBuilder()
-                .setMessage("Hello, " + result)
-                .build();
+        Hello.HelloReply reply = Hello.HelloReply.newBuilder().setMessage("Hello, " + result).build();
         responseObserver.onNext(reply);
         responseObserver.onCompleted();
 
@@ -223,10 +209,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
 
     @Override
     public void partialHelloExternalHttp(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
-        ManagedChannel originalChannel = ManagedChannelBuilder
-                .forAddress(Networking.getHost("world"), Networking.getPort("world"))
-                .usePlaintext()
-                .build();
+        ManagedChannel originalChannel = ManagedChannelBuilder.forAddress(Networking.getHost("world"), Networking.getPort("world")).usePlaintext().build();
 
         ClientInterceptor clientInterceptor;
 
@@ -243,9 +226,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
             Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(req.getName()).build();
             Hello.WorldReply worldReply = blockingStub.worldExternalHttp(request);
 
-            Hello.HelloReply reply = Hello.HelloReply.newBuilder()
-                    .setMessage("Hello, " + worldReply.getMessage())
-                    .build();
+            Hello.HelloReply reply = Hello.HelloReply.newBuilder().setMessage("Hello, " + worldReply.getMessage()).build();
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
         } catch (StatusRuntimeException e) {
@@ -263,10 +244,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
 
     @Override
     public void partialHelloExternalGrpc(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
-        ManagedChannel originalChannel = ManagedChannelBuilder
-                .forAddress(Networking.getHost("world"), Networking.getPort("world"))
-                .usePlaintext()
-                .build();
+        ManagedChannel originalChannel = ManagedChannelBuilder.forAddress(Networking.getHost("world"), Networking.getPort("world")).usePlaintext().build();
 
         ClientInterceptor clientInterceptor;
 
@@ -283,9 +261,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
             Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(req.getName()).build();
             Hello.WorldReply worldReply = blockingStub.worldExternalGrpc(request);
 
-            Hello.HelloReply reply = Hello.HelloReply.newBuilder()
-                    .setMessage("Hello, " + worldReply.getMessage())
-                    .build();
+            Hello.HelloReply reply = Hello.HelloReply.newBuilder().setMessage("Hello, " + worldReply.getMessage()).build();
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
         } catch (StatusRuntimeException e) {
@@ -303,28 +279,22 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
     }
 
     @Override
-    public void partialHelloWithErrorHandling(Hello.HelloRequest req,
-                                              StreamObserver<Hello.HelloReply> responseObserver) {
+    public void partialHelloWithErrorHandling(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
         String serviceName = "test";
         String baseURI = "http://" + Networking.getHost("world") + ":" + Networking.getPort("world") + "/";
         GrpcClientBuilder grpcClientBuilder = TestHelper.getGrpcClientBuilder(baseURI, serviceName);
 
         try {
-            WorldServiceGrpc.WorldServiceBlockingStub blockingStub =
-                    grpcClientBuilder.build(WorldServiceGrpc.WorldServiceBlockingStub.class);
+            WorldServiceGrpc.WorldServiceBlockingStub blockingStub = grpcClientBuilder.build(WorldServiceGrpc.WorldServiceBlockingStub.class);
             Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(req.getName()).build();
             Hello.WorldReply worldReply = blockingStub.world(request);
 
-            Hello.HelloReply reply = Hello.HelloReply.newBuilder()
-                    .setMessage("Hello, " + worldReply.getMessage())
-                    .build();
+            Hello.HelloReply reply = Hello.HelloReply.newBuilder().setMessage("Hello, " + worldReply.getMessage()).build();
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
         } catch (StatusRuntimeException re) {
             // Coverage automatically generated by Filibuster for this error handling case.
-            Hello.HelloReply reply = Hello.HelloReply.newBuilder()
-                    .setMessage("Hello, Armerian World!!")
-                    .build();
+            Hello.HelloReply reply = Hello.HelloReply.newBuilder().setMessage("Hello, Armerian World!!").build();
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
         }
@@ -334,10 +304,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
     public void unimplemented(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
         // build stub with decorator or interceptor
         if (!shouldUseDecorator) {
-            ManagedChannel originalChannel = ManagedChannelBuilder
-                    .forAddress(Networking.getHost("world"), Networking.getPort("world"))
-                    .usePlaintext()
-                    .build();
+            ManagedChannel originalChannel = ManagedChannelBuilder.forAddress(Networking.getHost("world"), Networking.getPort("world")).usePlaintext().build();
 
             ClientInterceptor clientInterceptor;
 
@@ -354,15 +321,13 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
                 Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(req.getName()).build();
                 Hello.WorldReply worldReply = blockingStub.worldUnimplemented(request);
 
-                Hello.HelloReply reply = Hello.HelloReply.newBuilder()
-                        .setMessage("Hello, " + worldReply.getMessage())
-                        .build();
+                Hello.HelloReply reply = Hello.HelloReply.newBuilder().setMessage("Hello, " + worldReply.getMessage()).build();
                 responseObserver.onNext(reply);
                 responseObserver.onCompleted();
 
                 originalChannel.shutdownNow();
                 try {
-                    while (! originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+                    while (!originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
                         Thread.sleep(4000);
                     }
                 } catch (InterruptedException ie) {
@@ -375,7 +340,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
 
                 originalChannel.shutdownNow();
                 try {
-                    while (! originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+                    while (!originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
                         Thread.sleep(4000);
                     }
                 } catch (InterruptedException ie) {
@@ -389,14 +354,11 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
             String baseURI = "http://" + Networking.getHost("world") + ":" + Networking.getPort("world") + "/";
             GrpcClientBuilder grpcClientBuilder = TestHelper.getGrpcClientBuilder(baseURI, serviceName);
             try {
-                WorldServiceGrpc.WorldServiceBlockingStub blockingStub =
-                        grpcClientBuilder.build(WorldServiceGrpc.WorldServiceBlockingStub.class);
+                WorldServiceGrpc.WorldServiceBlockingStub blockingStub = grpcClientBuilder.build(WorldServiceGrpc.WorldServiceBlockingStub.class);
                 Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(req.getName()).build();
                 Hello.WorldReply worldReply = blockingStub.worldUnimplemented(request);
 
-                Hello.HelloReply reply = Hello.HelloReply.newBuilder()
-                        .setMessage("Hello, " + worldReply.getMessage())
-                        .build();
+                Hello.HelloReply reply = Hello.HelloReply.newBuilder().setMessage("Hello, " + worldReply.getMessage()).build();
                 responseObserver.onNext(reply);
                 responseObserver.onCompleted();
             } catch (StatusRuntimeException e) {
@@ -408,10 +370,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
 
     @Override
     public void parallelSynchronousPartialHello(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
-        ManagedChannel originalChannel = ManagedChannelBuilder
-                .forAddress(Networking.getHost("world"), Networking.getPort("world"))
-                .usePlaintext()
-                .build();
+        ManagedChannel originalChannel = ManagedChannelBuilder.forAddress(Networking.getHost("world"), Networking.getPort("world")).usePlaintext().build();
 
         ClientInterceptor clientInterceptor;
 
@@ -449,9 +408,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
 
         // Respond to the client.
 
-        Hello.HelloReply reply = Hello.HelloReply.newBuilder()
-                .setMessage("Hello, " + result)
-                .build();
+        Hello.HelloReply reply = Hello.HelloReply.newBuilder().setMessage("Hello, " + result).build();
         responseObserver.onNext(reply);
         responseObserver.onCompleted();
 
@@ -465,10 +422,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
 
     @Override
     public void smellyRedundantRPC(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
-        ManagedChannel originalChannel = ManagedChannelBuilder
-                .forAddress(Networking.getHost("world"), Networking.getPort("world"))
-                .usePlaintext()
-                .build();
+        ManagedChannel originalChannel = ManagedChannelBuilder.forAddress(Networking.getHost("world"), Networking.getPort("world")).usePlaintext().build();
 
         // Setup interceptor.
 
@@ -494,9 +448,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
 
         // Response.
 
-        Hello.HelloReply reply = Hello.HelloReply.newBuilder()
-                .setMessage("Hello, Smelly!")
-                .build();
+        Hello.HelloReply reply = Hello.HelloReply.newBuilder().setMessage("Hello, Smelly!").build();
         responseObserver.onNext(reply);
         responseObserver.onCompleted();
 
@@ -522,10 +474,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
 
     @Override
     public void smellyUnimplementedFailures(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
-        ManagedChannel originalChannel = ManagedChannelBuilder
-                .forAddress(Networking.getHost("world"), Networking.getPort("world"))
-                .usePlaintext()
-                .build();
+        ManagedChannel originalChannel = ManagedChannelBuilder.forAddress(Networking.getHost("world"), Networking.getPort("world")).usePlaintext().build();
 
         // Setup interceptor.
 
@@ -549,9 +498,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
 
         // Response.
 
-        Hello.HelloReply reply = Hello.HelloReply.newBuilder()
-                .setMessage("Hello, Smelly!")
-                .build();
+        Hello.HelloReply reply = Hello.HelloReply.newBuilder().setMessage("Hello, Smelly!").build();
         responseObserver.onNext(reply);
         responseObserver.onCompleted();
 
@@ -566,10 +513,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
 
     @Override
     public void smellyResponseBecomesRequest(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
-        ManagedChannel originalChannel = ManagedChannelBuilder
-                .forAddress(Networking.getHost("world"), Networking.getPort("world"))
-                .usePlaintext()
-                .build();
+        ManagedChannel originalChannel = ManagedChannelBuilder.forAddress(Networking.getHost("world"), Networking.getPort("world")).usePlaintext().build();
 
         // Setup interceptor.
 
@@ -593,9 +537,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
 
         // Response.
 
-        Hello.HelloReply reply = Hello.HelloReply.newBuilder()
-                .setMessage("Hello, Smelly!")
-                .build();
+        Hello.HelloReply reply = Hello.HelloReply.newBuilder().setMessage("Hello, Smelly!").build();
         responseObserver.onNext(reply);
         responseObserver.onCompleted();
 
@@ -621,10 +563,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
 
     @Override
     public void smellyMultipleInvocationsForIndividualMutations(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
-        ManagedChannel originalChannel = ManagedChannelBuilder
-                .forAddress(Networking.getHost("world"), Networking.getPort("world"))
-                .usePlaintext()
-                .build();
+        ManagedChannel originalChannel = ManagedChannelBuilder.forAddress(Networking.getHost("world"), Networking.getPort("world")).usePlaintext().build();
 
         // Setup interceptor.
 
@@ -648,9 +587,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
 
         // Response.
 
-        Hello.HelloReply reply = Hello.HelloReply.newBuilder()
-                .setMessage("Hello, Smelly!")
-                .build();
+        Hello.HelloReply reply = Hello.HelloReply.newBuilder().setMessage("Hello, Smelly!").build();
         responseObserver.onNext(reply);
         responseObserver.onCompleted();
 
@@ -667,10 +604,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
     public void compositionalHello(Hello.HelloExtendedRequest req, StreamObserver<Hello.HelloExtendedReply> responseObserver) {
         // build stub with decorator or interceptor
         if (!shouldUseDecorator) {
-            ManagedChannel originalChannel = ManagedChannelBuilder
-                    .forAddress(Networking.getHost("world"), Networking.getPort("world"))
-                    .usePlaintext()
-                    .build();
+            ManagedChannel originalChannel = ManagedChannelBuilder.forAddress(Networking.getHost("world"), Networking.getPort("world")).usePlaintext().build();
 
             ClientInterceptor clientInterceptor;
 
@@ -687,18 +621,13 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
                 Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(req.getName()).build();
                 Hello.WorldReply worldReply = blockingStub.world(request);
 
-                Hello.HelloExtendedReply reply = Hello.HelloExtendedReply.newBuilder()
-                        .setName(req.getName())
-                        .setFirstMessage("Hello, " + worldReply.getMessage())
-                        .setSecondMessage(String.valueOf(Math.random()))
-                        .setCreatedAt("2023-01-01 01:02:03")
-                        .build();
+                Hello.HelloExtendedReply reply = Hello.HelloExtendedReply.newBuilder().setName(req.getName()).setFirstMessage("Hello, " + worldReply.getMessage()).setSecondMessage(String.valueOf(Math.random())).setCreatedAt("2023-01-01 01:02:03").build();
                 responseObserver.onNext(reply);
                 responseObserver.onCompleted();
 
                 originalChannel.shutdownNow();
                 try {
-                    while (! originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+                    while (!originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
                         Thread.sleep(4000);
                     }
                 } catch (InterruptedException ie) {
@@ -716,7 +645,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
 
                 originalChannel.shutdownNow();
                 try {
-                    while (! originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+                    while (!originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
                         Thread.sleep(4000);
                     }
                 } catch (InterruptedException ie) {
@@ -730,17 +659,11 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
             String baseURI = "http://" + Networking.getHost("world") + ":" + Networking.getPort("world") + "/";
             GrpcClientBuilder grpcClientBuilder = TestHelper.getGrpcClientBuilder(baseURI, serviceName);
             try {
-                WorldServiceGrpc.WorldServiceBlockingStub blockingStub =
-                        grpcClientBuilder.build(WorldServiceGrpc.WorldServiceBlockingStub.class);
+                WorldServiceGrpc.WorldServiceBlockingStub blockingStub = grpcClientBuilder.build(WorldServiceGrpc.WorldServiceBlockingStub.class);
                 Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(req.getName()).build();
                 Hello.WorldReply worldReply = blockingStub.world(request);
 
-                Hello.HelloExtendedReply reply = Hello.HelloExtendedReply.newBuilder()
-                        .setName(req.getName())
-                        .setFirstMessage("Hello, " + worldReply.getMessage())
-                        .setSecondMessage(String.valueOf(Math.random()))
-                        .setCreatedAt("2023-01-01 01:02:03")
-                        .build();
+                Hello.HelloExtendedReply reply = Hello.HelloExtendedReply.newBuilder().setName(req.getName()).setFirstMessage("Hello, " + worldReply.getMessage()).setSecondMessage(String.valueOf(Math.random())).setCreatedAt("2023-01-01 01:02:03").build();
                 responseObserver.onNext(reply);
                 responseObserver.onCompleted();
             } catch (StatusRuntimeException e) {
@@ -752,10 +675,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
 
     @Override
     public void simplePartialHello(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
-        ManagedChannel originalChannel = ManagedChannelBuilder
-                .forAddress(Networking.getHost("world"), Networking.getPort("world"))
-                .usePlaintext()
-                .build();
+        ManagedChannel originalChannel = ManagedChannelBuilder.forAddress(Networking.getHost("world"), Networking.getPort("world")).usePlaintext().build();
         ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("hello");
         Channel channel = ClientInterceptors.intercept(originalChannel, clientInterceptor);
 
@@ -764,16 +684,14 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
             Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(req.getName()).build();
             Hello.WorldReply worldReply = blockingStub.world(request);
 
-            Hello.HelloReply reply = Hello.HelloReply.newBuilder()
-                    .setMessage("Hello, " + worldReply.getMessage())
-                    .build();
+            Hello.HelloReply reply = Hello.HelloReply.newBuilder().setMessage("Hello, " + worldReply.getMessage()).build();
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
 
             originalChannel.shutdownNow();
 
             try {
-                while (! originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+                while (!originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
                     Thread.sleep(4000);
                 }
             } catch (InterruptedException ie) {
@@ -792,12 +710,40 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
             originalChannel.shutdownNow();
 
             try {
-                while (! originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+                while (!originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
                     Thread.sleep(4000);
                 }
             } catch (InterruptedException ie) {
                 logger.log(Level.SEVERE, "Failed to terminate channel: " + ie);
             }
         }
+    }
+
+    @Override
+    public void redisWrite(Hello.RedisWriteRequest req, StreamObserver<Hello.RedisReply> responseObserver) {
+        Hello.RedisReply reply = null;
+        try {
+            StatefulRedisConnection<String, String> connection = RedisConnection.getInstance().connection;
+            connection.sync().set(req.getKey(), req.getValue());
+            reply = Hello.RedisReply.newBuilder().setValue("1").build();
+        } catch (Exception e) {
+            reply = Hello.RedisReply.newBuilder().setValue(e.toString()).build();
+        }
+        responseObserver.onNext(reply);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void redisRead(Hello.RedisReadRequest req, StreamObserver<Hello.RedisReply> responseObserver) {
+        Hello.RedisReply reply = null;
+        try {
+            StatefulRedisConnection<String, String> connection = RedisConnection.getInstance().connection;
+            String value = connection.sync().get(req.getKey());
+            reply = Hello.RedisReply.newBuilder().setValue(value).build();
+        } catch (Exception e) {
+            reply = Hello.RedisReply.newBuilder().setValue(e.toString()).build();
+        }
+        responseObserver.onNext(reply);
+        responseObserver.onCompleted();
     }
 }

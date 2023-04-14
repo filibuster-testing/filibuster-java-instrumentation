@@ -12,6 +12,7 @@
 			font-family: 'Gill Sans',
 				'Gill Sans MT', ' Calibri',
 				'Trebuchet MS', 'sans-serif';
+            background-color: white;
         }
 
 		table {
@@ -164,9 +165,13 @@
                 var status = analysis.status;
                 var iteration = analysis.iteration;
                 if (status) {
-                    $('#status').html("Generated Test Execution " + iteration + " <br /><span class='pass'>Test Passed</span>");
+                    $('#status').html("Generated Test Execution " + iteration + " <br />" +
+                        "<span>"+ analysis.test_name+ "</span><br />" +
+                        "<span class='pass'>Test Passed</span>");
                 } else {
-                    $('#status').html("Generated Test Execution " + iteration + " <br /><span class='fail'>Test Failed</span>");
+                    $('#status').html("Generated Test Execution " + iteration + " <br />" +
+                        "<span>"+ analysis.test_name+ "</span><br />" +
+                        "<span class='fail'>Test Failed</span>");
                 }
 
                 for (i in analysis.rpcs) {
@@ -321,6 +326,7 @@
                 }
             });
         </script>
+    </table>
 </section>
 </body>
 

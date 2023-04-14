@@ -254,4 +254,25 @@ public class Property {
             return Boolean.parseBoolean(propertyValue);
         }
     }
+
+    /***********************************************************************************
+     ** filibuster.reports.test_suite_report.enabled
+     ***********************************************************************************/
+
+    private final static String REPORTS_TEST_SUITE_REPORT_ENABLED = "filibuster.reports.test_suite_report.enabled";
+
+    public static void setReportsTestSuiteReportEnabledProperty(boolean value) {
+        System.setProperty(REPORTS_TEST_SUITE_REPORT_ENABLED, String.valueOf(value));
+    }
+
+    public static boolean getReportsTestSuiteReportEnabledProperty() {
+        String propertyValue = System.getProperty(REPORTS_TEST_SUITE_REPORT_ENABLED);
+        if (isPropertyNull(propertyValue)) {
+            return true;
+        } else {
+            return Boolean.parseBoolean(propertyValue);
+        }
+    }
+
+
 }

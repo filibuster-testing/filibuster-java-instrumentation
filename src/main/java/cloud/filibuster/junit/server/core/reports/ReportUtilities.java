@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class ReportUtilities {
-    public static File GetBaseDirectoryPath() {
+    public static File getBaseDirectoryPath() {
         return new File("/tmp/filibuster/");
     }
 

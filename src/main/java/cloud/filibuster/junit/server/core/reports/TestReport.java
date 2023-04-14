@@ -39,7 +39,7 @@ public class TestReport {
     }
 
     private File getDirectoryPath() {
-        return new File(ReportUtilities.GetBaseDirectoryPath(), "filibuster-test-" + testUUID.toString());
+        return new File(ReportUtilities.getBaseDirectoryPath(), "filibuster-test-" + testUUID.toString());
     }
 
     public File getReportPath() {

@@ -66,7 +66,7 @@ public class TestSuiteReport {
     }
 
     private void startTestSuite() {
-        try (Stream<Path> filesInDirectoryStream = Files.walk(ReportUtilities.GetBaseDirectoryPath().toPath())) {
+        try (Stream<Path> filesInDirectoryStream = Files.walk(ReportUtilities.getBaseDirectoryPath().toPath())) {
             //noinspection ResultOfMethodCallIgnored
             filesInDirectoryStream.sorted(Comparator.reverseOrder())
                     .map(Path::toFile)
@@ -90,7 +90,7 @@ public class TestSuiteReport {
         writeOutReports();
     }
 
-    private JSONObject getTestReportSummaryJSON(FilibusterTestReportSummary testReportSummary) {
+    private static JSONObject getTestReportSummaryJSON(FilibusterTestReportSummary testReportSummary) {
         JSONObject reportJSON = new JSONObject();
         reportJSON.put(Keys.TestReportKeys.TEST_PATH, testReportSummary.testPath);
         reportJSON.put(Keys.TestReportKeys.TEST_NAME, testReportSummary.testName);
@@ -101,13 +101,13 @@ public class TestSuiteReport {
     private JSONObject getReportsJSON() {
         JSONObject reportsJSON = new JSONObject();
         List<JSONObject> jsonReports = testReportSummaries.stream()
-                .map(this::getTestReportSummaryJSON).collect(Collectors.toList());
+                .map(TestSuiteReport::getTestReportSummaryJSON).collect(Collectors.toList());
         reportsJSON.put(Keys.REPORTS_KEY, jsonReports);
         return reportsJSON;
     }
 
     private void writeOutPlaceholder() {
-        File directory = ReportUtilities.GetBaseDirectoryPath();
+        File directory = ReportUtilities.getBaseDirectoryPath();
         File indexPath = new File(directory, "index.html");
 
         try {
@@ -134,7 +134,7 @@ public class TestSuiteReport {
     }
 
     private void writeOutReports() {
-        File directory = ReportUtilities.GetBaseDirectoryPath();
+        File directory = ReportUtilities.getBaseDirectoryPath();
         File scriptFile = new File(directory, "summary.js");
         try {
             Files.write(scriptFile.toPath(), ("var summary = " + getReportsJSON().toString(4) + ";")
@@ -151,8 +151,7 @@ public class TestSuiteReport {
             throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution report: ", e);
         }
 
-        logger.info(
-                "" + "\n" +
+        logger.info( "\n" +
                         "[FILIBUSTER-CORE]: Test Suite Report written to file://" + indexPath + "\n");
 
     }

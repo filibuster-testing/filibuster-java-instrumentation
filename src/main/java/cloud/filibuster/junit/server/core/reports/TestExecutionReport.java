@@ -52,7 +52,7 @@ public class TestExecutionReport {
     }
 
     private File getDirectoryPath() {
-        return new File(ReportUtilities.GetBaseDirectoryPath(), "filibuster-test-" + testUUID.toString());
+        return new File(ReportUtilities.getBaseDirectoryPath(), "filibuster-test-" + testUUID.toString());
     }
 
     private File getSubdirectoryPath() {

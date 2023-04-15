@@ -21,7 +21,7 @@ import org.json.JSONObject;
 
 @SuppressWarnings("Varifier")
 public class FilibusterServer {
-    public static Server serve(FilibusterCore filibusterCore) {
+    public static Server serve() {
         ServerBuilder sb = Server.builder();
         sb.http(Networking.getFilibusterPort());
 
@@ -33,7 +33,7 @@ public class FilibusterServer {
             @ConsumesJson
             public HttpResponse create(AggregatedHttpRequest request) {
                 JSONObject payload = new JSONObject(request.contentUtf8());
-                JSONObject response = filibusterCore.beginInvocation(payload);
+                JSONObject response = FilibusterCore.getCurrentInstance().beginInvocation(payload);
                 return HttpResponse.of(response.toString());
             }
         });
@@ -44,7 +44,7 @@ public class FilibusterServer {
             @ConsumesJson
             public HttpResponse update(AggregatedHttpRequest request) {
                 JSONObject payload = new JSONObject(request.contentUtf8());
-                JSONObject response = filibusterCore.endInvocation(payload);
+                JSONObject response = FilibusterCore.getCurrentInstance().endInvocation(payload);
                 return HttpResponse.of(response.toString());
             }
         });
@@ -55,7 +55,7 @@ public class FilibusterServer {
             @ConsumesJson
             public HttpResponse newTestExecution(@Param("service_name") String serviceName) {
                 JSONObject response = new JSONObject();
-                response.put("new-test-execution", filibusterCore.isNewTestExecution(serviceName));
+                response.put("new-test-execution", FilibusterCore.getCurrentInstance().isNewTestExecution(serviceName));
                 return HttpResponse.of(response.toString());
             }
         });
@@ -68,7 +68,7 @@ public class FilibusterServer {
             @ConsumesJson
             public HttpResponse analysisFile(AggregatedHttpRequest request) {
                 JSONObject payload = new JSONObject(request.contentUtf8());
-                filibusterCore.analysisFile(payload);
+                FilibusterCore.getCurrentInstance().analysisFile(payload);
                 return HttpResponse.of(HttpStatus.OK);
             }
         });
@@ -81,7 +81,7 @@ public class FilibusterServer {
             @ConsumesJson
             public HttpResponse hasNextIteration(@Param("current_iteration") String currentIteration) {
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("has-next-iteration", filibusterCore.hasNextIteration(Integer.valueOf(currentIteration)));
+                jsonObject.put("has-next-iteration", FilibusterCore.getCurrentInstance().hasNextIteration(Integer.valueOf(currentIteration)));
                 return HttpResponse.of(jsonObject.toString());
             }
         });
@@ -92,7 +92,7 @@ public class FilibusterServer {
             @ConsumesJson
             public HttpResponse hasNextIteration(@Param("current_iteration") String currentIteration, @Param("caller") String caller) {
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("has-next-iteration", filibusterCore.hasNextIteration(Integer.valueOf(currentIteration), caller));
+                jsonObject.put("has-next-iteration", FilibusterCore.getCurrentInstance().hasNextIteration(Integer.valueOf(currentIteration), caller));
                 return HttpResponse.of(jsonObject.toString());
             }
         });
@@ -102,7 +102,7 @@ public class FilibusterServer {
             @ProducesJson
             @ConsumesJson
             public HttpResponse completeIteration(@Param("current_iteration") String currentIteration) {
-                filibusterCore.completeIteration(Integer.valueOf(currentIteration));
+                FilibusterCore.getCurrentInstance().completeIteration(Integer.valueOf(currentIteration));
                 return HttpResponse.of(HttpStatus.OK);
             }
         });
@@ -112,7 +112,7 @@ public class FilibusterServer {
             @ProducesJson
             @ConsumesJson
             public HttpResponse completeIteration(@Param("current_iteration") String currentIteration, @Param("exception_occurred") int exceptionOccurred) {
-                filibusterCore.completeIteration(Integer.valueOf(currentIteration), exceptionOccurred);
+                FilibusterCore.getCurrentInstance().completeIteration(Integer.valueOf(currentIteration), exceptionOccurred);
                 return HttpResponse.of(HttpStatus.OK);
             }
         });
@@ -122,7 +122,7 @@ public class FilibusterServer {
             @ProducesJson
             @ConsumesJson
             public HttpResponse teardownsCompleted(@Param("current_iteration") String currentIteration) {
-                filibusterCore.teardownsCompleted(Integer.valueOf(currentIteration));
+                FilibusterCore.getCurrentInstance().teardownsCompleted(Integer.valueOf(currentIteration));
                 return HttpResponse.of(HttpStatus.OK);
             }
         });
@@ -132,7 +132,7 @@ public class FilibusterServer {
             @ProducesJson
             @ConsumesJson
             public HttpResponse terminate() {
-                filibusterCore.terminateFilibuster();
+                FilibusterCore.getCurrentInstance().terminateFilibuster();
                 return HttpResponse.of(HttpStatus.OK);
             }
         });
@@ -145,7 +145,7 @@ public class FilibusterServer {
             @ConsumesJson
             public HttpResponse faultInjected(AggregatedHttpRequest request) {
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("result", filibusterCore.wasFaultInjected());
+                jsonObject.put("result", FilibusterCore.getCurrentInstance().wasFaultInjected());
                 return HttpResponse.of(jsonObject.toString());
             }
         });
@@ -156,7 +156,7 @@ public class FilibusterServer {
             @ConsumesJson
             public HttpResponse faultInjectedOnService(@Param("service_name") String serviceName) {
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("result", filibusterCore.wasFaultInjectedOnService(serviceName));
+                jsonObject.put("result", FilibusterCore.getCurrentInstance().wasFaultInjectedOnService(serviceName));
                 return HttpResponse.of(jsonObject.toString());
             }
         });
@@ -167,7 +167,7 @@ public class FilibusterServer {
             @ConsumesJson
             public HttpResponse faultInjectedOnMethod(@Param("service_name") String serviceName, @Param("method_name") String methodName) {
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("result", filibusterCore.wasFaultInjectedOnMethod(serviceName, methodName));
+                jsonObject.put("result", FilibusterCore.getCurrentInstance().wasFaultInjectedOnMethod(serviceName, methodName));
                 return HttpResponse.of(jsonObject.toString());
             }
         });

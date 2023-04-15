@@ -42,7 +42,7 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
 
             originalChannel.shutdownNow();
             try {
-                while (! originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+                while (!originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
                     Thread.sleep(4000);
                 }
             } catch (InterruptedException ie) {
@@ -63,7 +63,7 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
 
             originalChannel.shutdownNow();
             try {
-                while (! originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+                while (!originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
                     Thread.sleep(4000);
                 }
             } catch (InterruptedException ie) {
@@ -93,33 +93,6 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         Channel channel = ClientInterceptors.intercept(originalChannel, clientInterceptor);
         handleHelloRequest(req, responseObserver, originalChannel, channel);
     }
-    @Override
-    public void redisWrite(Hello.RedisWriteRequest req, StreamObserver<Hello.RedisReply> responseObserver) {
-        Hello.RedisReply reply = null;
-        try {
-            StatefulRedisConnection<String, String> connection = RedisConnection.getInstance().connection;
-            connection.sync().set(req.getKey(), req.getValue());
-            reply = Hello.RedisReply.newBuilder().setValue("1").build();
-        } catch (Exception e) {
-            reply = Hello.RedisReply.newBuilder().setValue(e.toString()).build();
-        }
-        responseObserver.onNext(reply);
-        responseObserver.onCompleted();
-    }
-
-    @Override
-    public void redisRead(Hello.RedisReadRequest req, StreamObserver<Hello.RedisReply> responseObserver) {
-        Hello.RedisReply reply = null;
-        try {
-            StatefulRedisConnection<String, String> connection = RedisConnection.getInstance().connection;
-            String value = connection.sync().get(req.getKey());
-            reply = Hello.RedisReply.newBuilder().setValue(value).build();
-        } catch (Exception e) {
-            reply = Hello.RedisReply.newBuilder().setValue(e.toString()).build();
-        }
-        responseObserver.onNext(reply);
-        responseObserver.onCompleted();
-    }
 
     @Override
     public void redisHello(Hello.RedisReadRequest req, StreamObserver<Hello.RedisReply> responseObserver) {
@@ -130,7 +103,7 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
 
             if (retrievedValue != null) {  // Return cache value if there is a hit
                 reply = Hello.RedisReply.newBuilder().setValue(retrievedValue).build();
-            } else {  // Else make a call to the Hello service
+            } else {  // Else make a call to the Hello service, the hello service always returns an error
                 ManagedChannel helloChannel = ManagedChannelBuilder
                         .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
                         .usePlaintext()
@@ -148,7 +121,7 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
                 responseObserver.onNext(reply);
                 responseObserver.onCompleted();
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             reply = Hello.RedisReply.newBuilder().setValue(e.toString()).build();
         }
         responseObserver.onNext(reply);

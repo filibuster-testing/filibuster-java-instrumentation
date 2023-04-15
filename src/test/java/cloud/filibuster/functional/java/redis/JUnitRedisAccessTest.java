@@ -13,6 +13,7 @@ import org.junit.jupiter.api.*;
 import java.io.IOException;
 
 import static cloud.filibuster.integration.instrumentation.TestHelper.*;
+import static cloud.filibuster.junit.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -41,9 +42,16 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
         String value = "example";
         redisConnection.sync().set(key, value);
 
-        APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
-        Hello.RedisReadRequest readRequest = Hello.RedisReadRequest.newBuilder().setKey(key).build();
-        Hello.RedisReply reply = blockingStub.redisHello(readRequest);
-        assertEquals(value, reply.getValue());  // This test would fail if a Redis fault is injected
+        try {
+            APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
+            Hello.RedisReadRequest readRequest = Hello.RedisReadRequest.newBuilder().setKey(key).build();
+            Hello.RedisReply reply = blockingStub.redisHello(readRequest);
+            assertEquals(value, reply.getValue());
+        } catch (Throwable t) {
+            if (wasFaultInjected() && t.getMessage().equals("io.grpc.StatusRuntimeException: INTERNAL: java.lang.Exception: An exception was thrown at Hello service")) {
+                return;
+            }
+            throw t;
+        }
     }
 }

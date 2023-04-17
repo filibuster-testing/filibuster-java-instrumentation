@@ -14,6 +14,7 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
+import io.lettuce.core.api.StatefulRedisConnection;
 
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -41,7 +42,7 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
 
             originalChannel.shutdownNow();
             try {
-                while (! originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+                while (!originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
                     Thread.sleep(4000);
                 }
             } catch (InterruptedException ie) {
@@ -62,7 +63,7 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
 
             originalChannel.shutdownNow();
             try {
-                while (! originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+                while (!originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
                     Thread.sleep(4000);
                 }
             } catch (InterruptedException ie) {
@@ -91,5 +92,37 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("api_server");
         Channel channel = ClientInterceptors.intercept(originalChannel, clientInterceptor);
         handleHelloRequest(req, responseObserver, originalChannel, channel);
+    }
+
+    @Override
+    public void redisHello(Hello.RedisRequest req, StreamObserver<Hello.RedisReply> responseObserver) {
+        Hello.RedisReply reply;
+        try {
+            StatefulRedisConnection<String, String> connection = RedisConnection.getInstance().connection;
+            String retrievedValue = connection.sync().get(req.getKey());
+
+            if (retrievedValue != null) {  // Return cache value if there is a hit
+                reply = Hello.RedisReply.newBuilder().setValue(retrievedValue).build();
+            } else {  // Else make a call to the Hello service, the hello service always returns an error
+                ManagedChannel helloChannel = ManagedChannelBuilder
+                        .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
+                        .usePlaintext()
+                        .build();
+                ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("api_server");
+                Channel channel = ClientInterceptors.intercept(helloChannel, clientInterceptor);
+
+                HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(channel);
+                Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName(req.getKey()).build();
+                Hello.HelloReply throwException = blockingStub.throwException(request);
+
+                reply = Hello.RedisReply.newBuilder()
+                        .setValue(throwException.getMessage())
+                        .build();
+            }
+        } catch (RuntimeException e) {
+            reply = Hello.RedisReply.newBuilder().setValue(e.toString()).build();
+        }
+        responseObserver.onNext(reply);
+        responseObserver.onCompleted();
     }
 }

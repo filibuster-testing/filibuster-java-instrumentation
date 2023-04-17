@@ -800,4 +800,10 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
             }
         }
     }
+
+    @Override
+    public void throwException(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
+        Status status = Status.INTERNAL.withDescription(new Exception("An exception was thrown at Hello service").toString());
+        responseObserver.onError(status.asRuntimeException());
+    }
 }

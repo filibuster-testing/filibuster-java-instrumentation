@@ -5,6 +5,7 @@ package cloud.filibuster.examples;
 service APIService {
   rpc Hello (HelloRequest) returns (HelloReply) {};
   rpc HelloWithMock (HelloRequest) returns (HelloReply) {};
+  rpc RedisHello (RedisRequest) returns (RedisReply) {};
 }
 
 service HelloService {
@@ -27,6 +28,7 @@ service HelloService {
   rpc SmellyMultipleInvocationsForIndividualMutations (HelloRequest) returns (HelloReply) {}
   rpc CompositionalHello (HelloExtendedRequest) returns (HelloExtendedReply) {}
   rpc SimplePartialHello (HelloRequest) returns (HelloReply) {}
+  rpc ThrowException (HelloRequest) returns (HelloReply) {}
 }
 
 message HelloRequest {
@@ -69,4 +71,12 @@ message WorldRequest {
 
 message WorldReply {
   string message = 1;
+}
+
+message RedisRequest {
+  string key = 1;
+}
+
+message RedisReply {
+  string value = 1;
 }

@@ -5,7 +5,7 @@ package cloud.filibuster.examples;
 service APIService {
   rpc Hello (HelloRequest) returns (HelloReply) {};
   rpc HelloWithMock (HelloRequest) returns (HelloReply) {};
-  rpc RedisHello (RedisReadRequest) returns (RedisReply) {};
+  rpc RedisHello (RedisRequest) returns (RedisReply) {};
 }
 
 service HelloService {
@@ -73,7 +73,7 @@ message WorldReply {
   string message = 1;
 }
 
-message RedisReadRequest {
+message RedisRequest {
   string key = 1;
 }
 

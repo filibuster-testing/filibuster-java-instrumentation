@@ -44,7 +44,7 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
 
         try {
             APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
-            Hello.RedisReadRequest readRequest = Hello.RedisReadRequest.newBuilder().setKey(key).build();
+            Hello.RedisRequest readRequest = Hello.RedisRequest.newBuilder().setKey(key).build();
             Hello.RedisReply reply = blockingStub.redisHello(readRequest);
             assertEquals(value, reply.getValue());
         } catch (Throwable t) {

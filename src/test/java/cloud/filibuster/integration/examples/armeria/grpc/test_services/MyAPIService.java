@@ -95,8 +95,8 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     }
 
     @Override
-    public void redisHello(Hello.RedisReadRequest req, StreamObserver<Hello.RedisReply> responseObserver) {
-        Hello.RedisReply reply = null;
+    public void redisHello(Hello.RedisRequest req, StreamObserver<Hello.RedisReply> responseObserver) {
+        Hello.RedisReply reply;
         try {
             StatefulRedisConnection<String, String> connection = RedisConnection.getInstance().connection;
             String retrievedValue = connection.sync().get(req.getKey());
@@ -118,8 +118,6 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
                 reply = Hello.RedisReply.newBuilder()
                         .setValue(throwException.getMessage())
                         .build();
-                responseObserver.onNext(reply);
-                responseObserver.onCompleted();
             }
         } catch (RuntimeException e) {
             reply = Hello.RedisReply.newBuilder().setValue(e.toString()).build();

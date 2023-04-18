@@ -322,16 +322,20 @@ task testWithFaultInjection(type: Test) {
     }
 }
 
-task pythonFunctionalTest(type: Test) {
+task testWithFaultInjectionPython(type: Test) {
     useJUnitPlatform()
+
+    systemProperty "filibuster.enabled", "TRUE"
 
     filter {
         includeTestsMatching('cloud.filibuster.functional.python.*')
     }
 }
 
-task dockerFunctionalTests(type: Test) {
+task testWithFaultInjectionDocker(type: Test) {
     useJUnitPlatform()
+
+    systemProperty "filibuster.enabled", "TRUE"
 
     filter {
         includeTestsMatching('cloud.filibuster.functional.docker.*')

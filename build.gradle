@@ -207,7 +207,7 @@ javadoc {
 
 group = "cloud.filibuster"
 archivesBaseName = "instrumentation"
-version = "1.4.2"
+version = "1.5.0"
 
 java {
     withJavadocJar()
@@ -284,7 +284,7 @@ Build-time: ${java.time.LocalDateTime.now()}
 
 sourceSets.main.output.dir genOutputDir, builtBy: generateVersionTxt
 
-task unitTest(type: Test) {
+task testUnit(type: Test) {
     useJUnitPlatform()
 
     filter {
@@ -292,7 +292,7 @@ task unitTest(type: Test) {
     }
 }
 
-task integrationTest(type: Test) {
+task testIntegration(type: Test) {
     useJUnitPlatform()
 
     maxParallelForks = 1
@@ -306,7 +306,7 @@ task integrationTest(type: Test) {
     }
 }
 
-task functionalJavaTest(type: Test) {
+task testWithFaultInjection(type: Test) {
     useJUnitPlatform()
 
     maxParallelForks = 1
@@ -314,36 +314,28 @@ task functionalJavaTest(type: Test) {
     minHeapSize = "128m" // initial heap size
     maxHeapSize = "2048m" // maximum heap size
     jvmArgs '-XX:MaxPermSize=256m' // mem argument for the test JVM
+
+    systemProperty "filibuster.enabled", "TRUE"
 
     filter {
         includeTestsMatching('cloud.filibuster.functional.java.*')
     }
 }
 
-task functionalDegradeJavaTest(type: Test) {
+task testWithFaultInjectionPython(type: Test) {
     useJUnitPlatform()
 
-    maxParallelForks = 1
-    timeout = Duration.ofMinutes(60)
-    minHeapSize = "128m" // initial heap size
-    maxHeapSize = "2048m" // maximum heap size
-    jvmArgs '-XX:MaxPermSize=256m' // mem argument for the test JVM
-
-    filter {
-        includeTestsMatching('cloud.filibuster.functional.java.degrade.*')
-    }
-}
-
-task functionalPythonTest(type: Test) {
-    useJUnitPlatform()
+    systemProperty "filibuster.enabled", "TRUE"
 
     filter {
         includeTestsMatching('cloud.filibuster.functional.python.*')
     }
 }
 
-task functionalDockerTest(type: Test) {
+task testWithFaultInjectionDocker(type: Test) {
     useJUnitPlatform()
+
+    systemProperty "filibuster.enabled", "TRUE"
 
     filter {
         includeTestsMatching('cloud.filibuster.functional.docker.*')

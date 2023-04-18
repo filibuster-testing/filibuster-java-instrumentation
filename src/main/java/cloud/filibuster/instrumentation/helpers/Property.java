@@ -126,6 +126,26 @@ public class Property {
     }
 
     /***********************************************************************************
+     ** filibuster.enabled
+     ***********************************************************************************/
+
+    private final static String ENABLED = "filibuster.enabled";
+
+    public static void setEnabledProperty(boolean value) {
+        System.setProperty(ENABLED, String.valueOf(value));
+    }
+
+    public static boolean getEnabledProperty() {
+        String propertyValue = System.getProperty(ENABLED);
+
+        if (isPropertyNull(propertyValue)) {
+            return false;
+        } else {
+            return Boolean.valueOf(propertyValue);
+        }
+    }
+
+    /***********************************************************************************
      ** filibuster.instrumentation.enabled
      ***********************************************************************************/
 

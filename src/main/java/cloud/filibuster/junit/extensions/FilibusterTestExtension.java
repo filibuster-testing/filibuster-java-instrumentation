@@ -24,6 +24,7 @@ import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider;
 import org.junit.platform.commons.util.AnnotationUtils;
 import org.junit.platform.commons.util.Preconditions;
 
+import static cloud.filibuster.instrumentation.helpers.Property.getEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendDockerImageNameProperty;
 
 @SuppressWarnings("JavaDoc")
@@ -89,10 +90,10 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
 
         HashMap<Integer, Boolean> invocationCompletionMap = new HashMap<>();
 
-        if (System.getenv("FILIBUSTER_DEGRADE") != null) {
+        if (getEnabledProperty()) {
             // @formatter:off
             return IntStream
-                    .rangeClosed(1, 1)
+                    .rangeClosed(1, maxIterations)
                     .mapToObj(iteration -> new FilibusterTestInvocationContext(
                             iteration,
                             maxIterations,
@@ -103,7 +104,7 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
         } else {
             // @formatter:off
             return IntStream
-                    .rangeClosed(1, maxIterations)
+                    .rangeClosed(1, 1)
                     .mapToObj(iteration -> new FilibusterTestInvocationContext(
                             iteration,
                             maxIterations,

@@ -24,9 +24,11 @@ import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider;
 import org.junit.platform.commons.util.AnnotationUtils;
 import org.junit.platform.commons.util.Preconditions;
 
+import static cloud.filibuster.instrumentation.helpers.Property.DATA_NONDETERMINISM_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.MAX_ITERATIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.getEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendDockerImageNameProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.getTestDataNondeterminismProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestMaxIterationsProperty;
 
 @SuppressWarnings("JavaDoc")
@@ -69,6 +71,13 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
             dockerImageName = testWithFaultInjection.dockerImageName();
         } else {
             dockerImageName = getServerBackendDockerImageNameProperty();
+        }
+
+        boolean dataNondeterminism = testWithFaultInjection.dataNondeterminism();
+
+        if (dataNondeterminism == DATA_NONDETERMINISM_DEFAULT) {
+            // Check the property to see if it was set.
+            dataNondeterminism = getTestDataNondeterminismProperty();
         }
 
         FilibusterConfiguration filibusterConfiguration = new FilibusterConfiguration.Builder()

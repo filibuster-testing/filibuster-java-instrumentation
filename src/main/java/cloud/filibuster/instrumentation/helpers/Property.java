@@ -146,6 +146,28 @@ public class Property {
     }
 
     /***********************************************************************************
+     ** filibuster.test.data_nondeterminism
+     ***********************************************************************************/
+
+    public static final boolean DATA_NONDETERMINISM_DEFAULT = false;
+
+    private final static String TEST_DATA_NONDETERMINISM = "filibuster.test.data_nondeterminism";
+
+    public static void setTestDataNondeterminismProperty(boolean value) {
+        System.setProperty(TEST_DATA_NONDETERMINISM, String.valueOf(value));
+    }
+
+    public static boolean getTestDataNondeterminismProperty() {
+        String propertyValue = System.getProperty(TEST_DATA_NONDETERMINISM);
+
+        if (isPropertyNull(propertyValue)) {
+            return DATA_NONDETERMINISM_DEFAULT;
+        } else {
+            return Boolean.valueOf(propertyValue);
+        }
+    }
+
+    /***********************************************************************************
      ** filibuster.test.max_iteratons
      ***********************************************************************************/
 

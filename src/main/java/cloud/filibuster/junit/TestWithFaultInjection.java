@@ -23,6 +23,7 @@ import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.parallel.Isolated;
 
+import static cloud.filibuster.instrumentation.helpers.Property.DATA_NONDETERMINISM_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.MAX_ITERATIONS_DEFAULT;
 
 /**
@@ -147,7 +148,7 @@ public @interface TestWithFaultInjection {
      *
      * @return whether data nondeterminism is present in the test.
      */
-    boolean dataNondeterminism() default false;
+    boolean dataNondeterminism() default DATA_NONDETERMINISM_DEFAULT;
 
     /**
      * Analysis file that should be used for this configuration of Filibuster.

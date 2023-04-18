@@ -44,7 +44,7 @@ import org.junit.jupiter.api.parallel.Isolated;
 @ExtendWith(FilibusterTestExtension.class)
 @TestTemplate
 @Isolated
-public @interface FilibusterTest {
+public @interface TestWithFilibuster {
     /**
      * Placeholder variable for the test name.
      */

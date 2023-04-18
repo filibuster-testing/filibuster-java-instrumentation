@@ -3,7 +3,7 @@ package cloud.filibuster.functional.docker;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.junit.FilibusterTest;
+import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.functional.JUnitBaseTest;
 import cloud.filibuster.junit.server.backends.FilibusterDockerServerBackend;
 import io.grpc.ManagedChannel;
@@ -38,7 +38,7 @@ public class JUnitFilibusterDockerBackendTestCorrectImage extends JUnitBaseTest 
      * @throws InterruptedException if teardown of gRPC channel fails.
      */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest(serverBackend = FilibusterDockerServerBackend.class)
+    @TestWithFilibuster(serverBackend = FilibusterDockerServerBackend.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder

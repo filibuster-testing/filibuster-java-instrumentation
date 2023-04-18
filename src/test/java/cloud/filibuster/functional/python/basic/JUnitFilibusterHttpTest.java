@@ -2,7 +2,7 @@ package cloud.filibuster.functional.python.basic;
 
 import cloud.filibuster.integration.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.junit.FilibusterTest;
+import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
 import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
 import cloud.filibuster.functional.JUnitBaseTest;
@@ -43,7 +43,7 @@ public class JUnitFilibusterHttpTest extends JUnitBaseTest {
      */
     @DisplayName("Test world route with Filibuster.")
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
-    @FilibusterTest(serverBackend=FilibusterLocalProcessServerBackend.class)
+    @TestWithFilibuster(serverBackend=FilibusterLocalProcessServerBackend.class)
     @Order(1)
     public void testHelloAndWorldServiceWithFilibuster() {
         numberOfTestsExecuted++;

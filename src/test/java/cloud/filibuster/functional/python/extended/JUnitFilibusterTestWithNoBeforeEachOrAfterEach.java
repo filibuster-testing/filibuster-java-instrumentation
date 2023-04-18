@@ -7,7 +7,7 @@ import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterServerInterceptor;
-import cloud.filibuster.junit.FilibusterTest;
+import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
 import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
 import io.grpc.ManagedChannel;
@@ -48,7 +48,7 @@ public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
      */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
-    @FilibusterTest(serverBackend=FilibusterLocalProcessServerBackend.class)
+    @TestWithFilibuster(serverBackend=FilibusterLocalProcessServerBackend.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException, IOException {
         MyHelloService.shouldReturnRuntimeExceptionWithCause = false;

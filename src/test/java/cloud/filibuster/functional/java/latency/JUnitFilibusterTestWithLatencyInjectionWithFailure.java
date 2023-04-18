@@ -5,7 +5,7 @@ import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.exceptions.filibuster.FilibusterAllowedTimeExceededException;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.junit.FilibusterTest;
+import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.FilibusterLatencyOnlyAnalysisConfigurationFile;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -27,7 +27,7 @@ public class JUnitFilibusterTestWithLatencyInjectionWithFailure extends JUnitAnn
     private static int numberOfExceptions = 0;
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @FilibusterTest(analysisConfigurationFile=FilibusterLatencyOnlyAnalysisConfigurationFile.class)
+    @TestWithFilibuster(analysisConfigurationFile=FilibusterLatencyOnlyAnalysisConfigurationFile.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws Throwable {
         ManagedChannel helloChannel = ManagedChannelBuilder

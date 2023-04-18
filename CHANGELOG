@@ -1,3 +1,5 @@
+1.5.1:
+   - (cmeiklejohn) Added new assertPassesAndThrowsOnlyUnderFault API.
 1.5.0:
    - (cmeiklejohn) Annotation now requires setting the filibuster.enabled system property to inject faults.
 1.4.2:

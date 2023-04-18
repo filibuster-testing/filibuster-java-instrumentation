@@ -101,6 +101,26 @@ public class Assertions {
     /**
      * Asserts the fault-free execution passes and that the fault executions pass or throw a given exception.
      *
+     * @param testBlock block containing the test code to execute.
+     * @param thrownAssertionBlock block containing the conditional assertions to execute (throws, takes one parameter containing a @Throwable.)
+     */
+    public static void assertPassesAndThrowsOnlyUnderFault(Runnable testBlock, ThrowingConsumer<Throwable> thrownAssertionBlock) throws Throwable {
+        try {
+            testBlock.run();
+        } catch (Throwable t) {
+            if (wasFaultInjected()) {
+                // Test threw, we expected it: now check the conditional, user-provided, assertions.
+                thrownAssertionBlock.accept(t);
+            } else {
+                // Test threw, we didn't inject a fault: throw.
+                throw t;
+            }
+        }
+    }
+
+    /**
+     * Asserts the fault-free execution passes and that the fault executions pass or throw a given exception.
+     *
      * @param milliseconds time the passing executions must be executed within.
      * @param throwable class of exception thrown whenever an exception is thrown.
      * @param testBlock block containing the test code to execute.

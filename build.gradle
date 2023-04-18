@@ -284,7 +284,7 @@ Build-time: ${java.time.LocalDateTime.now()}
 
 sourceSets.main.output.dir genOutputDir, builtBy: generateVersionTxt
 
-task unitTest(type: Test) {
+task testUnit(type: Test) {
     useJUnitPlatform()
 
     filter {
@@ -292,7 +292,7 @@ task unitTest(type: Test) {
     }
 }
 
-task integrationTest(type: Test) {
+task testIntegration(type: Test) {
     useJUnitPlatform()
 
     maxParallelForks = 1
@@ -306,7 +306,7 @@ task integrationTest(type: Test) {
     }
 }
 
-task functionalJavaTest(type: Test) {
+task testWithFaultInjection(type: Test) {
     useJUnitPlatform()
 
     maxParallelForks = 1
@@ -322,7 +322,7 @@ task functionalJavaTest(type: Test) {
     }
 }
 
-task functionalPythonTest(type: Test) {
+task pythonFunctionalTest(type: Test) {
     useJUnitPlatform()
 
     filter {
@@ -330,7 +330,7 @@ task functionalPythonTest(type: Test) {
     }
 }
 
-task functionalDockerTest(type: Test) {
+task dockerFunctionalTests(type: Test) {
     useJUnitPlatform()
 
     filter {

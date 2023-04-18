@@ -26,10 +26,12 @@ import org.junit.platform.commons.util.Preconditions;
 
 import static cloud.filibuster.instrumentation.helpers.Property.DATA_NONDETERMINISM_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.MAX_ITERATIONS_DEFAULT;
+import static cloud.filibuster.instrumentation.helpers.Property.SUPPRESS_COMBINATIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.getEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendDockerImageNameProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestDataNondeterminismProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestMaxIterationsProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.getTestSuppressCombinationsProperty;
 
 @SuppressWarnings("JavaDoc")
 public class FilibusterTestExtension implements TestTemplateInvocationContextProvider {
@@ -80,9 +82,16 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
             dataNondeterminism = getTestDataNondeterminismProperty();
         }
 
+        boolean suppressCombinations = testWithFaultInjection.suppressCombinations();
+
+        if (suppressCombinations == SUPPRESS_COMBINATIONS_DEFAULT) {
+            // Check the property to see if it was set.
+            suppressCombinations = getTestSuppressCombinationsProperty();
+        }
+
         FilibusterConfiguration filibusterConfiguration = new FilibusterConfiguration.Builder()
                 .dynamicReduction(testWithFaultInjection.dynamicReduction())
-                .suppressCombinations(testWithFaultInjection.suppressCombinations())
+                .suppressCombinations(suppressCombinations)
                 .dataNondeterminism(dataNondeterminism)
                 .serverBackend(testWithFaultInjection.serverBackend())
                 .searchStrategy(testWithFaultInjection.searchStrategy())

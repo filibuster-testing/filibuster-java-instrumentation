@@ -190,6 +190,29 @@ public class Property {
     }
 
     /***********************************************************************************
+     ** filibuster.test.suppress_combinations
+     ***********************************************************************************/
+
+    public static final boolean SUPPRESS_COMBINATIONS_DEFAULT = false;
+
+    private final static String TEST_SUPPRESS_COMBINATIONS = "filibuster.test.suppress_combinations";
+
+    public static void setTestSuppressCombinationsProperty(boolean value) {
+        System.setProperty(TEST_SUPPRESS_COMBINATIONS, String.valueOf(value));
+    }
+
+    public static boolean getTestSuppressCombinationsProperty() {
+        String propertyValue = System.getProperty(TEST_SUPPRESS_COMBINATIONS);
+
+        if (isPropertyNull(propertyValue)) {
+            return SUPPRESS_COMBINATIONS_DEFAULT;
+        } else {
+            return Boolean.valueOf(propertyValue);
+        }
+    }
+
+
+    /***********************************************************************************
      ** filibuster.instrumentation.enabled
      ***********************************************************************************/
 

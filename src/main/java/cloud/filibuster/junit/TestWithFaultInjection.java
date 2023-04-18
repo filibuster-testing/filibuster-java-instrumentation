@@ -25,6 +25,7 @@ import org.junit.jupiter.api.parallel.Isolated;
 
 import static cloud.filibuster.instrumentation.helpers.Property.DATA_NONDETERMINISM_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.MAX_ITERATIONS_DEFAULT;
+import static cloud.filibuster.instrumentation.helpers.Property.SUPPRESS_COMBINATIONS_DEFAULT;
 
 /**
  * Filibuster test annotation for JUnit 5.
@@ -128,7 +129,7 @@ public @interface TestWithFaultInjection {
      *
      * @return whether combinations of faults will be suppressed from test.
      */
-    boolean suppressCombinations() default false;
+    boolean suppressCombinations() default SUPPRESS_COMBINATIONS_DEFAULT;
 
     /**
      * Does this test configuration contain data nondeterminism?

@@ -29,6 +29,7 @@ import static cloud.filibuster.instrumentation.helpers.Property.MAX_ITERATIONS_D
 import static cloud.filibuster.instrumentation.helpers.Property.SUPPRESS_COMBINATIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.getEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendDockerImageNameProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.getTestAnalysisFileProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestDataNondeterminismProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestMaxIterationsProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestSuppressCombinationsProperty;
@@ -59,8 +60,13 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
         FilibusterTestDisplayNameFormatter formatter = displayNameFormatter(testWithFaultInjection, testMethod, displayName);
 
         if (! testWithFaultInjection.analysisFile().isEmpty()) {
+            // Annotation analysisFile always takes precedence.
             analysisFile = testWithFaultInjection.analysisFile();
+        } else if (! getTestAnalysisFileProperty().isEmpty()) {
+            // Property next.
+            analysisFile = getTestAnalysisFileProperty();
         } else {
+            // ...then analysis configuration file annotation.
             analysisFile = "/tmp/filibuster-analysis-file";
             classToCustomAnalysisConfigurationFile(testWithFaultInjection, analysisFile);
         }

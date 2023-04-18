@@ -24,6 +24,7 @@ import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider;
 import org.junit.platform.commons.util.AnnotationUtils;
 import org.junit.platform.commons.util.Preconditions;
 
+import static cloud.filibuster.instrumentation.helpers.Property.getEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendDockerImageNameProperty;
 
 @SuppressWarnings("JavaDoc")
@@ -89,17 +90,29 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
 
         HashMap<Integer, Boolean> invocationCompletionMap = new HashMap<>();
 
-        // @formatter:off
-        return IntStream
-                .rangeClosed(1, maxIterations)
-                .mapToObj(iteration -> new FilibusterTestInvocationContext(
-                        iteration,
-                        maxIterations,
-                        formatter,
-                        filibusterConfiguration,
-                        invocationCompletionMap));
-        // @formatter:on
-
+        if (getEnabledProperty()) {
+            // @formatter:off
+            return IntStream
+                    .rangeClosed(1, maxIterations)
+                    .mapToObj(iteration -> new FilibusterTestInvocationContext(
+                            iteration,
+                            maxIterations,
+                            formatter,
+                            filibusterConfiguration,
+                            invocationCompletionMap));
+            // @formatter:on
+        } else {
+            // @formatter:off
+            return IntStream
+                    .rangeClosed(1, 1)
+                    .mapToObj(iteration -> new FilibusterTestInvocationContext(
+                            iteration,
+                            maxIterations,
+                            formatter,
+                            filibusterConfiguration,
+                            invocationCompletionMap));
+            // @formatter:on
+        }
     }
 
     private static void classToCustomAnalysisConfigurationFile(TestWithFaultInjection testWithFaultInjection, String analysisFile) {

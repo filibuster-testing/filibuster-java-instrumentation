@@ -25,9 +25,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.instrumentation.helpers.Property.DATA_NONDETERMINISM_DEFAULT;
-import static cloud.filibuster.instrumentation.helpers.Property.MAX_ITERATIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.setTestDataNondeterminismProperty;
-import static cloud.filibuster.instrumentation.helpers.Property.setTestMaxIterationsProperty;
 import static cloud.filibuster.junit.Assertions.assertPassesAndThrowsOnlyUnderFault;
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
@@ -39,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @FilibusterConditionalByEnvironmentSuite
 public class DataNondeterminismJUnitFilibusterTest extends JUnitAnnotationBaseTest {
 
+    // Test will fail to inject any faults and terminate unless data nondeterminism is set to true.
     @BeforeAll
     public static void setDataNondeterminismProperty() {
         setTestDataNondeterminismProperty(true);
@@ -75,10 +74,11 @@ public class DataNondeterminismJUnitFilibusterTest extends JUnitAnnotationBaseTe
                 .build();
 
         assertPassesAndThrowsOnlyUnderFault(() -> {
+            double random = Math.random();
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
-            Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
+            Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian " + random).build();
             Hello.HelloReply reply = blockingStub.partialHello(request);
-            assertEquals("Hello, Armerian World!!", reply.getMessage());
+            assertEquals("Hello, Armerian " + random + " World!!", reply.getMessage());
         }, (t) -> {
             testExceptionsThrown.add(t.getMessage());
 

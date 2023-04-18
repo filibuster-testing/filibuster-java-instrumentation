@@ -83,7 +83,7 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
         FilibusterConfiguration filibusterConfiguration = new FilibusterConfiguration.Builder()
                 .dynamicReduction(testWithFaultInjection.dynamicReduction())
                 .suppressCombinations(testWithFaultInjection.suppressCombinations())
-                .dataNondeterminism(testWithFaultInjection.dataNondeterminism())
+                .dataNondeterminism(dataNondeterminism)
                 .serverBackend(testWithFaultInjection.serverBackend())
                 .searchStrategy(testWithFaultInjection.searchStrategy())
                 .dockerImageName(dockerImageName)

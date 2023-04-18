@@ -3,7 +3,7 @@ package cloud.filibuster.functional.python.basic;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.junit.TestWithFaultInjection;
+import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
 import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
 import cloud.filibuster.functional.JUnitBaseTest;
@@ -42,7 +42,7 @@ public class JUnitFilibusterFailingTest extends JUnitBaseTest {
      */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
-    @TestWithFaultInjection(serverBackend=FilibusterLocalProcessServerBackend.class, expected=StatusRuntimeException.class)
+    @FilibusterTest(serverBackend=FilibusterLocalProcessServerBackend.class, expected=StatusRuntimeException.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         // Intentionally use a bad port.

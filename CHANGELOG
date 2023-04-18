@@ -1,3 +1,7 @@
+1.5.0:
+   - (cmeiklejohn) Switched back to FilibusterTest for annotation language.
+   - (cmeiklejohn) Introduced TestWithFaultInjection annotation.
+   - (cmeiklejohn) Introduced new system property for TestWithFaultInjection annotation that degrades to JUnit.
 1.4.2:
    - (jiujiu1123) Fix small memory leak issue where references to FilibusterCore was kept
 1.4.1:

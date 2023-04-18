@@ -4,7 +4,7 @@ import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.junit.TestWithFaultInjection;
+import cloud.filibuster.junit.FilibusterTest;
 import cloud.filibuster.junit.configuration.examples.FilibusterLatencyOnlyAnalysisConfigurationFile;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -24,7 +24,7 @@ public class JUnitFilibusterTestWithLatencyInjection extends JUnitAnnotationBase
     private static int numberOfTestsExecuted = 0;
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @TestWithFaultInjection(analysisConfigurationFile=FilibusterLatencyOnlyAnalysisConfigurationFile.class)
+    @FilibusterTest(analysisConfigurationFile=FilibusterLatencyOnlyAnalysisConfigurationFile.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws Throwable {
         ManagedChannel helloChannel = ManagedChannelBuilder

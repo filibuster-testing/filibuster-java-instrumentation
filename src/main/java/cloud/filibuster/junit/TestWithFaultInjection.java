@@ -23,6 +23,8 @@ import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.parallel.Isolated;
 
+import static cloud.filibuster.instrumentation.helpers.Property.MAX_ITERATIONS_DEFAULT;
+
 /**
  * Filibuster test annotation for JUnit 5.
  *
@@ -106,7 +108,7 @@ public @interface TestWithFaultInjection {
      *
      * @return upper bound on possible Filibuster tests that will be run.
      */
-    int maxIterations() default 99;
+    int maxIterations() default MAX_ITERATIONS_DEFAULT;
 
     /**
      * Should this configuration use dynamic reduction?

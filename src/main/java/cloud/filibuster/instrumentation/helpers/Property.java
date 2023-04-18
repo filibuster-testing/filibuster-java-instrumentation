@@ -146,6 +146,28 @@ public class Property {
     }
 
     /***********************************************************************************
+     ** filibuster.test.max_iteratons
+     ***********************************************************************************/
+
+    public static final int MAX_ITERATIONS_DEFAULT = 99;
+
+    private final static String TEST_MAX_ITERATIONS = "filibuster.test.max_iterations";
+
+    public static void setTestMaxIterationsProperty(int value) {
+        System.setProperty(TEST_MAX_ITERATIONS, String.valueOf(value));
+    }
+
+    public static int getTestMaxIterationsProperty() {
+        String propertyValue = System.getProperty(TEST_MAX_ITERATIONS);
+
+        if (isPropertyNull(propertyValue)) {
+            return MAX_ITERATIONS_DEFAULT;
+        } else {
+            return Integer.valueOf(propertyValue);
+        }
+    }
+
+    /***********************************************************************************
      ** filibuster.instrumentation.enabled
      ***********************************************************************************/
 

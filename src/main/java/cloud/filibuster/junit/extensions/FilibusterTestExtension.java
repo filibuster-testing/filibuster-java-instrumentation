@@ -24,8 +24,10 @@ import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider;
 import org.junit.platform.commons.util.AnnotationUtils;
 import org.junit.platform.commons.util.Preconditions;
 
+import static cloud.filibuster.instrumentation.helpers.Property.MAX_ITERATIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.getEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendDockerImageNameProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.getTestMaxIterationsProperty;
 
 @SuppressWarnings("JavaDoc")
 public class FilibusterTestExtension implements TestTemplateInvocationContextProvider {
@@ -132,6 +134,12 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
 
     private static int maxIterations(TestWithFaultInjection testWithFaultInjection, Method method) {
         int repetitions = testWithFaultInjection.maxIterations();
+
+        if (repetitions == MAX_ITERATIONS_DEFAULT) {
+            // Check the property to see if it was set.
+            repetitions = getTestMaxIterationsProperty();
+        }
+
         Preconditions.condition(repetitions > 0, () -> String.format(
                 "Configuration error: @FilibusterTest on method [%s] must be declared with a positive 'maxIterations'.", method));
         return repetitions;

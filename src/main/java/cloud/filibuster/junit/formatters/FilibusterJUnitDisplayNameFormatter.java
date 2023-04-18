@@ -5,13 +5,13 @@ import static cloud.filibuster.junit.TestWithFilibuster.DISPLAY_NAME_PLACEHOLDER
 import static cloud.filibuster.junit.TestWithFilibuster.TOTAL_ITERATIONS_PLACEHOLDER;
 
 @SuppressWarnings("JavaDoc")
-public class FilibusterTestDisplayNameFormatter {
+public class FilibusterJUnitDisplayNameFormatter {
     private final String firstPattern;
     private final String standardPattern;
     private final String displayName;
 
     @SuppressWarnings("JavaDoc")
-    public FilibusterTestDisplayNameFormatter(String firstPattern, String standardPattern, String displayName) {
+    public FilibusterJUnitDisplayNameFormatter(String firstPattern, String standardPattern, String displayName) {
         this.firstPattern = firstPattern;
         this.standardPattern = standardPattern;
         this.displayName = displayName;

@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.extensions;
+package cloud.filibuster.junit;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -8,13 +8,11 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedCustomAnalysisFileException;
-import cloud.filibuster.junit.FilibusterSearchStrategy;
-import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
-import cloud.filibuster.junit.formatters.FilibusterTestDisplayNameFormatter;
-import cloud.filibuster.junit.interceptors.FilibusterTestInvocationContext;
+import cloud.filibuster.junit.formatters.FilibusterJUnitDisplayNameFormatter;
+import cloud.filibuster.junit.interceptors.FilibusterJUnitInvocationContext;
 import cloud.filibuster.junit.server.FilibusterServerBackend;
 import cloud.filibuster.junit.server.latency.FilibusterLatencyProfile;
 import cloud.filibuster.junit.server.latency.FilibusterNoLatencyProfile;
@@ -27,7 +25,7 @@ import org.junit.platform.commons.util.Preconditions;
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendDockerImageNameProperty;
 
 @SuppressWarnings("JavaDoc")
-public class FilibusterTestExtension implements TestTemplateInvocationContextProvider {
+public class FilibusterJUnitExtension implements TestTemplateInvocationContextProvider {
     @Override
     public boolean supportsTestTemplate(ExtensionContext context) {
         return AnnotationUtils.isAnnotated(context.getTestMethod(), TestWithFilibuster.class);
@@ -40,16 +38,16 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
         String displayName = context.getDisplayName();
         String analysisFile;
 
-        Preconditions.condition(AnnotationUtils.findAnnotation(testMethod, TestWithFilibuster.class).isPresent(), () ->
-                "Configuration error: @FilibusterTest must be used on any methods extended with FilibusterTestExtension.'.");
+        validateCorrectAnnotation(testMethod);
+
         TestWithFilibuster testWithFilibuster = AnnotationUtils.findAnnotation(testMethod, TestWithFilibuster.class).get();
 
         // Increase iterations by 1.
         // Last iteration doesn't actually run and is used only for teardown of the Filibuster server process.
-        int specifiedMaxIterations = maxIterations(testWithFilibuster, testMethod);
+        int specifiedMaxIterations = validateMaxIterations(testWithFilibuster, testMethod);
         int maxIterations = specifiedMaxIterations + 1;
 
-        FilibusterTestDisplayNameFormatter formatter = displayNameFormatter(testWithFilibuster, testMethod, displayName);
+        FilibusterJUnitDisplayNameFormatter formatter = displayNameFormatter(testWithFilibuster, testMethod, displayName);
 
         if (! testWithFilibuster.analysisFile().isEmpty()) {
             analysisFile = testWithFilibuster.analysisFile();
@@ -93,7 +91,7 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
             // @formatter:off
             return IntStream
                     .rangeClosed(1, 1)
-                    .mapToObj(iteration -> new FilibusterTestInvocationContext(
+                    .mapToObj(iteration -> new FilibusterJUnitInvocationContext(
                             iteration,
                             maxIterations,
                             formatter,
@@ -104,7 +102,7 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
             // @formatter:off
             return IntStream
                     .rangeClosed(1, maxIterations)
-                    .mapToObj(iteration -> new FilibusterTestInvocationContext(
+                    .mapToObj(iteration -> new FilibusterJUnitInvocationContext(
                             iteration,
                             maxIterations,
                             formatter,
@@ -129,10 +127,10 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
         filibusterAnalysisConfigurationFile.writeToDisk(analysisFile);
     }
 
-    private static int maxIterations(TestWithFilibuster testWithFilibuster, Method method) {
+    private static int validateMaxIterations(TestWithFilibuster testWithFilibuster, Method method) {
         int repetitions = testWithFilibuster.maxIterations();
         Preconditions.condition(repetitions > 0, () -> String.format(
-                "Configuration error: @FilibusterTest on method [%s] must be declared with a positive 'maxIterations'.", method));
+                "Configuration error: @FilibusterTest on method [%s] must be declared with a positive 'validateMaxIterations'.", method));
         return repetitions;
     }
 
@@ -156,11 +154,16 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
 
     }
 
-    private static FilibusterTestDisplayNameFormatter displayNameFormatter(TestWithFilibuster testWithFilibuster, Method method, String displayName) {
+    private static FilibusterJUnitDisplayNameFormatter displayNameFormatter(TestWithFilibuster testWithFilibuster, Method method, String displayName) {
         String initialName = Preconditions.notBlank(testWithFilibuster.initialName().trim(), () -> String.format(
                 "Configuration error: @FilibusterTest on method [%s] must be declared with a non-empty name.", method));
         String generatedName = Preconditions.notBlank(testWithFilibuster.name().trim(), () -> String.format(
                 "Configuration error: @FilibusterTest on method [%s] must be declared with a non-empty name.", method));
-        return new FilibusterTestDisplayNameFormatter(initialName, generatedName, displayName);
+        return new FilibusterJUnitDisplayNameFormatter(initialName, generatedName, displayName);
+    }
+
+    private static void validateCorrectAnnotation(Method testMethod) {
+        Preconditions.condition(AnnotationUtils.findAnnotation(testMethod, TestWithFilibuster.class).isPresent(), () ->
+                "Configuration error: @FilibusterTest must be used on any methods extended with FilibusterTestExtension.'.");
     }
 }

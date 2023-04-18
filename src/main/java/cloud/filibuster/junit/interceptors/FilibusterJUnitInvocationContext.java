@@ -2,7 +2,7 @@ package cloud.filibuster.junit.interceptors;
 
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.junit.resolvers.FilibusterIterationInfoParameterResolver;
-import cloud.filibuster.junit.formatters.FilibusterTestDisplayNameFormatter;
+import cloud.filibuster.junit.formatters.FilibusterJUnitDisplayNameFormatter;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContext;
 
@@ -11,18 +11,18 @@ import java.util.HashMap;
 import java.util.List;
 
 @SuppressWarnings("JavaDoc")
-public class FilibusterTestInvocationContext implements TestTemplateInvocationContext {
+public class FilibusterJUnitInvocationContext implements TestTemplateInvocationContext {
     private final int currentIteration;
     private final int maxIterations;
-    private final FilibusterTestDisplayNameFormatter formatter;
+    private final FilibusterJUnitDisplayNameFormatter formatter;
     private final FilibusterConfiguration filibusterConfiguration;
     private final HashMap<Integer, Boolean> invocationCompletionMap;
 
     @SuppressWarnings("JavaDoc")
-    public FilibusterTestInvocationContext(
+    public FilibusterJUnitInvocationContext(
             int currentIteration,
             int maxIterations,
-            FilibusterTestDisplayNameFormatter formatter,
+            FilibusterJUnitDisplayNameFormatter formatter,
             FilibusterConfiguration filibusterConfiguration,
             HashMap<Integer, Boolean> invocationCompletionMap) {
         this.currentIteration = currentIteration;

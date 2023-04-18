@@ -9,7 +9,6 @@ import java.lang.annotation.Target;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.examples.FilibusterDefaultAnalysisConfigurationFile;
 import cloud.filibuster.exceptions.filibuster.FilibusterNoopException;
-import cloud.filibuster.junit.extensions.FilibusterTestExtension;
 
 import cloud.filibuster.junit.server.FilibusterServerBackend;
 import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
@@ -41,7 +40,7 @@ import org.junit.jupiter.api.parallel.Isolated;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @API(status = API.Status.STABLE, since = "5.0")
-@ExtendWith(FilibusterTestExtension.class)
+@ExtendWith(FilibusterJUnitExtension.class)
 @TestTemplate
 @Isolated
 public @interface TestWithFilibuster {

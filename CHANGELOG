@@ -1,3 +1,5 @@
+1.5.2:
+   - (cmeiklejohn) UX cleanup.
 1.5.1:
    - (cmeiklejohn) Added new assertPassesAndThrowsOnlyUnderFault API.
    - (cmeiklejohn) Add system properties for data nondeterminism, combination suppression, max iterations, and analysis configuration.

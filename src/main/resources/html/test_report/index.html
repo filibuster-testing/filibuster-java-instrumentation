@@ -64,6 +64,8 @@
 			font-weight: bold;
 			padding: 10px;
             vertical-align: top;
+            font-size: 11px;
+            text-align: left;
 		}
 
 		td {
@@ -129,11 +131,6 @@
             float: left;
         }
 
-        table.reports {
-            float: left;
-            width: 80px;
-        }
-
         div.results {
             width: 90%;
             float: left;
@@ -152,38 +149,29 @@
             font-size: 10px;
         }
 
-        .server {
-            float: left;
-            margin-bottom: 10px;
-        }
-
         h1 {
             margin-bottom: 0px;
         }
 	</style>
 </head>
 
-<body>
-<section>
-    <h1 id='status'>Filibuster Test Coverage</h1>
-    <div class="container">
+<body style="margin: 0 auto;">
+<section style="margin: 0 auto;">
+    <div class="container" style="margin: 0 auto;">
         <div id="summary" class="summary">
             <table id="reports" class="reports">
                 <tr>
-                    <th>Tests
+                    <th>
+                        <a href="#" onClick="togglePasses();">Tests</a>
                         <br />
-                        <span id="total" class="small"></span>
-                        <br />
-                        <a class="verysmall" href="#" onClick="togglePasses();">Toggle Pass/Fail</a>
+                        <span id="total" class="verysmall"></span>
                     </th>
                 </tr>
             </table>
         </div>
 
-        <div id="results" class="results"></div>
+        <div id="results" class="results" style="background-color: red;"></div>
     </div>
-    </div>
-
 
     <script>
         function togglePasses() {
@@ -202,7 +190,7 @@
                 var row = '';
 
                 if (report.iteration === 1) {
-                    var iframe = '<iframe frameborder="0" scrolling="auto" src="' + report.path + '" name="filibuster_frame" height="800px" width="100%"></iframe>';
+                    var iframe = '<iframe frameborder="0" scrolling="auto" src="' + report.path + '" name="test_execution_frame" height="800px" width="100%"></iframe>';
                     $('#results').append(iframe);
                 }
 
@@ -221,12 +209,7 @@
                 }
 
                 row += '<td>';
-                row += '<a target="filibuster_frame" href="' + report.path + '">' + report.iteration + '</a>';
-
-                if (report.iteration === 1) {
-                    row += '<br /><span class="verysmall">(fault-free)</span>';
-                }
-
+                row += '<a target="test_execution_frame" href="' + report.path + '">' + report.iteration + '</a>';
                 row += '</td>';
                 row += '</tr>';
 

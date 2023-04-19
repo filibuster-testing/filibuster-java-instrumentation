@@ -24,8 +24,15 @@ import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider;
 import org.junit.platform.commons.util.AnnotationUtils;
 import org.junit.platform.commons.util.Preconditions;
 
+import static cloud.filibuster.instrumentation.helpers.Property.DATA_NONDETERMINISM_DEFAULT;
+import static cloud.filibuster.instrumentation.helpers.Property.MAX_ITERATIONS_DEFAULT;
+import static cloud.filibuster.instrumentation.helpers.Property.SUPPRESS_COMBINATIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.getEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendDockerImageNameProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.getTestAnalysisFileProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.getTestDataNondeterminismProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.getTestMaxIterationsProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.getTestSuppressCombinationsProperty;
 
 @SuppressWarnings("JavaDoc")
 public class FilibusterTestExtension implements TestTemplateInvocationContextProvider {
@@ -53,8 +60,13 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
         FilibusterTestDisplayNameFormatter formatter = displayNameFormatter(testWithFaultInjection, testMethod, displayName);
 
         if (! testWithFaultInjection.analysisFile().isEmpty()) {
+            // Annotation analysisFile always takes precedence.
             analysisFile = testWithFaultInjection.analysisFile();
+        } else if (! getTestAnalysisFileProperty().isEmpty()) {
+            // Property next.
+            analysisFile = getTestAnalysisFileProperty();
         } else {
+            // ...then analysis configuration file annotation.
             analysisFile = "/tmp/filibuster-analysis-file";
             classToCustomAnalysisConfigurationFile(testWithFaultInjection, analysisFile);
         }
@@ -69,10 +81,24 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
             dockerImageName = getServerBackendDockerImageNameProperty();
         }
 
+        boolean dataNondeterminism = testWithFaultInjection.dataNondeterminism();
+
+        if (dataNondeterminism == DATA_NONDETERMINISM_DEFAULT) {
+            // Check the property to see if it was set.
+            dataNondeterminism = getTestDataNondeterminismProperty();
+        }
+
+        boolean suppressCombinations = testWithFaultInjection.suppressCombinations();
+
+        if (suppressCombinations == SUPPRESS_COMBINATIONS_DEFAULT) {
+            // Check the property to see if it was set.
+            suppressCombinations = getTestSuppressCombinationsProperty();
+        }
+
         FilibusterConfiguration filibusterConfiguration = new FilibusterConfiguration.Builder()
                 .dynamicReduction(testWithFaultInjection.dynamicReduction())
-                .suppressCombinations(testWithFaultInjection.suppressCombinations())
-                .dataNondeterminism(testWithFaultInjection.dataNondeterminism())
+                .suppressCombinations(suppressCombinations)
+                .dataNondeterminism(dataNondeterminism)
                 .serverBackend(testWithFaultInjection.serverBackend())
                 .searchStrategy(testWithFaultInjection.searchStrategy())
                 .dockerImageName(dockerImageName)
@@ -132,6 +158,12 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
 
     private static int maxIterations(TestWithFaultInjection testWithFaultInjection, Method method) {
         int repetitions = testWithFaultInjection.maxIterations();
+
+        if (repetitions == MAX_ITERATIONS_DEFAULT) {
+            // Check the property to see if it was set.
+            repetitions = getTestMaxIterationsProperty();
+        }
+
         Preconditions.condition(repetitions > 0, () -> String.format(
                 "Configuration error: @FilibusterTest on method [%s] must be declared with a positive 'maxIterations'.", method));
         return repetitions;

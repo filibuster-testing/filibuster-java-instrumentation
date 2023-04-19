@@ -146,6 +146,92 @@ public class Property {
     }
 
     /***********************************************************************************
+     ** filibuster.test.data_nondeterminism
+     ***********************************************************************************/
+
+    public static final boolean DATA_NONDETERMINISM_DEFAULT = false;
+
+    private final static String TEST_DATA_NONDETERMINISM = "filibuster.test.data_nondeterminism";
+
+    public static void setTestDataNondeterminismProperty(boolean value) {
+        System.setProperty(TEST_DATA_NONDETERMINISM, String.valueOf(value));
+    }
+
+    public static boolean getTestDataNondeterminismProperty() {
+        String propertyValue = System.getProperty(TEST_DATA_NONDETERMINISM);
+
+        if (isPropertyNull(propertyValue)) {
+            return DATA_NONDETERMINISM_DEFAULT;
+        } else {
+            return Boolean.valueOf(propertyValue);
+        }
+    }
+
+    /***********************************************************************************
+     ** filibuster.test.max_iteratons
+     ***********************************************************************************/
+
+    public static final int MAX_ITERATIONS_DEFAULT = 99;
+
+    private final static String TEST_MAX_ITERATIONS = "filibuster.test.max_iterations";
+
+    public static void setTestMaxIterationsProperty(int value) {
+        System.setProperty(TEST_MAX_ITERATIONS, String.valueOf(value));
+    }
+
+    public static int getTestMaxIterationsProperty() {
+        String propertyValue = System.getProperty(TEST_MAX_ITERATIONS);
+
+        if (isPropertyNull(propertyValue)) {
+            return MAX_ITERATIONS_DEFAULT;
+        } else {
+            return Integer.valueOf(propertyValue);
+        }
+    }
+
+    /***********************************************************************************
+     ** filibuster.test.suppress_combinations
+     ***********************************************************************************/
+
+    public static final boolean SUPPRESS_COMBINATIONS_DEFAULT = false;
+
+    private final static String TEST_SUPPRESS_COMBINATIONS = "filibuster.test.suppress_combinations";
+
+    public static void setTestSuppressCombinationsProperty(boolean value) {
+        System.setProperty(TEST_SUPPRESS_COMBINATIONS, String.valueOf(value));
+    }
+
+    public static boolean getTestSuppressCombinationsProperty() {
+        String propertyValue = System.getProperty(TEST_SUPPRESS_COMBINATIONS);
+
+        if (isPropertyNull(propertyValue)) {
+            return SUPPRESS_COMBINATIONS_DEFAULT;
+        } else {
+            return Boolean.valueOf(propertyValue);
+        }
+    }
+
+    /***********************************************************************************
+     ** filibuster.test.analysis_file
+     ***********************************************************************************/
+
+    private final static String TEST_ANALYSIS_FILE = "filibuster.test.analysis_file";
+
+    public static void setTestAnalysisFileProperty(String value) {
+        System.setProperty(TEST_ANALYSIS_FILE, String.valueOf(value));
+    }
+
+    public static String getTestAnalysisFileProperty() {
+        String propertyValue = System.getProperty(TEST_ANALYSIS_FILE);
+
+        if (isPropertyNull(propertyValue)) {
+            return "";
+        } else {
+            return propertyValue;
+        }
+    }
+
+    /***********************************************************************************
      ** filibuster.instrumentation.enabled
      ***********************************************************************************/
 

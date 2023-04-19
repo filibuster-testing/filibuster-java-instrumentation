@@ -61,15 +61,11 @@
 
 		th,
 		td {
-			font-weight: bold;
 			padding: 10px;
             vertical-align: top;
             font-size: 11px;
             text-align: left;
-		}
-
-		td {
-            font-weight: lighter;
+            font-weight: normal;
 		}
 
         tr.pass {
@@ -132,7 +128,7 @@
         }
 
         div.results {
-            width: 90%;
+            width: 95%;
             float: left;
         }
 
@@ -152,6 +148,15 @@
         h1 {
             margin-bottom: 0px;
         }
+
+        iframe {
+            margin: 0;
+            padding: 0;
+            display: block;  /* iframes are inline by default */
+            height: 100vh;  /* Set height to 100% of the viewport height */
+            width: 90vw;  /* Set width to 100% of the viewport width */
+            border: none; /* Remove default border */
+        }
 	</style>
 </head>
 
@@ -170,7 +175,7 @@
             </table>
         </div>
 
-        <div id="results" class="results" style="background-color: red;"></div>
+        <div id="results" class="results"></div>
     </div>
 
     <script>
@@ -190,7 +195,7 @@
                 var row = '';
 
                 if (report.iteration === 1) {
-                    var iframe = '<iframe frameborder="0" scrolling="auto" src="' + report.path + '" name="test_execution_frame" height="800px" width="100%"></iframe>';
+                    var iframe = '<iframe frameborder="0" marginwidth="0" marginheight="0" scrolling="auto" src="' + report.path + '" name="test_execution_frame" height="800px" width="100%"></iframe>';
                     $('#results').append(iframe);
                 }
 

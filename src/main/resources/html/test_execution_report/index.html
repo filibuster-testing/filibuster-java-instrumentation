@@ -16,8 +16,6 @@
         }
 
 		table {
-			font-size: large;
-            min-width: 1200px;
             width: 100%;
 		}
 
@@ -33,18 +31,16 @@
         }
 
         .fail {
-            font-weight: bold;
             color: red;
         }
 
         .pass {
-            font-weight: bold;
             color: green;
         }
 
         textarea {
             width: 100%;
-            height: 80px;
+            height: 50px;
             padding: 10px 10px;
             box-sizing: border-box;
             border: 2px solid #ccc;
@@ -63,10 +59,14 @@
 			font-weight: bold;
 			padding: 10px;
             vertical-align: top;
+            font-size: 11px;
+            text-align: left;
+            font-weight: normal;
 		}
 
 		td {
-            font-weight: lighter;
+            text-align: left;
+            font-weight: normal;
 		}
 
         tr.success {
@@ -105,10 +105,6 @@
             font-size: xx-small;
         }
 
-        td.generated_id {
-			text-align: center;
-        }
-
         td.method, td.generated_id {
             padding: 12px 20px;
             font-family: 'Inconsolata';
@@ -129,19 +125,23 @@
         .debug {
             display: none;
         }
+
+        section {
+            margin: 0px;
+            padding: 0px;
+        }
+
+        table {
+            padding: 0px;
+            margin: 0px;
+        }
 	</style>
 </head>
 
 <body>
 <section>
-    <h3 id='status'></h3>
-    <div style="float: left"><a href="#" onClick="toggleDebug();">Toggle Debugging Information</a></div>
-    <br />
-
     <table id='rpcs'>
         <tr>
-            <th>#</th>
-            <!-- <th>RPC Identifier</th> -->
             <th>RPC Method</th>
             <th>RPC Arguments</th>
             <th>RPC Response</th>
@@ -161,18 +161,13 @@
                 $('tr.debug').toggle();
             }
 
+            function substringNamespace(name) {
+                return name.substring(name.lastIndexOf(".") + 1)
+            }
+
             $(document).ready(function () {
                 var status = analysis.status;
                 var iteration = analysis.iteration;
-                if (status) {
-                    $('#status').html("Generated Test Execution " + iteration + " <br />" +
-                        "<span>"+ analysis.test_name+ "</span><br />" +
-                        "<span class='pass'>Test Passed</span>");
-                } else {
-                    $('#status').html("Generated Test Execution " + iteration + " <br />" +
-                        "<span>"+ analysis.test_name+ "</span><br />" +
-                        "<span class='fail'>Test Failed</span>");
-                }
 
                 for (i in analysis.rpcs) {
                     var rpc = analysis.rpcs[i];
@@ -193,20 +188,9 @@
                         row += '<tr class="fault">';
                     }
 
-                    var generated_id;
-
-                    if ('generated_id' in rpc) {
-                        generated_id = rpc.generated_id;
-                    } else {
-                        generated_id = 'X';
-                    }
-
-                    row += '<td class="generated_id">' + generated_id + '</td>';
-
-                    row += '<td class="method">' + rpc.request.method + '</td>';
-
+                    row += '<td class="method">' + substringNamespace(rpc.request.method) + '</td>';
                     row += '<td class="args">';
-                    row += '<div class="class_name">' + rpc.request.args.__class__ + '</div>';
+                    row += '<div class="class_name">' + substringNamespace(rpc.request.args.__class__) + '</div>';
                     row += '<textarea>';
                     row += rpc.request.args.toString;
                     row += '</textarea>'
@@ -216,7 +200,7 @@
                         row += '<td>⚠️ No RPC response was recorded.</td>';
                     } else if (isExceptionResponse) {
                         row += '<td>';
-                        row += '<div class="class_name">' + rpc.response.exception.name + '</div>';
+                        row += '<div class="class_name">' + substringNamespace(rpc.response.exception.name) + '</div>';
                         row += '<textarea>';
                         row += 'code = ' + rpc.response.exception.metadata.code;
 
@@ -236,7 +220,7 @@
                     } else {
                         console.log(rpc.response.return_value);
                         row += '<td class="response">';
-                        row += '<div class="class_name">' + rpc.response.return_value.__class__ + '</div>';
+                        row += '<div class="class_name">' + substringNamespace(rpc.response.return_value.__class__) + '</div>';
                         row += '<textarea>';
                         row += rpc.response.return_value.toString;
                         row += '</textarea>'
@@ -250,7 +234,7 @@
 
                         if ('forced_exception' in rpc.fault) {
                             row += '<td>';
-                            row += '<div class="class_name">' + rpc.fault.forced_exception.name + '</div>';
+                            row += '<div class="class_name">' + substringNamespace(rpc.fault.forced_exception.name) + '</div>';
                             row += '<textarea>';
                             row += 'code = ' + rpc.fault.forced_exception.metadata.code;
 
@@ -291,17 +275,6 @@
                     row += '</tr>';
                     $('#rpcs').append(row);
 
-                    var row = '';
-                    row += '<tr class="debug">';
-                    row += '<td colspan="6" class="dei">';
-                    row += '<div class="class_name">' + 'cloud.filibuster.dei.DistributedExecutionIndexV1' + '</div>';
-                    row += '<textarea>';
-                    row += rpc.dei;
-                    row += '</textarea>'
-                    row += '</td>';
-                    row += '</tr>';
-                    $('#rpcs').append(row);
-
                     console.log(rpc.warnings);
 
                     for (i in rpc.warnings) {
@@ -310,7 +283,7 @@
                         row += '<tr class="warning">';
                         row += '<td class="warning"></td>';
                         row += '<td class="warning right">⚠️</td>';
-                        row += '<td colspan="3" class="warning" style="text-align: left">';
+                        row += '<td colspan="2" class="warning" style="text-align: left">';
                         row += '<b>' + warning.name + '</b>: ' + warning.description + '<br />';
                         row += '<i>' + warning.impact + '</i><br />';
                         row += '<i>Details: ' + warning.details + '</i><br />';
@@ -319,10 +292,6 @@
                         row += '</tr>';
                         $('#rpcs').append(row);
                     }
-
-                    var spacerrow = '<tr class="spacer"><td colspan="5"></td></tr>';
-                    $('#rpcs').append(spacerrow);
-
                 }
             });
         </script>

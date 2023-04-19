@@ -1,0 +1,117 @@
+{"java.grpc": {
+    "pattern": "(.*/.*)",
+    "exceptions": [
+        {
+            "metadata": {
+                "cause": "",
+                "code": "CANCELLED"
+            },
+            "name": "io.grpc.StatusRuntimeException"
+        },
+        {
+            "metadata": {
+                "cause": "",
+                "code": "UNKNOWN"
+            },
+            "name": "io.grpc.StatusRuntimeException"
+        },
+        {
+            "metadata": {
+                "cause": "",
+                "code": "INVALID_ARGUMENT"
+            },
+            "name": "io.grpc.StatusRuntimeException"
+        },
+        {
+            "metadata": {
+                "cause": "",
+                "code": "DEADLINE_EXCEEDED"
+            },
+            "name": "io.grpc.StatusRuntimeException"
+        },
+        {
+            "metadata": {
+                "cause": "",
+                "code": "NOT_FOUND"
+            },
+            "name": "io.grpc.StatusRuntimeException"
+        },
+        {
+            "metadata": {
+                "cause": "",
+                "code": "ALREADY_EXISTS"
+            },
+            "name": "io.grpc.StatusRuntimeException"
+        },
+        {
+            "metadata": {
+                "cause": "",
+                "code": "PERMISSION_DENIED"
+            },
+            "name": "io.grpc.StatusRuntimeException"
+        },
+        {
+            "metadata": {
+                "cause": "",
+                "code": "RESOURCE_EXHAUSTED"
+            },
+            "name": "io.grpc.StatusRuntimeException"
+        },
+        {
+            "metadata": {
+                "cause": "",
+                "code": "FAILED_PRECONDITION"
+            },
+            "name": "io.grpc.StatusRuntimeException"
+        },
+        {
+            "metadata": {
+                "cause": "",
+                "code": "ABORTED"
+            },
+            "name": "io.grpc.StatusRuntimeException"
+        },
+        {
+            "metadata": {
+                "cause": "",
+                "code": "OUT_OF_RANGE"
+            },
+            "name": "io.grpc.StatusRuntimeException"
+        },
+        {
+            "metadata": {
+                "cause": "",
+                "code": "UNIMPLEMENTED"
+            },
+            "name": "io.grpc.StatusRuntimeException"
+        },
+        {
+            "metadata": {
+                "cause": "",
+                "code": "INTERNAL"
+            },
+            "name": "io.grpc.StatusRuntimeException"
+        },
+        {
+            "metadata": {
+                "cause": "",
+                "code": "UNAVAILABLE"
+            },
+            "name": "io.grpc.StatusRuntimeException"
+        },
+        {
+            "metadata": {
+                "cause": "",
+                "code": "DATA_LOSS"
+            },
+            "name": "io.grpc.StatusRuntimeException"
+        },
+        {
+            "metadata": {
+                "cause": "",
+                "code": "UNAUTHENTICATED"
+            },
+            "name": "io.grpc.StatusRuntimeException"
+        }
+    ]
+}}

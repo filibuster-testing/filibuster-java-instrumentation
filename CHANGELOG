@@ -1,3 +1,5 @@
+1.5.3:
+   - (cmeiklejohn) Deprecate analysisFile property for analysisResourceFile property now.
 1.5.2:
    - (cmeiklejohn) UX cleanup.
    - (cmeiklejohn) Rename annotation to @TestWithFilibuster.

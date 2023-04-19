@@ -45,7 +45,7 @@ public class FilibusterCustomAnalysisConfigurationFile {
     public boolean writeToDisk(String filePath) {
         try {
             FileWriter fw = new FileWriter(filePath);
-            fw.write(analysisConfigurationFile.toString());
+            fw.write(analysisConfigurationFile.toString(4));
             fw.close();
             return true;
         } catch (IOException e) {

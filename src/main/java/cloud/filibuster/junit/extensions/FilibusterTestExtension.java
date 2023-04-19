@@ -2,6 +2,7 @@ package cloud.filibuster.junit.extensions;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -29,7 +30,7 @@ import static cloud.filibuster.instrumentation.helpers.Property.MAX_ITERATIONS_D
 import static cloud.filibuster.instrumentation.helpers.Property.SUPPRESS_COMBINATIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.getEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendDockerImageNameProperty;
-import static cloud.filibuster.instrumentation.helpers.Property.getTestAnalysisFileProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.getTestAnalysisResourceFileProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestDataNondeterminismProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestMaxIterationsProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestSuppressCombinationsProperty;
@@ -62,9 +63,11 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
         if (! testWithFilibuster.analysisFile().isEmpty()) {
             // Annotation analysisFile always takes precedence.
             analysisFile = testWithFilibuster.analysisFile();
-        } else if (! getTestAnalysisFileProperty().isEmpty()) {
+        } else if (! getTestAnalysisResourceFileProperty().isEmpty()) {
             // Property next.
-            analysisFile = getTestAnalysisFileProperty();
+            String analysisResourceFile = getTestAnalysisResourceFileProperty();
+            URL analysisFileResourcePath = FilibusterTestExtension.class.getClassLoader().getResource(analysisResourceFile);
+            analysisFile = analysisFileResourcePath.getPath();
         } else {
             // ...then analysis configuration file annotation.
             analysisFile = "/tmp/filibuster-analysis-file";

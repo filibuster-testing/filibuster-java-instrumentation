@@ -89,6 +89,7 @@
         tr.warning {
             font-size: small;
             background-color: lightyellow;
+            display: none;
         }
 
         td.empty_response_warning {
@@ -157,8 +158,8 @@
                 return "exception" in obj;
             }
 
-            function toggleDebug() {
-                $('tr.debug').toggle();
+            function toggleWarnings() {
+                $('tr.warning').toggle();
             }
 
             function substringNamespace(name) {

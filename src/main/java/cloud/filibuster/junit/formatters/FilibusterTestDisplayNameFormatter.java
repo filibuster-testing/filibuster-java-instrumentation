@@ -1,8 +1,8 @@
 package cloud.filibuster.junit.formatters;
 
-import static cloud.filibuster.junit.TestWithFaultInjection.CURRENT_ITERATION_PLACEHOLDER;
-import static cloud.filibuster.junit.TestWithFaultInjection.DISPLAY_NAME_PLACEHOLDER;
-import static cloud.filibuster.junit.TestWithFaultInjection.TOTAL_ITERATIONS_PLACEHOLDER;
+import static cloud.filibuster.junit.TestWithFilibuster.CURRENT_ITERATION_PLACEHOLDER;
+import static cloud.filibuster.junit.TestWithFilibuster.DISPLAY_NAME_PLACEHOLDER;
+import static cloud.filibuster.junit.TestWithFilibuster.TOTAL_ITERATIONS_PLACEHOLDER;
 
 @SuppressWarnings("JavaDoc")
 public class FilibusterTestDisplayNameFormatter {

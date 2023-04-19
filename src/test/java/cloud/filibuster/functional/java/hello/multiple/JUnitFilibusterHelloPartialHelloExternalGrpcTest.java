@@ -4,7 +4,7 @@ import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.junit.TestWithFaultInjection;
+import cloud.filibuster.junit.TestWithFilibuster;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.DisplayName;
@@ -38,7 +38,7 @@ public class JUnitFilibusterHelloPartialHelloExternalGrpcTest extends JUnitAnnot
     private static int numberOfExceptionsThrown = 0;
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @TestWithFaultInjection(maxIterations=30)
+    @TestWithFilibuster(maxIterations=30)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder

@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedCustomAnalysisFileException;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
-import cloud.filibuster.junit.TestWithFaultInjection;
+import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
@@ -38,7 +38,7 @@ import static cloud.filibuster.instrumentation.helpers.Property.getTestSuppressC
 public class FilibusterTestExtension implements TestTemplateInvocationContextProvider {
     @Override
     public boolean supportsTestTemplate(ExtensionContext context) {
-        return AnnotationUtils.isAnnotated(context.getTestMethod(), TestWithFaultInjection.class);
+        return AnnotationUtils.isAnnotated(context.getTestMethod(), TestWithFilibuster.class);
     }
 
     @Override
@@ -48,47 +48,47 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
         String displayName = context.getDisplayName();
         String analysisFile;
 
-        Preconditions.condition(AnnotationUtils.findAnnotation(testMethod, TestWithFaultInjection.class).isPresent(), () ->
+        Preconditions.condition(AnnotationUtils.findAnnotation(testMethod, TestWithFilibuster.class).isPresent(), () ->
                 "Configuration error: @FilibusterTest must be used on any methods extended with FilibusterTestExtension.'.");
-        TestWithFaultInjection testWithFaultInjection = AnnotationUtils.findAnnotation(testMethod, TestWithFaultInjection.class).get();
+        TestWithFilibuster testWithFilibuster = AnnotationUtils.findAnnotation(testMethod, TestWithFilibuster.class).get();
 
         // Increase iterations by 1.
         // Last iteration doesn't actually run and is used only for teardown of the Filibuster server process.
-        int specifiedMaxIterations = maxIterations(testWithFaultInjection, testMethod);
+        int specifiedMaxIterations = maxIterations(testWithFilibuster, testMethod);
         int maxIterations = specifiedMaxIterations + 1;
 
-        FilibusterTestDisplayNameFormatter formatter = displayNameFormatter(testWithFaultInjection, testMethod, displayName);
+        FilibusterTestDisplayNameFormatter formatter = displayNameFormatter(testWithFilibuster, testMethod, displayName);
 
-        if (! testWithFaultInjection.analysisFile().isEmpty()) {
+        if (! testWithFilibuster.analysisFile().isEmpty()) {
             // Annotation analysisFile always takes precedence.
-            analysisFile = testWithFaultInjection.analysisFile();
+            analysisFile = testWithFilibuster.analysisFile();
         } else if (! getTestAnalysisFileProperty().isEmpty()) {
             // Property next.
             analysisFile = getTestAnalysisFileProperty();
         } else {
             // ...then analysis configuration file annotation.
             analysisFile = "/tmp/filibuster-analysis-file";
-            classToCustomAnalysisConfigurationFile(testWithFaultInjection, analysisFile);
+            classToCustomAnalysisConfigurationFile(testWithFilibuster, analysisFile);
         }
 
         // If the docker image has been specified as part of the annotation, we use it.
         // Otherwise, we use the one taken from the system property.
         String dockerImageName;
 
-        if (! testWithFaultInjection.dockerImageName().isEmpty()) {
-            dockerImageName = testWithFaultInjection.dockerImageName();
+        if (! testWithFilibuster.dockerImageName().isEmpty()) {
+            dockerImageName = testWithFilibuster.dockerImageName();
         } else {
             dockerImageName = getServerBackendDockerImageNameProperty();
         }
 
-        boolean dataNondeterminism = testWithFaultInjection.dataNondeterminism();
+        boolean dataNondeterminism = testWithFilibuster.dataNondeterminism();
 
         if (dataNondeterminism == DATA_NONDETERMINISM_DEFAULT) {
             // Check the property to see if it was set.
             dataNondeterminism = getTestDataNondeterminismProperty();
         }
 
-        boolean suppressCombinations = testWithFaultInjection.suppressCombinations();
+        boolean suppressCombinations = testWithFilibuster.suppressCombinations();
 
         if (suppressCombinations == SUPPRESS_COMBINATIONS_DEFAULT) {
             // Check the property to see if it was set.
@@ -96,23 +96,23 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
         }
 
         FilibusterConfiguration filibusterConfiguration = new FilibusterConfiguration.Builder()
-                .dynamicReduction(testWithFaultInjection.dynamicReduction())
+                .dynamicReduction(testWithFilibuster.dynamicReduction())
                 .suppressCombinations(suppressCombinations)
                 .dataNondeterminism(dataNondeterminism)
-                .serverBackend(testWithFaultInjection.serverBackend())
-                .searchStrategy(testWithFaultInjection.searchStrategy())
+                .serverBackend(testWithFilibuster.serverBackend())
+                .searchStrategy(testWithFilibuster.searchStrategy())
                 .dockerImageName(dockerImageName)
                 .analysisFile(analysisFile)
-                .degradeWhenServerInitializationFails(testWithFaultInjection.degradeWhenServerInitializationFails())
-                .expected(testWithFaultInjection.expected())
-                .latencyProfile(testWithFaultInjection.latencyProfile())
-                .serviceProfilesPath(testWithFaultInjection.serviceProfilesPath())
-                .serviceProfileBehavior(testWithFaultInjection.serviceProfileBehavior())
+                .degradeWhenServerInitializationFails(testWithFilibuster.degradeWhenServerInitializationFails())
+                .expected(testWithFilibuster.expected())
+                .latencyProfile(testWithFilibuster.latencyProfile())
+                .serviceProfilesPath(testWithFilibuster.serviceProfilesPath())
+                .serviceProfileBehavior(testWithFilibuster.serviceProfileBehavior())
                 .testName(displayName)
                 .build();
 
-        validateSearchBackend(testWithFaultInjection, filibusterConfiguration);
-        validateBackendSelection(testWithFaultInjection, filibusterConfiguration);
+        validateSearchBackend(testWithFilibuster, filibusterConfiguration);
+        validateBackendSelection(testWithFilibuster, filibusterConfiguration);
 
         HashMap<Integer, Boolean> invocationCompletionMap = new HashMap<>();
 
@@ -141,8 +141,8 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
         }
     }
 
-    private static void classToCustomAnalysisConfigurationFile(TestWithFaultInjection testWithFaultInjection, String analysisFile) {
-        Class<? extends FilibusterAnalysisConfigurationFile> clazz = testWithFaultInjection.analysisConfigurationFile();
+    private static void classToCustomAnalysisConfigurationFile(TestWithFilibuster testWithFilibuster, String analysisFile) {
+        Class<? extends FilibusterAnalysisConfigurationFile> clazz = testWithFilibuster.analysisConfigurationFile();
 
         FilibusterAnalysisConfigurationFile analysisConfigurationFile;
 
@@ -156,8 +156,8 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
         filibusterAnalysisConfigurationFile.writeToDisk(analysisFile);
     }
 
-    private static int maxIterations(TestWithFaultInjection testWithFaultInjection, Method method) {
-        int repetitions = testWithFaultInjection.maxIterations();
+    private static int maxIterations(TestWithFilibuster testWithFilibuster, Method method) {
+        int repetitions = testWithFilibuster.maxIterations();
 
         if (repetitions == MAX_ITERATIONS_DEFAULT) {
             // Check the property to see if it was set.
@@ -169,16 +169,16 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
         return repetitions;
     }
 
-    private static void validateSearchBackend(TestWithFaultInjection testWithFaultInjection, FilibusterConfiguration filibusterConfiguration) {
+    private static void validateSearchBackend(TestWithFilibuster testWithFilibuster, FilibusterConfiguration filibusterConfiguration) {
         FilibusterServerBackend filibusterServerBackend = filibusterConfiguration.getServerBackend();
-        FilibusterSearchStrategy filibusterSearchStrategy = testWithFaultInjection.searchStrategy();
+        FilibusterSearchStrategy filibusterSearchStrategy = testWithFilibuster.searchStrategy();
         List<FilibusterSearchStrategy> supportedSearchStrategies = filibusterServerBackend.supportedSearchStrategies();
 
         Preconditions.condition(supportedSearchStrategies.contains(filibusterSearchStrategy), () -> String.format(
                 "Configuration error: @FilibusterTest on method [%s] must be declared a supported search strategy by the chosen backend.", filibusterServerBackend));
     }
 
-    private static void validateBackendSelection(TestWithFaultInjection testWithFaultInjection, FilibusterConfiguration filibusterConfiguration) {
+    private static void validateBackendSelection(TestWithFilibuster testWithFilibuster, FilibusterConfiguration filibusterConfiguration) {
         FilibusterServerBackend filibusterServerBackend = filibusterConfiguration.getServerBackend();
         FilibusterLatencyProfile filibusterLatencyProfile = filibusterConfiguration.getLatencyProfile();
 
@@ -189,10 +189,10 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
 
     }
 
-    private static FilibusterTestDisplayNameFormatter displayNameFormatter(TestWithFaultInjection testWithFaultInjection, Method method, String displayName) {
-        String initialName = Preconditions.notBlank(testWithFaultInjection.initialName().trim(), () -> String.format(
+    private static FilibusterTestDisplayNameFormatter displayNameFormatter(TestWithFilibuster testWithFilibuster, Method method, String displayName) {
+        String initialName = Preconditions.notBlank(testWithFilibuster.initialName().trim(), () -> String.format(
                 "Configuration error: @FilibusterTest on method [%s] must be declared with a non-empty name.", method));
-        String generatedName = Preconditions.notBlank(testWithFaultInjection.name().trim(), () -> String.format(
+        String generatedName = Preconditions.notBlank(testWithFilibuster.name().trim(), () -> String.format(
                 "Configuration error: @FilibusterTest on method [%s] must be declared with a non-empty name.", method));
         return new FilibusterTestDisplayNameFormatter(initialName, generatedName, displayName);
     }

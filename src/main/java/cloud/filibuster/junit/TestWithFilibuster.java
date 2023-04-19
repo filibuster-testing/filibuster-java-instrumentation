@@ -48,7 +48,7 @@ import static cloud.filibuster.instrumentation.helpers.Property.SUPPRESS_COMBINA
 @ExtendWith(FilibusterTestExtension.class)
 @TestTemplate
 @Isolated
-public @interface TestWithFaultInjection {
+public @interface TestWithFilibuster {
     /**
      * Placeholder variable for the test name.
      */

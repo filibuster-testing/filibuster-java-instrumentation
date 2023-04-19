@@ -6,7 +6,7 @@ import cloud.filibuster.examples.WorldServiceGrpc;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
-import cloud.filibuster.junit.TestWithFaultInjection;
+import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.examples.FilibusterGrpcExhaustiveAnalysisConfigurationFile;
 import io.grpc.ManagedChannel;
@@ -79,7 +79,7 @@ public class AnalysisConfigurationFileJUnitFilibusterTest extends JUnitAnnotatio
     }
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @TestWithFaultInjection()
+    @TestWithFilibuster()
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws Throwable {
         numberOfTestExecutions++;

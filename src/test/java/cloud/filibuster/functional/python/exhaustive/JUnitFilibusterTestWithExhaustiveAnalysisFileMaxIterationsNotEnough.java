@@ -3,7 +3,7 @@ package cloud.filibuster.functional.python.exhaustive;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.junit.TestWithFaultInjection;
+import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
@@ -74,7 +74,7 @@ public class JUnitFilibusterTestWithExhaustiveAnalysisFileMaxIterationsNotEnough
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
-    @TestWithFaultInjection(analysisFile=analysisFilePath, maxIterations=3, serverBackend=FilibusterLocalProcessServerBackend.class)
+    @TestWithFilibuster(analysisFile=analysisFilePath, maxIterations=3, serverBackend=FilibusterLocalProcessServerBackend.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder

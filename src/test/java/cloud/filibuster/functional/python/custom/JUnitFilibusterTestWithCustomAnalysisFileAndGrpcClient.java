@@ -4,7 +4,7 @@ import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.integration.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.junit.TestWithFaultInjection;
+import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
@@ -81,7 +81,7 @@ public class JUnitFilibusterTestWithCustomAnalysisFileAndGrpcClient extends JUni
      * @throws InterruptedException thrown when the gRPC channel fails to terminate.
      */
     @DisplayName("Test partial hello server grpc route with Filibuster with instrumented test client. (MyHelloService, MyWorldService)")
-    @TestWithFaultInjection(analysisFile=analysisFilePath, serverBackend=FilibusterLocalProcessServerBackend.class)
+    @TestWithFilibuster(analysisFile=analysisFilePath, serverBackend=FilibusterLocalProcessServerBackend.class)
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {

@@ -3,7 +3,7 @@ package cloud.filibuster.functional.docker;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.junit.TestWithFaultInjection;
+import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.functional.JUnitBaseTest;
 import cloud.filibuster.junit.server.backends.FilibusterDockerServerBackend;
 import io.grpc.ManagedChannel;
@@ -40,7 +40,7 @@ public class JUnitFilibusterDockerBackendTestBadImage extends JUnitBaseTest {
      * @throws InterruptedException if teardown of gRPC channel fails.
      */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @TestWithFaultInjection(serverBackend = FilibusterDockerServerBackend.class, dockerImageName = "filibustertesting/asdfasdf:0.33", degradeWhenServerInitializationFails = true)
+    @TestWithFilibuster(serverBackend = FilibusterDockerServerBackend.class, dockerImageName = "filibustertesting/asdfasdf:0.33", degradeWhenServerInitializationFails = true)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         numberOfTestExecutions++;

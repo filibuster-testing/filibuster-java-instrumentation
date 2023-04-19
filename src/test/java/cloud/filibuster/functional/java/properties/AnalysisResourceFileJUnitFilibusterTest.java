@@ -7,8 +7,6 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
-import cloud.filibuster.junit.configuration.examples.FilibusterGrpcExhaustiveAnalysisConfigurationFile;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
@@ -21,14 +19,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import static cloud.filibuster.instrumentation.helpers.Property.setTestAnalysisFileProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.setTestAnalysisResourceFileProperty;
 import static cloud.filibuster.junit.Assertions.assertPassesAndThrowsOnlyUnderFault;
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
@@ -38,19 +35,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @FilibusterConditionalByEnvironmentSuite
-public class AnalysisConfigurationFileJUnitFilibusterTest extends JUnitAnnotationBaseTest {
+public class AnalysisResourceFileJUnitFilibusterTest extends JUnitAnnotationBaseTest {
 
     @BeforeAll
-    public static void setAnalysisFileProperty() throws IOException {
-        FilibusterGrpcExhaustiveAnalysisConfigurationFile analysisConfigurationFile = new FilibusterGrpcExhaustiveAnalysisConfigurationFile();
-        FilibusterCustomAnalysisConfigurationFile customAnalysisConfigurationFile = analysisConfigurationFile.toFilibusterCustomAnalysisConfigurationFile();
-        Path filePath = customAnalysisConfigurationFile.writeToDisk();
-        setTestAnalysisFileProperty(filePath.toAbsolutePath().toString());
+    public static void setAnalysisResourceFileProperty() throws IOException {
+        setTestAnalysisResourceFileProperty("fac/exhaustive.fac");
     }
 
     @AfterAll
-    public static void resetAnalysisConfigurationFileProperty() {
-        setTestAnalysisFileProperty("");
+    public static void resetAnalysisResourceFileProperty() {
+        setTestAnalysisResourceFileProperty("");
     }
 
     private final static Set<String> testExceptionsThrown = new HashSet<>();

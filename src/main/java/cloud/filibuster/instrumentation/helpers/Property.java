@@ -212,17 +212,17 @@ public class Property {
     }
 
     /***********************************************************************************
-     ** filibuster.test.analysis_file
+     ** filibuster.test.analysis_resource_file
      ***********************************************************************************/
 
-    private final static String TEST_ANALYSIS_FILE = "filibuster.test.analysis_file";
+    private final static String TEST_ANALYSIS_RESOURCE_FILE = "filibuster.test.analysis_resource_file";
 
-    public static void setTestAnalysisFileProperty(String value) {
-        System.setProperty(TEST_ANALYSIS_FILE, String.valueOf(value));
+    public static void setTestAnalysisResourceFileProperty(String value) {
+        System.setProperty(TEST_ANALYSIS_RESOURCE_FILE, String.valueOf(value));
     }
 
-    public static String getTestAnalysisFileProperty() {
-        String propertyValue = System.getProperty(TEST_ANALYSIS_FILE);
+    public static String getTestAnalysisResourceFileProperty() {
+        String propertyValue = System.getProperty(TEST_ANALYSIS_RESOURCE_FILE);
 
         if (isPropertyNull(propertyValue)) {
             return "";

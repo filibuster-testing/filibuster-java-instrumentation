@@ -92,6 +92,15 @@ public class TestReport {
             throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution report: ", e);
         }
 
+        // Write out sidebar file.
+        Path sidebarPath = Paths.get(directory + "/sidebar.html");
+        try {
+            byte[] sidebarBytes = ReportUtilities.getResourceAsBytes(getClass().getClassLoader(), "html/test_report/sidebar.html");
+            Files.write(sidebarPath, sidebarBytes);
+        } catch (IOException e) {
+            throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution report: ", e);
+        }
+
         logger.info(
                 "" + "\n" +
                         "[FILIBUSTER-CORE]: Test Execution Aggregate Report written to file://" + indexPath + "\n");

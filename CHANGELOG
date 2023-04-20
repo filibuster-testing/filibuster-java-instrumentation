@@ -1,3 +1,5 @@
+1.5.4:
+   - (cmeiklejohn) Use IFRAME for the list of tests.
 1.5.3:
    - (cmeiklejohn) Deprecate analysisFile property for analysisResourceFile property now.
 1.5.2:

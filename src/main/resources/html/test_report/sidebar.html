@@ -2,15 +2,16 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Filibuster Test Execution Report</title>
+    <title>Filibuster Test Report</title>
     <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
     <script type="text/javascript" src="./summary.js"></script>
     <style>
         body {
+            font-size: 85%;
+
 			font-family: 'Gill Sans',
 				'Gill Sans MT', ' Calibri',
 				'Trebuchet MS', 'sans-serif';
-
             background-color: white;
         }
 
@@ -60,25 +61,25 @@
 
 		th,
 		td {
-			font-weight: bold;
 			padding: 10px;
             vertical-align: top;
-		}
-
-		td {
-            font-weight: lighter;
+            font-size: 11px;
+            text-align: left;
+            font-weight: normal;
 		}
 
         tr.pass {
             background-color: lightgreen;
+            text-align: center;
+        }
+
+        tr.collapsable {
+            display: none;
         }
 
         tr.fail {
-            background-color: lightyellow;
-        }
-
-        tr.fault {
             background-color: lightcoral;
+            text-align: center;
         }
 
         td.warning {
@@ -97,6 +98,7 @@
 
         span.verysmall {
             font-size: 10px;
+            color: black;
         }
 
         td.generated_id {
@@ -125,13 +127,8 @@
             float: left;
         }
 
-        table.reports {
-            float: left;
-            width: 100px;
-        }
-
         div.results {
-            width: 90%;
+            width: 95%;
             float: left;
         }
 
@@ -139,14 +136,74 @@
             float: left;
             width: 100%;
         }
+
+        .small {
+            font-size: small;
+        }
+
+        .verysmall {
+            font-size: 10px;
+        }
+
+        h1 {
+            margin-bottom: 0px;
+        }
 	</style>
 </head>
 
-<body>
-<section>
-    <div style="text-align: center">
-        <img src="construction.gif">
+<body style="margin: 0 auto;">
+<section style="margin: 0 auto;">
+    <div class="container" style="margin: 0 auto;">
+        <div id="summary" class="summary">
+            <table id="reports" class="reports">
+                <tr>
+                    <th>
+                        <a href="#" onClick="togglePasses();"><span id="total" class="verysmall"></span></a>
+                    </th>
+                </tr>
+            </table>
+        </div>
     </div>
+
+    <script>
+        function togglePasses() {
+            $('tr.collapsable').toggle();
+        }
+
+        $(document).ready(function () {
+            console.log(summary);
+
+            $('#total').html("(" + summary.reports.length + ")");
+
+            for (i in summary.reports) {
+                var report = summary.reports[i];
+                console.log(report);
+
+                var row = '';
+
+                if (report.iteration !== 1) {
+                    if (report.status === true) {
+                        row += '<tr class="pass collapsable">';
+                    } else {
+                        row += '<tr class="fail">';
+                    }
+                } else {
+                    if (report.status === true) {
+                        row += '<tr class="pass">';
+                    } else {
+                        row += '<tr class="fail">';
+                    }
+                }
+
+                row += '<td>';
+                row += '<a target="test_execution_frame" href="' + report.path + '">' + report.iteration + '</a>';
+                row += '</td>';
+                row += '</tr>';
+
+                $('#reports').append(row);
+            }
+        });
+    </script>
 </section>
 </body>
 

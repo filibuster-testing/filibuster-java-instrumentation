@@ -122,16 +122,6 @@
             text-align: left;
         }
 
-        div.summary {
-            width: 5%;
-            float: left;
-        }
-
-        div.results {
-            width: 95%;
-            float: left;
-        }
-
         div.container {
             float: left;
             width: 100%;
@@ -149,75 +139,48 @@
             margin-bottom: 0px;
         }
 
-        iframe {
+        iframe.results {
             margin: 0;
             padding: 0;
-            display: block;  /* iframes are inline by default */
+            /*float: left;*/
+            /*display: block;  !* iframes are inline by default *!*/
             height: 100vh;  /* Set height to 100% of the viewport height */
             width: 90vw;  /* Set width to 100% of the viewport width */
-            border: none; /* Remove default border */
+            /*border: none; !* Remove default border *!*/
+        }
+
+        iframe.sidebar {
+            margin: 0;
+            padding: 0;
+            /*float: left;*/
+            /*display: block;  !* iframes are inline by default *!*/
+            height: 100vh;  /* Set height to 100% of the viewport height */
+            width: 8vw;  /* Set width to 100% of the viewport width */
+            /*border: none; !* Remove default border *!*/
         }
 	</style>
 </head>
 
-<body style="margin: 0 auto;">
-<section style="margin: 0 auto;">
-    <div class="container" style="margin: 0 auto;">
-        <div id="summary" class="summary">
-            <table id="reports" class="reports">
-                <tr>
-                    <th>
-                        <a href="#" onClick="togglePasses();">Tests</a>
-                        <span id="total" class="verysmall"></span>
-                    </th>
-                </tr>
-            </table>
-        </div>
-
-        <div id="results" class="results"></div>
+<body style="margin: 0 auto; height: 100vh;">
+<section style="margin: 0 auto; height: 100vh;">
+    <div class="container" style="margin: 0 auto; height: 100vh;">
+        <div id="sidebar" class="sidebar" style="display: inline; width: 8vw;"></div>
+        <div id="results" class="results" style="display: inline; width: 90vw; height: 100vh;"></div>
     </div>
 
     <script>
-        function togglePasses() {
-            $('tr.collapsable').toggle();
-        }
-
         $(document).ready(function () {
-            console.log(summary);
-
-            $('#total').html("(" + summary.reports.length + ")");
+            var sidebarIFrame = '<iframe frameborder="0" marginwidth="0" marginheight="0" scrolling="auto" src="./sidebar.html" class="sidebar" name="test_sidebar_frame"></iframe>';
+            $('#sidebar').append(sidebarIFrame);
 
             for (i in summary.reports) {
                 var report = summary.reports[i];
-                console.log(report);
-
                 var row = '';
 
                 if (report.iteration === 1) {
-                    var iframe = '<iframe frameborder="0" marginwidth="0" marginheight="0" scrolling="auto" src="' + report.path + '" name="test_execution_frame" height="800px" width="100%"></iframe>';
-                    $('#results').append(iframe);
+                    var resultsIFrame = '<iframe frameborder="0" marginwidth="0" marginheight="0" scrolling="auto" src="' + report.path + '" class="results" name="test_execution_frame"></iframe>';
+                    $('#results').append(resultsIFrame);
                 }
-
-                if (report.iteration !== 1) {
-                    if (report.status === true) {
-                        row += '<tr class="pass collapsable">';
-                    } else {
-                        row += '<tr class="fail">';
-                    }
-                } else {
-                    if (report.status === true) {
-                        row += '<tr class="pass">';
-                    } else {
-                        row += '<tr class="fail">';
-                    }
-                }
-
-                row += '<td>';
-                row += '<a target="test_execution_frame" href="' + report.path + '">' + report.iteration + '</a>';
-                row += '</td>';
-                row += '</tr>';
-
-                $('#reports').append(row);
             }
         });
     </script>

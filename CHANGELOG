@@ -1,3 +1,5 @@
+1.5.5:
+   - (cmeiklejohn) Fix possible NPE for analysis file.
 1.5.4:
    - (cmeiklejohn) Use IFRAME for the list of tests.
 1.5.3:

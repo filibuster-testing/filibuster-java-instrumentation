@@ -182,10 +182,14 @@
                 var status = analysis.status;
                 var iteration = analysis.iteration;
                 var assertionFailureMessage = analysis.assertion_failure_message;
+                console.log("AFM");
+                console.log("'" + assertionFailureMessage + "'");
 
-                if (assertionFailureMessage !== undefined) {
+                if (assertionFailureMessage !== undefined && assertionFailureMessage !== "") {
                     $('#failure').html("❌&nbsp; Test failed because of assertion failure: " + assertionFailureMessage);
                     $('#failure').show();
+                } else {
+                    $('#failure').hide();
                 }
 
                 for (i in analysis.rpcs) {

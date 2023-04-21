@@ -4,6 +4,7 @@ import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.junit.server.core.reports.TestExecutionReport;
 import org.json.JSONObject;
 
+import javax.annotation.Nullable;
 import java.util.UUID;
 
 @SuppressWarnings("Varifier")
@@ -38,9 +39,9 @@ public class ConcreteTestExecution extends TestExecution implements Cloneable {
         }
     }
 
-    public void writeTestExecutionReport(int currentIteration, boolean exceptionOccurred) {
+    public void writeTestExecutionReport(int currentIteration, boolean exceptionOccurred, @Nullable Throwable throwable) {
         if (testExecutionReport != null) {
-            testExecutionReport.writeTestReport(currentIteration, exceptionOccurred);
+            testExecutionReport.writeTestReport(currentIteration, exceptionOccurred, throwable);
         }
     }
 

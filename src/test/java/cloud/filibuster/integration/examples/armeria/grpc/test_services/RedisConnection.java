@@ -5,8 +5,12 @@ import io.lettuce.core.api.StatefulRedisConnection;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.DockerImageName;
 
+import javax.annotation.Nullable;
+
 public class RedisConnection {
     public StatefulRedisConnection<String, String> connection;
+
+    @Nullable
     private static RedisConnection single_instance = null;
 
     private RedisConnection() {
@@ -22,8 +26,10 @@ public class RedisConnection {
     // Static method to create instance of Singleton class
     public static synchronized RedisConnection getInstance()
     {
-        if (single_instance == null)
+        if (single_instance == null) {
             single_instance = new RedisConnection();
+        }
+
         return single_instance;
     }
 }

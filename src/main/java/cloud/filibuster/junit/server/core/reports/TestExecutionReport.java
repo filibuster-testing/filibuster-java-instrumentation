@@ -30,6 +30,9 @@ public class TestExecutionReport {
 
     private boolean testExecutionPassed = false;
 
+    @Nullable
+    private String assertionFailureMessage = null;
+
     private final ArrayList<DistributedExecutionIndex> deiInvocationOrder = new ArrayList<>();
 
     private final HashMap<DistributedExecutionIndex, JSONObject> deiInvocations = new HashMap<>();
@@ -127,7 +130,7 @@ public class TestExecutionReport {
         private static final String GENERATED_ID_KEY = "generated_id";
         private static final String UUID_KEY = "uuid";
         private static final String TEST_NAME = "test_name";
-
+        private static final String ASSERTION_FAILURE_MESSAGE = "assertion_failure_message";
     }
 
     public static void addAnalyzer(Class<? extends TestExecutionReportAnalyzer> clazz) {
@@ -192,6 +195,13 @@ public class TestExecutionReport {
         JSONObject result = new JSONObject();
         result.put(Keys.ITERATION_KEY, testExecutionNumber);
         result.put(Keys.STATUS_KEY, testExecutionPassed);
+
+        if (assertionFailureMessage != null) {
+            result.put(Keys.ASSERTION_FAILURE_MESSAGE, assertionFailureMessage);
+        } else {
+            result.put(Keys.ASSERTION_FAILURE_MESSAGE, "");
+        }
+
         result.put(Keys.RPCS_KEY, RPCs);
         result.put(Keys.UUID_KEY, uuid);
         result.put(Keys.TEST_NAME, testName);
@@ -224,9 +234,13 @@ public class TestExecutionReport {
         }
     }
 
-    public void writeTestReport(int currentIteration, boolean exceptionOccurred) {
+    public void writeTestReport(int currentIteration, boolean exceptionOccurred, @Nullable Throwable throwable) {
         testExecutionNumber = currentIteration;
         testExecutionPassed = !exceptionOccurred;
+
+        if (throwable != null) {
+            assertionFailureMessage = throwable.getMessage();
+        }
 
         if (!hasReportBeenMaterialized) {
             try {

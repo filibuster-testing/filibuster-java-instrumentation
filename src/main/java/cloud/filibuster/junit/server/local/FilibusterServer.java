@@ -112,7 +112,7 @@ public class FilibusterServer {
             @ProducesJson
             @ConsumesJson
             public HttpResponse completeIteration(@Param("current_iteration") String currentIteration, @Param("exception_occurred") int exceptionOccurred) {
-                FilibusterCore.getCurrentInstance().completeIteration(Integer.valueOf(currentIteration), exceptionOccurred);
+                FilibusterCore.getCurrentInstance().completeIteration(Integer.valueOf(currentIteration), exceptionOccurred, /* throwable= */ null);
                 return HttpResponse.of(HttpStatus.OK);
             }
         });

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterAnalysisFileResourcePathException;
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedCustomAnalysisFileException;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.TestWithFilibuster;
@@ -67,6 +68,11 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
             // Property next.
             String analysisResourceFile = getTestAnalysisResourceFileProperty();
             URL analysisFileResourcePath = FilibusterTestExtension.class.getClassLoader().getResource(analysisResourceFile);
+
+            if (analysisFileResourcePath == null) {
+                throw new FilibusterAnalysisFileResourcePathException("Analysis resource file property is set, but file does not exist.");
+            }
+
             analysisFile = analysisFileResourcePath.getPath();
         } else {
             // ...then analysis configuration file annotation.

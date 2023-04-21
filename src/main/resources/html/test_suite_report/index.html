@@ -62,20 +62,34 @@
 		}
 
         div.container {
-            float: left;
             width: 100%;
         }
 
         h1 {
             margin-bottom: 0px;
         }
+
+        iframe.test {
+            margin: 0;
+            padding: 0;
+            display: block;
+            height: 96vh;
+            width: 98vw;
+        }
 	</style>
 </head>
 
 <body>
 <section>
-    <div class="container">
-        <iframe id="test_frame" frameborder="0" scrolling="auto" name="test_frame" height="800px" width="100%"></iframe>
+    <div class="container" style="margin: 0 auto; padding: 0;">
+        <div style="display: block; width: 98%; padding: 10px; margin-bottom: 10px; text-align: left;">
+            <span id="pass_status" style="vertical-align: middle;">✅</span>
+            <span id="fail_status" style="vertical-align: middle;">❌</span>
+            <span id="test_name" style="vertical-align: middle; font-size: 11px; text-align: left; display: inline;"></span>
+        </div>
+        <div class="test-container" style="text-align: center; padding: 0; margin: 0; display: inline-block; border: 0px solid red; width: 100%;">
+            <iframe id="test_frame" frameborder="0" scrolling="auto" name="test_frame" class="test" style="height: 90vh;"></iframe>
+        </div>
     </div>
 
     <script>
@@ -91,7 +105,15 @@
                 var row = '';
 
                 if (i == 0) {
-                    $('#test_frame').attr('src', report.path)
+                    $('#test_frame').attr('src', report.path);
+                    if (report.status === true) {
+                        $('#pass_status').show();
+                        $('#fail_status').hide();
+                    } else {
+                        $('#pass_status').hide();
+                        $('#fail_status').show();
+                    }
+                    $('#test_name').html(report.test_name);
                 }
             }
         });

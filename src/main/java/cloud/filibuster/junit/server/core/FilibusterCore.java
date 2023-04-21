@@ -308,7 +308,7 @@ public class FilibusterCore {
 
         if (currentConcreteTestExecution != null) {
             currentConcreteTestExecution.printRPCs();
-            currentConcreteTestExecution.writeTestExecutionReport(currentIteration, /* exceptionOccurred= */ false);
+            currentConcreteTestExecution.writeTestExecutionReport(currentIteration, /* exceptionOccurred= */ false, /* throwable= */ null);
         } else {
             throw new FilibusterCoreLogicException("currentConcreteTestExecution should not be null at this point, something fatal occurred.");
         }
@@ -319,12 +319,17 @@ public class FilibusterCore {
     }
 
     // This is an old callback used to exit the Python server with code = 1 or code = 0 upon failure.
-    public synchronized void completeIteration(int currentIteration, int exceptionOccurred) {
+    public synchronized void completeIteration(int currentIteration, int exceptionOccurred, Throwable throwable) {
         logger.info("[FILIBUSTER-CORE]: completeIteration called, currentIteration: " + currentIteration + ", exceptionOccurred: " + exceptionOccurred);
 
         if (currentConcreteTestExecution != null) {
             currentConcreteTestExecution.printRPCs();
-            currentConcreteTestExecution.writeTestExecutionReport(currentIteration, /* exceptionOccurred= */ exceptionOccurred != 0);
+
+            if (exceptionOccurred != 0) {
+                currentConcreteTestExecution.writeTestExecutionReport(currentIteration, /* exceptionOccurred= */ exceptionOccurred != 0, /* throwable= */ throwable);
+            } else {
+                currentConcreteTestExecution.writeTestExecutionReport(currentIteration, /* exceptionOccurred= */ exceptionOccurred != 0, /* throwable= */ null);
+            }
         } else {
             throw new FilibusterCoreLogicException("currentConcreteTestExecution should not be null at this point, something fatal occurred.");
         }

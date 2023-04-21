@@ -140,8 +140,20 @@
 </head>
 
 <body>
-<section>
-    <table id='rpcs'>
+<section style="margin: 0; padding: 0;">
+    <!-- Assertion failure goes here. -->
+    <div id="failure" style="display: none; margin: 0; padding: 0; width: 100%;">
+        <span style="vertical-align: middle; text-align: left;">️</span>
+    </div>
+
+    <!-- Global warnings go here. -->
+    <table id='warnings' style="background-color: red; margin: 0; padding: 0; display: none;">
+        <tr>
+            <td ><span style="vertical-align: middle;">️⚠️ Some sort of global warning.</span></td>
+        </tr>
+    </table>
+
+    <table id='rpcs' style="margin: 0; padding: 0;">
         <tr>
             <th>RPC Method</th>
             <th>RPC Arguments</th>
@@ -169,6 +181,16 @@
             $(document).ready(function () {
                 var status = analysis.status;
                 var iteration = analysis.iteration;
+                var assertionFailureMessage = analysis.assertion_failure_message;
+                console.log("AFM");
+                console.log("'" + assertionFailureMessage + "'");
+
+                if (assertionFailureMessage !== undefined && assertionFailureMessage !== "") {
+                    $('#failure').html("❌&nbsp; Test failed because of assertion failure: " + assertionFailureMessage);
+                    $('#failure').show();
+                } else {
+                    $('#failure').hide();
+                }
 
                 for (i in analysis.rpcs) {
                     var rpc = analysis.rpcs[i];

@@ -43,14 +43,14 @@ public class FilibusterInvocationInterceptorHelpers {
                 }
             }
             invocation.proceed();
-            FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */false);
+            FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */ false, null);
         } catch (Throwable t) {
             Class<? extends RuntimeException> expectedExceptionClass = filibusterConfiguration.getExpected();
 
             if (expectedExceptionClass != FilibusterNoopException.class && expectedExceptionClass.isInstance(t)) {
-                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */false);
+                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */false, null);
             } else {
-                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */true);
+                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */true, t);
                 throw t;
             }
         }

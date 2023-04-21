@@ -159,7 +159,7 @@ public class FilibusterServerAPI {
         }
     }
 
-    public static void recordIterationComplete(WebClient webClient, int currentIteration, boolean exceptionOccurred) throws ExecutionException, InterruptedException {
+    public static void recordIterationComplete(WebClient webClient, int currentIteration, boolean exceptionOccurred, Throwable throwable) throws ExecutionException, InterruptedException {
         int exceptionOccurredInt;
 
         if (exceptionOccurred) {
@@ -170,7 +170,7 @@ public class FilibusterServerAPI {
 
         if (getServerBackendCanInvokeDirectlyProperty()) {
             if (FilibusterCore.hasCurrentInstance()) {
-                FilibusterCore.getCurrentInstance().completeIteration(currentIteration, exceptionOccurredInt);
+                FilibusterCore.getCurrentInstance().completeIteration(currentIteration, exceptionOccurredInt, throwable);
             } else {
                 throw new FilibusterRuntimeException("No current filibuster core instance, this could indicate a problem.");
             }

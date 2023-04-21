@@ -234,9 +234,13 @@ public class TestExecutionReport {
         }
     }
 
-    public void writeTestReport(int currentIteration, boolean exceptionOccurred) {
+    public void writeTestReport(int currentIteration, boolean exceptionOccurred, @Nullable Throwable throwable) {
         testExecutionNumber = currentIteration;
         testExecutionPassed = !exceptionOccurred;
+
+        if (throwable != null) {
+            assertionFailureMessage = throwable.getMessage();
+        }
 
         if (!hasReportBeenMaterialized) {
             try {

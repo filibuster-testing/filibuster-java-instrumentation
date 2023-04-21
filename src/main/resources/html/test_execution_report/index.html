@@ -142,8 +142,8 @@
 <body>
 <section style="margin: 0; padding: 0;">
     <!-- Assertion failure goes here. -->
-    <div id="failure" style="display: none;">
-        <span>failure</span>
+    <div id="failure" style="display: none; margin: 0; padding: 0; width: 100%;">
+        <span style="vertical-align: middle; text-align: left;">️</span>
     </div>
 
     <!-- Global warnings go here. -->
@@ -181,10 +181,11 @@
             $(document).ready(function () {
                 var status = analysis.status;
                 var iteration = analysis.iteration;
-                var assertionFailureMessage = analysis.assertionFailureMessage;
+                var assertionFailureMessage = analysis.assertion_failure_message;
 
                 if (assertionFailureMessage !== undefined) {
-                    $('failure').show();
+                    $('#failure').html("❌&nbsp; Test failed because of assertion failure: " + assertionFailureMessage);
+                    $('#failure').show();
                 }
 
                 for (i in analysis.rpcs) {

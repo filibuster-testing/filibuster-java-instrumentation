@@ -1,5 +1,8 @@
 1.5.5:
    - (cmeiklejohn) Fix possible NPE for analysis file.
+   - (cmeiklejohn) Revise UX, fix spacing in all areas.
+   - (cmeiklejohn) Add test name to UX.
+   - (cmeiklejohn) Add test failure into UX.
 1.5.4:
    - (cmeiklejohn) Use IFRAME for the list of tests.
 1.5.3:

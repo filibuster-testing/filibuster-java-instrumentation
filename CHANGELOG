@@ -1,3 +1,5 @@
+1.5.6:
+   - (cmeiklejohn) Fix regression where the warning did not display.
 1.5.5:
    - (cmeiklejohn) Fix possible NPE for analysis file.
    - (cmeiklejohn) Revise UX, fix spacing in all areas.

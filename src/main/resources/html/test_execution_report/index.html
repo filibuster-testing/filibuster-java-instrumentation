@@ -147,9 +147,9 @@
     </div>
 
     <!-- Global warnings go here. -->
-    <table id='warnings' style="background-color: red; margin: 0; padding: 0; display: none;">
+    <table id='warnings' style="background-color: lightyellow; margin: 0; padding: 0;">
         <tr>
-            <td ><span style="vertical-align: middle;">️⚠️ Some sort of global warning.</span></td>
+            <td>⚠️ <a href="#" onClick="toggleWarnings();"><span id="numWarnings" style="vertical-align: middle;"></span></a></td>
         </tr>
     </table>
 
@@ -162,6 +162,8 @@
         </tr>
 
         <script>
+            var numWarnings = 0;
+
             function isEmpty(obj) {
                 return Object.keys(obj).length === 0;
             }
@@ -301,12 +303,13 @@
                     console.log(rpc.warnings);
 
                     for (i in rpc.warnings) {
+                        numWarnings++;
+
                         var warning = rpc.warnings[i];
                         var row = '';
                         row += '<tr class="warning">';
-                        row += '<td class="warning"></td>';
                         row += '<td class="warning right">⚠️</td>';
-                        row += '<td colspan="2" class="warning" style="text-align: left">';
+                        row += '<td colspan="3" class="warning" style="text-align: left">';
                         row += '<b>' + warning.name + '</b>: ' + warning.description + '<br />';
                         row += '<i>' + warning.impact + '</i><br />';
                         row += '<i>Details: ' + warning.details + '</i><br />';
@@ -316,6 +319,8 @@
                         $('#rpcs').append(row);
                     }
                 }
+
+                $('#numWarnings').html("There are " + numWarnings + " warnings.");
             });
         </script>
     </table>

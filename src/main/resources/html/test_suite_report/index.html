@@ -77,7 +77,7 @@
             width: 98vw;
         }
 
-        option{
+        select{
             vertical-align: middle;
             font-size: 11px;
             text-align: left;
@@ -107,7 +107,7 @@
             $('#test_frame').attr('src', selectedReport.path);
         }
         $(document).ready( () => {
-            let testNames = summary.reports.map(report => `${report.status == true ? "✅" : "❌"} ${report.test_name}`);
+            let testNames = summary.reports.map(report => `${report.status ? "✅" : "❌"} ${report.test_name}`);
             let options = testNames.map((testname,index) => `<option value="${index}">${testname}</option>`).join();
             $("#tests").append(options);
             $("#tests option:last").attr("selected", "selected");

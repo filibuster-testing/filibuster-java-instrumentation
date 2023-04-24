@@ -1,3 +1,5 @@
+1.5.7
+   - (jiujiu1123) minor UI fixes for test suite report
 1.5.6:
    - (cmeiklejohn) Fix regression where the warning did not display.
 1.5.5:

@@ -66,7 +66,7 @@
         }
 
         h1 {
-            margin-bottom: 0px;
+            margin-bottom: 0;
         }
 
         iframe.test {
@@ -83,6 +83,22 @@
             text-align: left;
             display: inline;
         }
+
+        .test-container
+        {
+            text-align: center;
+            padding: 0;
+            margin: 0;
+            display: inline-block;
+            border: 0 solid red;
+            width: 100%;
+        }
+
+        .test-container iframe
+        {
+            border: none;
+
+        }
 	</style>
 </head>
 
@@ -94,8 +110,8 @@
             </select>
         </div>
 
-        <div class="test-container" style="text-align: center; padding: 0; margin: 0; display: inline-block; border: 0px solid red; width: 100%;">
-            <iframe id="test_frame" frameborder="0" scrolling="auto" name="test_frame" class="test" style="height: 90vh;"></iframe>
+        <div class="test-container">
+            <iframe id="test_frame"  scrolling="auto" name="test_frame" class="test" style="height: 90vh;"></iframe>
         </div>
     </div>
 

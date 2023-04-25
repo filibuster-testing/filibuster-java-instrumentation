@@ -23,8 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @FilibusterConditionalByEnvironmentSuite
 public class NestedAssertPassesAndThrowsOnlyUnderFaultJUnitFilibusterTest extends JUnitAnnotationBaseTest {
-    // TODO: rename test.
-
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     private final static Set<String> testInnerExceptionsThrown = new HashSet<>();
@@ -116,7 +114,7 @@ public class NestedAssertPassesAndThrowsOnlyUnderFaultJUnitFilibusterTest extend
 
     @Test
     @Order(2)
-    public void testInvocationCount() {
-        assertEquals(6, continuationInvocationCount);
+    public void testTestInvocationCount() {
+        assertEquals(6, testInvocationCount);
     }
 }

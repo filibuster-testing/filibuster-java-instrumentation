@@ -117,6 +117,15 @@
     </div>
 
     <script>
+        function substringNamespace(name) {
+            return name.substring(name.lastIndexOf(".") + 1)
+        }
+
+        function processClassName(classname)
+        {
+            return classname === "" ? "" : substringNamespace(classname);
+
+        }
         function selectTest()
         {
             let selectedTestIndex = parseInt($("#tests").find(":selected").val());
@@ -125,7 +134,7 @@
         }
         $(document).ready( () => {
             $("#num_tests").html("(" + summary.reports.length + ")");
-            let testNames = summary.reports.map(report => `${report.status ? "✅" : "❌"} ${report.test_name}`);
+            let testNames = summary.reports.map(report => `${report.status ? "✅" : "❌"} ${processClassName(report.class_name)}.${report.test_name}`);
             let options = testNames.map((testname,index) => `<option value="${index}">${testname}</option>`).join();
             $("#tests").append(options);
             $("#tests option:last").attr("selected", "selected");

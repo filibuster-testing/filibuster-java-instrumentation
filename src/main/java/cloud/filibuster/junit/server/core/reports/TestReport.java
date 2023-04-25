@@ -20,10 +20,17 @@ public class TestReport {
 
     private final UUID testUUID;
     private final String testName;
+    private final String className;
 
-    public TestReport(String testName, UUID testUUID) {
+    public TestReport(String testName, UUID testUUID, String className) {
         this.testUUID = testUUID;
         this.testName = testName;
+        this.className = className;
+    }
+
+
+    public String getClassName() {
+        return className;
     }
 
     public UUID getTestUUID() {
@@ -33,6 +40,7 @@ public class TestReport {
     public String getTestName() {
         return testName;
     }
+
 
     public void addTestExecutionReport(TestExecutionReport testExecutionReport) {
         testExecutionReports.add(testExecutionReport);
@@ -130,4 +138,5 @@ public class TestReport {
     public ArrayList<TestExecutionReport> getTestExecutionReports() {
         return testExecutionReports;
     }
+
 }

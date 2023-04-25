@@ -11,12 +11,12 @@ import java.util.UUID;
 public class ConcreteTestExecution extends TestExecution implements Cloneable {
     private final TestExecutionReport testExecutionReport;
 
-    public ConcreteTestExecution(String testName, UUID testUUID) {
-        testExecutionReport = new TestExecutionReport(testName, testUUID);
+    public ConcreteTestExecution(String testName, UUID testUUID, String className) {
+        testExecutionReport = new TestExecutionReport(testName, testUUID, className);
     }
 
-    public ConcreteTestExecution(AbstractTestExecution abstractTestExecution, String testName, UUID testUUID) {
-        testExecutionReport = new TestExecutionReport(testName, testUUID);
+    public ConcreteTestExecution(AbstractTestExecution abstractTestExecution, String testName, UUID testUUID, String className) {
+        testExecutionReport = new TestExecutionReport(testName, testUUID, className);
         faultsToInject.putAll(abstractTestExecution.faultsToInject);
         testExecutionReport.setFaultsInjected(faultsToInject);
     }
@@ -47,7 +47,9 @@ public class ConcreteTestExecution extends TestExecution implements Cloneable {
 
     @Override
     protected Object clone() {
-        ConcreteTestExecution concreteTestExecution = new ConcreteTestExecution(testExecutionReport.getTestName(), testExecutionReport.getTestUUID());
+        ConcreteTestExecution concreteTestExecution = new ConcreteTestExecution(testExecutionReport.getTestName(),
+                testExecutionReport.getTestUUID(),
+                testExecutionReport.getClassName());
         concreteTestExecution.generatedId = this.generatedId;
         concreteTestExecution.firstRequestSeenByService.putAll(firstRequestSeenByService);
         concreteTestExecution.executedRPCs.putAll(executedRPCs);

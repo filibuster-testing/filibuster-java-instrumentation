@@ -50,9 +50,12 @@ public class TestExecutionReport {
 
     private final String testName;
 
-    public TestExecutionReport(String testName, UUID testUUID) {
+    private final String className;
+
+    public TestExecutionReport(String testName, UUID testUUID, String className) {
         this.testName = testName;
         this.testUUID = testUUID;
+        this.className = className;
     }
 
     private File getDirectoryPath() {
@@ -117,6 +120,10 @@ public class TestExecutionReport {
 
     public UUID getTestUUID() {
         return this.testUUID;
+    }
+
+    public String getClassName() {
+        return className;
     }
 
     static class Keys {

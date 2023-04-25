@@ -65,10 +65,11 @@ public class FilibusterCore {
     public FilibusterCore(FilibusterConfiguration filibusterConfiguration) {
         currentInstance = this;
         String testName = filibusterConfiguration.getTestName();
-        currentConcreteTestExecution = new ConcreteTestExecution(testName, testUUID);
+        String className = filibusterConfiguration.getClassName();
+        currentConcreteTestExecution = new ConcreteTestExecution(testName, testUUID,className);
         this.filibusterConfiguration = filibusterConfiguration;
 
-        this.testReport = new TestReport(testName, testUUID);
+        this.testReport = new TestReport(testName, testUUID, className);
         testReport.writeOutPlaceholder();
 
         if (filibusterConfiguration.getSearchStrategy() == FilibusterSearchStrategy.DFS) {
@@ -402,7 +403,8 @@ public class FilibusterCore {
 
                 // Set the abstract execution, which drives fault injection and copy the faults into the concrete execution for the record.
                 currentAbstractTestExecution = nextAbstractTestExecution;
-                currentConcreteTestExecution = new ConcreteTestExecution(nextAbstractTestExecution, filibusterConfiguration.getTestName(), testUUID);
+                currentConcreteTestExecution = new ConcreteTestExecution(nextAbstractTestExecution, filibusterConfiguration.getTestName(),
+                        testUUID,filibusterConfiguration.getClassName());
             }
         }
 

@@ -1,3 +1,11 @@
+1.5.7
+   - (jiujiu1123) Fix minor UI issues for test suite report
+   - (jiujiu1123) Add class name to better identify test reports
+   - (cmeiklejohn) Ensure warnings do not display by default.
+   - (cmeiklejohn) Fix visibility and pluralization of warnings indicator.
+   - (cmeiklejohn) Fix assertion failure font size.
+   - (cmeiklejohn) Properly escape HTML in the assertion error.
+   - (cmeiklejohn) Add number of tests before select.
 1.5.6:
    - (cmeiklejohn) Fix regression where the warning did not display.
 1.5.5:

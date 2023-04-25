@@ -142,12 +142,12 @@
 <body>
 <section style="margin: 0; padding: 0;">
     <!-- Assertion failure goes here. -->
-    <div id="failure" style="display: none; margin: 0; padding: 0; width: 100%;">
+    <div id="failure" style="display: none; margin: 0; padding: 0; width: 100%; font-size: 11px;">
         <span style="vertical-align: middle; text-align: left;">️</span>
     </div>
 
     <!-- Global warnings go here. -->
-    <table id='warnings' style="background-color: lightyellow; margin: 0; padding: 0;">
+    <table id='warnings' style="display: none; background-color: lightyellow; margin: 0; padding: 0;">
         <tr>
             <td>⚠️ <a href="#" onClick="toggleWarnings();"><span id="numWarnings" style="vertical-align: middle;"></span></a></td>
         </tr>
@@ -300,8 +300,6 @@
                     row += '</tr>';
                     $('#rpcs').append(row);
 
-                    console.log(rpc.warnings);
-
                     for (i in rpc.warnings) {
                         numWarnings++;
 
@@ -320,7 +318,17 @@
                     }
                 }
 
-                $('#numWarnings').html("There are " + numWarnings + " warnings.");
+                if (numWarnings > 0) {
+                    $('#warnings').show();
+
+                    if (numWarnings > 1) {
+                        $('#numWarnings').html("There are " + numWarnings + " warnings.");
+                    } else {
+                        $('#numWarnings').html("There is " + numWarnings + " warning.");
+                    }
+                } else {
+
+                }
             });
         </script>
     </table>

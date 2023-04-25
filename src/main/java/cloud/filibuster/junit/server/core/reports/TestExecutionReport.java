@@ -6,6 +6,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterExceptio
 import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.*;
 import cloud.filibuster.junit.server.core.lint.analyzers.warnings.FilibusterAnalyzerWarning;
 import org.json.JSONObject;
+import org.testcontainers.shaded.org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -49,9 +50,12 @@ public class TestExecutionReport {
 
     private final String testName;
 
-    public TestExecutionReport(String testName, UUID testUUID) {
+    private final String className;
+
+    public TestExecutionReport(String testName, UUID testUUID, String className) {
         this.testName = testName;
         this.testUUID = testUUID;
+        this.className = className;
     }
 
     private File getDirectoryPath() {
@@ -116,6 +120,10 @@ public class TestExecutionReport {
 
     public UUID getTestUUID() {
         return this.testUUID;
+    }
+
+    public String getClassName() {
+        return className;
     }
 
     static class Keys {
@@ -197,7 +205,8 @@ public class TestExecutionReport {
         result.put(Keys.STATUS_KEY, testExecutionPassed);
 
         if (assertionFailureMessage != null) {
-            result.put(Keys.ASSERTION_FAILURE_MESSAGE, assertionFailureMessage);
+            String escapedAssertionFailureMessage = StringUtils.replaceEach(assertionFailureMessage, new String[]{"&", "\"", "<", ">"}, new String[]{"&amp;", "&quot;", "&lt;", "&gt;"});
+            result.put(Keys.ASSERTION_FAILURE_MESSAGE, escapedAssertionFailureMessage);
         } else {
             result.put(Keys.ASSERTION_FAILURE_MESSAGE, "");
         }

@@ -47,7 +47,8 @@ public class FilibusterConfiguration {
 
 
     private final String testName;
-    
+
+    private final String className;
     private final List<ServiceProfile> serviceProfiles;
 
     private final ServiceProfileBehavior serviceProfileBehavior;
@@ -66,6 +67,7 @@ public class FilibusterConfiguration {
         this.testName = builder.testName;
         this.serviceProfiles = builder.serviceProfiles;
         this.serviceProfileBehavior = builder.serviceProfileBehavior;
+        this.className = builder.className;
     }
 
     /**
@@ -215,6 +217,10 @@ public class FilibusterConfiguration {
         return commands;
     }
 
+    public String getClassName() {
+        return className;
+    }
+
     public static class Builder {
         private boolean dynamicReduction = false;
         private boolean suppressCombinations = false;
@@ -235,6 +241,8 @@ public class FilibusterConfiguration {
         private FilibusterLatencyProfile latencyProfile;
 
         private String testName;
+
+        private String className;
         private List<ServiceProfile> serviceProfiles;
 
         private ServiceProfileBehavior serviceProfileBehavior;
@@ -394,6 +402,13 @@ public class FilibusterConfiguration {
             return this;
         }
 
+
+        @CanIgnoreReturnValue
+        public Builder className(String className) {
+            this.className = className;
+            return this;
+        }
+
         /**
          * Build configuration.
          *
@@ -402,5 +417,6 @@ public class FilibusterConfiguration {
         public FilibusterConfiguration build() {
             return new FilibusterConfiguration(this);
         }
+
     }
 }

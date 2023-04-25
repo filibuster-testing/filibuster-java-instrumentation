@@ -66,7 +66,7 @@
         }
 
         h1 {
-            margin-bottom: 0px;
+            margin-bottom: 0;
         }
 
         iframe.test {
@@ -76,6 +76,30 @@
             height: 96vh;
             width: 98vw;
         }
+
+        select{
+            vertical-align: middle;
+            font-size: 11px;
+            text-align: left;
+            display: inline;
+            border: 0px solid black;
+        }
+
+        .test-container
+        {
+            text-align: center;
+            padding: 0;
+            margin: 0;
+            display: inline-block;
+            border: 0 solid red;
+            width: 100%;
+        }
+
+        .test-container iframe
+        {
+            border: none;
+
+        }
 	</style>
 </head>
 
@@ -83,39 +107,38 @@
 <section>
     <div class="container" style="margin: 0 auto; padding: 0;">
         <div style="display: block; width: 98%; padding: 10px; margin-bottom: 10px; text-align: left;">
-            <span id="pass_status" style="vertical-align: middle;">✅</span>
-            <span id="fail_status" style="vertical-align: middle;">❌</span>
-            <span id="test_name" style="vertical-align: middle; font-size: 11px; text-align: left; display: inline;"></span>
+            <span style="display: inline; font-size: 11px; vertical-align: middle" id="num_tests"></span><select name="tests" id="tests" onchange="selectTest()">
+            </select>
         </div>
-        <div class="test-container" style="text-align: center; padding: 0; margin: 0; display: inline-block; border: 0px solid red; width: 100%;">
-            <iframe id="test_frame" frameborder="0" scrolling="auto" name="test_frame" class="test" style="height: 90vh;"></iframe>
+
+        <div class="test-container">
+            <iframe id="test_frame"  scrolling="auto" name="test_frame" class="test" style="height: 90vh;"></iframe>
         </div>
     </div>
 
     <script>
-        $(document).ready(function () {
-            console.log(summary);
+        function substringNamespace(name) {
+            return name.substring(name.lastIndexOf(".") + 1)
+        }
 
-            $('#total').html("(" + summary.reports.length + ")");
+        function processClassName(classname)
+        {
+            return classname === "" ? "" : substringNamespace(classname);
 
-            for (let i in summary.reports) {
-                let report = summary.reports[i];
-                console.log(report);
-
-                var row = '';
-
-                if (i == 0) {
-                    $('#test_frame').attr('src', report.path);
-                    if (report.status === true) {
-                        $('#pass_status').show();
-                        $('#fail_status').hide();
-                    } else {
-                        $('#pass_status').hide();
-                        $('#fail_status').show();
-                    }
-                    $('#test_name').html(report.test_name);
-                }
-            }
+        }
+        function selectTest()
+        {
+            let selectedTestIndex = parseInt($("#tests").find(":selected").val());
+            let selectedReport = summary.reports[selectedTestIndex];
+            $('#test_frame').attr('src', selectedReport.path);
+        }
+        $(document).ready( () => {
+            $("#num_tests").html("(" + summary.reports.length + ")");
+            let testNames = summary.reports.map(report => `${report.status ? "✅" : "❌"} ${processClassName(report.class_name)}.${report.test_name}`);
+            let options = testNames.map((testname,index) => `<option value="${index}">${testname}</option>`).join();
+            $("#tests").append(options);
+            $("#tests option:last").attr("selected", "selected");
+            selectTest();
         });
     </script>
 </section>

@@ -26,19 +26,23 @@ public class TestSuiteReport {
             private static final String STATUS = "status";
             private static final String TEST_PATH = "path";
             private static final String TEST_NAME = "test_name";
+            private static final String CLASS_NAME = "class_name";
         }
 
     }
 
     private static class FilibusterTestReportSummary {
         private final String testName;
+        private final String className;
         private final File testPath;
         private final boolean status;
 
-        public FilibusterTestReportSummary(String testName, File testPath, boolean status) {
+
+        public FilibusterTestReportSummary(String testName, File testPath, boolean status, String className) {
             this.testName = testName;
             this.testPath = testPath;
             this.status = status;
+            this.className = className;
         }
     }
 
@@ -95,6 +99,7 @@ public class TestSuiteReport {
         reportJSON.put(Keys.TestReportKeys.TEST_PATH, testReportSummary.testPath);
         reportJSON.put(Keys.TestReportKeys.TEST_NAME, testReportSummary.testName);
         reportJSON.put(Keys.TestReportKeys.STATUS, testReportSummary.status);
+        reportJSON.put(Keys.TestReportKeys.CLASS_NAME, testReportSummary.className);
         return reportJSON;
     }
 
@@ -159,11 +164,12 @@ public class TestSuiteReport {
 
     public void addTestReport(TestReport testReport) {
         String testName = testReport.getTestName();
+        String className = testReport.getClassName();
         File testPath = testReport.getReportPath();
         ArrayList<TestExecutionReport> testExecutionReports = testReport.getTestExecutionReports();
         boolean hasNoFailures = testExecutionReports.stream().map(TestExecutionReport::isTestExecutionPassed)
                 .reduce(true, (curr, next) -> curr && next);
-        testReportSummaries.add(new FilibusterTestReportSummary(testName, testPath, hasNoFailures));
+        testReportSummaries.add(new FilibusterTestReportSummary(testName, testPath, hasNoFailures,className));
     }
 
 }

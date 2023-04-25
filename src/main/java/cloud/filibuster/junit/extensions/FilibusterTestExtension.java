@@ -47,6 +47,7 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
     @SuppressWarnings("Java8ApiChecker")
     public Stream<TestTemplateInvocationContext> provideTestTemplateInvocationContexts(ExtensionContext context) {
         Method testMethod = context.getRequiredTestMethod();
+        String className = context.getTestClass().map(Class::getName).orElse("");
         String displayName = context.getDisplayName();
         String analysisFile;
 
@@ -118,6 +119,7 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
                 .serviceProfilesPath(testWithFilibuster.serviceProfilesPath())
                 .serviceProfileBehavior(testWithFilibuster.serviceProfileBehavior())
                 .testName(displayName)
+                .className(className)
                 .build();
 
         validateSearchBackend(testWithFilibuster, filibusterConfiguration);

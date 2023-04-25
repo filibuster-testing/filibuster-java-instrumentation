@@ -114,8 +114,12 @@ public class Assertions {
                 try {
                     thrownAssertionBlock.accept(t);
                 } catch (Throwable t1) {
-                    // We should only see RuntimeExceptions, but if we don't for some bizarre reason, wrap them in a RuntimeException and re-throw.
-                    throw new FilibusterRuntimeException(t1);
+                    if (t1 instanceof RuntimeException) {
+                        throw (RuntimeException) t1;
+                    } else {
+                        // We should only see RuntimeExceptions, but if we don't for some bizarre reason, wrap them in a RuntimeException and re-throw.
+                        throw new FilibusterRuntimeException(t1);
+                    }
                 }
             } else {
                 // Test threw, we didn't inject a fault: throw.
@@ -140,8 +144,12 @@ public class Assertions {
                 try {
                     thrownAssertionBlock.accept(t);
                 } catch (Throwable t1) {
-                    // We should only see RuntimeExceptions, but if we don't for some bizarre reason, wrap them in a RuntimeException and re-throw.
-                    throw new FilibusterRuntimeException(t1);
+                    if (t1 instanceof RuntimeException) {
+                        throw (RuntimeException) t1;
+                    } else {
+                        // We should only see RuntimeExceptions, but if we don't for some bizarre reason, wrap them in a RuntimeException and re-throw.
+                        throw new FilibusterRuntimeException(t1);
+                    }
                 }
             } else {
                 // Test threw, we didn't inject a fault: throw.

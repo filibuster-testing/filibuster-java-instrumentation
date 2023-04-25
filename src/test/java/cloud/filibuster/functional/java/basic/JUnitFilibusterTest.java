@@ -38,7 +38,6 @@ public class JUnitFilibusterTest extends JUnitAnnotationBaseTest {
      *
      * @throws InterruptedException if teardown of gRPC channel fails.
      */
-    @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @TestWithFilibuster()
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {

@@ -31,7 +31,6 @@ import static org.testcontainers.shaded.org.hamcrest.Matchers.containsString;
 public class JUnitFilibusterUnimplementedTest extends JUnitAnnotationBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
-    @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @TestWithFilibuster()
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {

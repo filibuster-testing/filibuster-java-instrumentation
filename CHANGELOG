@@ -1,7 +1,7 @@
 1.5.7
    - (jiujiu1123) minor UI fixes for test suite report
-   Ensure warnings do not display by default.
-   Fix visibility and pluralization of warnings indicator.
+   - (cmeiklejohn) Ensure warnings do not display by default.
+   - (cmeiklejohn) Fix visibility and pluralization of warnings indicator.
 1.5.6:
    - (cmeiklejohn) Fix regression where the warning did not display.
 1.5.5:

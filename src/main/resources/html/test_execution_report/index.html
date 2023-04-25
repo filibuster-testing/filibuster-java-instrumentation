@@ -320,7 +320,17 @@
                     }
                 }
 
-                $('#numWarnings').html("There are " + numWarnings + " warnings.");
+                if (numWarnings > 0) {
+                    $('#warnings').show();
+
+                    if (numWarnings > 1) {
+                        $('#numWarnings').html("There are " + numWarnings + " warnings.");
+                    } else {
+                        $('#numWarnings').html("There is " + numWarnings + " warning.");
+                    }
+                } else {
+
+                }
             });
         </script>
     </table>

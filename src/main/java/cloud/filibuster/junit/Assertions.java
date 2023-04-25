@@ -1,6 +1,7 @@
 package cloud.filibuster.junit;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterAllowedTimeExceededException;
+import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedByHTTPServerException;
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.helpers.Networking;

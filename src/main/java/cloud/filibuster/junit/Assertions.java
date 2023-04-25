@@ -106,26 +106,7 @@ public class Assertions {
      * @param thrownAssertionBlock block containing the conditional assertions to execute (throws, takes one parameter containing a @Throwable.)
      */
     public static void assertPassesAndThrowsOnlyUnderFault(Runnable testBlock, ThrowingConsumer<Throwable> thrownAssertionBlock) throws RuntimeException {
-        try {
-            testBlock.run();
-        } catch (Throwable t) {
-            if (wasFaultInjected()) {
-                // Test threw, we expected it: now check the conditional, user-provided, assertions.
-                try {
-                    thrownAssertionBlock.accept(t);
-                } catch (Throwable t1) {
-                    if (t1 instanceof RuntimeException) {
-                        throw (RuntimeException) t1;
-                    } else {
-                        // We should only see RuntimeExceptions, but if we don't for some bizarre reason, wrap them in a RuntimeException and re-throw.
-                        throw new FilibusterRuntimeException(t1);
-                    }
-                }
-            } else {
-                // Test threw, we didn't inject a fault: throw.
-                throw t;
-            }
-        }
+        assertPassesAndThrowsOnlyUnderFault(testBlock, thrownAssertionBlock, () -> { });
     }
 
     /**

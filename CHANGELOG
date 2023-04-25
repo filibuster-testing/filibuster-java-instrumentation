@@ -1,3 +1,6 @@
+1.6.0:
+   - (cmeiklejohn) Add API for using continuations.
+   - (cmeiklejohn) Change API of assertion functions to throw RuntimeException instead of Throwable.
 1.5.7
    - (jiujiu1123) minor UI fixes for test suite report
    - (cmeiklejohn) Ensure warnings do not display by default.

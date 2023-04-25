@@ -123,12 +123,6 @@ public class Assertions {
             }
         }
     }
-            } else {
-                // Test threw, we didn't inject a fault: throw.
-                throw t;
-            }
-        }
-    }
 
     /**
      * Asserts the fault-free execution passes and that the fault executions pass or throw a given exception.

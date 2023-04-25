@@ -6,6 +6,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterExceptio
 import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.*;
 import cloud.filibuster.junit.server.core.lint.analyzers.warnings.FilibusterAnalyzerWarning;
 import org.json.JSONObject;
+import org.testcontainers.shaded.org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -197,7 +198,8 @@ public class TestExecutionReport {
         result.put(Keys.STATUS_KEY, testExecutionPassed);
 
         if (assertionFailureMessage != null) {
-            result.put(Keys.ASSERTION_FAILURE_MESSAGE, assertionFailureMessage);
+            String escapedAssertionFailureMessage = StringUtils.replaceEach(assertionFailureMessage, new String[]{"&", "\"", "<", ">"}, new String[]{"&amp;", "&quot;", "&lt;", "&gt;"});
+            result.put(Keys.ASSERTION_FAILURE_MESSAGE, escapedAssertionFailureMessage);
         } else {
             result.put(Keys.ASSERTION_FAILURE_MESSAGE, "");
         }

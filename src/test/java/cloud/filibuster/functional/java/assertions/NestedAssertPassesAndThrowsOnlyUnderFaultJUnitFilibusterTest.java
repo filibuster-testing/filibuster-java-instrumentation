@@ -10,6 +10,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import java.util.HashSet;
@@ -21,24 +22,24 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @FilibusterConditionalByEnvironmentSuite
-public class RENAMEMETest extends JUnitAnnotationBaseTest {
+public class NestedAssertPassesAndThrowsOnlyUnderFaultJUnitFilibusterTest extends JUnitAnnotationBaseTest {
     // TODO: rename test.
 
-    // TODO: assert proper count
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
-    // TODO: assert proper count
-    private final static Set<String> innerTestExceptionsThrown = new HashSet<>();
+    private final static Set<String> testInnerExceptionsThrown = new HashSet<>();
 
-    // TODO: assert proper count
     private static int invocationCount = 0;
 
-    // TODO: assert proper count
     private static int continuationInvocationCount = 0;
+
+    private static int testInvocationCount = 0;
 
     @TestWithFilibuster()
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws Throwable {
+        testInvocationCount++;
+
         // Setup
         ManagedChannel helloChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
@@ -74,12 +75,48 @@ public class RENAMEMETest extends JUnitAnnotationBaseTest {
                 // Assertions
                 assertEquals("Hello, Armerian World!!", reply.getMessage());
             }, (t) -> {
-                innerTestExceptionsThrown.add(t.getMessage());
+                testInnerExceptionsThrown.add(t.getMessage());
             });
         });
 
         // Teardown
         helloChannel.shutdownNow();
         helloChannel.awaitTermination(1000, TimeUnit.SECONDS);
+    }
+
+    // Throw at each callsite 5 times - 5 for the latter, 5 for the former, always execute both RPCs.
+
+    @Test
+    @Order(2)
+    public void testInnerExceptionsThrown() {
+        assertEquals(5, testInnerExceptionsThrown.size());
+    }
+
+    @Test
+    @Order(2)
+    public void testExceptionsThrown() {
+        assertEquals(5, testExceptionsThrown.size());
+    }
+
+    // Enter each block the same amount of times: 6 (5 faults + 1 fault-free.)
+
+    @Test
+    @Order(2)
+    public void testInvocationCount() {
+        assertEquals(6, invocationCount);
+    }
+
+    @Test
+    @Order(2)
+    public void testContinationInvocationCount() {
+        assertEquals(6, continuationInvocationCount);
+    }
+
+    // We only execute the test a total of 6 times (5 faults, for each RPC + 1 fault-free.)
+
+    @Test
+    @Order(2)
+    public void testInvocationCount() {
+        assertEquals(6, continuationInvocationCount);
     }
 }

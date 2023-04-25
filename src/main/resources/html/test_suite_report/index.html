@@ -107,7 +107,7 @@
 <section>
     <div class="container" style="margin: 0 auto; padding: 0;">
         <div style="display: block; width: 98%; padding: 10px; margin-bottom: 10px; text-align: left;">
-            <select name="tests" id="tests" onchange="selectTest()">
+            <span style="display: inline; font-size: 11px; vertical-align: middle" id="num_tests"></span><select name="tests" id="tests" onchange="selectTest()">
             </select>
         </div>
 
@@ -124,6 +124,7 @@
             $('#test_frame').attr('src', selectedReport.path);
         }
         $(document).ready( () => {
+            $("#num_tests").html("(" + summary.reports.length + ")");
             let testNames = summary.reports.map(report => `${report.status ? "✅" : "❌"} ${report.test_name}`);
             let options = testNames.map((testname,index) => `<option value="${index}">${testname}</option>`).join();
             $("#tests").append(options);

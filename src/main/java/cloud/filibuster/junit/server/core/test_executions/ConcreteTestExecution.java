@@ -27,8 +27,8 @@ public class ConcreteTestExecution extends TestExecution implements Cloneable {
         faultScopeCounter++;
     }
 
-    public void decrementFaultScopeCounter() {
-        faultScopeCounter++;
+    public int getFaultScopeCounter() {
+        return faultScopeCounter;
     }
 
     public AbstractTestExecution toAbstractTestExecution() {

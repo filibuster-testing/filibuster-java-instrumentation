@@ -143,15 +143,9 @@ public class FilibusterCore {
         logger.info("[FILIBUSTER-CORE]: writePlaceholderReport returning");
     }
 
-    public synchronized void enterFaultScope() {
+    public synchronized void incrementFaultScopeCounter() {
         if (currentConcreteTestExecution != null) {
             currentConcreteTestExecution.incrementFaultScopeCounter();
-        }
-    }
-
-    public synchronized void exitFaultScope() {
-        if (currentConcreteTestExecution != null) {
-            currentConcreteTestExecution.decrementFaultScopeCounter();
         }
     }
 

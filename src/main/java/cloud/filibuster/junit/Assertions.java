@@ -56,26 +56,11 @@ public class Assertions {
      * @throws RuntimeException exception thrown in either the testBlock or the assertionBLock
      */
     public static void assertPassesAndThrowsOnlyUnderFault(Runnable testBlock, ThrowingConsumer<Throwable> assertionBlock) throws Throwable {
-        assertPassesAndThrowsOnlyUnderFault(testBlock, assertionBlock, () -> { });
-    }
-
-    /**
-     * Asserts the fault-free execution passes and that the fault executions pass or throw a given exception.
-     *
-     * @param testBlock block containing the test code to execute.
-     * @param assertionBlock block containing the conditional assertions to execute (throws, takes one parameter containing a @Throwable.)
-     * @param continuationBlock block that is only executed if the test block passes.
-     * @throws RuntimeException exception thrown in either the testBlock or the assertionBLock
-     */
-    public static void assertPassesAndThrowsOnlyUnderFault(Runnable testBlock, ThrowingConsumer<Throwable> assertionBlock, Runnable continuationBlock) throws Throwable {
-        boolean completedSuccessfully = false;
-
         try {
             // Increment as we enter the testBlock.
             incrementFaultScopeCounter();
             testBlock.run();
-            completedSuccessfully = true;
-        } catch (RuntimeException t) {
+        } catch (Throwable t) {
             if (wasFaultInjected()) {
                 // Test threw, we expected it: now check the conditional, user-provided, assertions.
                 assertionBlock.accept(t);
@@ -83,13 +68,6 @@ public class Assertions {
                 // Test threw, we didn't inject a fault: throw.
                 throw t;
             }
-        }
-
-        // Avoid execution if we successfully execute the assertionBlock.
-        if (completedSuccessfully) {
-            // Increment for the continuation, even if empty.
-            incrementFaultScopeCounter();
-            continuationBlock.run();
         }
     }
 

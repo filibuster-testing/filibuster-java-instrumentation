@@ -68,14 +68,13 @@ public class Assertions {
      * @throws RuntimeException exception thrown in either the testBlock or the assertionBLock
      */
     public static void assertPassesAndThrowsOnlyUnderFault(Runnable testBlock, ThrowingConsumer<RuntimeException> assertionBlock, Runnable continuationBlock) {
+        boolean completedSuccessfully = false;
+
         try {
             // Increment as we enter the testBlock.
             incrementFaultScopeCounter();
             testBlock.run();
-
-            // Increment for the continuation, even if empty.
-            incrementFaultScopeCounter();
-            continuationBlock.run();
+            completedSuccessfully = true;
         } catch (RuntimeException t) {
             if (wasFaultInjected()) {
                 // Test threw, we expected it: now check the conditional, user-provided, assertions.
@@ -93,6 +92,13 @@ public class Assertions {
                 // Test threw, we didn't inject a fault: throw.
                 throw t;
             }
+        }
+
+        // Avoid execution if we successfully execute the assertionBlock.
+        if (completedSuccessfully) {
+            // Increment for the continuation, even if empty.
+            incrementFaultScopeCounter();
+            continuationBlock.run();
         }
     }
 

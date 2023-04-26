@@ -59,37 +59,6 @@ public class Assertions {
         assertPassesAndThrowsOnlyUnderFault(testBlock, assertionBlock, () -> { });
     }
 
-    private static void disableFaultInjection() {
-        if (getServerBackendCanInvokeDirectlyProperty()) {
-            if (FilibusterCore.hasCurrentInstance()) {
-                FilibusterCore.getCurrentInstance().disableFaultInjection();
-            }
-
-            // no-op, otherwise.
-        } else {
-            throw new FilibusterUnsupportedByHTTPServerException("disableFaultInjection only supported with local server.");
-        }
-    }
-
-    private static void enableFaultInjection() {
-        if (getServerBackendCanInvokeDirectlyProperty()) {
-            if (FilibusterCore.hasCurrentInstance()) {
-                FilibusterCore.getCurrentInstance().enableFaultInjection();
-            }
-
-            // no-op, otherwise.
-        } else {
-            throw new FilibusterUnsupportedByHTTPServerException("enableFaultInjection only supported with local server.");
-        }
-    }
-
-    public static void faultFree(Runnable block) {
-        incrementFaultScopeCounter();
-        disableFaultInjection();
-        block.run();
-        enableFaultInjection();
-    }
-
     /**
      * Asserts the fault-free execution passes and that the fault executions pass or throw a given exception.
      *

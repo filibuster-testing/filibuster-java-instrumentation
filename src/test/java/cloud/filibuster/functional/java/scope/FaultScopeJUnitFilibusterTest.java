@@ -6,6 +6,7 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.TestWithFilibuster;
+import cloud.filibuster.junit.assertions.Grpc;
 import cloud.filibuster.junit.configuration.examples.FilibusterSingleFaultUnavailableAnalysisConfigurationFile;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -21,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.Source.setSourceDigest;
 import static cloud.filibuster.instrumentation.helpers.Property.setDeiFaultScopeCounterProperty;
 import static cloud.filibuster.junit.Assertions.assertPassesAndThrowsOnlyUnderFault;
-import static cloud.filibuster.junit.Assertions.faultFree;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -60,7 +60,7 @@ public class FaultScopeJUnitFilibusterTest extends JUnitAnnotationBaseTest {
                 .usePlaintext()
                 .build();
 
-        faultFree(() -> {
+        Grpc.executeGrpcWithoutFaults(() -> {
             // First RPC.
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
@@ -92,7 +92,7 @@ public class FaultScopeJUnitFilibusterTest extends JUnitAnnotationBaseTest {
             });
         });
 
-        faultFree(() -> {
+        Grpc.executeGrpcWithoutFaults(() -> {
             // First RPC.
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();

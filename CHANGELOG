@@ -1,5 +1,8 @@
 1.6.0:
    - (cmeiklejohn) Refactor assertion API.
+   - (cmeiklejohn) Add new property for controlling inclusion of test scope into DEI computation.
+   - (cmeiklejohn) Add DEI debugging back into the UX.
+   - (cmeiklejohn) Add new fault scope management that keeps track of assertion block usage.
 1.5.7:
    - (jiujiu1123) Fix minor UI issues for test suite report
    - (jiujiu1123) Add class name to better identify test reports

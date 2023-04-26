@@ -1,7 +1,6 @@
 package cloud.filibuster.junit;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterAllowedTimeExceededException;
-import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedByHTTPServerException;
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.helpers.Networking;
@@ -16,6 +15,7 @@ import com.linecorp.armeria.common.HttpHeaderNames;
 import com.linecorp.armeria.common.HttpMethod;
 import com.linecorp.armeria.common.RequestHeaders;
 import com.linecorp.armeria.common.ResponseHeaders;
+
 import org.json.JSONObject;
 import org.junit.jupiter.api.function.ThrowingConsumer;
 import io.grpc.MethodDescriptor;
@@ -51,29 +51,6 @@ public class Assertions {
     /**
      * Asserts the fault-free execution passes and that the fault executions pass or throw a given exception.
      *
-     * @param testBlock block containing the test code to execute.
-     * @param assertionBlock block containing the conditional assertions to execute (throws, takes one parameter containing a @Throwable.)
-     * @throws RuntimeException exception thrown in either the testBlock or the assertionBLock
-     */
-    public static void assertPassesAndThrowsOnlyUnderFault(Runnable testBlock, ThrowingConsumer<Throwable> assertionBlock) throws Throwable {
-        try {
-            // Increment as we enter the testBlock.
-            incrementFaultScopeCounter();
-            testBlock.run();
-        } catch (Throwable t) {
-            if (wasFaultInjected()) {
-                // Test threw, we expected it: now check the conditional, user-provided, assertions.
-                assertionBlock.accept(t);
-            } else {
-                // Test threw, we didn't inject a fault: throw.
-                throw t;
-            }
-        }
-    }
-
-    /**
-     * Asserts the fault-free execution passes and that the fault executions pass or throw a given exception.
-     *
      * @param milliseconds time the passing executions must be executed within.
      * @param throwable class of exception thrown whenever an exception is thrown.
      * @param testBlock block containing the test code to execute.
@@ -103,7 +80,6 @@ public class Assertions {
             }
         }
     }
-
 
     /**
      * Asserts the fault-free execution passes and that the fault executions pass or throw a given exception.
@@ -176,18 +152,6 @@ public class Assertions {
             }
         } else {
             throw new FilibusterUnsupportedByHTTPServerException("wasFaultInjectedOnRequest only supported with local server.");
-        }
-    }
-
-    public static void incrementFaultScopeCounter() {
-        if (getServerBackendCanInvokeDirectlyProperty()) {
-            if (FilibusterCore.hasCurrentInstance()) {
-                FilibusterCore.getCurrentInstance().incrementFaultScopeCounter();
-            }
-
-            // no-op, otherwise.
-        } else {
-            throw new FilibusterUnsupportedByHTTPServerException("enterFaultScope only supported with local server.");
         }
     }
 

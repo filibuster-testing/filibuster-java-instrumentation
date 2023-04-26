@@ -17,7 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.concurrent.TimeUnit;
 
-import static cloud.filibuster.junit.Assertions.assertPassesAndThrowsOnlyUnderFault;
+import static cloud.filibuster.junit.assertions.Grpc.tryGrpcAndCatchGrpcExceptions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -36,7 +36,7 @@ public class JUnitFilibusterTestMacroAssertion extends JUnitBaseTest {
                 .usePlaintext()
                 .build();
 
-        assertPassesAndThrowsOnlyUnderFault(() -> {
+        tryGrpcAndCatchGrpcExceptions(() -> {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
             Hello.HelloReply reply = blockingStub.partialHello(request);
@@ -58,7 +58,7 @@ public class JUnitFilibusterTestMacroAssertion extends JUnitBaseTest {
                 .usePlaintext()
                 .build();
 
-        assertPassesAndThrowsOnlyUnderFault(() -> {
+        tryGrpcAndCatchGrpcExceptions(() -> {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
             Hello.HelloReply reply = blockingStub.partialHello(request);

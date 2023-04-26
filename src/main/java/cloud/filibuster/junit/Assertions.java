@@ -69,9 +69,11 @@ public class Assertions {
      */
     public static void assertPassesAndThrowsOnlyUnderFault(Runnable testBlock, ThrowingConsumer<RuntimeException> assertionBlock, Runnable continuationBlock) {
         try {
-            inrementFaultScopeCounter();
+            // Increment as we enter the testBlock.
+            incrementFaultScopeCounter();
             testBlock.run();
 
+            // Increment for the continuation, even if empty.
             incrementFaultScopeCounter();
             continuationBlock.run();
         } catch (RuntimeException t) {
@@ -202,7 +204,7 @@ public class Assertions {
         }
     }
 
-    public void incrementFaultScopeCounter() {
+    public static void incrementFaultScopeCounter() {
         if (getServerBackendCanInvokeDirectlyProperty()) {
             if (FilibusterCore.hasCurrentInstance()) {
                 FilibusterCore.getCurrentInstance().incrementFaultScopeCounter();

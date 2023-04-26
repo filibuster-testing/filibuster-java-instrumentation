@@ -56,8 +56,21 @@ public class Assertions {
      * @throws RuntimeException exception thrown in either the testBlock or the assertionBLock
      */
     public static void assertPassesAndThrowsOnlyUnderFault(Runnable testBlock, ThrowingConsumer<RuntimeException> assertionBlock) {
+        assertPassesAndThrowsOnlyUnderFault(testBlock, assertionBlock, () -> { });
+    }
+
+    /**
+     * Asserts the fault-free execution passes and that the fault executions pass or throw a given exception.
+     *
+     * @param testBlock block containing the test code to execute.
+     * @param assertionBlock block containing the conditional assertions to execute (throws, takes one parameter containing a @Throwable.)
+     * @param continuationBlock block that is only executed if the test block passes.
+     * @throws RuntimeException exception thrown in either the testBlock or the assertionBLock
+     */
+    public static void assertPassesAndThrowsOnlyUnderFault(Runnable testBlock, ThrowingConsumer<RuntimeException> assertionBlock, Runnable continuationBlock) {
         try {
             testBlock.run();
+            continuationBlock.run();
         } catch (RuntimeException t) {
             if (wasFaultInjected()) {
                 // Test threw, we expected it: now check the conditional, user-provided, assertions.

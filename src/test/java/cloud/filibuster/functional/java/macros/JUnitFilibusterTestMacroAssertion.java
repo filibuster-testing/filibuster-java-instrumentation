@@ -4,7 +4,6 @@ import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.junit.Assertions;
 import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
@@ -17,7 +16,9 @@ import org.junit.jupiter.api.TestMethodOrder;
 
 import java.util.concurrent.TimeUnit;
 
+import static cloud.filibuster.junit.Assertions.assertPassesAndThrowsOnlyUnderFault;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test simple annotation usage.
@@ -34,11 +35,13 @@ public class JUnitFilibusterTestMacroAssertion extends JUnitAnnotationBaseTest {
                 .usePlaintext()
                 .build();
 
-        Assertions.assertPassesOrThrowsUnderFault(StatusRuntimeException.class, () -> {
+        assertPassesAndThrowsOnlyUnderFault(() -> {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
             Hello.HelloReply reply = blockingStub.partialHello(request);
             assertEquals("Hello, Armerian World!!", reply.getMessage());
+        }, (t) -> {
+            assertTrue(t instanceof StatusRuntimeException);
         });
 
         helloChannel.shutdownNow();
@@ -53,11 +56,13 @@ public class JUnitFilibusterTestMacroAssertion extends JUnitAnnotationBaseTest {
                 .usePlaintext()
                 .build();
 
-        Assertions.assertPassesOrThrowsUnderFault(StatusRuntimeException.class, () -> {
+        assertPassesAndThrowsOnlyUnderFault(() -> {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
             Hello.HelloReply reply = blockingStub.partialHello(request);
             assertEquals("Hello, Armerian World!!", reply.getMessage());
+        }, (t) -> {
+            assertTrue(t instanceof StatusRuntimeException);
         });
 
         helloChannel.shutdownNow();

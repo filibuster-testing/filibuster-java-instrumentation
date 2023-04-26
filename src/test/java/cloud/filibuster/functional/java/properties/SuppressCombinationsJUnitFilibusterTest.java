@@ -25,9 +25,7 @@ import java.util.concurrent.TimeUnit;
 import static cloud.filibuster.instrumentation.helpers.Property.SUPPRESS_COMBINATIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.setTestSuppressCombinationsProperty;
 import static cloud.filibuster.junit.Assertions.assertPassesAndThrowsOnlyUnderFault;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)

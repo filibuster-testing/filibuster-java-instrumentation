@@ -1,6 +1,7 @@
 package cloud.filibuster.junit;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterAllowedTimeExceededException;
+import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedByHTTPServerException;
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.helpers.Networking;
@@ -50,67 +51,26 @@ public class Assertions {
     /**
      * Asserts the fault-free execution passes and that the fault executions pass or throw a given exception.
      *
-     * @param throwable class of exception thrown whenever an exception is thrown.
      * @param testBlock block containing the test code to execute.
+     * @param assertionBlock block containing the conditional assertions to execute (throws, takes one parameter containing a @Throwable.)
+     * @throws RuntimeException exception thrown in either the testBlock or the assertionBLock
      */
-    public static void assertPassesOrThrowsUnderFault(Class<? extends Throwable> throwable, Runnable testBlock) {
+    public static void assertPassesAndThrowsOnlyUnderFault(Runnable testBlock, ThrowingConsumer<RuntimeException> assertionBlock) {
         try {
             testBlock.run();
-        } catch (Throwable t) {
-            if (wasFaultInjected()) {
-                if (!throwable.isInstance(t)) {
-                    // Test threw, we didn't expect it: throw.
-                    throw t;
-                }
-
-                // Test threw, we expected it: do nothing.
-            } else {
-                // Test threw, we didn't inject a fault: throw.
-                throw t;
-            }
-        }
-    }
-
-
-    /**
-     * Asserts the fault-free execution passes and that the fault executions pass or throw a given exception.
-     *
-     * @param throwable class of exception thrown whenever an exception is thrown.
-     * @param testBlock block containing the test code to execute.
-     * @param assertionBlock block containing the conditional assertions to execute (throws, takes one parameter containing the @Throwable.)
-     */
-    public static void assertPassesOrThrowsUnderFault(Class<? extends Throwable> throwable, Runnable testBlock, ThrowingConsumer<Throwable> assertionBlock) throws Throwable {
-        try {
-            testBlock.run();
-        } catch (Throwable t) {
-            if (wasFaultInjected()) {
-                if (!throwable.isInstance(t)) {
-                    // Test threw, we didn't expect it: throw.
-                    throw t;
-                }
-
-                // Test threw, we expected it: now check the conditional, user-provided, assertions.
-                assertionBlock.accept(t);
-            } else {
-                // Test threw, we didn't inject a fault: throw.
-                throw t;
-            }
-        }
-    }
-
-    /**
-     * Asserts the fault-free execution passes and that the fault executions pass or throw a given exception.
-     *
-     * @param testBlock block containing the test code to execute.
-     * @param thrownAssertionBlock block containing the conditional assertions to execute (throws, takes one parameter containing a @Throwable.)
-     */
-    public static void assertPassesAndThrowsOnlyUnderFault(Runnable testBlock, ThrowingConsumer<Throwable> thrownAssertionBlock) throws Throwable {
-        try {
-            testBlock.run();
-        } catch (Throwable t) {
+        } catch (RuntimeException t) {
             if (wasFaultInjected()) {
                 // Test threw, we expected it: now check the conditional, user-provided, assertions.
-                thrownAssertionBlock.accept(t);
+
+                try {
+                    assertionBlock.accept(t);
+                } catch(Throwable t1) {
+                    if (t1 instanceof RuntimeException) {
+                        throw (RuntimeException) t1;
+                    } else {
+                        throw new FilibusterRuntimeException(t1);
+                    }
+                }
             } else {
                 // Test threw, we didn't inject a fault: throw.
                 throw t;

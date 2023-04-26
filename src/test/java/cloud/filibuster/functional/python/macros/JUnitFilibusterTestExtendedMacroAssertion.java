@@ -18,7 +18,7 @@ import org.opentest4j.AssertionFailedError;
 
 import java.util.concurrent.TimeUnit;
 
-import static cloud.filibuster.junit.Assertions.assertPassesOrThrowsUnderFault;
+import static cloud.filibuster.junit.Assertions.assertPassesAndThrowsOnlyUnderFault;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,12 +39,14 @@ public class JUnitFilibusterTestExtendedMacroAssertion extends JUnitBaseTest {
                 .usePlaintext()
                 .build();
 
-        assertPassesOrThrowsUnderFault(StatusRuntimeException.class, () -> {
+        assertPassesAndThrowsOnlyUnderFault(() -> {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
             Hello.HelloReply reply = blockingStub.partialHello(request);
             assertEquals("Hello, Armerian World!!", reply.getMessage());
         }, (t) -> {
+            assertTrue(t instanceof StatusRuntimeException);
+
             boolean expected = false;
 
             if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
@@ -91,7 +93,7 @@ public class JUnitFilibusterTestExtendedMacroAssertion extends JUnitBaseTest {
                 .usePlaintext()
                 .build();
 
-        assertPassesOrThrowsUnderFault(StatusRuntimeException.class, () -> {
+        assertPassesAndThrowsOnlyUnderFault(() -> {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
             Hello.HelloReply reply = blockingStub.partialHello(request);

@@ -69,7 +69,10 @@ public class Assertions {
      */
     public static void assertPassesAndThrowsOnlyUnderFault(Runnable testBlock, ThrowingConsumer<RuntimeException> assertionBlock, Runnable continuationBlock) {
         try {
+            inrementFaultScopeCounter();
             testBlock.run();
+
+            incrementFaultScopeCounter();
             continuationBlock.run();
         } catch (RuntimeException t) {
             if (wasFaultInjected()) {
@@ -196,6 +199,18 @@ public class Assertions {
             }
         } else {
             throw new FilibusterUnsupportedByHTTPServerException("wasFaultInjectedOnRequest only supported with local server.");
+        }
+    }
+
+    public void incrementFaultScopeCounter() {
+        if (getServerBackendCanInvokeDirectlyProperty()) {
+            if (FilibusterCore.hasCurrentInstance()) {
+                FilibusterCore.getCurrentInstance().incrementFaultScopeCounter();
+            }
+
+            // no-op, otherwise.
+        } else {
+            throw new FilibusterUnsupportedByHTTPServerException("enterFaultScope only supported with local server.");
         }
     }
 

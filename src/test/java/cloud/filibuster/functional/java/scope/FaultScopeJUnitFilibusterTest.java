@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.Source.setSourceDigest;
 import static cloud.filibuster.instrumentation.helpers.Property.setDeiFaultScopeCounterProperty;
 import static cloud.filibuster.junit.Assertions.assertPassesAndThrowsOnlyUnderFault;
+import static cloud.filibuster.junit.Assertions.faultFree;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -59,6 +60,14 @@ public class FaultScopeJUnitFilibusterTest extends JUnitAnnotationBaseTest {
                 .usePlaintext()
                 .build();
 
+        faultFree(() -> {
+            // First RPC.
+            HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
+            Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
+            Hello.HelloReply reply = blockingStub.partialHello(request);
+            assertEquals("Hello, Armerian World!!", reply.getMessage());
+        });
+
         assertPassesAndThrowsOnlyUnderFault(() -> {
             // First RPC.
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
@@ -81,6 +90,14 @@ public class FaultScopeJUnitFilibusterTest extends JUnitAnnotationBaseTest {
                 // Ignore the failure, don't do anything right now.
                 continuationExceptionsThrown++;
             });
+        });
+
+        faultFree(() -> {
+            // First RPC.
+            HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
+            Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
+            Hello.HelloReply reply = blockingStub.partialHello(request);
+            assertEquals("Hello, Armerian World!!", reply.getMessage());
         });
 
         helloChannel.shutdownNow();

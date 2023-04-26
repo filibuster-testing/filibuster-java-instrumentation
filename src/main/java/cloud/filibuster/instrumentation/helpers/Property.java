@@ -106,6 +106,28 @@ public class Property {
     }
 
     /***********************************************************************************
+     ** filibuster.dei.fault_scope_counter
+     ***********************************************************************************/
+
+    public static final boolean FAULT_SCOPE_COUNTER_DEFAULT = false;
+
+    private final static String DEI_FAULT_SCOPE_COUNTER = "filibuster.dei.fault_scope_counter";
+
+    public static void setDeiFaultScopeCounterProperty(boolean value) {
+        System.setProperty(DEI_FAULT_SCOPE_COUNTER, String.valueOf(value));
+    }
+
+    public static boolean getDeiFaultScopeCounterProperty() {
+        String propertyValue = System.getProperty(DEI_FAULT_SCOPE_COUNTER);
+
+        if (isPropertyNull(propertyValue)) {
+            return FAULT_SCOPE_COUNTER_DEFAULT;
+        } else {
+            return Boolean.valueOf(propertyValue);
+        }
+    }
+
+    /***********************************************************************************
      ** filibuster.dei.version
      ***********************************************************************************/
 
@@ -162,28 +184,6 @@ public class Property {
 
         if (isPropertyNull(propertyValue)) {
             return DATA_NONDETERMINISM_DEFAULT;
-        } else {
-            return Boolean.valueOf(propertyValue);
-        }
-    }
-
-    /***********************************************************************************
-     ** filibuster.test.fault_scope_counter
-     ***********************************************************************************/
-
-    public static final boolean FAULT_SCOPE_COUNTER_DEFAULT = false;
-
-    private final static String TEST_FAULT_SCOPE_COUNTER = "filibuster.test.fault_scope_counter";
-
-    public static void setTestFaultScopeCounterProperty(boolean value) {
-        System.setProperty(TEST_FAULT_SCOPE_COUNTER, String.valueOf(value));
-    }
-
-    public static boolean getTestFaultScopeCounterProperty() {
-        String propertyValue = System.getProperty(TEST_FAULT_SCOPE_COUNTER);
-
-        if (isPropertyNull(propertyValue)) {
-            return FAULT_SCOPE_COUNTER_DEFAULT;
         } else {
             return Boolean.valueOf(propertyValue);
         }

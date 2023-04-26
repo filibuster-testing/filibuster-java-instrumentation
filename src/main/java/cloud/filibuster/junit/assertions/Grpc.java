@@ -79,7 +79,7 @@ public class Grpc {
                 throw new FilibusterUnsupportedAPIException("Unable to execute test; @TestWithFilibuster was used but no instance of Core could be found.");
             }
         } else {
-            throw new FilibusterUnsupportedAPIException("Unable to execute test; Filibuster must be enabled using @TestWithFilibuster and a supported backend must be supplied.")
+            throw new FilibusterUnsupportedAPIException("Unable to execute test; Filibuster must be enabled using @TestWithFilibuster and a supported backend must be supplied.");
         }
     }
 
@@ -92,7 +92,7 @@ public class Grpc {
                 throw new FilibusterUnsupportedAPIException("Unable to execute test; @TestWithFilibuster was used but no instance of Core could be found.");
             }
         } else {
-            throw new FilibusterUnsupportedAPIException("Unable to execute test; Filibuster must be enabled using @TestWithFilibuster and a supported backend must be supplied.")
+            throw new FilibusterUnsupportedAPIException("Unable to execute test; Filibuster must be enabled using @TestWithFilibuster and a supported backend must be supplied.");
         }
     }
 
@@ -105,7 +105,7 @@ public class Grpc {
                 throw new FilibusterUnsupportedAPIException("Unable to execute test; @TestWithFilibuster was used but no instance of Core could be found.");
             }
         } else {
-            throw new FilibusterUnsupportedAPIException("Unable to execute test; Filibuster must be enabled using @TestWithFilibuster and a supported backend must be supplied.")
+            throw new FilibusterUnsupportedAPIException("Unable to execute test; Filibuster must be enabled using @TestWithFilibuster and a supported backend must be supplied.");
         }
     }
 }

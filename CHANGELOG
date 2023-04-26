@@ -1,4 +1,6 @@
-1.5.7
+1.6.0:
+   - (cmeiklejohn) Refactor assertion API.
+1.5.7:
    - (jiujiu1123) Fix minor UI issues for test suite report
    - (jiujiu1123) Add class name to better identify test reports
    - (cmeiklejohn) Ensure warnings do not display by default.

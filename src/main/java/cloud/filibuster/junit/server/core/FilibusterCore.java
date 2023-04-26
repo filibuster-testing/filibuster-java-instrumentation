@@ -149,6 +149,14 @@ public class FilibusterCore {
         }
     }
 
+    public synchronized int getFaultScopeCounter() {
+        if (currentConcreteTestExecution != null) {
+            return currentConcreteTestExecution.getFaultScopeCounter();
+        }
+
+        return 0;
+    }
+
     // RPC hooks.
 
     // Record an outgoing RPC and conditionally inject faults.

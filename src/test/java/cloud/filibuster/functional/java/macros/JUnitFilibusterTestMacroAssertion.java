@@ -29,7 +29,7 @@ public class JUnitFilibusterTestMacroAssertion extends JUnitAnnotationBaseTest {
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @TestWithFilibuster()
-    public void testMyHelloAndMyWorldServiceWithFilibusterWithMacro() throws InterruptedException {
+    public void testMyHelloAndMyWorldServiceWithFilibusterWithMacro() throws Throwable {
         ManagedChannel helloChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
                 .usePlaintext()
@@ -50,7 +50,7 @@ public class JUnitFilibusterTestMacroAssertion extends JUnitAnnotationBaseTest {
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @TestWithFilibuster(serverBackend=FilibusterLocalServerBackend.class, expected=StatusRuntimeException.class)
-    public void testMyHelloAndMyWorldServiceWithFilibusterWithMacroAndFailure() throws InterruptedException {
+    public void testMyHelloAndMyWorldServiceWithFilibusterWithMacroAndFailure() throws Throwable {
         ManagedChannel helloChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("hello"), 8765)
                 .usePlaintext()

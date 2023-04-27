@@ -200,10 +200,24 @@
                     $('#failure').hide();
                 }
 
+                var group = "";
+
                 for (i in analysis.rpcs) {
                     var rpc = analysis.rpcs[i];
                     var isFaulted = !isEmpty(rpc.fault);
                     var isExceptionResponse = containsExceptionKey(rpc.response);
+
+                    if (rpc.group !== group) {
+                        group = rpc.group;
+
+                        var row = "";
+                        row += "<tr>";
+                        row += "<td colspan=4>";
+                        row += "<span>Assertion Block: " + rpc.group.replace("TestScope+", "").replace("[", "").replace("]", "");
+                        row += "</td>";
+                        row += "</tr>";
+                        $('#rpcs').append(row);
+                    }
 
                     var row = '';
 

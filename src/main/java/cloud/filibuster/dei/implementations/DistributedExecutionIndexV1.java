@@ -310,6 +310,11 @@ public class DistributedExecutionIndexV1 extends DistributedExecutionIndexBase i
         }
 
         @Override
+        public String onlyMetadata() {
+            return this.metadata;
+        }
+
+        @Override
         public String onlyMetadataAndSignature() {
             return this.metadata + "-" + this.signature;
         }
@@ -492,6 +497,13 @@ public class DistributedExecutionIndexV1 extends DistributedExecutionIndexBase i
                 .asynchronous(generateRpcAsynchronousComponentFromCallsite(callsite))
                 .build();
         return key;
+    }
+
+    @Override
+    public String projectionLastKeyWithOnlyMetadata() {
+        Map.Entry<DistributedExecutionIndexKey, Integer> lastCallstackEntry = callstack.get(callstack.size() - 1);
+        DistributedExecutionIndexKey key = lastCallstackEntry.getKey();
+        return key.onlyMetadata().toString();
     }
 
     @Override

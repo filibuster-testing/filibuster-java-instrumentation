@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.scope;
+package cloud.filibuster.functional.java.assertions.scope;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
@@ -17,19 +17,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.Source.setSourceDigest;
 import static cloud.filibuster.instrumentation.helpers.Property.setDeiFaultScopeCounterProperty;
-import static cloud.filibuster.junit.Assertions.assertPassesAndThrowsOnlyUnderFault;
-import static cloud.filibuster.junit.Assertions.faultFree;
+import static cloud.filibuster.junit.assertions.Grpc.executeGrpcWithoutFaults;
+import static cloud.filibuster.junit.assertions.Grpc.tryGrpcAndCatchGrpcExceptions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Test simple annotation usage.
- */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @FilibusterConditionalByEnvironmentSuite
-public class FaultScopeJUnitFilibusterTest extends JUnitAnnotationBaseTest {
+public class FaultScopeWithExplicitContinuationTest extends JUnitAnnotationBaseTest {
     @BeforeAll
     public static void setProperties() {
         setSourceDigest(false);
@@ -44,15 +42,17 @@ public class FaultScopeJUnitFilibusterTest extends JUnitAnnotationBaseTest {
 
     private static int testInvocations = 0;
 
-    private static int continutionInvocations = 0;
+    private static int explicitContinutionInvocations = 0;
 
     private static int exceptionsThrown = 0;
 
     private static int continuationExceptionsThrown = 0;
 
-    @TestWithFilibuster(analysisConfigurationFile = FilibusterSingleFaultUnavailableAnalysisConfigurationFile.class)
+    @TestWithFilibuster(
+            analysisConfigurationFile = FilibusterSingleFaultUnavailableAnalysisConfigurationFile.class
+    )
     @Order(1)
-    public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
+    public void testMyHelloAndMyWorldServiceWithFilibuster() throws Throwable {
         testInvocations++;
 
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -60,28 +60,30 @@ public class FaultScopeJUnitFilibusterTest extends JUnitAnnotationBaseTest {
                 .usePlaintext()
                 .build();
 
-        faultFree(() -> {
-            // First RPC.
+        AtomicBoolean completedSuccessfully = new AtomicBoolean(false);
+
+        executeGrpcWithoutFaults(() -> {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
             Hello.HelloReply reply = blockingStub.partialHello(request);
             assertEquals("Hello, Armerian World!!", reply.getMessage());
         });
 
-        assertPassesAndThrowsOnlyUnderFault(() -> {
-            // First RPC.
+        tryGrpcAndCatchGrpcExceptions(() -> {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
             Hello.HelloReply reply = blockingStub.partialHello(request);
             assertEquals("Hello, Armerian World!!", reply.getMessage());
+            completedSuccessfully.set(true);
         }, (t) -> {
             // Ignore the failure, don't do anything right now.
             exceptionsThrown++;
-        }, () -> {
-            continutionInvocations++;
+        });
 
-            assertPassesAndThrowsOnlyUnderFault(() -> {
-                // Same RPC again, new scope.
+        if (completedSuccessfully.get()) {
+            explicitContinutionInvocations++;
+
+            tryGrpcAndCatchGrpcExceptions(() -> {
                 HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
                 Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
                 Hello.HelloReply reply = blockingStub.partialHello(request);
@@ -90,10 +92,9 @@ public class FaultScopeJUnitFilibusterTest extends JUnitAnnotationBaseTest {
                 // Ignore the failure, don't do anything right now.
                 continuationExceptionsThrown++;
             });
-        });
+        }
 
-        faultFree(() -> {
-            // First RPC.
+        executeGrpcWithoutFaults(() -> {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
             Hello.HelloReply reply = blockingStub.partialHello(request);
@@ -112,8 +113,8 @@ public class FaultScopeJUnitFilibusterTest extends JUnitAnnotationBaseTest {
 
     @Test
     @Order(2)
-    public void verifyContinuationInvocations() {
-        assertEquals(2, continutionInvocations);
+    public void verifyExplicitContinuationInvocations() {
+        assertEquals(2, explicitContinutionInvocations);
     }
 
     @Test

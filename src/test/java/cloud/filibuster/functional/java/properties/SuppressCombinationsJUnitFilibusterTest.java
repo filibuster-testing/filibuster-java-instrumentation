@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.instrumentation.helpers.Property.SUPPRESS_COMBINATIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.setTestSuppressCombinationsProperty;
-import static cloud.filibuster.junit.Assertions.assertPassesAndThrowsOnlyUnderFault;
+import static cloud.filibuster.junit.assertions.Grpc.tryGrpcAndCatchGrpcExceptions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -63,7 +63,7 @@ public class SuppressCombinationsJUnitFilibusterTest extends JUnitAnnotationBase
                 .usePlaintext()
                 .build();
 
-        assertPassesAndThrowsOnlyUnderFault(() -> {
+        tryGrpcAndCatchGrpcExceptions(() -> {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
             Hello.HelloReply reply = blockingStub.parallelPartialHello(request);

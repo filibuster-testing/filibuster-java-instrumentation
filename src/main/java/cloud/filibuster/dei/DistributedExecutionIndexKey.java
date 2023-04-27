@@ -16,14 +16,15 @@ public interface DistributedExecutionIndexKey {
     String onlyDestination();
 
     static DistributedExecutionIndexKey deserialize(String serialized) {
-        String[] stringArray = serialized.split("-", 5);
+        String[] stringArray = serialized.split("-", 6);
 
         // Assuming only a single version right now.
         return new DistributedExecutionIndexV1.Key.Builder()
-                .source(stringArray[1])
-                .signature(stringArray[2])
-                .synchronous(stringArray[3])
-                .asynchronous(stringArray[4])
+                .metadata(stringArray[1])
+                .source(stringArray[2])
+                .signature(stringArray[3])
+                .synchronous(stringArray[4])
+                .asynchronous(stringArray[5])
                 .build();
     }
 }

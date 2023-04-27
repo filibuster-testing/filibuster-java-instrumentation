@@ -11,6 +11,8 @@ public interface DistributedExecutionIndexKey {
 
     @Override boolean equals(Object o);
 
+    String onlyMetadataAndSignature();
+
     String onlySignature();
 
     String onlyDestination();

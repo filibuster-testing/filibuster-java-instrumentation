@@ -7,6 +7,9 @@ import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.FilibusterSingleFaultUnavailableAnalysisConfigurationFile;
+import cloud.filibuster.junit.server.core.FilibusterCore;
+import cloud.filibuster.junit.server.core.lint.analyzers.warnings.FilibusterAnalyzerWarning;
+import cloud.filibuster.junit.server.core.reports.TestExecutionReport;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.AfterAll;
@@ -16,6 +19,7 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -127,5 +131,15 @@ public class TestScopeWithExplicitContinuationTest extends JUnitAnnotationBaseTe
     @Order(2)
     public void verifyContinuationExceptionsThrown() {
         assertEquals(1, continuationExceptionsThrown);
+    }
+
+    @Order(2)
+    @Test
+    public void testWarnings() {
+        if (System.getenv("FILIBUSTER_DISABLED") == null) {
+            TestExecutionReport testExecutionReport = FilibusterCore.getMostRecentInitialTestExecutionReport();
+            List<FilibusterAnalyzerWarning> warnings = testExecutionReport.getWarnings();
+            assertEquals(0, warnings.size());
+        }
     }
 }

@@ -18,7 +18,7 @@ public class RedundantRPCAnalyzer extends TestExecutionReportAnalyzer {
 
     @Override
     void rpc(boolean testPassed, int RPC, DistributedExecutionIndex distributedExecutionIndex, JSONObject invocation, JSONObject fault, JSONObject response) {
-        String deiKey = distributedExecutionIndex.projectionLastKeyWithOnlySignature();
+        String deiKey = distributedExecutionIndex.projectionLastKeyWithOnlyMetadataAndSignature();
         JSONObject invocationArgsObject = invocation.getJSONObject("args");
         String invocationArgs = invocationArgsObject.getString("toString");
         String responseToEncode = "";

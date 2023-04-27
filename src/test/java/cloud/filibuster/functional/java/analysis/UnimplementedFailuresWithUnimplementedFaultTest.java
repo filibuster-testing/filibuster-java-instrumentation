@@ -5,7 +5,7 @@ import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.FilibusterSingleFaultUnavailableAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.FilibusterSingleFaultUnimplementedAnalysisConfigurationFile;
 import cloud.filibuster.junit.server.core.FilibusterCore;
 import cloud.filibuster.junit.server.core.lint.analyzers.warnings.FilibusterAnalyzerWarning;
 import cloud.filibuster.junit.server.core.lint.analyzers.warnings.UnimplementedFailuresWarning;
@@ -25,9 +25,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterTestSmellyUnimplementedFailures extends JUnitAnnotationBaseTest {
+public class UnimplementedFailuresWithUnimplementedFaultTest extends JUnitAnnotationBaseTest {
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @TestWithFilibuster(analysisConfigurationFile=FilibusterSingleFaultUnavailableAnalysisConfigurationFile.class)
+    @TestWithFilibuster(analysisConfigurationFile=FilibusterSingleFaultUnimplementedAnalysisConfigurationFile.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder

@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterTestSmellyResponseBecomesRequest extends JUnitAnnotationBaseTest {
+public class ResponseBecomesRequestTest extends JUnitAnnotationBaseTest {
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @TestWithFilibuster(analysisConfigurationFile=FilibusterSingleFaultUnavailableAnalysisConfigurationFile.class)
     @Order(1)

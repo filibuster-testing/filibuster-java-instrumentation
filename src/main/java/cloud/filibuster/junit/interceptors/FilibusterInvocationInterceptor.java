@@ -101,7 +101,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             } else {
                 if (currentIteration == 1) {
                     Throwable t = FilibusterServerLifecycle.getInitializationFailedException();
-                    Class<? extends RuntimeException> expectedExceptionClass = filibusterConfiguration.getExpected();
+                    Class<? extends Throwable> expectedExceptionClass = filibusterConfiguration.getExpected();
 
                     if (expectedExceptionClass != FilibusterNoopException.class) {
                         // We expected a failure...

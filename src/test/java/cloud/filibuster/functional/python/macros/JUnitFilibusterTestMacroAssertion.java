@@ -3,7 +3,6 @@ package cloud.filibuster.functional.python.macros;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.junit.Assertions;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
 import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
@@ -18,7 +17,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.concurrent.TimeUnit;
 
+import static cloud.filibuster.junit.assertions.Grpc.tryGrpcAndCatchGrpcExceptions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test simple annotation usage.
@@ -29,17 +30,19 @@ public class JUnitFilibusterTestMacroAssertion extends JUnitBaseTest {
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @TestWithFilibuster(serverBackend=FilibusterLocalProcessServerBackend.class)
-    public void testMyHelloAndMyWorldServiceWithFilibusterWithMacro() throws InterruptedException {
+    public void testMyHelloAndMyWorldServiceWithFilibusterWithMacro() throws Throwable {
         ManagedChannel helloChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
                 .usePlaintext()
                 .build();
 
-        Assertions.assertPassesOrThrowsUnderFault(StatusRuntimeException.class, () -> {
+        tryGrpcAndCatchGrpcExceptions(() -> {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
             Hello.HelloReply reply = blockingStub.partialHello(request);
             assertEquals("Hello, Armerian World!!", reply.getMessage());
+        }, (t) -> {
+            assertTrue(t instanceof StatusRuntimeException);
         });
 
         helloChannel.shutdownNow();
@@ -49,17 +52,19 @@ public class JUnitFilibusterTestMacroAssertion extends JUnitBaseTest {
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @TestWithFilibuster(serverBackend=FilibusterLocalProcessServerBackend.class, expected = StatusRuntimeException.class)
-    public void testMyHelloAndMyWorldServiceWithFilibusterWithMacroAndFailure() throws InterruptedException {
+    public void testMyHelloAndMyWorldServiceWithFilibusterWithMacroAndFailure() throws Throwable {
         ManagedChannel helloChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("hello"), 8765)
                 .usePlaintext()
                 .build();
 
-        Assertions.assertPassesOrThrowsUnderFault(StatusRuntimeException.class, () -> {
+        tryGrpcAndCatchGrpcExceptions(() -> {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
             Hello.HelloReply reply = blockingStub.partialHello(request);
             assertEquals("Hello, Armerian World!!", reply.getMessage());
+        }, (t) -> {
+            assertTrue(t instanceof StatusRuntimeException);
         });
 
         helloChannel.shutdownNow();

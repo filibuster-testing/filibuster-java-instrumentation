@@ -28,6 +28,7 @@ import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.P
 import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.Synchronous.getSynchronousInclude;
 
 import static cloud.filibuster.instrumentation.helpers.Hashing.createDigest;
+import static cloud.filibuster.instrumentation.helpers.Property.getDeiFaultScopeCounterProperty;
 
 public class DistributedExecutionIndexV1 extends DistributedExecutionIndexBase implements DistributedExecutionIndex {
     public static final DistributedExecutionIndexType VERSION = V1;
@@ -307,10 +308,17 @@ public class DistributedExecutionIndexV1 extends DistributedExecutionIndexBase i
 
     public static class Components {
         public static String generateRpcSourceFromCallsite(Callsite callsite) {
+            ArrayList<String> rpcSourceElements = new ArrayList<>();
             String rpcSource = "";
 
+            if (getDeiFaultScopeCounterProperty()) {
+                rpcSourceElements.add("TestScope" + callsite.getCurrentFaultScope());
+            }
+
             if (getSourceInclude()) {
-                rpcSource = callsite.getServiceName();
+                rpcSourceElements.add(callsite.getServiceName());
+                // TODO: this is super fucking hack please fix
+                rpcSource = String.join("+", rpcSourceElements);
             }
 
             if (getSourceDigest()) {

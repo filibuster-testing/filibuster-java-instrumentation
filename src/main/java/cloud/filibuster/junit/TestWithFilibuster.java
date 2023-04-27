@@ -200,7 +200,7 @@ public @interface TestWithFilibuster {
      *
      * @return throwable or runtime exception
      */
-    Class<? extends RuntimeException> expected() default FilibusterNoopException.class;
+    Class<? extends Throwable> expected() default FilibusterNoopException.class;
 
     /**
      * Which search strategy should Filibuster use?

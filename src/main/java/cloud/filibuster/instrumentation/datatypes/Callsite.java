@@ -2,6 +2,7 @@ package cloud.filibuster.instrumentation.datatypes;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterCallsiteGenerationException;
 import cloud.filibuster.exceptions.filibuster.FilibusterUnknownCallsiteException;
+import cloud.filibuster.junit.server.core.FilibusterCore;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -124,6 +125,15 @@ public class Callsite {
 
     public String getParameterList() {
         return "[]";
+    }
+
+    public String getCurrentFaultScope() {
+        // I very much dislike having this referenced here, but you have to do what you have to do.
+        if (FilibusterCore.hasCurrentInstance()) {
+            return String.valueOf(FilibusterCore.getCurrentInstance().getFaultScopeCounter());
+        }
+
+        return "";
     }
 
     /**

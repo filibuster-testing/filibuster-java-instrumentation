@@ -47,14 +47,12 @@ public class RedundantRPCTest extends JUnitAnnotationBaseTest {
     @Order(2)
     @Test
     public void testWarnings() {
-        if (System.getenv("FILIBUSTER_DISABLED") == null) {
-            TestExecutionReport testExecutionReport = FilibusterCore.getMostRecentInitialTestExecutionReport();
-            List<FilibusterAnalyzerWarning> warnings = testExecutionReport.getWarnings();
-            for (FilibusterAnalyzerWarning warning : warnings) {
-                assertTrue(warning instanceof RedundantRPCWarning);
-                assertEquals("cloud.filibuster.examples.WorldService/World", warning.getDetails());
-            }
-            assertEquals(3, warnings.size());
+        TestExecutionReport testExecutionReport = FilibusterCore.getMostRecentInitialTestExecutionReport();
+        List<FilibusterAnalyzerWarning> warnings = testExecutionReport.getWarnings();
+        for (FilibusterAnalyzerWarning warning : warnings) {
+            assertTrue(warning instanceof RedundantRPCWarning);
+            assertEquals("cloud.filibuster.examples.WorldService/World", warning.getDetails());
         }
+        assertEquals(3, warnings.size());
     }
 }

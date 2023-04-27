@@ -4,7 +4,6 @@ import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.FilibusterSingleFaultUnavailableAnalysisConfigurationFile;
 import io.grpc.ManagedChannel;
@@ -24,7 +23,6 @@ import static cloud.filibuster.junit.assertions.Grpc.tryGrpcAndCatchGrpcExceptio
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@FilibusterConditionalByEnvironmentSuite
 public class TestScopeWithMainBodyAssertionFailureTest extends JUnitAnnotationBaseTest {
     @BeforeAll
     public static void setProperties() {

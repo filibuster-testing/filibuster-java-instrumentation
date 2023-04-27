@@ -7,7 +7,6 @@ import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterServerInterceptor;
-import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.TestWithFilibuster;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -36,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Verify that fault injection works with Filibuster when no beforeEach or afterEach is present.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@FilibusterConditionalByEnvironmentSuite
 public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 

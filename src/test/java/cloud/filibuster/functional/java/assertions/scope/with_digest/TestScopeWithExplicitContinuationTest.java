@@ -4,12 +4,10 @@ import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.FilibusterSingleFaultUnavailableAnalysisConfigurationFile;
 import cloud.filibuster.junit.server.core.FilibusterCore;
 import cloud.filibuster.junit.server.core.lint.analyzers.warnings.FilibusterAnalyzerWarning;
-import cloud.filibuster.junit.server.core.lint.analyzers.warnings.RedundantRPCWarning;
 import cloud.filibuster.junit.server.core.reports.TestExecutionReport;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -28,10 +26,8 @@ import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.P
 import static cloud.filibuster.junit.assertions.Grpc.executeGrpcWithoutFaults;
 import static cloud.filibuster.junit.assertions.Grpc.tryGrpcAndCatchGrpcExceptions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@FilibusterConditionalByEnvironmentSuite
 public class TestScopeWithExplicitContinuationTest extends JUnitAnnotationBaseTest {
     @BeforeAll
     public static void setProperties() {
@@ -135,10 +131,8 @@ public class TestScopeWithExplicitContinuationTest extends JUnitAnnotationBaseTe
     @Order(2)
     @Test
     public void testWarnings() {
-        if (System.getenv("FILIBUSTER_DISABLED") == null) {
-            TestExecutionReport testExecutionReport = FilibusterCore.getMostRecentInitialTestExecutionReport();
-            List<FilibusterAnalyzerWarning> warnings = testExecutionReport.getWarnings();
-            assertEquals(0, warnings.size());
-        }
+        TestExecutionReport testExecutionReport = FilibusterCore.getMostRecentInitialTestExecutionReport();
+        List<FilibusterAnalyzerWarning> warnings = testExecutionReport.getWarnings();
+        assertEquals(0, warnings.size());
     }
 }

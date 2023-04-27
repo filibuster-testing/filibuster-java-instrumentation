@@ -47,14 +47,12 @@ public class UnimplementedFailuresWithUnimplementedFaultTest extends JUnitAnnota
     @Order(2)
     @Test
     public void testWarnings() {
-        if (System.getenv("FILIBUSTER_DISABLED") == null) {
-            TestExecutionReport testExecutionReport = FilibusterCore.getMostRecentInitialTestExecutionReport();
-            List<FilibusterAnalyzerWarning> warnings = testExecutionReport.getWarnings();
-            for (FilibusterAnalyzerWarning warning : warnings) {
-                assertTrue(warning instanceof UnimplementedFailuresWarning);
-                assertEquals("cloud.filibuster.examples.WorldService/WorldUnimplemented", warning.getDetails());
-            }
-            assertEquals(1, warnings.size());
+        TestExecutionReport testExecutionReport = FilibusterCore.getMostRecentInitialTestExecutionReport();
+        List<FilibusterAnalyzerWarning> warnings = testExecutionReport.getWarnings();
+        for (FilibusterAnalyzerWarning warning : warnings) {
+            assertTrue(warning instanceof UnimplementedFailuresWarning);
+            assertEquals("cloud.filibuster.examples.WorldService/WorldUnimplemented", warning.getDetails());
         }
+        assertEquals(1, warnings.size());
     }
 }

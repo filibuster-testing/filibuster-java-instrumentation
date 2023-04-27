@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.assertions.scope;
+package cloud.filibuster.functional.java.assertions.scope.without_digest;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
@@ -15,41 +15,39 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.opentest4j.AssertionFailedError;
 
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.Source.setSourceDigest;
-import static cloud.filibuster.instrumentation.helpers.Property.setDeiFaultScopeCounterProperty;
+import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.Metadata.setMetadataDigest;
+import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.TestScope.setTestScopeCounter;
 import static cloud.filibuster.junit.assertions.Grpc.executeGrpcWithoutFaults;
 import static cloud.filibuster.junit.assertions.Grpc.tryGrpcAndCatchGrpcExceptions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @FilibusterConditionalByEnvironmentSuite
-public class FaultScopeWithExplicitContinuationTest extends JUnitAnnotationBaseTest {
+public class TestScopeWithMainBodyConditionalAssertionFailureTest extends JUnitAnnotationBaseTest {
     @BeforeAll
     public static void setProperties() {
-        setSourceDigest(false);
-        setDeiFaultScopeCounterProperty(true);
+        setMetadataDigest(false);
+        setTestScopeCounter(true);
     }
 
     @AfterAll
     public static void resetProperties() {
-        setSourceDigest(true);
-        setDeiFaultScopeCounterProperty(false);
+        setMetadataDigest(true);
+        setTestScopeCounter(false);
     }
 
     private static int testInvocations = 0;
 
-    private static int explicitContinutionInvocations = 0;
-
     private static int exceptionsThrown = 0;
 
-    private static int continuationExceptionsThrown = 0;
-
     @TestWithFilibuster(
-            analysisConfigurationFile = FilibusterSingleFaultUnavailableAnalysisConfigurationFile.class
+            analysisConfigurationFile = FilibusterSingleFaultUnavailableAnalysisConfigurationFile.class,
+            expected = AssertionFailedError.class
     )
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws Throwable {
@@ -60,8 +58,6 @@ public class FaultScopeWithExplicitContinuationTest extends JUnitAnnotationBaseT
                 .usePlaintext()
                 .build();
 
-        AtomicBoolean completedSuccessfully = new AtomicBoolean(false);
-
         executeGrpcWithoutFaults(() -> {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
@@ -70,29 +66,24 @@ public class FaultScopeWithExplicitContinuationTest extends JUnitAnnotationBaseT
         });
 
         tryGrpcAndCatchGrpcExceptions(() -> {
-            HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
-            Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
-            Hello.HelloReply reply = blockingStub.partialHello(request);
-            assertEquals("Hello, Armerian World!!", reply.getMessage());
-            completedSuccessfully.set(true);
-        }, (t) -> {
-            // Ignore the failure, don't do anything right now.
-            exceptionsThrown++;
-        });
-
-        if (completedSuccessfully.get()) {
-            explicitContinutionInvocations++;
-
-            tryGrpcAndCatchGrpcExceptions(() -> {
+            try {
                 HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
                 Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
                 Hello.HelloReply reply = blockingStub.partialHello(request);
                 assertEquals("Hello, Armerian World!!", reply.getMessage());
-            }, (t) -> {
-                // Ignore the failure, don't do anything right now.
-                continuationExceptionsThrown++;
-            });
-        }
+            } catch (RuntimeException e) {
+                // Fault will be captured here, if injected.
+                // Simulate an assertion failure that won't hold if fault is injected.
+                // ...but, that won't explicitly throw a StatusRuntimeException.
+                assertEquals("something", "something that isn't the same");
+            }
+        }, (t) -> {
+            // Ignore the failure, don't do anything right now.
+            exceptionsThrown++;
+
+            // We should never hit this.
+            assertNull(t);
+        });
 
         executeGrpcWithoutFaults(() -> {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
@@ -108,24 +99,12 @@ public class FaultScopeWithExplicitContinuationTest extends JUnitAnnotationBaseT
     @Test
     @Order(2)
     public void verifyTestInvocations() {
-        assertEquals(3, testInvocations);
-    }
-
-    @Test
-    @Order(2)
-    public void verifyExplicitContinuationInvocations() {
-        assertEquals(2, explicitContinutionInvocations);
+        assertEquals(2, testInvocations);
     }
 
     @Test
     @Order(2)
     public void verifyExceptionsThrown() {
-        assertEquals(1, exceptionsThrown);
-    }
-
-    @Test
-    @Order(2)
-    public void verifyContinuationExceptionsThrown() {
-        assertEquals(1, continuationExceptionsThrown);
+        assertEquals(0, exceptionsThrown);
     }
 }

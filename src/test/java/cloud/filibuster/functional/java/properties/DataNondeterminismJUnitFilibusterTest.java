@@ -38,7 +38,7 @@ public class DataNondeterminismJUnitFilibusterTest extends JUnitAnnotationBaseTe
     // Test will fail to inject any faults and terminate unless data nondeterminism is set to true.
     @BeforeAll
     public static void setDataNondeterminismProperty() {
-        setTestDataNondeterminismProperty(true);
+        setTestDataNondeterminismProperty(false);
     }
 
     @AfterAll

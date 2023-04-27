@@ -130,6 +130,7 @@ public class TestExecutionReport {
         private static final String ITERATION_KEY = "iteration";
         private static final String STATUS_KEY = "status";
         private static final String DEI_KEY = "dei";
+        private static final String GROUP_KEY = "group";
         private static final String REQUEST_KEY = "request";
         private static final String RESPONSE_KEY = "response";
         private static final String FAULT_KEY = "fault";
@@ -193,6 +194,7 @@ public class TestExecutionReport {
             JSONObject RPC = new JSONObject();
             RPC.put(Keys.GENERATED_ID_KEY, String.valueOf(generatedId));
             RPC.put(Keys.DEI_KEY, dei.toString());
+            RPC.put(Keys.GROUP_KEY, dei.projectionLastKeyWithOnlyMetadata().toString());
             RPC.put(Keys.REQUEST_KEY, deiInvocations.getOrDefault(dei, new JSONObject()));
             RPC.put(Keys.RESPONSE_KEY, deiResponses.getOrDefault(dei, new JSONObject()));
             RPC.put(Keys.FAULT_KEY, deiFaultsInjected.getOrDefault(dei, new JSONObject()));

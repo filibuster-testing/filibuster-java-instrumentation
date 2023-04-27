@@ -1,12 +1,14 @@
-package cloud.filibuster.functional.java.assertions.scope;
+package cloud.filibuster.functional.java.assertions.scope.without_digest;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.FilibusterSingleFaultUnavailableAnalysisConfigurationFile;
+import cloud.filibuster.junit.server.core.FilibusterCore;
+import cloud.filibuster.junit.server.core.lint.analyzers.warnings.FilibusterAnalyzerWarning;
+import cloud.filibuster.junit.server.core.reports.TestExecutionReport;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.AfterAll;
@@ -16,28 +18,28 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.Source.setSourceDigest;
-import static cloud.filibuster.instrumentation.helpers.Property.setDeiFaultScopeCounterProperty;
+import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.Metadata.setMetadataDigest;
+import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.TestScope.setTestScopeCounter;
 import static cloud.filibuster.junit.assertions.Grpc.executeGrpcWithoutFaults;
 import static cloud.filibuster.junit.assertions.Grpc.tryGrpcAndCatchGrpcExceptions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@FilibusterConditionalByEnvironmentSuite
-public class FaultScopeWithExplicitContinuationTest extends JUnitAnnotationBaseTest {
+public class TestScopeWithExplicitContinuationTest extends JUnitAnnotationBaseTest {
     @BeforeAll
     public static void setProperties() {
-        setSourceDigest(false);
-        setDeiFaultScopeCounterProperty(true);
+        setMetadataDigest(false);
+        setTestScopeCounter(true);
     }
 
     @AfterAll
     public static void resetProperties() {
-        setSourceDigest(true);
-        setDeiFaultScopeCounterProperty(false);
+        setMetadataDigest(true);
+        setTestScopeCounter(false);
     }
 
     private static int testInvocations = 0;
@@ -127,5 +129,13 @@ public class FaultScopeWithExplicitContinuationTest extends JUnitAnnotationBaseT
     @Order(2)
     public void verifyContinuationExceptionsThrown() {
         assertEquals(1, continuationExceptionsThrown);
+    }
+
+    @Order(2)
+    @Test
+    public void testWarnings() {
+        TestExecutionReport testExecutionReport = FilibusterCore.getMostRecentInitialTestExecutionReport();
+        List<FilibusterAnalyzerWarning> warnings = testExecutionReport.getWarnings();
+        assertEquals(0, warnings.size());
     }
 }

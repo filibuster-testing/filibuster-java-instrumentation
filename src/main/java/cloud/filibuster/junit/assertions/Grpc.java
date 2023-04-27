@@ -1,7 +1,6 @@
 package cloud.filibuster.junit.assertions;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedAPIException;
-import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedByHTTPServerException;
 import cloud.filibuster.junit.server.core.FilibusterCore;
 import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
@@ -23,7 +22,7 @@ public class Grpc {
             ThrowingConsumer<Throwable> catchBlock
     ) throws Throwable {
         // Increment the scope counter for entry into this block.
-        incrementFaultScopeCounter();
+        incrementTestScopeCounter();
 
         try {
             // Run the provided test block.
@@ -63,7 +62,7 @@ public class Grpc {
      * @param block block to execute synchronously.
      */
     public static void executeGrpcWithoutFaults(Runnable block) {
-        incrementFaultScopeCounter();
+        incrementTestScopeCounter();
         disableFaultInjection();
         block.run();
         enableFaultInjection();
@@ -71,10 +70,10 @@ public class Grpc {
 
     // Increment the fault-scope counter, which is just a counter of how many assertion blocks
     // we have entered via the test.
-    private static void incrementFaultScopeCounter() {
+    private static void incrementTestScopeCounter() {
         if (getServerBackendCanInvokeDirectlyProperty()) {
             if (FilibusterCore.hasCurrentInstance()) {
-                FilibusterCore.getCurrentInstance().incrementFaultScopeCounter();
+                FilibusterCore.getCurrentInstance().incrementTestScopeCounter();
             } else {
                 throw new FilibusterUnsupportedAPIException("Unable to execute test; @TestWithFilibuster was used but no instance of Core could be found.");
             }

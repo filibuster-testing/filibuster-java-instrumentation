@@ -127,10 +127,10 @@ public class Callsite {
         return "[]";
     }
 
-    public String getCurrentFaultScope() {
+    public String getCurrentTestScope() {
         // I very much dislike having this referenced here, but you have to do what you have to do.
         if (FilibusterCore.hasCurrentInstance()) {
-            return String.valueOf(FilibusterCore.getCurrentInstance().getFaultScopeCounter());
+            return String.valueOf(FilibusterCore.getCurrentInstance().getTestScopeCounter());
         }
 
         return "";

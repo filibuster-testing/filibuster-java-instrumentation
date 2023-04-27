@@ -1,10 +1,9 @@
-package cloud.filibuster.functional.java.assertions.scope;
+package cloud.filibuster.functional.java.assertions.scope.without_digest;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.FilibusterSingleFaultUnavailableAnalysisConfigurationFile;
 import io.grpc.ManagedChannel;
@@ -19,26 +18,25 @@ import org.opentest4j.AssertionFailedError;
 
 import java.util.concurrent.TimeUnit;
 
-import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.Source.setSourceDigest;
-import static cloud.filibuster.instrumentation.helpers.Property.setDeiFaultScopeCounterProperty;
+import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.Metadata.setMetadataDigest;
+import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.TestScope.setTestScopeCounter;
 import static cloud.filibuster.junit.assertions.Grpc.executeGrpcWithoutFaults;
 import static cloud.filibuster.junit.assertions.Grpc.tryGrpcAndCatchGrpcExceptions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@FilibusterConditionalByEnvironmentSuite
-public class FaultScopeWithMainBodyConditionalAssertionFailureTest extends JUnitAnnotationBaseTest {
+public class TestScopeWithMainBodyConditionalAssertionFailureTest extends JUnitAnnotationBaseTest {
     @BeforeAll
     public static void setProperties() {
-        setSourceDigest(false);
-        setDeiFaultScopeCounterProperty(true);
+        setMetadataDigest(false);
+        setTestScopeCounter(true);
     }
 
     @AfterAll
     public static void resetProperties() {
-        setSourceDigest(true);
-        setDeiFaultScopeCounterProperty(false);
+        setMetadataDigest(true);
+        setTestScopeCounter(false);
     }
 
     private static int testInvocations = 0;

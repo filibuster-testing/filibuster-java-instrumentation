@@ -417,7 +417,7 @@ public class DistributedExecutionIndexV1 extends DistributedExecutionIndexBase i
             String rpcMetadata = "";
 
             if (getTestScopeCounter()) {
-                rpcMetadataElements.add("TestScope-" + callsite.getCurrentTestScope());
+                rpcMetadataElements.add("TestScope+" + callsite.getCurrentTestScope());
             }
 
             if (getMetadataInclude()) {

@@ -5,7 +5,6 @@ import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.examples.WorldServiceGrpc;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.junit.FilibusterConditionalByEnvironmentSuite;
 import cloud.filibuster.junit.TestWithFilibuster;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -26,15 +25,14 @@ import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.instrumentation.helpers.Property.DATA_NONDETERMINISM_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.setTestDataNondeterminismProperty;
-import static cloud.filibuster.junit.Assertions.assertPassesAndThrowsOnlyUnderFault;
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
+import static cloud.filibuster.junit.assertions.Grpc.tryGrpcAndCatchGrpcExceptions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@FilibusterConditionalByEnvironmentSuite
 public class DataNondeterminismJUnitFilibusterTest extends JUnitAnnotationBaseTest {
 
     // Test will fail to inject any faults and terminate unless data nondeterminism is set to true.
@@ -73,7 +71,7 @@ public class DataNondeterminismJUnitFilibusterTest extends JUnitAnnotationBaseTe
                 .usePlaintext()
                 .build();
 
-        assertPassesAndThrowsOnlyUnderFault(() -> {
+        tryGrpcAndCatchGrpcExceptions(() -> {
             double random = Math.random();
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian " + random).build();

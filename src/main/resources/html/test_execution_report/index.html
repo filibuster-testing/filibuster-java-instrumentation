@@ -141,6 +141,8 @@
 
 <body>
 <section style="margin: 0; padding: 0;">
+    <span style="float: right; display: inline; text-align: right; text-decoration: none; margin-bottom: 10px; margin-left: 10px;"><a style="text-decoration: none;" href="#" onClick="toggleDebug();">🐞</a></span>
+
     <!-- Assertion failure goes here. -->
     <div id="failure" style="display: none; margin: 0; padding: 0; width: 100%; font-size: 11px;">
         <span style="vertical-align: middle; text-align: left;">️</span>
@@ -163,6 +165,10 @@
 
         <script>
             var numWarnings = 0;
+
+            function toggleDebug() {
+                $(".debug").toggle();
+            }
 
             function isEmpty(obj) {
                 return Object.keys(obj).length === 0;
@@ -194,10 +200,24 @@
                     $('#failure').hide();
                 }
 
+                var group = "";
+
                 for (i in analysis.rpcs) {
                     var rpc = analysis.rpcs[i];
                     var isFaulted = !isEmpty(rpc.fault);
                     var isExceptionResponse = containsExceptionKey(rpc.response);
+
+                    if (rpc.group !== group) {
+                        group = rpc.group;
+
+                        var row = "";
+                        row += "<tr>";
+                        row += "<td colspan=4>";
+                        row += "<span>Assertion Block: " + rpc.group.replace("TestScope+", "").replace("[", "").replace("]", "");
+                        row += "</td>";
+                        row += "</tr>";
+                        $('#rpcs').append(row);
+                    }
 
                     var row = '';
 
@@ -316,6 +336,17 @@
                         row += '</tr>';
                         $('#rpcs').append(row);
                     }
+
+                    var row = '';
+                    row += '<tr class="debug">';
+                    row += '<td colspan="4" class="warning" style="vertical-align: middle; text-align: left">';
+                    row += '<textarea>';
+                    row += rpc.dei;
+                    row += '</textarea>';
+                    row += '</td>';
+                    row += '</tr>';
+
+                    $('#rpcs').append(row);
                 }
 
                 if (numWarnings > 0) {

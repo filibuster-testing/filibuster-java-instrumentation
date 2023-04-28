@@ -11,6 +11,8 @@ import java.util.UUID;
 public class ConcreteTestExecution extends TestExecution implements Cloneable {
     private final TestExecutionReport testExecutionReport;
 
+    private int testScopeCounter = 0;
+
     public ConcreteTestExecution(String testName, UUID testUUID, String className) {
         testExecutionReport = new TestExecutionReport(testName, testUUID, className);
     }
@@ -19,6 +21,14 @@ public class ConcreteTestExecution extends TestExecution implements Cloneable {
         testExecutionReport = new TestExecutionReport(testName, testUUID, className);
         faultsToInject.putAll(abstractTestExecution.faultsToInject);
         testExecutionReport.setFaultsInjected(faultsToInject);
+    }
+
+    public void incrementTestScopeCounter() {
+        testScopeCounter++;
+    }
+
+    public int getTestScopeCounter() {
+        return testScopeCounter;
     }
 
     public AbstractTestExecution toAbstractTestExecution() {

@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterTestSmellyMultipleInvocationsForIndividualMutations extends JUnitAnnotationBaseTest {
+public class MultipleInvocationsForIndividualMutationsTest extends JUnitAnnotationBaseTest {
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @TestWithFilibuster(analysisConfigurationFile=FilibusterSingleFaultUnavailableAnalysisConfigurationFile.class)
     @Order(1)
@@ -47,14 +47,12 @@ public class JUnitFilibusterTestSmellyMultipleInvocationsForIndividualMutations 
     @Order(2)
     @Test
     public void testWarnings() {
-        if (System.getenv("FILIBUSTER_DISABLED") == null) {
-            TestExecutionReport testExecutionReport = FilibusterCore.getMostRecentInitialTestExecutionReport();
-            List<FilibusterAnalyzerWarning> warnings = testExecutionReport.getWarnings();
-            for (FilibusterAnalyzerWarning warning : warnings) {
-                assertTrue(warning instanceof MultipleInvocationsForIndividualMutationsWarning);
-                assertEquals("The following string (name: \"Some really big shared component of the request, ) was used in a request to cloud.filibuster.examples.WorldService/WorldRandom and used again to the same method in this test execution.", warning.getDetails());
-            }
-            assertEquals(1, warnings.size());
+        TestExecutionReport testExecutionReport = FilibusterCore.getMostRecentInitialTestExecutionReport();
+        List<FilibusterAnalyzerWarning> warnings = testExecutionReport.getWarnings();
+        for (FilibusterAnalyzerWarning warning : warnings) {
+            assertTrue(warning instanceof MultipleInvocationsForIndividualMutationsWarning);
+            assertEquals("The following string (name: \"Some really big shared component of the request, ) was used in a request to cloud.filibuster.examples.WorldService/WorldRandom and used again to the same method in this test execution.", warning.getDetails());
         }
+        assertEquals(1, warnings.size());
     }
 }

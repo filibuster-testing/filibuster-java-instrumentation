@@ -62,6 +62,8 @@ public class FilibusterCore {
      */
     private final UUID testUUID = UUID.randomUUID();
 
+    private boolean faultInjectionEnabled = true;
+
     public FilibusterCore(FilibusterConfiguration filibusterConfiguration) {
         currentInstance = this;
         String testName = filibusterConfiguration.getTestName();
@@ -132,6 +134,14 @@ public class FilibusterCore {
         mostRecentInitialTestExecutionReport = report;
     }
 
+    public synchronized void enableFaultInjection() {
+        faultInjectionEnabled = true;
+    }
+
+    public synchronized void disableFaultInjection() {
+        faultInjectionEnabled = false;
+    }
+
     public synchronized void writePlaceholderReport() {
         logger.info("[FILIBUSTER-CORE]: writePlaceholderReport called");
 
@@ -143,6 +153,19 @@ public class FilibusterCore {
         logger.info("[FILIBUSTER-CORE]: writePlaceholderReport returning");
     }
 
+    public synchronized void incrementTestScopeCounter() {
+        if (currentConcreteTestExecution != null) {
+            currentConcreteTestExecution.incrementTestScopeCounter();
+        }
+    }
+
+    public synchronized int getTestScopeCounter() {
+        if (currentConcreteTestExecution != null) {
+            return currentConcreteTestExecution.getTestScopeCounter();
+        }
+
+        return 0;
+    }
 
     // RPC hooks.
 
@@ -178,7 +201,7 @@ public class FilibusterCore {
                 shouldGenerateNewAbstractExecutions = !currentAbstractTestExecution.sawInConcreteTestExecution(distributedExecutionIndex);
             }
 
-            if (shouldGenerateNewAbstractExecutions) {
+            if (shouldGenerateNewAbstractExecutions && faultInjectionEnabled) {
                 generateFaultsUsingAnalysisConfiguration(filibusterConfiguration, distributedExecutionIndex, moduleName, methodName);
             }
         }

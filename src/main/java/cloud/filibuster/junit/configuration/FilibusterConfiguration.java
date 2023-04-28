@@ -41,7 +41,7 @@ public class FilibusterConfiguration {
 
     private final boolean degradeWhenServerInitializationFails;
 
-    private final Class<? extends RuntimeException> expected;
+    private final Class<? extends Throwable> expected;
 
     private final FilibusterLatencyProfile latencyProfile;
 
@@ -84,7 +84,7 @@ public class FilibusterConfiguration {
      *
      * @return throwable
      */
-    public Class<? extends RuntimeException> getExpected() {
+    public Class<? extends Throwable> getExpected() {
         return this.expected;
     }
 
@@ -236,7 +236,7 @@ public class FilibusterConfiguration {
 
         private boolean degradeWhenServerInitializationFails = false;
 
-        private Class<? extends RuntimeException> expected;
+        private Class<? extends Throwable> expected;
 
         private FilibusterLatencyProfile latencyProfile;
 
@@ -322,7 +322,7 @@ public class FilibusterConfiguration {
          * @return builder
          */
         @CanIgnoreReturnValue
-        public Builder expected(Class<? extends RuntimeException> clazz) {
+        public Builder expected(Class<? extends Throwable> clazz) {
             this.expected = clazz;
             return this;
         }

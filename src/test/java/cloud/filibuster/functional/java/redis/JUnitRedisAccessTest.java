@@ -6,12 +6,12 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.lettuce.LettuceInterceptedConnection;
 import cloud.filibuster.instrumentation.libraries.lettuce.LettuceInterceptor;
-import cloud.filibuster.instrumentation.libraries.lettuce.MyRedisCommands;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisConnection;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.lettuce.core.RedisCommandTimeoutException;
 import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.sync.RedisCommands;
 import org.junit.jupiter.api.*;
 
 import java.io.IOException;
@@ -66,7 +66,7 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
     @DisplayName("Tests whether Redis interceptor can inject a timeout exception")
     @Order(2)
     public void testRedisInterceptedTimeoutExceptionThrowing() {
-        MyRedisCommands myRedisCommands = LettuceInterceptedConnection.create(redisConnection);
+        RedisCommands<Object, Object> myRedisCommands = LettuceInterceptedConnection.create(redisConnection);
         LettuceInterceptor.isFaultInjected = true;
         String key = "test";
         String value = "example";
@@ -78,7 +78,7 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
     @DisplayName("Tests whether Redis interceptor connection can read and write")
     @Order(3)
     public void testRedisInterceptedReturningData() {
-        MyRedisCommands myRedisCommands = LettuceInterceptedConnection.create(redisConnection);
+        RedisCommands<Object, Object> myRedisCommands = LettuceInterceptedConnection.create(redisConnection);
         LettuceInterceptor.isFaultInjected = false;
         String key = "test";
         String value = "example";

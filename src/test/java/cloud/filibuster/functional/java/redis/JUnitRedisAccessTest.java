@@ -10,14 +10,17 @@ import cloud.filibuster.instrumentation.libraries.lettuce.MyRedisCommands;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisConnection;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.lettuce.core.RedisCommandTimeoutException;
 import io.lettuce.core.api.StatefulRedisConnection;
 import org.junit.jupiter.api.*;
 
 import java.io.IOException;
 
-import static cloud.filibuster.integration.instrumentation.TestHelper.*;
-import static cloud.filibuster.junit.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
+import static cloud.filibuster.integration.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
+import static cloud.filibuster.junit.Assertions.wasFaultInjected;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
@@ -60,22 +63,15 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
     }
 
     @Test
-    @DisplayName("Tests whether Redis interceptor can inject an exception")
+    @DisplayName("Tests whether Redis interceptor can inject a timeout exception")
     @Order(2)
-    public void testRedisInterceptedExceptionThrowing() {
+    public void testRedisInterceptedTimeoutExceptionThrowing() {
         MyRedisCommands myRedisCommands = LettuceInterceptedConnection.create(redisConnection);
         LettuceInterceptor.isFaultInjected = true;
         String key = "test";
         String value = "example";
-        try {
-            myRedisCommands.set(key, value);
-            fail("An exception should have been thrown at Redis service");
-        } catch (Throwable t) {
-            if (LettuceInterceptor.isFaultInjected && t.getCause().getMessage().equals("An exception was thrown at LettuceInterceptor")) {
-                return;
-            }
-            throw t;
-        }
+        assertThrows(RedisCommandTimeoutException.class, () -> myRedisCommands.set(key, value),
+                "An exception was thrown at LettuceInterceptor");
     }
 
     @Test

@@ -4,6 +4,9 @@ import cloud.filibuster.examples.APIServiceGrpc;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.instrumentation.libraries.lettuce.LettuceInterceptedConnection;
+import cloud.filibuster.instrumentation.libraries.lettuce.LettuceInterceptor;
+import cloud.filibuster.instrumentation.libraries.lettuce.MyRedisCommands;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisConnection;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -14,7 +17,7 @@ import java.io.IOException;
 
 import static cloud.filibuster.integration.instrumentation.TestHelper.*;
 import static cloud.filibuster.junit.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
@@ -37,10 +40,11 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
     public void testRedisHello() {
         ManagedChannel apiChannel = ManagedChannelBuilder.forAddress(Networking.getHost("api_server"), Networking.getPort("api_server")).usePlaintext().build();
 
-        // Insert key-value-pair into Redis
+        // Prime the cache: Insert key-value-pair into Redis
         String key = "test";
         String value = "example";
         redisConnection.sync().set(key, value);
+
 
         try {
             APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
@@ -53,5 +57,36 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
             }
             throw t;
         }
+    }
+
+    @Test
+    @DisplayName("Tests whether Redis interceptor can inject an exception")
+    @Order(2)
+    public void testRedisInterceptedExceptionThrowing() {
+        MyRedisCommands myRedisCommands = LettuceInterceptedConnection.create(redisConnection);
+        LettuceInterceptor.isFaultInjected = true;
+        String key = "test";
+        String value = "example";
+        try {
+            myRedisCommands.set(key, value);
+            fail("An exception should have been thrown at Redis service");
+        } catch (Throwable t) {
+            if (LettuceInterceptor.isFaultInjected && t.getCause().getMessage().equals("An exception was thrown at LettuceInterceptor")) {
+                return;
+            }
+            throw t;
+        }
+    }
+
+    @Test
+    @DisplayName("Tests whether Redis interceptor connection can read and write")
+    @Order(3)
+    public void testRedisInterceptedReturningData() {
+        MyRedisCommands myRedisCommands = LettuceInterceptedConnection.create(redisConnection);
+        LettuceInterceptor.isFaultInjected = false;
+        String key = "test";
+        String value = "example";
+        myRedisCommands.set(key, value);
+        assertEquals(value, myRedisCommands.get(key));
     }
 }

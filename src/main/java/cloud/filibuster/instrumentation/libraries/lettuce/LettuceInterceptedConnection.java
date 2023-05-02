@@ -6,7 +6,7 @@ import io.lettuce.core.dynamic.intercept.InvocationProxyFactory;
 
 public abstract class LettuceInterceptedConnection {
 
-    public static RedisCommands<Object, Object> create (StatefulRedisConnection<String, String> redisConnection) {
+    public static RedisCommands<String, String> create (StatefulRedisConnection<String, String> redisConnection) {
         InvocationProxyFactory myFactory = new InvocationProxyFactory();
         myFactory.addInterface(RedisCommands.class);
         myFactory.addInterceptor(new LettuceInterceptor(redisConnection));

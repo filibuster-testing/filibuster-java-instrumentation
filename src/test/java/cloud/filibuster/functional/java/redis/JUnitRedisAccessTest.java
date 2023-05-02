@@ -37,6 +37,11 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
         startHelloServerAndWaitUntilAvailable();
     }
 
+    @AfterEach
+    public void afterEach() {
+        LettuceInterceptor.isFaultInjected = false;
+    }
+
     @Test
     @DisplayName("Tests reading data from Redis")
     @Order(1)
@@ -62,12 +67,23 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
         }
     }
 
+    private RedisCommands<String, String> getRedisConnection(boolean isFaultInjected) {
+        if (isFaultInjected) {
+            LettuceInterceptor.isFaultInjected = true;
+            return LettuceInterceptedConnection.create(redisConnection);
+        }
+        return redisConnection.sync();
+    }
+
+    private RedisCommands<String, String> getRedisConnection() {
+        return getRedisConnection(false);
+    }
+
     @Test
     @DisplayName("Tests whether Redis interceptor can inject a timeout exception")
     @Order(2)
     public void testRedisInterceptedTimeoutExceptionThrowing() {
-        RedisCommands<Object, Object> myRedisCommands = LettuceInterceptedConnection.create(redisConnection);
-        LettuceInterceptor.isFaultInjected = true;
+        RedisCommands<String, String> myRedisCommands = getRedisConnection(true);
         String key = "test";
         String value = "example";
         assertThrows(RedisCommandTimeoutException.class, () -> myRedisCommands.set(key, value),
@@ -78,8 +94,7 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
     @DisplayName("Tests whether Redis interceptor connection can read and write")
     @Order(3)
     public void testRedisInterceptedReturningData() {
-        RedisCommands<Object, Object> myRedisCommands = LettuceInterceptedConnection.create(redisConnection);
-        LettuceInterceptor.isFaultInjected = false;
+        RedisCommands<String, String> myRedisCommands = getRedisConnection();
         String key = "test";
         String value = "example";
         myRedisCommands.set(key, value);

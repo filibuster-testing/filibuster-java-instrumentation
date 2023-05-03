@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@SuppressWarnings("unchecked")
 public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
     private static StatefulRedisConnection<String, String> redisConnection;
     String key = "test";
@@ -70,18 +71,17 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private <T> T getRedisConnection(Class<T> type, boolean isFaultInjected) {
         if (isFaultInjected) {
             LettuceInterceptor.isFaultInjected = true;
             return LettuceInterceptedConnection.create(redisConnection, type);
         }
         if (type == RedisCommands.class)
-            return (T) redisConnection.sync();
+            return type.cast(redisConnection.sync());
         if (type == RedisAsyncCommands.class)
-            return (T) redisConnection.async();
+            return type.cast(redisConnection.async());
         if (type == RedisReactiveCommands.class)
-            return (T) redisConnection.reactive();
+            return type.cast(redisConnection.reactive());
         throw new IllegalArgumentException("Unknown type");
     }
     @Test

@@ -32,6 +32,7 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
     private static StatefulRedisConnection<String, String> redisConnection;
     String key = "test";
     String value = "example";
+
     @BeforeAll
     public static void setUp() {
         redisConnection = RedisConnection.getInstance().connection;
@@ -53,10 +54,8 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
     @Order(1)
     public void testRedisHello() {
         ManagedChannel apiChannel = ManagedChannelBuilder.forAddress(Networking.getHost("api_server"), Networking.getPort("api_server")).usePlaintext().build();
-
         // Prime the cache: Insert key-value-pair into Redis
         redisConnection.sync().set(key, value);
-
 
         try {
             APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
@@ -84,6 +83,7 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
             return type.cast(redisConnection.reactive());
         throw new IllegalArgumentException("Unknown type");
     }
+
     @Test
     @DisplayName("Tests whether Redis sync interceptor can inject a timeout exception")
     @Order(2)
@@ -140,6 +140,5 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
         set.subscribe();
         assertEquals(value, get.block());
     }
-
 
 }

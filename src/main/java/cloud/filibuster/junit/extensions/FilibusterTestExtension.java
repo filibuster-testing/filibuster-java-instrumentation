@@ -126,7 +126,6 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
         validateBackendSelection(testWithFilibuster, filibusterConfiguration);
 
         HashMap<Integer, Boolean> invocationCompletionMap = new HashMap<>();
-
         if (getEnabledProperty()) {
             // @formatter:off
             return IntStream

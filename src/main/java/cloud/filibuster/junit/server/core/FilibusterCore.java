@@ -68,7 +68,7 @@ public class FilibusterCore {
         currentInstance = this;
         String testName = filibusterConfiguration.getTestName();
         String className = filibusterConfiguration.getClassName();
-        currentConcreteTestExecution = new ConcreteTestExecution(testName, testUUID,className);
+        currentConcreteTestExecution = new ConcreteTestExecution(testName, testUUID, className);
         this.filibusterConfiguration = filibusterConfiguration;
 
         this.testReport = new TestReport(testName, testUUID, className);
@@ -326,28 +326,24 @@ public class FilibusterCore {
 
     // JUnit hooks.
 
+
     // This is an old callback used to exit the Python server with code = 1 or code = 0 upon failure.
     public synchronized void completeIteration(int currentIteration) {
-        logger.info("[FILIBUSTER-CORE]: completeIteration called, currentIteration: " + currentIteration);
-
-        if (currentConcreteTestExecution != null) {
-            currentConcreteTestExecution.printRPCs();
-            currentConcreteTestExecution.writeTestExecutionReport(currentIteration, /* exceptionOccurred= */ false, /* throwable= */ null);
-        } else {
-            throw new FilibusterCoreLogicException("currentConcreteTestExecution should not be null at this point, something fatal occurred.");
-        }
-
-        printSummary();
-
-        logger.info("[FILIBUSTER-CORE]: completeIteration returning");
+        completeIteration(currentIteration, 0, null);
     }
 
     // This is an old callback used to exit the Python server with code = 1 or code = 0 upon failure.
     public synchronized void completeIteration(int currentIteration, int exceptionOccurred, Throwable throwable) {
+        completeIteration(currentIteration, exceptionOccurred, throwable, true);
+    }
+
+    public synchronized void completeIteration(int currentIteration, int exceptionOccurred, Throwable throwable, boolean shouldPrintRPCSummary) {
         logger.info("[FILIBUSTER-CORE]: completeIteration called, currentIteration: " + currentIteration + ", exceptionOccurred: " + exceptionOccurred);
 
         if (currentConcreteTestExecution != null) {
-            currentConcreteTestExecution.printRPCs();
+            if (shouldPrintRPCSummary) {
+                currentConcreteTestExecution.printRPCs();
+            }
 
             if (exceptionOccurred != 0) {
                 currentConcreteTestExecution.writeTestExecutionReport(currentIteration, /* exceptionOccurred= */ exceptionOccurred != 0, /* throwable= */ throwable);
@@ -357,8 +353,9 @@ public class FilibusterCore {
         } else {
             throw new FilibusterCoreLogicException("currentConcreteTestExecution should not be null at this point, something fatal occurred.");
         }
-
-        printSummary();
+        if (shouldPrintRPCSummary) {
+            printSummary();
+        }
 
         logger.info("[FILIBUSTER-CORE]: completeIteration returning");
     }
@@ -389,6 +386,7 @@ public class FilibusterCore {
             if (currentIteration == 1) {
                 setMostRecentInitialTestExecutionReport(testExecutionReport);
             }
+
             testReport.addTestExecutionReport(testExecutionReport);
             // We're executing a test and not just running empty iterations (i.e., JUnit maxIterations > number of actual tests.)
 
@@ -427,7 +425,7 @@ public class FilibusterCore {
                 // Set the abstract execution, which drives fault injection and copy the faults into the concrete execution for the record.
                 currentAbstractTestExecution = nextAbstractTestExecution;
                 currentConcreteTestExecution = new ConcreteTestExecution(nextAbstractTestExecution, filibusterConfiguration.getTestName(),
-                        testUUID,filibusterConfiguration.getClassName());
+                        testUUID, filibusterConfiguration.getClassName());
             }
         }
 
@@ -513,7 +511,7 @@ public class FilibusterCore {
 
         if (testReport != null) {
             testReport.writeTestReport();
-            if(Property.getReportsTestSuiteReportEnabledProperty()) {
+            if (Property.getReportsTestSuiteReportEnabledProperty()) {
                 TestSuiteReport.getInstance().addTestReport(testReport);
             }
         }

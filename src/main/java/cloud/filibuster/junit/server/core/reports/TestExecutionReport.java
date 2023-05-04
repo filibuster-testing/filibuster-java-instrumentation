@@ -22,8 +22,6 @@ import java.util.logging.Logger;
 public class TestExecutionReport {
     private static final Logger logger = Logger.getLogger(TestExecutionReport.class.getName());
 
-    private boolean hasReportBeenMaterialized = false;
-
     @Nullable
     private MaterializedTestExecutionReportMetadata materializedTestExecutionReportMetadata;
 
@@ -250,43 +248,45 @@ public class TestExecutionReport {
         testExecutionPassed = !exceptionOccurred;
 
         if (throwable != null) {
-            assertionFailureMessage = throwable.getMessage();
-        }
-
-        if (!hasReportBeenMaterialized) {
-            try {
-                // Create new directory for analysis report.
-                Path directory = getSubdirectoryPath().toPath();
-                Path scriptPath = Paths.get(directory + "/analysis.js");
-                Path indexPath = Paths.get(directory + "/index.html");
-                if (!Files.exists(directory)) {
-                    logger.warning("\n[FILIBUSTER-CORE] Could not find placeholder directory");
-                    Files.createDirectory(directory);
-                }
-                if (!Files.exists(indexPath)) {
-                    logger.warning("\n[FILIBUSTER-CORE] Placeholder directory path doesn't have index.html");
-                    byte[] indexBytes = ReportUtilities.getResourceAsBytes(getClass().getClassLoader(),
-                            "html/test_execution_report/index.html");
-                    Files.write(indexPath, indexBytes);
-                }
-
-                // Note by default Files.write overwrites existing files or create them if it does not exist.
-                Files.write(scriptPath, toJavascript().getBytes(Charset.defaultCharset()));
-
-                // Set materialized and it's location.
-                hasReportBeenMaterialized = true;
-                materializedTestExecutionReportMetadata = new MaterializedTestExecutionReportMetadata(testExecutionNumber, testExecutionPassed, indexPath, uuid);
-
-                logger.info(
-                        "" + "\n" +
-                                "[FILIBUSTER-CORE]: Test Execution Report written to file://" + indexPath + "\n");
-                logger.info(
-                        "" + "\n" +
-                                "[FILIBUSTER-CORE]: Click me for tool view: http://filibuster.local" + indexPath + "\n");
-            } catch (IOException e) {
-                throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution report: ", e);
+            if (assertionFailureMessage == null || assertionFailureMessage.equals("")) {
+                assertionFailureMessage = throwable.getMessage();
+            } else {
+                assertionFailureMessage = assertionFailureMessage + "; " + throwable.getMessage();
             }
         }
+
+        try {
+            // Create new directory for analysis report.
+            Path directory = getSubdirectoryPath().toPath();
+            Path scriptPath = Paths.get(directory + "/analysis.js");
+            Path indexPath = Paths.get(directory + "/index.html");
+            if (!Files.exists(directory)) {
+                logger.warning("\n[FILIBUSTER-CORE] Could not find placeholder directory");
+                Files.createDirectory(directory);
+            }
+            if (!Files.exists(indexPath)) {
+                logger.warning("\n[FILIBUSTER-CORE] Placeholder directory path doesn't have index.html");
+                byte[] indexBytes = ReportUtilities.getResourceAsBytes(getClass().getClassLoader(),
+                        "html/test_execution_report/index.html");
+                Files.write(indexPath, indexBytes);
+            }
+
+            // Note by default Files.write overwrites existing files or create them if it does not exist.
+            Files.write(scriptPath, toJavascript().getBytes(Charset.defaultCharset()));
+
+            // Set materialized and it's location.
+            materializedTestExecutionReportMetadata = new MaterializedTestExecutionReportMetadata(testExecutionNumber, testExecutionPassed, indexPath, uuid);
+
+            logger.info(
+                    "" + "\n" +
+                            "[FILIBUSTER-CORE]: Test Execution Report written to file://" + indexPath + "\n");
+            logger.info(
+                    "" + "\n" +
+                            "[FILIBUSTER-CORE]: Click me for tool view: http://filibuster.local" + indexPath + "\n");
+        } catch (IOException e) {
+            throw new FilibusterTestReportWriterException("Filibuster failed to write out the test execution report: ", e);
+        }
+
     }
 
     public MaterializedTestExecutionReportMetadata getMaterializedReportMetadata() {

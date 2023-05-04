@@ -31,26 +31,35 @@ public class FilibusterInvocationInterceptorHelpers {
         }
     }
 
+    public static void  proceedAndLogException(InvocationInterceptor.Invocation<Void> invocation,
+                                               int currentIteration,
+                                               WebClient webClient,
+                                               FilibusterConfiguration filibusterConfiguration) throws Throwable {
+        proceedAndLogException(invocation,currentIteration,webClient,filibusterConfiguration,true,true);
+    }
+
     @SuppressWarnings("InterruptedExceptionSwallowed")
     public static void proceedAndLogException(InvocationInterceptor.Invocation<Void> invocation,
                                               int currentIteration,
                                               WebClient webClient,
-                                              FilibusterConfiguration filibusterConfiguration) throws Throwable {
+                                              FilibusterConfiguration filibusterConfiguration,
+                                              boolean shouldWritePlaceholder,
+                                              boolean shouldPrintRPCSummary) throws Throwable {
         try {
             if (getServerBackendCanInvokeDirectlyProperty()) {
-                if (FilibusterCore.hasCurrentInstance()) {
+                if (FilibusterCore.hasCurrentInstance() && shouldWritePlaceholder) {
                     FilibusterCore.getCurrentInstance().writePlaceholderReport();
                 }
             }
             invocation.proceed();
-            FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */ false, null);
+            FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */ false, null, shouldPrintRPCSummary);
         } catch (Throwable t) {
             Class<? extends Throwable> expectedExceptionClass = filibusterConfiguration.getExpected();
 
             if (expectedExceptionClass != FilibusterNoopException.class && expectedExceptionClass.isInstance(t)) {
-                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */false, null);
+                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */false, null, shouldPrintRPCSummary);
             } else {
-                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */true, t);
+                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */true, t, shouldPrintRPCSummary);
                 throw t;
             }
         }

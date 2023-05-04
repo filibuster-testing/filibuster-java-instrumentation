@@ -53,7 +53,7 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
     @DisplayName("Tests whether Redis sync interceptor connection can read and write")
     @Order(2)
     public void testRedisSync() {
-        RedisCommands<String, String> myRedisCommands = new FilibusterRedisClientInterceptor().getConnection(RedisCommands.class, true);
+        RedisCommands<String, String> myRedisCommands = new FilibusterRedisClientInterceptor().getConnection(RedisCommands.class, false);
         myRedisCommands.set(key, value);
         assertEquals(value, myRedisCommands.get(key));
     }

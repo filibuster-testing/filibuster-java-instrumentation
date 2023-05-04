@@ -7,12 +7,12 @@ import io.lettuce.core.dynamic.intercept.MethodInvocation;
 
 
 
-public class LettuceInterceptor implements MethodInterceptor {
+public class RedisIntermediaryInterceptor implements MethodInterceptor {
 
     private final StatefulRedisConnection<String, String> redisConnection; //Will be needed later when data failures are injected
     public static boolean isFaultInjected = false;
 
-    public LettuceInterceptor(StatefulRedisConnection<String, String> redisConnection) {
+    public RedisIntermediaryInterceptor(StatefulRedisConnection<String, String> redisConnection) {
         this.redisConnection = redisConnection;
     }
 

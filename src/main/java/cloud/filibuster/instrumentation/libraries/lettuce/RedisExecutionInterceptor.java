@@ -7,10 +7,10 @@ import io.lettuce.core.dynamic.intercept.MethodInvocation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
-public class LettuceInterceptorExecutor implements MethodInterceptor {
+public class RedisExecutionInterceptor implements MethodInterceptor {
     private final StatefulRedisConnection<String, String> redisConnection;
 
-    public LettuceInterceptorExecutor(StatefulRedisConnection<String, String> redisConnection) {
+    public RedisExecutionInterceptor(StatefulRedisConnection<String, String> redisConnection) {
         this.redisConnection = redisConnection;
     }
 

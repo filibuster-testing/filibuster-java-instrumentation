@@ -1,14 +1,16 @@
 package cloud.filibuster.functional.java.redis;
 
+import cloud.filibuster.examples.APIServiceGrpc;
+import cloud.filibuster.examples.Hello;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
-import cloud.filibuster.instrumentation.libraries.lettuce.LettuceInterceptedConnection;
-import cloud.filibuster.instrumentation.libraries.lettuce.LettuceInterceptor;
+import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.instrumentation.libraries.lettuce.FilibusterRedisClientInterceptor;
+import cloud.filibuster.instrumentation.libraries.lettuce.RedisIntermediaryInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisConnection;
 import cloud.filibuster.junit.TestWithFilibuster;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
 import io.lettuce.core.RedisCommandTimeoutException;
-import io.lettuce.core.api.StatefulRedisConnection;
-import io.lettuce.core.api.async.RedisAsyncCommands;
-import io.lettuce.core.api.reactive.RedisReactiveCommands;
 import io.lettuce.core.api.sync.RedisCommands;
 import org.junit.jupiter.api.*;
 
@@ -16,20 +18,15 @@ import java.io.IOException;
 
 import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
+import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("unchecked")
 public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
-    private static StatefulRedisConnection<String, String> redisConnection;
     String key = "test";
     String value = "example";
-
-    @BeforeAll
-    public static void setUp() {
-        redisConnection = RedisConnection.getInstance().connection;
-    }
 
     @BeforeAll
     public static void startAllServices() throws IOException, InterruptedException {
@@ -39,21 +36,7 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
 
     @AfterEach
     public void afterEach() {
-        LettuceInterceptor.isFaultInjected = false;
-    }
-
-    private <T> T getRedisConnection(Class<T> type, boolean isFaultInjected) {
-        if (isFaultInjected) {
-            LettuceInterceptor.isFaultInjected = true;
-            return LettuceInterceptedConnection.create(redisConnection, type);
-        }
-        if (type == RedisCommands.class)
-            return type.cast(redisConnection.sync());
-        if (type == RedisAsyncCommands.class)
-            return type.cast(redisConnection.async());
-        if (type == RedisReactiveCommands.class)
-            return type.cast(redisConnection.reactive());
-        throw new IllegalArgumentException("Unknown type");
+        RedisIntermediaryInterceptor.isFaultInjected = false;
     }
 
     @Test
@@ -61,7 +44,7 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
     @Order(1)
     @TestWithFilibuster(maxIterations = 1)
     public void testRedisSyncException() {
-        RedisCommands<String, String> myRedisCommands = getRedisConnection(RedisCommands.class, true);
+        RedisCommands<String, String> myRedisCommands = new FilibusterRedisClientInterceptor().getConnection(RedisCommands.class, true);
         assertThrows(RedisCommandTimeoutException.class, () -> myRedisCommands.set(key, value),
                 "An exception was thrown at LettuceInterceptor");
     }
@@ -70,9 +53,31 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
     @DisplayName("Tests whether Redis sync interceptor connection can read and write")
     @Order(2)
     public void testRedisSync() {
-        RedisCommands<String, String> myRedisCommands = getRedisConnection(RedisCommands.class, false);
+        RedisCommands<String, String> myRedisCommands = new FilibusterRedisClientInterceptor().getConnection(RedisCommands.class, true);
         myRedisCommands.set(key, value);
         assertEquals(value, myRedisCommands.get(key));
+    }
+
+    @Test
+    @DisplayName("Tests reading data from Redis")
+    @Order(3)
+    @TestWithFilibuster(maxIterations = 2)
+    public void testRedisHello() {
+        ManagedChannel apiChannel = ManagedChannelBuilder.forAddress(Networking.getHost("api_server"), Networking.getPort("api_server")).usePlaintext().build();
+        // Prime the cache: Insert key-value-pair into Redis
+        RedisConnection.getInstance().connection.sync().set(key, value);
+
+        try {
+            APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
+            Hello.RedisRequest readRequest = Hello.RedisRequest.newBuilder().setKey(key).build();
+            Hello.RedisReply reply = blockingStub.redisHello(readRequest);
+            assertEquals(value, reply.getValue());
+        } catch (Throwable t) {
+            if (wasFaultInjected() && t.getMessage().equals("io.grpc.StatusRuntimeException: INTERNAL: java.lang.Exception: An exception was thrown at Hello service")) {
+                return;
+            }
+            throw t;
+        }
     }
 
 }

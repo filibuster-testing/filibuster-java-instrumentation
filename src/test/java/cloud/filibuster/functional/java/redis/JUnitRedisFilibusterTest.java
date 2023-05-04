@@ -44,7 +44,8 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
     @Order(1)
     @TestWithFilibuster(maxIterations = 1)
     public void testRedisSyncException() {
-        RedisCommands<String, String> myRedisCommands = new FilibusterRedisClientInterceptor().getConnection(RedisCommands.class, true);
+        RedisCommands<String, String> myRedisCommands = new FilibusterRedisClientInterceptor()
+                .getConnection(RedisCommands.class, true);
         assertThrows(RedisCommandTimeoutException.class, () -> myRedisCommands.set(key, value),
                 "An exception was thrown at LettuceInterceptor");
     }
@@ -53,7 +54,8 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
     @DisplayName("Tests whether Redis sync interceptor connection can read and write")
     @Order(2)
     public void testRedisSync() {
-        RedisCommands<String, String> myRedisCommands = new FilibusterRedisClientInterceptor().getConnection(RedisCommands.class, false);
+        RedisCommands<String, String> myRedisCommands = new FilibusterRedisClientInterceptor()
+                .getConnection(RedisCommands.class, false);
         myRedisCommands.set(key, value);
         assertEquals(value, myRedisCommands.get(key));
     }

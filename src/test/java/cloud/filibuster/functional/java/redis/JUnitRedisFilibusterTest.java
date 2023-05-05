@@ -1,7 +1,7 @@
 package cloud.filibuster.functional.java.redis;
 
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
-import cloud.filibuster.instrumentation.libraries.lettuce.FilibusterRedisClientInterceptor;
+import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
 import io.lettuce.core.RedisClient;
@@ -29,8 +29,8 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
     @Order(1)
     @TestWithFilibuster(maxIterations = 2)
     public void testRedisSyncGet() {
-        RedisCommands<String, String> myRedisCommands = new FilibusterRedisClientInterceptor(redisClient, redisConnectionString)
-                .getConnection(RedisCommands.class);
+        RedisCommands<String, String> myRedisCommands = new RedisInterceptorFactory(redisClient, redisConnectionString)
+                .getProxy(RedisCommands.class);
         String returnVal = myRedisCommands.get(key);
         assertEquals(value, returnVal);
     }

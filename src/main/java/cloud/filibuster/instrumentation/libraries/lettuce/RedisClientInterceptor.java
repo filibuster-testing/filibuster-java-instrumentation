@@ -20,9 +20,9 @@ import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentati
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationServerCommunicationEnabledProperty;
 
 
-public class RedisIntermediaryInterceptor implements MethodInterceptor {
+public class RedisClientInterceptor implements MethodInterceptor {
     public static Boolean disableInstrumentation = false;
-    private static final Logger logger = Logger.getLogger(FilibusterRedisClientInterceptor.class.getName());
+    private static final Logger logger = Logger.getLogger(RedisInterceptorFactory.class.getName());
     private final StatefulRedisConnection<String, String> redisConnection; //Will be needed later when data failures are injected
     protected ContextStorage contextStorage;
     public static Boolean disableServerCommunication = false;
@@ -30,7 +30,7 @@ public class RedisIntermediaryInterceptor implements MethodInterceptor {
     private static FilibusterClientInstrumentor filibusterClientInstrumentor;
 
 
-    public RedisIntermediaryInterceptor(StatefulRedisConnection<String, String> redisConnection, String redisConnectionString) {
+    public RedisClientInterceptor(StatefulRedisConnection<String, String> redisConnection, String redisConnectionString) {
         this.redisConnection = redisConnection;
         this.contextStorage = new ThreadLocalContextStorage();
         this.redisConnectionString = redisConnectionString;
@@ -39,14 +39,7 @@ public class RedisIntermediaryInterceptor implements MethodInterceptor {
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
         logger.log(Level.INFO, "RedisIntermediaryInterceptor: invoke() called");
-
-        // ******************************************************************************************
-        // Figure out if we are not inside of instrumentation.
-        // ******************************************************************************************
-
-        if (!shouldInstrument()) {
-            logger.log(Level.INFO, "shouldInstrument() is false");
-        }
+        logger.log(Level.INFO, "shouldInstrument() is" +  shouldInstrument());
 
         // ******************************************************************************************
         // Extract callsite information.
@@ -100,6 +93,7 @@ public class RedisIntermediaryInterceptor implements MethodInterceptor {
 
         logger.log(Level.INFO, "forcedException: " + forcedException);
         logger.log(Level.INFO, "failureMetadata: " + failureMetadata);
+
         if (forcedException != null && filibusterClientInstrumentor.shouldAbort()) {
             logger.log(Level.INFO, "RedisIntermediaryInterceptor: invoke() throwing forced exception");
         }

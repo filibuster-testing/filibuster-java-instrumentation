@@ -6,11 +6,11 @@ import io.lettuce.core.dynamic.intercept.InvocationProxyFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.DockerImageName;
 
-public class FilibusterRedisClientInterceptor {
+public final class RedisInterceptorFactory {
     private final StatefulRedisConnection<String, String> redisConnection;
     private final String redisConnectionString;
 
-    public FilibusterRedisClientInterceptor() {
+    public RedisInterceptorFactory() {
         GenericContainer<?> redis = new GenericContainer<>(DockerImageName.parse("redis:5.0.3-alpine"))
                 .withExposedPorts(6379);
         redis.start();
@@ -21,15 +21,15 @@ public class FilibusterRedisClientInterceptor {
         redisConnection = client.connect();
     }
 
-    public FilibusterRedisClientInterceptor(RedisClient redisClient, String redisConnectionString) {
+    public RedisInterceptorFactory(RedisClient redisClient, String redisConnectionString) {
         this.redisConnection = redisClient.connect();
         this.redisConnectionString = redisConnectionString;
     }
 
-    public  <T> T getConnection(Class<T> type) {
+    public  <T> T getProxy(Class<T> type) {
         InvocationProxyFactory myFactory = new InvocationProxyFactory();
         myFactory.addInterface(type);
-        myFactory.addInterceptor(new RedisIntermediaryInterceptor(redisConnection, redisConnectionString));
+        myFactory.addInterceptor(new RedisClientInterceptor(redisConnection, redisConnectionString));
         return myFactory.createProxy(type.getClassLoader());
     }
 }

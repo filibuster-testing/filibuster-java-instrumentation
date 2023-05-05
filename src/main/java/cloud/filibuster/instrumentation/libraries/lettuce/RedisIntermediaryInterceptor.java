@@ -41,10 +41,12 @@ public class RedisIntermediaryInterceptor implements MethodInterceptor {
         logger.log(Level.INFO, "RedisIntermediaryInterceptor: invoke() called");
 
         // ******************************************************************************************
-        // Figure out if we are inside of instrumentation.
+        // Figure out if we are not inside of instrumentation.
         // ******************************************************************************************
 
-        // Do something...
+        if (!shouldInstrument()) {
+            logger.log(Level.INFO, "shouldInstrument() is false");
+        }
 
         // ******************************************************************************************
         // Extract callsite information.
@@ -100,9 +102,6 @@ public class RedisIntermediaryInterceptor implements MethodInterceptor {
         logger.log(Level.INFO, "failureMetadata: " + failureMetadata);
         if (forcedException != null && filibusterClientInstrumentor.shouldAbort()) {
             logger.log(Level.INFO, "RedisIntermediaryInterceptor: invoke() throwing forced exception");
-        }
-        if (shouldInstrument()) {
-            logger.log(Level.INFO, "shouldInstrument() is true");
         }
 
         // ******************************************************************************************

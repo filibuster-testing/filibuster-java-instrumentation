@@ -5,7 +5,7 @@ import cloud.filibuster.examples.Hello;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.lettuce.FilibusterRedisClientInterceptor;
-import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisConnection;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.lettuce.core.RedisCommandTimeoutException;
@@ -42,7 +42,7 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
     public void testRedisHello() {
         ManagedChannel apiChannel = ManagedChannelBuilder.forAddress(Networking.getHost("api_server"), Networking.getPort("api_server")).usePlaintext().build();
         // Prime the cache: Insert key-value-pair into Redis
-        RedisConnection.getInstance().connection.sync().set(key, value);
+        RedisClientService.getInstance().redisClient.connect().sync().set(key, value);
 
         try {
             APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(apiChannel);

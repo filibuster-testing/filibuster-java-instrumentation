@@ -7,6 +7,7 @@ import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.lettuce.FilibusterRedisClientInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisConnection;
 import cloud.filibuster.junit.TestWithFilibuster;
+import cloud.filibuster.junit.configuration.examples.FilibusterGrpcExhaustiveAnalysisConfigurationFile;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.lettuce.core.RedisCommandTimeoutException;
@@ -33,7 +34,6 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
         startHelloServerAndWaitUntilAvailable();
     }
 
-    @Test
     @DisplayName("Tests whether Redis sync interceptor can inject a timeout exception")
     @Order(1)
     @TestWithFilibuster(maxIterations = 1)
@@ -44,10 +44,9 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
                 "An exception was thrown at LettuceInterceptor");
     }
 
-    @Test
     @DisplayName("Tests whether Redis sync interceptor connection can read and write")
     @Order(2)
-    @TestWithFilibuster(maxIterations = 2)
+    @TestWithFilibuster(analysisConfigurationFile= FilibusterGrpcExhaustiveAnalysisConfigurationFile.class)
     public void testRedisSync() {
         RedisCommands<String, String> myRedisCommands = new FilibusterRedisClientInterceptor()
                 .getConnection(RedisCommands.class);
@@ -55,7 +54,6 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
         assertEquals(value, myRedisCommands.get(key));
     }
 
-    @Test
     @DisplayName("Tests reading data from Redis")
     @Order(3)
     @TestWithFilibuster(maxIterations = 2)

@@ -5,7 +5,6 @@ import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
-import io.lettuce.core.RedisCommandTimeoutException;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.dynamic.intercept.MethodInterceptor;
 import io.lettuce.core.dynamic.intercept.MethodInvocation;
@@ -25,8 +24,6 @@ public class RedisIntermediaryInterceptor implements MethodInterceptor {
     public static Boolean disableInstrumentation = false;
     private static final Logger logger = Logger.getLogger(FilibusterRedisClientInterceptor.class.getName());
     private final StatefulRedisConnection<String, String> redisConnection; //Will be needed later when data failures are injected
-    public static boolean isFaultInjected = false;
-
     protected ContextStorage contextStorage;
     public static Boolean disableServerCommunication = false;
     private final String redisConnectionString;
@@ -104,10 +101,26 @@ public class RedisIntermediaryInterceptor implements MethodInterceptor {
         if (forcedException != null && filibusterClientInstrumentor.shouldAbort()) {
             logger.log(Level.INFO, "RedisIntermediaryInterceptor: invoke() throwing forced exception");
         }
-        if (isFaultInjected) {
-            filibusterClientInstrumentor.afterInvocationWithException(RedisCommandTimeoutException.class.getName(),
-                    null, null);
-            throw new RedisCommandTimeoutException("An exception was thrown at LettuceInterceptor");
+        if (shouldInstrument()) {
+            logger.log(Level.INFO, "shouldInstrument() is true");
+        }
+
+        // ******************************************************************************************
+        // If we need to override the response, do it now before proceeding.
+        // ******************************************************************************************
+
+        if (failureMetadata != null && filibusterClientInstrumentor.shouldAbort()) {
+            filibusterClientInstrumentor.afterInvocationWithException(failureMetadata.toString(), null, null);
+            return null;
+        }
+
+        // ******************************************************************************************
+        // If we need to throw, this is where we throw.
+        // ******************************************************************************************
+
+        if (forcedException != null && filibusterClientInstrumentor.shouldAbort()) {
+            filibusterClientInstrumentor.afterInvocationWithException(forcedException.toString(), null, null);
+            return null;
         }
 
         // ******************************************************************************************

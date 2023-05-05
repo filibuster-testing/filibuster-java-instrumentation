@@ -5,7 +5,6 @@ import cloud.filibuster.examples.Hello;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.lettuce.FilibusterRedisClientInterceptor;
-import cloud.filibuster.instrumentation.libraries.lettuce.RedisIntermediaryInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisConnection;
 import cloud.filibuster.junit.TestWithFilibuster;
 import io.grpc.ManagedChannel;
@@ -34,18 +33,13 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
         startHelloServerAndWaitUntilAvailable();
     }
 
-    @AfterEach
-    public void afterEach() {
-        RedisIntermediaryInterceptor.isFaultInjected = false;
-    }
-
     @Test
     @DisplayName("Tests whether Redis sync interceptor can inject a timeout exception")
     @Order(1)
     @TestWithFilibuster(maxIterations = 1)
     public void testRedisSyncException() {
         RedisCommands<String, String> myRedisCommands = new FilibusterRedisClientInterceptor()
-                .getConnection(RedisCommands.class, true);
+                .getConnection(RedisCommands.class);
         assertThrows(RedisCommandTimeoutException.class, () -> myRedisCommands.set(key, value),
                 "An exception was thrown at LettuceInterceptor");
     }
@@ -53,9 +47,10 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
     @Test
     @DisplayName("Tests whether Redis sync interceptor connection can read and write")
     @Order(2)
+    @TestWithFilibuster(maxIterations = 2)
     public void testRedisSync() {
         RedisCommands<String, String> myRedisCommands = new FilibusterRedisClientInterceptor()
-                .getConnection(RedisCommands.class, false);
+                .getConnection(RedisCommands.class);
         myRedisCommands.set(key, value);
         assertEquals(value, myRedisCommands.get(key));
     }

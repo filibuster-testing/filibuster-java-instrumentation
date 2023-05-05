@@ -5,7 +5,6 @@ import cloud.filibuster.examples.Hello;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.lettuce.FilibusterRedisClientInterceptor;
-import cloud.filibuster.instrumentation.libraries.lettuce.RedisIntermediaryInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisConnection;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -37,11 +36,6 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
         startHelloServerAndWaitUntilAvailable();
     }
 
-    @AfterEach
-    public void afterEach() {
-        RedisIntermediaryInterceptor.isFaultInjected = false;
-    }
-
     @Test
     @DisplayName("Tests reading data from Redis")
     @Order(1)
@@ -67,7 +61,7 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
     @DisplayName("Tests whether Redis sync interceptor can inject a timeout exception")
     @Order(2)
     public void testRedisSyncException() {
-        RedisCommands<String, String> myRedisCommands = new FilibusterRedisClientInterceptor().getConnection(RedisCommands.class, true);
+        RedisCommands<String, String> myRedisCommands = new FilibusterRedisClientInterceptor().getConnection(RedisCommands.class);
         assertThrows(RedisCommandTimeoutException.class, () -> myRedisCommands.set(key, value),
                 "An exception was thrown at LettuceInterceptor");
     }
@@ -76,7 +70,7 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
     @DisplayName("Tests whether Redis sync interceptor connection can read and write")
     @Order(3)
     public void testRedisSync() {
-        RedisCommands<String, String> myRedisCommands = new FilibusterRedisClientInterceptor().getConnection(RedisCommands.class, false);
+        RedisCommands<String, String> myRedisCommands = new FilibusterRedisClientInterceptor().getConnection(RedisCommands.class);
         myRedisCommands.set(key, value);
         assertEquals(value, myRedisCommands.get(key));
     }
@@ -85,7 +79,7 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
     @DisplayName("Tests whether Redis async interceptor can inject a timeout exception")
     @Order(4)
     public void testRedisAsyncException() {
-        RedisAsyncCommands<String, String> myRedisCommands = new FilibusterRedisClientInterceptor().getConnection(RedisAsyncCommands.class, true);
+        RedisAsyncCommands<String, String> myRedisCommands = new FilibusterRedisClientInterceptor().getConnection(RedisAsyncCommands.class);
         assertThrows(RedisCommandTimeoutException.class, () -> myRedisCommands.set(key, value),
                 "An exception was thrown at LettuceInterceptor");
     }
@@ -94,7 +88,7 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
     @DisplayName("Tests whether Redis async interceptor connection can read and write")
     @Order(5)
     public void testRedisAsync() throws ExecutionException, InterruptedException {
-        RedisAsyncCommands<String, String> myRedisCommands = new FilibusterRedisClientInterceptor().getConnection(RedisAsyncCommands.class, false);
+        RedisAsyncCommands<String, String> myRedisCommands = new FilibusterRedisClientInterceptor().getConnection(RedisAsyncCommands.class);
         myRedisCommands.set(key, value).get();
         String retrievedValue = myRedisCommands.get(key).get();
         assertEquals(value, retrievedValue);
@@ -104,7 +98,7 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
     @DisplayName("Tests whether Redis reactive interceptor can inject a timeout exception")
     @Order(6)
     public void testRedisReactiveException() {
-        RedisReactiveCommands<String, String> myRedisCommands = new FilibusterRedisClientInterceptor().getConnection(RedisReactiveCommands.class, true);
+        RedisReactiveCommands<String, String> myRedisCommands = new FilibusterRedisClientInterceptor().getConnection(RedisReactiveCommands.class);
         assertThrows(RedisCommandTimeoutException.class, () -> myRedisCommands.set(key, value).subscribe(),
                 "An exception was thrown at LettuceInterceptor");
     }
@@ -113,7 +107,7 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
     @DisplayName("Tests whether Redis reactive interceptor connection can read and write")
     @Order(7)
     public void testRedisReactive() {
-        RedisReactiveCommands<String, String> myRedisCommands = new FilibusterRedisClientInterceptor().getConnection(RedisReactiveCommands.class, false);
+        RedisReactiveCommands<String, String> myRedisCommands = new FilibusterRedisClientInterceptor().getConnection(RedisReactiveCommands.class);
         Mono<String> set = myRedisCommands.set(key, value);
         Mono<String> get = myRedisCommands.get(key);
         set.subscribe();

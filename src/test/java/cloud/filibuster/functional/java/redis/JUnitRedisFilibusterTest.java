@@ -42,7 +42,7 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
     @Test
     @DisplayName("Tests whether Redis sync interceptor can inject a timeout exception")
     @Order(1)
-    @TestWithFilibuster(maxIterations = 1)
+    @TestWithFilibuster(maxIterations = 10)
     public void testRedisSyncException() {
         RedisCommands<String, String> myRedisCommands = new FilibusterRedisClientInterceptor()
                 .getConnection(RedisCommands.class, true);

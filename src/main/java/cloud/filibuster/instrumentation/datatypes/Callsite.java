@@ -220,7 +220,9 @@ public class Callsite {
                     !stringStackTraceElement.contains("cloud.filibuster") ||
                     (stringStackTraceElement.contains("cloud.filibuster") && (stringStackTraceElement.contains("test") || stringStackTraceElement.contains("tutorial")));
 
-            if (! foundInStandardImportedLibraries && ! foundInImportedLibrariesFromGradle && notFilibusterOrFilibusterTest) {
+            boolean notProxy = !stringStackTraceElement.contains("$Proxy");
+
+            if (! foundInStandardImportedLibraries && ! foundInImportedLibrariesFromGradle && notFilibusterOrFilibusterTest && notProxy) {
                 filteredStackTrace.add(Pair.of(String.valueOf(hashCode), stringStackTraceElement));
             }
         }

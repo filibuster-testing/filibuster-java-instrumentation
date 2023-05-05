@@ -11,6 +11,7 @@ import org.testcontainers.utility.DockerImageName;
 
 public class FilibusterRedisClientInterceptor {
     private final StatefulRedisConnection<String, String> redisConnection;
+    private final String redisConnectionString;
 
     public FilibusterRedisClientInterceptor() {
         GenericContainer<?> redis = new GenericContainer<>(DockerImageName.parse("redis:5.0.3-alpine"))
@@ -18,19 +19,21 @@ public class FilibusterRedisClientInterceptor {
         redis.start();
         String address = redis.getHost();
         Integer port = redis.getFirstMappedPort();
-        RedisClient client = RedisClient.create(String.format("redis://%s:%d/0", address, port));
+        redisConnectionString = String.format("redis://%s:%d/0", address, port);
+        RedisClient client = RedisClient.create(redisConnectionString);
         redisConnection = client.connect();
     }
 
-    public FilibusterRedisClientInterceptor(StatefulRedisConnection<String, String> redisConnection) {
-        this.redisConnection = redisConnection;
+    public FilibusterRedisClientInterceptor(RedisClient redisClient, String redisConnectionString) {
+        this.redisConnection = redisClient.connect();
+        this.redisConnectionString = redisConnectionString;
     }
 
     private  <T> T createProxy(StatefulRedisConnection<String, String> redisConnection, Class<T> type) {
         InvocationProxyFactory myFactory = new InvocationProxyFactory();
         myFactory.addInterface(type);
-        myFactory.addInterceptor(new RedisIntermediaryInterceptor(redisConnection));
-        myFactory.addInterceptor(new RedisExecutionInterceptor(redisConnection));
+        myFactory.addInterceptor(new RedisIntermediaryInterceptor(redisConnection, redisConnectionString));
+        myFactory.addInterceptor(new RedisExecutionInterceptor(redisConnection, redisConnectionString));
         return myFactory.createProxy(type.getClassLoader());
     }
 

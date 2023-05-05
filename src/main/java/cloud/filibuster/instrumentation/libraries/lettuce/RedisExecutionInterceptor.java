@@ -9,9 +9,11 @@ import java.util.Arrays;
 
 public class RedisExecutionInterceptor implements MethodInterceptor {
     private final StatefulRedisConnection<String, String> redisConnection;
+    private final String redisConnectionString;
 
-    public RedisExecutionInterceptor(StatefulRedisConnection<String, String> redisConnection) {
+    public RedisExecutionInterceptor(StatefulRedisConnection<String, String> redisConnection, String redisConnectionString) {
         this.redisConnection = redisConnection;
+        this.redisConnectionString = redisConnectionString;
     }
 
     @Override
@@ -20,6 +22,8 @@ public class RedisExecutionInterceptor implements MethodInterceptor {
         Arrays.fill(paramTypes, Object.class);
         Method method = redisConnection.sync().getClass().getDeclaredMethod(invocation.getMethod().getName(),
                 paramTypes);
-        return method.invoke(redisConnection.sync(), invocation.getArguments());
+        Object result = method.invoke(redisConnection.sync(), invocation.getArguments());
+        // Communicate result with the Filibuster server
+        return result;
     }
 }

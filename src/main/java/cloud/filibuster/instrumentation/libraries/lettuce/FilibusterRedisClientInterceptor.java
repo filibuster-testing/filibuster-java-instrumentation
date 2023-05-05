@@ -33,7 +33,6 @@ public class FilibusterRedisClientInterceptor {
         InvocationProxyFactory myFactory = new InvocationProxyFactory();
         myFactory.addInterface(type);
         myFactory.addInterceptor(new RedisIntermediaryInterceptor(redisConnection, redisConnectionString));
-        myFactory.addInterceptor(new RedisExecutionInterceptor(redisConnection, redisConnectionString));
         return myFactory.createProxy(type.getClassLoader());
     }
 

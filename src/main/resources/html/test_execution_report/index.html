@@ -49,7 +49,13 @@
             font-size: small;
             resize: none;
         }
-
+        select{
+            vertical-align: middle;
+            font-size: 11px;
+            text-align: left;
+            display: inline;
+            border: 0px solid black;
+        }
         th {
             background-color: lightgrey;
         }
@@ -145,7 +151,13 @@
 
     <!-- Assertion failure goes here. -->
     <div id="failure" style="display: none; margin: 0; padding: 0; width: 100%; font-size: 11px;">
-        <span style="vertical-align: middle; text-align: left;">️</span>
+        <span style="vertical-align: middle; text-align: left;" id ="failedMessage">️</span>
+        <select name="failureSelection" id="failureSelection" style="font-size: 11px;">
+        </select>
+        <a style="text-decoration: none;" href="#" onClick="toggleStackTrace();">📚</a>
+    </div>
+
+    <div id="failureStackTrace" style="display: none;margin: 0; padding: 0; width: 100%; font-size: 11px;">
     </div>
 
     <!-- Global warnings go here. -->
@@ -186,16 +198,26 @@
                 return name.substring(name.lastIndexOf(".") + 1)
             }
 
-            $(document).ready(function () {
-                var status = analysis.status;
-                var iteration = analysis.iteration;
-                var assertionFailureMessage = analysis.assertion_failure_message;
-                console.log("AFM");
-                console.log("'" + assertionFailureMessage + "'");
+            function toggleStackTrace()
+            {
+                let selectedFailureIndex = parseInt($("#failureSelection").find(":selected").val());
+                let selectedFailure = analysis.failures[selectedFailureIndex];
+                $("#failureStackTrace").html(`<textarea>${selectedFailure.assertion_failure_stacktrace}</textarea>`)
+                $("#failureStackTrace").toggle();
+            }
 
-                if (assertionFailureMessage !== undefined && assertionFailureMessage !== "") {
-                    $('#failure').html("❌&nbsp; Test failed because of assertion failure: " + assertionFailureMessage);
+            $(document).ready(function () {
+                let status = analysis.status;
+                let iteration = analysis.iteration;
+                let failures = analysis.failures;
+
+                if (failures.length > 0) {
+                    let plural = failures.length > 1  ? "s" : "";
+                    $('#failedMessage').html(`❌&nbsp; Test failed because of assertion failure${plural}: `);
                     $('#failure').show();
+                    let options = failures.map((failure,index) => `<option value="${index}">${failure.assertion_failure_message}</option>`).join();
+                    console.log(options);
+                    $("#failureSelection").append(options);
                 } else {
                     $('#failure').hide();
                 }

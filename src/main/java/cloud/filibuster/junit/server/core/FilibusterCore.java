@@ -333,8 +333,8 @@ public class FilibusterCore {
     }
 
     // This is an old callback used to exit the Python server with code = 1 or code = 0 upon failure.
-    public synchronized void completeIteration(int currentIteration, int exceptionOccurred, Throwable throwable) {
-        completeIteration(currentIteration, exceptionOccurred, throwable, true);
+    public synchronized void completeIteration(int currentIteration, int exceptionOccurred, @Nullable Throwable throwable) {
+        completeIteration(currentIteration, exceptionOccurred, throwable, /* shouldPrintRPCSummary= */true);
     }
 
     public synchronized void completeIteration(int currentIteration, int exceptionOccurred, Throwable throwable, boolean shouldPrintRPCSummary) {

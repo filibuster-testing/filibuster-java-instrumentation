@@ -11,16 +11,38 @@ import org.testcontainers.shaded.org.apache.commons.lang3.StringUtils;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.function.Function;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class TestExecutionReport {
     private static final Logger logger = Logger.getLogger(TestExecutionReport.class.getName());
+
+    public static class FailureMetadata {
+        private final String assertionFailureMessage;
+        private final String assertionFailureStackTrace;
+
+        private FailureMetadata(String assertionFailureMessage, String assertionFailureStackTrace) {
+            this.assertionFailureMessage = assertionFailureMessage;
+            this.assertionFailureStackTrace = assertionFailureStackTrace;
+        }
+
+        public String getAssertionFailureMessage() {
+            return assertionFailureMessage;
+        }
+
+        public String getAssertionFailureStackTrace() {
+            return assertionFailureStackTrace;
+        }
+    }
 
     @Nullable
     private MaterializedTestExecutionReportMetadata materializedTestExecutionReportMetadata;
@@ -31,8 +53,7 @@ public class TestExecutionReport {
 
     private boolean testExecutionPassed = false;
 
-    @Nullable
-    private String assertionFailureMessage = null;
+    private final List<FailureMetadata> failures = new ArrayList<>();
 
     private final ArrayList<DistributedExecutionIndex> deiInvocationOrder = new ArrayList<>();
 
@@ -139,7 +160,13 @@ public class TestExecutionReport {
         private static final String GENERATED_ID_KEY = "generated_id";
         private static final String UUID_KEY = "uuid";
         private static final String TEST_NAME = "test_name";
-        private static final String ASSERTION_FAILURE_MESSAGE = "assertion_failure_message";
+
+        private static final String FAILURES = "failures";
+
+        static class FailureKeys {
+            private static final String ASSERTION_FAILURE_STACKTRACE = "assertion_failure_stacktrace";
+            private static final String ASSERTION_FAILURE_MESSAGE = "assertion_failure_message";
+        }
     }
 
     public static void addAnalyzer(Class<? extends TestExecutionReportAnalyzer> clazz) {
@@ -205,13 +232,14 @@ public class TestExecutionReport {
         JSONObject result = new JSONObject();
         result.put(Keys.ITERATION_KEY, testExecutionNumber);
         result.put(Keys.STATUS_KEY, testExecutionPassed);
-
-        if (assertionFailureMessage != null) {
-            String escapedAssertionFailureMessage = StringUtils.replaceEach(assertionFailureMessage, new String[]{"&", "\"", "<", ">"}, new String[]{"&amp;", "&quot;", "&lt;", "&gt;"});
-            result.put(Keys.ASSERTION_FAILURE_MESSAGE, escapedAssertionFailureMessage);
-        } else {
-            result.put(Keys.ASSERTION_FAILURE_MESSAGE, "");
-        }
+        Function<String, String> toEscapeForHtml = str -> StringUtils.replaceEach(str,
+                new String[]{"&", "\"", "<", ">"}, new String[]{"&amp;", "&quot;", "&lt;", "&gt;"});
+        result.put(Keys.FAILURES, failures.stream().map(f -> {
+            JSONObject failure = new JSONObject();
+            failure.put(Keys.FailureKeys.ASSERTION_FAILURE_MESSAGE, toEscapeForHtml.apply(f.assertionFailureMessage));
+            failure.put(Keys.FailureKeys.ASSERTION_FAILURE_STACKTRACE, toEscapeForHtml.apply(f.assertionFailureStackTrace));
+            return failure;
+        }).collect(Collectors.toList()));
 
         result.put(Keys.RPCS_KEY, RPCs);
         result.put(Keys.UUID_KEY, uuid);
@@ -251,11 +279,17 @@ public class TestExecutionReport {
 
         if (!hasReportBeenMaterialized || throwable != null) {
             if (throwable != null) {
-                if (assertionFailureMessage == null || assertionFailureMessage.equals("")) {
-                    assertionFailureMessage = throwable.getMessage();
-                } else {
-                    assertionFailureMessage = assertionFailureMessage + "; " + throwable.getMessage();
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                throwable.printStackTrace(pw);
+                String stackTrace = sw.toString();
+                String assertionFailureMessage = throwable.getMessage();
+                if(assertionFailureMessage == null || assertionFailureMessage.equals(""))
+                {
+                    assertionFailureMessage = throwable.getClass().getSimpleName();
                 }
+
+                failures.add(new FailureMetadata(assertionFailureMessage, stackTrace));
             }
 
             try {
@@ -295,5 +329,10 @@ public class TestExecutionReport {
 
     public MaterializedTestExecutionReportMetadata getMaterializedReportMetadata() {
         return this.materializedTestExecutionReportMetadata;
+    }
+
+    public List<FailureMetadata> getFailures()
+    {
+        return this.failures;
     }
 }

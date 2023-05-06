@@ -3,7 +3,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Java (Functional Tests, Java Integration)
+name: Java (Functional Tests For Failure Behaviors)
 
 on: [push]
 
@@ -21,5 +21,5 @@ jobs:
           distribution: 'adopt'
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
-      - name: Test with Gradle
+      - name: Test with Gradle and Verify Subset of Tests Passes
         run: ./gradlew testWithFaultInjectionShouldFails || ! grep -Fq "MustPass" /home/runner/work/filibuster-java-instrumentation/filibuster-java-instrumentation/build/reports/tests/testWithFaultInjectionShouldFails/index.html

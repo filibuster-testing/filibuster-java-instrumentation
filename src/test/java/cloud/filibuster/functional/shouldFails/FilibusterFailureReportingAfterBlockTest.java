@@ -51,7 +51,7 @@ public class FilibusterFailureReportingAfterBlockTest extends JUnitAnnotationBas
 
     @TestWithFilibuster()
     @Order(1)
-    @DisplayName("Should Fail : This test throws exceptions")
+    @DisplayName("ShouldFail : This test throws exceptions")
     public void testShouldFail() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
@@ -95,7 +95,7 @@ public class FilibusterFailureReportingAfterBlockTest extends JUnitAnnotationBas
 
     @Order(2)
     @Test
-    @DisplayName("Should Pass : Check Assert Message Failures and Counts")
+    @DisplayName("MustPass : Check Assert Message Failures and Counts")
     @ExtendWith(IgnoreAfterEachInterceptor.class)
     public void testMustPassMessageCountAndNature() {
         TestExecutionReport testExecutionReport = FilibusterCore.getMostRecentInitialTestExecutionReport();

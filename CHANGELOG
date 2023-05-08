@@ -1,3 +1,5 @@
+1.6.2:
+   - (cmeiklejohn) Add support for M1 macs.
 1.6.1:
    - (cmeiklejohn) Replace prototype implementation of fault scope counter with test scope counter DEI implementation.
    - (cmeiklejohn) Fix issue where redundant RPC warning didn't consider test scopes.

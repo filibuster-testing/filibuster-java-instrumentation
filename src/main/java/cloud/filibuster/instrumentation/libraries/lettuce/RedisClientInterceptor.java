@@ -45,7 +45,7 @@ public class RedisClientInterceptor implements MethodInterceptor {
         // Extract callsite information.
         // ******************************************************************************************
 
-        String redisModuleName = redisConnection.getClass().getPackage().getName();
+        String redisModuleName = "RedisClient";
         String redisMethodName = invocation.getMethod().getName();
         logger.log(Level.INFO, "moduleName: " + redisModuleName);
         logger.log(Level.INFO, "methodName: " + redisMethodName);

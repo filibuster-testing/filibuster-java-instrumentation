@@ -4,6 +4,7 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
+import cloud.filibuster.junit.configuration.examples.RedisSingleFaultRuntimeExceptionAnalysisConfigurationFile;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.sync.RedisCommands;
 import org.junit.jupiter.api.*;
@@ -27,7 +28,7 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
 
     @DisplayName("Tests whether Redis sync interceptor can write")
     @Order(1)
-    @TestWithFilibuster(maxIterations = 2)
+    @TestWithFilibuster(maxIterations = 2, analysisConfigurationFile = RedisSingleFaultRuntimeExceptionAnalysisConfigurationFile.class)
     public void testRedisSyncGet() {
         RedisCommands<String, String> myRedisCommands = new RedisInterceptorFactory(redisClient, redisConnectionString)
                 .getProxy(RedisCommands.class);

@@ -10,8 +10,7 @@ import io.lettuce.core.api.sync.RedisCommands;
 import org.junit.jupiter.api.*;
 
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("unchecked")
@@ -28,7 +27,7 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
         redisClient.connect().sync().set(key, value);
     }
 
-    @DisplayName("Tests whether Redis sync interceptor can read")
+    @DisplayName("Tests whether Redis sync interceptor can read from existing key")
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = RedisSingleFaultCommandTimeoutExceptionAnalysisConfigurationFile.class)
     public void testRedisSyncGet() {
@@ -43,7 +42,23 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
             }
             throw t;
         }
+    }
 
+    @DisplayName("Tests how Redis sync interceptor handles reading from non-existing key")
+    @Order(2)
+    @TestWithFilibuster(analysisConfigurationFile = RedisSingleFaultCommandTimeoutExceptionAnalysisConfigurationFile.class)
+    public void testRedisSyncGetNonExistingKey() {
+        try {
+            RedisCommands<String, String> myRedisCommands = new RedisInterceptorFactory(redisClient, redisConnectionString).getProxy(RedisCommands.class);
+            String returnVal = myRedisCommands.get("ThisKeyDoesNotExist");
+            assertNull(returnVal);
+            assertFalse(wasFaultInjected());
+        } catch (Throwable t) {
+            if (wasFaultInjected() && t.getMessage().equals("Command timed out after 100 millisecond(s)")) {
+                return;
+            }
+            throw t;
+        }
     }
 
 }

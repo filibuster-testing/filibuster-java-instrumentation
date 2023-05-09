@@ -130,7 +130,6 @@ public class RedisClientInterceptor<T> implements MethodInterceptor {
             returnValueProperties.put("toString", result.toString());
             filibusterClientInstrumentor.afterInvocationComplete(result.getClass().getName(), returnValueProperties);
         } else {  // e.g., when the queried key is not in Redis
-            returnValueProperties.put("toString", null);
             filibusterClientInstrumentor.afterInvocationComplete(Object.class.getName(), returnValueProperties);
         }
         return result;

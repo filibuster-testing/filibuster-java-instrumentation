@@ -5,9 +5,9 @@ import io.lettuce.core.dynamic.intercept.InvocationProxyFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.DockerImageName;
 
-
-public final class RedisInterceptorFactory {
-    private final RedisClient redisClient;
+@SuppressWarnings("unchecked")
+public final class RedisInterceptorFactory <T> {
+    private final T objectToIntercept;
     private final String redisConnectionString;
 
     public RedisInterceptorFactory() {
@@ -16,18 +16,18 @@ public final class RedisInterceptorFactory {
         String address = redis.getHost();
         Integer port = redis.getFirstMappedPort();
         redisConnectionString = String.format("redis://%s:%d/0", address, port);
-        redisClient = RedisClient.create(redisConnectionString);
+        objectToIntercept = (T) RedisClient.create(redisConnectionString).connect();
     }
 
-    public RedisInterceptorFactory(RedisClient redisClient, String redisConnectionString) {
-        this.redisClient = redisClient;
+    public RedisInterceptorFactory(T objectToIntercept, String redisConnectionString) {
+        this.objectToIntercept = objectToIntercept;
         this.redisConnectionString = redisConnectionString;
     }
 
-    public <T> T getProxy(Class<T> commandType) {
+    public <L> L getProxy(Class<L> itfc) {
         InvocationProxyFactory myFactory = new InvocationProxyFactory();
-        myFactory.addInterface(commandType);
-        myFactory.addInterceptor(new RedisClientInterceptor<>(redisClient, redisConnectionString, commandType));
-        return myFactory.createProxy(commandType.getClassLoader());
+        myFactory.addInterface(itfc);
+        myFactory.addInterceptor(new RedisInterceptor<>(objectToIntercept, redisConnectionString));
+        return myFactory.createProxy(itfc.getClassLoader());
     }
 }

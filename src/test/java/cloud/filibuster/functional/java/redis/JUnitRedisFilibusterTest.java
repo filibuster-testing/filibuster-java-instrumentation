@@ -5,7 +5,7 @@ import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactor
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.RedisSingleFaultCommandTimeoutExceptionAnalysisConfigurationFile;
-import io.lettuce.core.RedisClient;
+import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import org.junit.jupiter.api.*;
 
@@ -17,14 +17,14 @@ import static org.junit.jupiter.api.Assertions.*;
 public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
     static String key = "test";
     static String value = "example";
-    static RedisClient redisClient;
+    static StatefulRedisConnection<String, String> statefulRedisConnection;
     static String redisConnectionString;
 
     @BeforeAll
     public static void primeCache() {
-        redisClient = RedisClientService.getInstance().redisClient;
+        statefulRedisConnection = RedisClientService.getInstance().redisClient.connect();
         redisConnectionString = RedisClientService.getInstance().connectionString;
-        redisClient.connect().sync().set(key, value);
+        statefulRedisConnection.sync().set(key, value);
     }
 
     @DisplayName("Tests whether Redis sync interceptor can read from existing key")
@@ -32,7 +32,8 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
     @TestWithFilibuster(analysisConfigurationFile = RedisSingleFaultCommandTimeoutExceptionAnalysisConfigurationFile.class)
     public void testRedisSyncGet() {
         try {
-            RedisCommands<String, String> myRedisCommands = new RedisInterceptorFactory(redisClient, redisConnectionString).getProxy(RedisCommands.class);
+            StatefulRedisConnection<String, String> myStatefulRedisConnection = new RedisInterceptorFactory<>(statefulRedisConnection, redisConnectionString).getProxy(StatefulRedisConnection.class);
+            RedisCommands<String, String> myRedisCommands = myStatefulRedisConnection.sync();
             String returnVal = myRedisCommands.get(key);
             assertEquals(value, returnVal);
             assertFalse(wasFaultInjected());
@@ -49,7 +50,8 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
     @TestWithFilibuster(analysisConfigurationFile = RedisSingleFaultCommandTimeoutExceptionAnalysisConfigurationFile.class)
     public void testRedisSyncGetNonExistingKey() {
         try {
-            RedisCommands<String, String> myRedisCommands = new RedisInterceptorFactory(redisClient, redisConnectionString).getProxy(RedisCommands.class);
+            StatefulRedisConnection<String, String> myStatefulRedisConnection = new RedisInterceptorFactory<>(statefulRedisConnection, redisConnectionString).getProxy(StatefulRedisConnection.class);
+            RedisCommands<String, String> myRedisCommands = myStatefulRedisConnection.sync();
             String returnVal = myRedisCommands.get("ThisKeyDoesNotExist");
             assertNull(returnVal);
             assertFalse(wasFaultInjected());

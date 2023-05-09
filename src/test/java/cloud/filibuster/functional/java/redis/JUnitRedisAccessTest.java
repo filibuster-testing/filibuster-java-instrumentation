@@ -8,6 +8,7 @@ import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactor
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.reactive.RedisReactiveCommands;
 import io.lettuce.core.api.sync.RedisCommands;
@@ -59,7 +60,8 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
     @DisplayName("Tests whether Redis sync interceptor connection can read and write")
     @Order(3)
     public void testRedisSync() {
-        RedisCommands<String, String> myRedisCommands = new RedisInterceptorFactory().getProxy(RedisCommands.class);
+        StatefulRedisConnection<String, String> myStatefulRedisConnection = new RedisInterceptorFactory<>().getProxy(StatefulRedisConnection.class);
+        RedisCommands<String, String> myRedisCommands =  myStatefulRedisConnection.sync();
         myRedisCommands.set(key, value);
         assertEquals(value, myRedisCommands.get(key));
     }
@@ -68,7 +70,8 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
     @DisplayName("Tests whether Redis async interceptor connection can read and write")
     @Order(5)
     public void testRedisAsync() throws ExecutionException, InterruptedException {
-        RedisAsyncCommands<String, String> myRedisCommands = new RedisInterceptorFactory().getProxy(RedisAsyncCommands.class);
+        StatefulRedisConnection<String, String> myStatefulRedisConnection = new RedisInterceptorFactory<>().getProxy(StatefulRedisConnection.class);
+        RedisAsyncCommands<String, String> myRedisCommands  =  myStatefulRedisConnection.async();
         myRedisCommands.set(key, value).get();
         String retrievedValue = myRedisCommands.get(key).get();
         assertEquals(value, retrievedValue);
@@ -78,7 +81,8 @@ public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
     @DisplayName("Tests whether Redis reactive interceptor connection can read and write")
     @Order(7)
     public void testRedisReactive() {
-        RedisReactiveCommands<String, String> myRedisCommands = new RedisInterceptorFactory().getProxy(RedisReactiveCommands.class);
+        StatefulRedisConnection<String, String> myStatefulRedisConnection = new RedisInterceptorFactory<>().getProxy(StatefulRedisConnection.class);
+        RedisReactiveCommands<String, String> myRedisCommands  =  myStatefulRedisConnection.reactive();
         Mono<String> set = myRedisCommands.set(key, value);
         Mono<String> get = myRedisCommands.get(key);
         set.subscribe();

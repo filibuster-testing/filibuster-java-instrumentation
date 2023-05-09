@@ -6,11 +6,7 @@ import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
-import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisCommandTimeoutException;
-import io.lettuce.core.api.async.RedisAsyncCommands;
-import io.lettuce.core.api.reactive.RedisReactiveCommands;
-import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.dynamic.intercept.MethodInterceptor;
 import io.lettuce.core.dynamic.intercept.MethodInvocation;
 import org.json.JSONObject;
@@ -26,35 +22,19 @@ import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentati
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationServerCommunicationEnabledProperty;
 
 
-public class RedisClientInterceptor<T> implements MethodInterceptor {
+public class RedisInterceptor<T> implements MethodInterceptor {
     public static Boolean disableInstrumentation = false;
     private static final Logger logger = Logger.getLogger(RedisInterceptorFactory.class.getName());
-    private final RedisClient redisClient;
     protected ContextStorage contextStorage;
     public static Boolean disableServerCommunication = false;
     private final String redisConnectionString;
-    private T redisConnection;
-    private final Class<T> commandType;
+    private final T interceptedObject;
 
 
-    public RedisClientInterceptor(RedisClient redisClient, String redisConnectionString, Class<T> commandType) {
-        this.redisClient = redisClient;
+    public RedisInterceptor(T interceptedObject, String redisConnectionString) {
         this.contextStorage = new ThreadLocalContextStorage();
         this.redisConnectionString = redisConnectionString;
-        this.commandType = commandType;
-        this.createRedisConnection();
-    }
-
-    private void createRedisConnection() {
-        if (commandType.equals(RedisCommands.class)) {
-            this.redisConnection = commandType.cast(this.redisClient.connect().sync());
-        } else if (commandType.equals(RedisAsyncCommands.class)) {
-            this.redisConnection = commandType.cast(this.redisClient.connect().async());
-        } else if (commandType.equals(RedisReactiveCommands.class)) {
-            this.redisConnection = commandType.cast(this.redisClient.connect().reactive());
-        } else {
-            throw new IllegalArgumentException("Lettuce command type is unknown.");
-        }
+        this.interceptedObject = interceptedObject;
     }
 
     @Override
@@ -119,20 +99,24 @@ public class RedisClientInterceptor<T> implements MethodInterceptor {
         Object result;
         HashMap<String, String> returnValueProperties;
         try {
-            method = redisConnection.getClass().getMethod(invocation.getMethod().getName(), paramTypes);
-            result = method.invoke(redisConnection, invocation.getArguments());
+            method = interceptedObject.getClass().getMethod(invocation.getMethod().getName(), paramTypes);
+            result = method.invoke(interceptedObject, invocation.getArguments());
             returnValueProperties = new HashMap<>();
         } catch (Throwable t) {
             filibusterClientInstrumentor.afterInvocationWithException(t);
             throw t;
         }
-        if (result != null) {  // e.g., when you query a key that is saved in Redis
+        if (result != null) {  // e.g., when you query a key that is saved in Redis, result is null if key not in Redis
             returnValueProperties.put("toString", result.toString());
-            filibusterClientInstrumentor.afterInvocationComplete(result.getClass().getName(), returnValueProperties);
-        } else {  // e.g., when the queried key is not in Redis
-            filibusterClientInstrumentor.afterInvocationComplete(Object.class.getName(), returnValueProperties);
+            // If "result" is an interface, return an intercepted object
+            // (e.g., when calling StatefulRedisConnection.sync(), the returned RedisCommands object should also be a proxy)
+            if (method.getReturnType().isInterface()) {
+                result = new RedisInterceptorFactory<>(method.getReturnType().cast(result), redisConnectionString).getProxy(method.getReturnType());
+            }
         }
-        return result;
+        filibusterClientInstrumentor.afterInvocationComplete(method.getReturnType().getName(), returnValueProperties);
+
+        return method.getReturnType().cast(result);
     }
 
     private static void generateAndThrowException(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject forcedException) {

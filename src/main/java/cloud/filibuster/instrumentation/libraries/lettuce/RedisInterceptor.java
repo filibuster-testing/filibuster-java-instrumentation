@@ -7,6 +7,7 @@ import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrument
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
 import io.lettuce.core.RedisCommandTimeoutException;
+import io.lettuce.core.RedisConnectionException;
 import io.lettuce.core.dynamic.intercept.MethodInterceptor;
 import io.lettuce.core.dynamic.intercept.MethodInvocation;
 import org.json.JSONObject;
@@ -128,6 +129,8 @@ public class RedisInterceptor<T> implements MethodInterceptor {
 
         if (exceptionNameString.equals("io.lettuce.core.RedisCommandTimeoutException")) {
             exceptionToThrow = new RedisCommandTimeoutException(causeString);
+        } else if (exceptionNameString.equals("io.lettuce.core.RedisConnectionException")) {
+            exceptionToThrow = new RedisConnectionException(causeString);
         } else {
             throw new FilibusterFaultInjectionException("Cannot determine the execution cause to throw: " + causeString);
         }

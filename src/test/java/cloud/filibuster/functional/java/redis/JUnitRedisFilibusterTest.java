@@ -28,7 +28,7 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
 
     @DisplayName("Tests whether Redis sync interceptor can write")
     @Order(1)
-    @TestWithFilibuster(maxIterations = 2, analysisConfigurationFile = RedisSingleFaultRuntimeExceptionAnalysisConfigurationFile.class)
+    @TestWithFilibuster( analysisConfigurationFile = RedisSingleFaultRuntimeExceptionAnalysisConfigurationFile.class)
     public void testRedisSyncGet() {
         RedisCommands<String, String> myRedisCommands = new RedisInterceptorFactory(redisClient, redisConnectionString)
                 .getProxy(RedisCommands.class);

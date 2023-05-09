@@ -5,6 +5,7 @@ import io.lettuce.core.dynamic.intercept.InvocationProxyFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.DockerImageName;
 
+
 public final class RedisInterceptorFactory {
     private final RedisClient redisClient;
     private final String redisConnectionString;

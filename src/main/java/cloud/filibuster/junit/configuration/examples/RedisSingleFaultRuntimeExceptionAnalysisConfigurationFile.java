@@ -29,7 +29,7 @@ public class RedisSingleFaultRuntimeExceptionAnalysisConfigurationFile implement
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderGrpcExceptions = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc.exceptions")
-                .pattern("RedisClient/.*");
+                .pattern(".*");
         for (String code : exhaustiveGrpcErrorCodeList) {
             filibusterAnalysisConfigurationBuilderGrpcExceptions.exception("io.grpc.StatusRuntimeException", createGrpcErrorMap(code));
         }

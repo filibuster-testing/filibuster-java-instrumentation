@@ -5,7 +5,10 @@ import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
-import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.api.async.RedisAsyncCommands;
+import io.lettuce.core.api.reactive.RedisReactiveCommands;
+import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.dynamic.intercept.MethodInterceptor;
 import io.lettuce.core.dynamic.intercept.MethodInvocation;
 import org.json.JSONObject;
@@ -20,22 +23,36 @@ import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentati
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationServerCommunicationEnabledProperty;
 
 
-public class RedisClientInterceptor implements MethodInterceptor {
+public class RedisClientInterceptor <T> implements MethodInterceptor {
     public static Boolean disableInstrumentation = false;
     private static final Logger logger = Logger.getLogger(RedisInterceptorFactory.class.getName());
-    private final StatefulRedisConnection<String, String> redisConnection; //Will be needed later when data failures are injected
+    private final RedisClient redisClient;
     protected ContextStorage contextStorage;
     public static Boolean disableServerCommunication = false;
     private final String redisConnectionString;
-    private static FilibusterClientInstrumentor filibusterClientInstrumentor;
+    private T redisConnection;
+    private final Class<T> commandType;
 
 
-    public RedisClientInterceptor(StatefulRedisConnection<String, String> redisConnection, String redisConnectionString) {
-        this.redisConnection = redisConnection;
+    public RedisClientInterceptor(RedisClient redisClient, String redisConnectionString, Class<T> commandType) {
+        this.redisClient = redisClient;
         this.contextStorage = new ThreadLocalContextStorage();
         this.redisConnectionString = redisConnectionString;
+        this.commandType = commandType;
+        this.createRedisConnection();
     }
 
+    private void createRedisConnection() {
+        if (commandType.equals(RedisCommands.class)) {
+            this.redisConnection = commandType.cast(this.redisClient.connect().sync());
+        } else if (commandType.equals(RedisAsyncCommands.class)) {
+            this.redisConnection = commandType.cast(this.redisClient.connect().async());
+        } else if (commandType.equals(RedisReactiveCommands.class)) {
+            this.redisConnection = commandType.cast(this.redisClient.connect().reactive());
+        } else {
+            throw new IllegalArgumentException("Lettuce command type is unknown.");
+        }
+    }
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
         logger.log(Level.INFO, "RedisIntermediaryInterceptor: invoke() called");
@@ -63,7 +80,7 @@ public class RedisClientInterceptor implements MethodInterceptor {
                 callsiteArguments
         );
 
-        filibusterClientInstrumentor = new FilibusterClientInstrumentor(
+        FilibusterClientInstrumentor filibusterClientInstrumentor = new FilibusterClientInstrumentor(
                 redisConnectionString,
                 shouldCommunicateWithServer(),
                 contextStorage,
@@ -122,15 +139,12 @@ public class RedisClientInterceptor implements MethodInterceptor {
 
         Class<?>[] paramTypes = new Class[invocation.getMethod().getParameterCount()];
         Arrays.fill(paramTypes, Object.class);
-        Method method = redisConnection.sync().getClass().getDeclaredMethod(invocation.getMethod().getName(),
+        Method method = redisConnection.getClass().getMethod(invocation.getMethod().getName(),
                 paramTypes);
-        Object result = method.invoke(redisConnection.sync(), invocation.getArguments());
-
+        Object result = method.invoke(redisConnection, invocation.getArguments());
         HashMap<String, String> returnValueProperties = new HashMap<>();
         returnValueProperties.put("toString", result.toString());
-
         filibusterClientInstrumentor.afterInvocationComplete(result.getClass().getName(), returnValueProperties);
-
         return result;
     }
     private static boolean shouldInstrument() {

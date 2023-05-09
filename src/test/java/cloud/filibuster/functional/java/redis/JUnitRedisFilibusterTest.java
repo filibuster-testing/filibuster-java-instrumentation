@@ -11,6 +11,7 @@ import org.junit.jupiter.api.*;
 
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("unchecked")
@@ -35,6 +36,7 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
             RedisCommands<String, String> myRedisCommands = new RedisInterceptorFactory(redisClient, redisConnectionString).getProxy(RedisCommands.class);
             String returnVal = myRedisCommands.get(key);
             assertEquals(value, returnVal);
+            assertFalse(wasFaultInjected());
         } catch (Throwable t) {
             if (wasFaultInjected() && t.getMessage().equals("Command timed out after 100 millisecond(s)")) {
                 return;

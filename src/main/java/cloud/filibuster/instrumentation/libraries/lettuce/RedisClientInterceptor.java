@@ -115,16 +115,21 @@ public class RedisClientInterceptor<T> implements MethodInterceptor {
 
         Class<?>[] paramTypes = new Class[invocation.getMethod().getParameterCount()];
         Arrays.fill(paramTypes, Object.class);
-        Method method = redisConnection.getClass().getMethod(invocation.getMethod().getName(), paramTypes);
-        Object result = method.invoke(redisConnection, invocation.getArguments());
-        HashMap<String, String> returnValueProperties = new HashMap<>();
-        if (result != null) {
+        Method method;
+        Object result;
+        HashMap<String, String> returnValueProperties;
+        try {
+            method = redisConnection.getClass().getMethod(invocation.getMethod().getName(), paramTypes);
+            result = method.invoke(redisConnection, invocation.getArguments());
+            returnValueProperties = new HashMap<>();
+        } catch (Throwable t) {
+            filibusterClientInstrumentor.afterInvocationWithException(t);
+            throw t;
+        }
+        if (result != null) {  // e.g., when you query a key that is saved in Redis
             returnValueProperties.put("toString", result.toString());
             filibusterClientInstrumentor.afterInvocationComplete(result.getClass().getName(), returnValueProperties);
-            if (result.getClass().isInterface()) {  // Return an intercepted object if result is an interface
-                return new RedisInterceptorFactory(redisClient, redisConnectionString).getProxy(result.getClass());
-            }
-        } else {
+        } else {  // e.g., when the queried key is not in Redis
             returnValueProperties.put("toString", null);
             filibusterClientInstrumentor.afterInvocationComplete(Object.class.getName(), returnValueProperties);
         }

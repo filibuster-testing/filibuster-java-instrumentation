@@ -4,11 +4,12 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.RedisSingleFaultRuntimeExceptionAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.RedisSingleFaultCommandTimeoutExceptionAnalysisConfigurationFile;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.sync.RedisCommands;
 import org.junit.jupiter.api.*;
 
+import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -26,14 +27,21 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
         redisClient.connect().sync().set(key, value);
     }
 
-    @DisplayName("Tests whether Redis sync interceptor can write")
+    @DisplayName("Tests whether Redis sync interceptor can read")
     @Order(1)
-    @TestWithFilibuster( analysisConfigurationFile = RedisSingleFaultRuntimeExceptionAnalysisConfigurationFile.class)
+    @TestWithFilibuster(analysisConfigurationFile = RedisSingleFaultCommandTimeoutExceptionAnalysisConfigurationFile.class)
     public void testRedisSyncGet() {
-        RedisCommands<String, String> myRedisCommands = new RedisInterceptorFactory(redisClient, redisConnectionString)
-                .getProxy(RedisCommands.class);
-        String returnVal = myRedisCommands.get(key);
-        assertEquals(value, returnVal);
+        try {
+            RedisCommands<String, String> myRedisCommands = new RedisInterceptorFactory(redisClient, redisConnectionString).getProxy(RedisCommands.class);
+            String returnVal = myRedisCommands.get(key);
+            assertEquals(value, returnVal);
+        } catch (Throwable t) {
+            if (wasFaultInjected() && t.getMessage().equals("Command timed out after 100 millisecond(s)")) {
+                return;
+            }
+            throw t;
+        }
+
     }
 
 }

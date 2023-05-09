@@ -9,7 +9,7 @@ import java.util.Map;
 
 import static cloud.filibuster.instrumentation.Constants.REDIS_MODULE_NAME;
 
-public class RedisSingleFaultRuntimeExceptionAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
+public class RedisSingleFaultCommandTimeoutExceptionAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
     private static Map<String, String> createErrorMap(String cause) {
@@ -23,10 +23,10 @@ public class RedisSingleFaultRuntimeExceptionAnalysisConfigurationFile implement
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
-                .name("io.lettuce.core.RedisConnectionException")
-                .pattern(REDIS_MODULE_NAME + ".get");
+                .name("io.lettuce.core.RedisCommandTimeoutException")
+                .pattern(REDIS_MODULE_NAME + ".[get,set]");
 
-        filibusterAnalysisConfigurationBuilderRedisExceptions.exception("RedisConnectionException", createErrorMap("java.net.UnknownHostException: Failed to resolve 'address' after 6 queries"));
+        filibusterAnalysisConfigurationBuilderRedisExceptions.exception("io.lettuce.core.RedisCommandTimeoutException", createErrorMap("Command timed out after 100 millisecond(s)"));
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());
 

@@ -6,14 +6,13 @@ import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
-import com.linecorp.armeria.client.UnprocessedRequestException;
 import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisCommandTimeoutException;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.reactive.RedisReactiveCommands;
 import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.dynamic.intercept.MethodInterceptor;
 import io.lettuce.core.dynamic.intercept.MethodInvocation;
-import io.netty.channel.ConnectTimeoutException;
 import org.json.JSONObject;
 
 import java.lang.reflect.Method;
@@ -76,19 +75,9 @@ public class RedisClientInterceptor<T> implements MethodInterceptor {
 
         CallsiteArguments callsiteArguments = new CallsiteArguments(invocation.getClass(), Arrays.toString(invocation.getArguments()));
 
-        Callsite callsite = new Callsite(
-                redisConnectionString,
-                REDIS_MODULE_NAME,
-                redisMethodName,
-                callsiteArguments
-        );
+        Callsite callsite = new Callsite(redisConnectionString, REDIS_MODULE_NAME, redisMethodName, callsiteArguments);
 
-        FilibusterClientInstrumentor filibusterClientInstrumentor = new FilibusterClientInstrumentor(
-                redisConnectionString,
-                shouldCommunicateWithServer(),
-                contextStorage,
-                callsite
-        );
+        FilibusterClientInstrumentor filibusterClientInstrumentor = new FilibusterClientInstrumentor(redisConnectionString, shouldCommunicateWithServer(), contextStorage, callsite);
 
         filibusterClientInstrumentor.prepareForInvocation();
 
@@ -105,18 +94,12 @@ public class RedisClientInterceptor<T> implements MethodInterceptor {
         logger.log(Level.INFO, "requestId: " + filibusterClientInstrumentor.getOutgoingRequestId());
 
         // ******************************************************************************************
-        // Get failure information.
+        // Get forcedException information.
         // ******************************************************************************************
 
         JSONObject forcedException = filibusterClientInstrumentor.getForcedException();
-        JSONObject failureMetadata = filibusterClientInstrumentor.getFailureMetadata();
 
         logger.log(Level.INFO, "forcedException: " + forcedException);
-        logger.log(Level.INFO, "failureMetadata: " + failureMetadata);
-
-        if (forcedException != null && filibusterClientInstrumentor.shouldAbort()) {
-            logger.log(Level.INFO, "RedisIntermediaryInterceptor: invoke() throwing forced exception");
-        }
 
         // ******************************************************************************************
         // If we need to throw, this is where we throw.
@@ -132,29 +115,32 @@ public class RedisClientInterceptor<T> implements MethodInterceptor {
 
         Class<?>[] paramTypes = new Class[invocation.getMethod().getParameterCount()];
         Arrays.fill(paramTypes, Object.class);
-        Method method = redisConnection.getClass().getMethod(invocation.getMethod().getName(),
-                paramTypes);
+        Method method = redisConnection.getClass().getMethod(invocation.getMethod().getName(), paramTypes);
         Object result = method.invoke(redisConnection, invocation.getArguments());
         HashMap<String, String> returnValueProperties = new HashMap<>();
-        returnValueProperties.put("toString", result.toString());
-        filibusterClientInstrumentor.afterInvocationComplete(result.getClass().getName(), returnValueProperties);
+        if (result != null) {
+            returnValueProperties.put("toString", result.toString());
+            filibusterClientInstrumentor.afterInvocationComplete(result.getClass().getName(), returnValueProperties);
+            if (result.getClass().isInterface()) {  // Return an intercepted object if result is an interface
+                return new RedisInterceptorFactory(redisClient, redisConnectionString).getProxy(result.getClass());
+            }
+        } else {
+            returnValueProperties.put("toString", null);
+            filibusterClientInstrumentor.afterInvocationComplete(Object.class.getName(), returnValueProperties);
+        }
         return result;
     }
 
-    private static void generateAndThrowException(
-            FilibusterClientInstrumentor filibusterClientInstrumentor,
-            JSONObject forcedException
-    ) {
+    private static void generateAndThrowException(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject forcedException) {
         String exceptionNameString = forcedException.getString("name");
         JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
         String causeString = forcedExceptionMetadata.getString("cause");
 
         RuntimeException exceptionToThrow;
 
-        if (exceptionNameString.equals("RedisConnectionException") && causeString.contains("java.net.UnknownHostException: Failed to resolve")) {
-            String message = "An error occurred";
-            ConnectTimeoutException cause = new ConnectTimeoutException(message);
-            exceptionToThrow = UnprocessedRequestException.of(cause);
+        if (exceptionNameString.equals("io.lettuce.core.RedisCommandTimeoutException") && causeString.contains("Command timed out")) {
+            String message = "Command timed out after 100 millisecond(s)";
+            exceptionToThrow = new RedisCommandTimeoutException(message);
         } else {
             throw new FilibusterFaultInjectionException("Cannot determine the execution cause to throw: " + causeString);
         }

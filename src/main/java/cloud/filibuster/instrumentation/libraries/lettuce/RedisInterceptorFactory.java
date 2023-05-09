@@ -11,8 +11,7 @@ public final class RedisInterceptorFactory {
     private final String redisConnectionString;
 
     public RedisInterceptorFactory() {
-        GenericContainer<?> redis = new GenericContainer<>(DockerImageName.parse("redis:5.0.3-alpine"))
-                .withExposedPorts(6379);
+        GenericContainer<?> redis = new GenericContainer<>(DockerImageName.parse("redis:5.0.3-alpine")).withExposedPorts(6379);
         redis.start();
         String address = redis.getHost();
         Integer port = redis.getFirstMappedPort();
@@ -25,7 +24,7 @@ public final class RedisInterceptorFactory {
         this.redisConnectionString = redisConnectionString;
     }
 
-    public  <T> T getProxy(Class<T> commandType) {
+    public <T> T getProxy(Class<T> commandType) {
         InvocationProxyFactory myFactory = new InvocationProxyFactory();
         myFactory.addInterface(commandType);
         myFactory.addInterceptor(new RedisClientInterceptor<>(redisClient, redisConnectionString, commandType));

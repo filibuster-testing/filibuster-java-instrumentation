@@ -142,9 +142,8 @@ public class RedisClientInterceptor<T> implements MethodInterceptor {
 
         RuntimeException exceptionToThrow;
 
-        if (exceptionNameString.equals("io.lettuce.core.RedisCommandTimeoutException") && causeString.contains("Command timed out")) {
-            String message = "Command timed out after 100 millisecond(s)";
-            exceptionToThrow = new RedisCommandTimeoutException(message);
+        if (exceptionNameString.equals("io.lettuce.core.RedisCommandTimeoutException")) {
+            exceptionToThrow = new RedisCommandTimeoutException(causeString);
         } else {
             throw new FilibusterFaultInjectionException("Cannot determine the execution cause to throw: " + causeString);
         }

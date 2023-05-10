@@ -177,16 +177,26 @@ tasks.withType(JavaCompile).configureEach {
 protobuf {
     // Configure the protoc executable.
     protoc {
-        // Download from the repository.
-        artifact = 'com.google.protobuf:protoc:3.12.0'
+        if ("aarch64" == System.getProperty("os.arch")) {
+            // mac m1
+            artifact = "com.google.protobuf:protoc:3.12.0:osx-x86_64"
+        } else {
+            // other
+            artifact = "com.google.protobuf:protoc:3.12.0"
+        }
     }
 
     // Locate the codegen plugins.
     plugins {
         // Locate a plugin with name 'grpc'.
         grpc {
-            // Download from the repository.
-            artifact = 'io.grpc:protoc-gen-grpc-java:1.36.1'
+            if ("aarch64" == System.getProperty("os.arch")) {
+                // mac m1
+                artifact = "io.grpc:protoc-gen-grpc-java:1.36.1:osx-x86_64"
+            } else {
+                // other
+                artifact = 'io.grpc:protoc-gen-grpc-java:1.36.1'
+            }
         }
     }
     generateProtoTasks {

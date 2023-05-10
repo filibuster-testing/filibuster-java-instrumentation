@@ -92,6 +92,10 @@ public class TestExecutionReport {
 
     private final List<DistributedExecutionIndex> cachedRPCs = new ArrayList<DistributedExecutionIndex>();
 
+    public List<DistributedExecutionIndex> getCachedRPCs() {
+        return cachedRPCs;
+    }
+
     public void markRpcAsCached(DistributedExecutionIndex distributedExecutionIndex) {
         cachedRPCs.add(distributedExecutionIndex);
     }

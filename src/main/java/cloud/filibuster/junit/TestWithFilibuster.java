@@ -157,6 +157,8 @@ public @interface TestWithFilibuster {
      *
      * <p>If so, repeated execution of the same RPC method with the same RPC arguments will be skipped for fault injection.
      *
+     * <p>Option will still show RPCs as redundant in the UX, to avoid set the system property instead.
+     *
      * @return whether we should avoid redundant injections
      */
     boolean avoidRedundantInjections() default AVOID_REDUNDANT_INJECTIONS_DEFAULT;

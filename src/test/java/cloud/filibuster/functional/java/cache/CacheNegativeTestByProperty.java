@@ -6,6 +6,10 @@ import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.FilibusterSingleFaultUnavailableAnalysisConfigurationFile;
+import cloud.filibuster.junit.server.core.FilibusterCore;
+import cloud.filibuster.junit.server.core.lint.analyzers.warnings.FilibusterAnalyzerWarning;
+import cloud.filibuster.junit.server.core.lint.analyzers.warnings.RedundantRPCWarning;
+import cloud.filibuster.junit.server.core.reports.TestExecutionReport;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.grpcmock.junit5.GrpcMockExtension;
@@ -18,6 +22,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 import static cloud.filibuster.instrumentation.helpers.Property.setTestAvoidRedundantInjectionsProperty;
@@ -27,6 +32,7 @@ import static org.grpcmock.GrpcMock.stubFor;
 import static org.grpcmock.GrpcMock.unaryMethod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class CacheNegativeTestByProperty {
@@ -92,5 +98,17 @@ public class CacheNegativeTestByProperty {
     @Order(2)
     public void testFailures() {
         assertEquals(3, testFailures);
+    }
+
+    @Order(2)
+    @Test
+    public void testWarnings() {
+        TestExecutionReport testExecutionReport = FilibusterCore.getMostRecentInitialTestExecutionReport();
+        List<FilibusterAnalyzerWarning> warnings = testExecutionReport.getWarnings();
+        for (FilibusterAnalyzerWarning warning : warnings) {
+            assertTrue(warning instanceof RedundantRPCWarning);
+            assertEquals("cloud.filibuster.examples.UserService/GetUserFromSession", warning.getDetails());
+        }
+        assertEquals(2, warnings.size());
     }
 }

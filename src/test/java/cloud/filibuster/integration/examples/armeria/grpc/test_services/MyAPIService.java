@@ -3,6 +3,7 @@ package cloud.filibuster.integration.examples.armeria.grpc.test_services;
 import cloud.filibuster.examples.APIServiceGrpc;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
+import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.exceptions.CircuitBreakerException;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
@@ -124,5 +125,45 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         }
         responseObserver.onNext(reply);
         responseObserver.onCompleted();
+    }
+
+    @Override
+    public void purchase(Hello.PurchaseRequest req, StreamObserver<Hello.PurchaseResponse> responseObserver) {
+        // Open channel to the user service.
+        ManagedChannel originalUserServiceChannel = ManagedChannelBuilder
+                .forAddress(Networking.getHost("user-mock"), Networking.getPort("user-mock"))
+                .usePlaintext()
+                .build();
+        ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("api_server");
+        Channel userServiceChannel = ClientInterceptors.intercept(originalUserServiceChannel, clientInterceptor);
+
+        // Make call to get the user.
+        getUserFromSession(userServiceChannel, req.getSessionId());
+
+        // Make call to get the user, again.
+        getUserFromSession(userServiceChannel, req.getSessionId());
+
+        // Make call to get the user, again.
+        getUserFromSession(userServiceChannel, req.getSessionId());
+
+        // Assemble response.
+        Hello.PurchaseResponse purchaseResponse = Hello.PurchaseResponse.newBuilder().setSuccess(true).build();
+        responseObserver.onNext(purchaseResponse);
+        responseObserver.onCompleted();
+
+        originalUserServiceChannel.shutdownNow();
+        try {
+            while (!originalUserServiceChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+                Thread.sleep(4000);
+            }
+        } catch (InterruptedException ie) {
+            logger.log(Level.SEVERE, "Failed to terminate channel: " + ie);
+        }
+    }
+
+    private static void getUserFromSession(Channel userServiceChannel, String sessionId) {
+        UserServiceGrpc.UserServiceBlockingStub userServiceBlockingStub = UserServiceGrpc.newBlockingStub(userServiceChannel);
+        Hello.GetUserRequest firstGetUserRequest = Hello.GetUserRequest.newBuilder().setSessionId(sessionId).build();
+        userServiceBlockingStub.getUserFromSession(firstGetUserRequest);
     }
 }

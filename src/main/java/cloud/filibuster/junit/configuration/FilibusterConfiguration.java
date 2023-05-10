@@ -31,6 +31,8 @@ public class FilibusterConfiguration {
 
     private final boolean dataNondeterminism;
 
+    private final boolean avoidRedundantInjections;
+
     private final FilibusterSearchStrategy searchStrategy;
 
     private final String analysisFile;
@@ -57,6 +59,7 @@ public class FilibusterConfiguration {
         this.dynamicReduction = builder.dynamicReduction;
         this.suppressCombinations = builder.suppressCombinations;
         this.dataNondeterminism = builder.dataNondeterminism;
+        this.avoidRedundantInjections = builder.avoidRedundantInjections;
         this.searchStrategy = builder.searchStrategy;
         this.analysisFile = builder.analysisFile;
         this.serverBackend = builder.serverBackend;
@@ -104,6 +107,15 @@ public class FilibusterConfiguration {
      */
     public boolean getDataNondeterminism() {
         return this.dataNondeterminism;
+    }
+
+    /**
+     * Do we avoid redundant injections?
+     *
+     * @return boolean
+     */
+    public boolean getAvoidRedundantInjections() {
+        return this.avoidRedundantInjections;
     }
 
     /**
@@ -225,6 +237,7 @@ public class FilibusterConfiguration {
         private boolean dynamicReduction = false;
         private boolean suppressCombinations = false;
         private boolean dataNondeterminism = false;
+        private boolean avoidRedundantInjections = false;
 
         private FilibusterSearchStrategy searchStrategy;
 
@@ -280,6 +293,18 @@ public class FilibusterConfiguration {
         @CanIgnoreReturnValue
         public Builder dataNondeterminism(boolean dataNondeterminism) {
             this.dataNondeterminism = dataNondeterminism;
+            return this;
+        }
+
+        /**
+         * Do we avoid redundant fault injections?
+         *
+         * @param avoidRedundantInjections whether the avoids redundant fault injections
+         * @return builder
+         */
+        @CanIgnoreReturnValue
+        public Builder avoidRedundantInjections(boolean avoidRedundantInjections) {
+            this.avoidRedundantInjections = avoidRedundantInjections;
             return this;
         }
 

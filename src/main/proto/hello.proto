@@ -2,10 +2,31 @@ syntax = "proto3";
 
 package cloud.filibuster.examples;
 
+message PurchaseRequest {
+  string session_id = 1;
+}
+
+message PurchaseResponse {
+  bool success = 1;
+}
+
 service APIService {
   rpc Hello (HelloRequest) returns (HelloReply) {};
   rpc HelloWithMock (HelloRequest) returns (HelloReply) {};
   rpc RedisHello (RedisRequest) returns (RedisReply) {};
+  rpc Purchase (PurchaseRequest) returns (PurchaseResponse) {}
+}
+
+message GetUserRequest {
+  string session_id = 1;
+}
+
+message GetUserResponse {
+  string user_id = 1;
+}
+
+service UserService {
+  rpc GetUserFromSession (GetUserRequest) returns (GetUserResponse) {}
 }
 
 service HelloService {

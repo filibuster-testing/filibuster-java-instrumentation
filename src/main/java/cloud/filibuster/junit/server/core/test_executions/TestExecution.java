@@ -71,6 +71,21 @@ public abstract class TestExecution {
         logger.info(logMessage.toString());
     }
 
+    public boolean hasSeenRpcUnderSameOrDifferentDistributedExecutionIndex(JSONObject payload) {
+        JSONObject payloadCacheCleaned = cleanPayloadForCacheComparison(payload);
+
+        for (Map.Entry<DistributedExecutionIndex, JSONObject> executedRPC : executedRPCs.entrySet()) {
+            JSONObject seenPayload = executedRPC.getValue();
+            JSONObject seenPayloadCacheCleaned = cleanPayloadForCacheComparison(seenPayload);
+
+            if (seenPayloadCacheCleaned.similar(payloadCacheCleaned)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public void addDistributedExecutionIndexWithRequestPayload(DistributedExecutionIndex distributedExecutionIndex, JSONObject payload) {
         // Add to the list of executed RPCs.
         JSONObject payloadWithoutInstrumentationType = cleanPayloadOfInstrumentationType(payload);
@@ -215,6 +230,17 @@ public abstract class TestExecution {
         }
 
         return false;
+    }
+
+    private static JSONObject cleanPayloadForCacheComparison(JSONObject payload) {
+        JSONObject jsonObject = new JSONObject(payload.toString());
+        jsonObject.remove("execution_index");
+        jsonObject.remove("vclock");
+        jsonObject.remove("instrumentation_type");
+        jsonObject.remove("full_traceback");
+        jsonObject.remove("callsite_file");
+        jsonObject.remove("callsite_line");
+        return jsonObject;
     }
 
     private static JSONObject cleanPayloadOfInstrumentationType(JSONObject payload) {

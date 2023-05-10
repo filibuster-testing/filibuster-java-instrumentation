@@ -66,7 +66,6 @@ public class TestExecutionReport {
         return new File(getDirectoryPath(), "filibuster-test-execution-" + uuid);
     }
 
-
     public boolean isTestExecutionPassed() {
         return testExecutionPassed;
     }
@@ -89,6 +88,16 @@ public class TestExecutionReport {
 
     public JSONObject getFaultObject(DistributedExecutionIndex distributedExecutionIndex) {
         return deiFaultsInjected.get(distributedExecutionIndex);
+    }
+
+    private final List<DistributedExecutionIndex> cachedRPCs = new ArrayList<DistributedExecutionIndex>();
+
+    public List<DistributedExecutionIndex> getCachedRPCs() {
+        return cachedRPCs;
+    }
+
+    public void markRpcAsCached(DistributedExecutionIndex distributedExecutionIndex) {
+        cachedRPCs.add(distributedExecutionIndex);
     }
 
     public void recordInvocation(
@@ -140,6 +149,7 @@ public class TestExecutionReport {
         private static final String UUID_KEY = "uuid";
         private static final String TEST_NAME = "test_name";
         private static final String ASSERTION_FAILURE_MESSAGE = "assertion_failure_message";
+        private static final String CACHED_KEY = "cached";
     }
 
     public static void addAnalyzer(Class<? extends TestExecutionReportAnalyzer> clazz) {
@@ -199,6 +209,7 @@ public class TestExecutionReport {
             RPC.put(Keys.RESPONSE_KEY, deiResponses.getOrDefault(dei, new JSONObject()));
             RPC.put(Keys.FAULT_KEY, deiFaultsInjected.getOrDefault(dei, new JSONObject()));
             RPC.put(Keys.WARNINGS_KEY, warningObjects);
+            RPC.put(Keys.CACHED_KEY, cachedRPCs.contains(dei));
             RPCs.add(RPC);
         }
 

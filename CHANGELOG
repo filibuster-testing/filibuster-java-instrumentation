@@ -1,5 +1,6 @@
 1.6.3:
    - (cmeiklejohn) Fix bug with call site generation using incorrect frame for call site.
+   - (cmeiklejohn) Add assume RPC caching option.
 1.6.2:
    - (cmeiklejohn) Add support for M1 macs.
 1.6.1:

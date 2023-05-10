@@ -146,6 +146,28 @@ public class Property {
     }
 
     /***********************************************************************************
+     ** filibuster.test.assume_rpc_caching
+     ***********************************************************************************/
+
+    public static final boolean ASSUME_RPC_CACHING_DEFAULT = false;
+
+    private final static String TEST_ASSUME_RPC_CACHING = "filibuster.test.assume_rpc_caching";
+
+    public static void setTestAssumeRpcCachingProperty(boolean value) {
+        System.setProperty(TEST_ASSUME_RPC_CACHING, String.valueOf(value));
+    }
+
+    public static boolean getTestAssumeRpcCachingProperty() {
+        String propertyValue = System.getProperty(TEST_ASSUME_RPC_CACHING);
+
+        if (isPropertyNull(propertyValue)) {
+            return ASSUME_RPC_CACHING_DEFAULT;
+        } else {
+            return Boolean.valueOf(propertyValue);
+        }
+    }
+
+    /***********************************************************************************
      ** filibuster.test.data_nondeterminism
      ***********************************************************************************/
 

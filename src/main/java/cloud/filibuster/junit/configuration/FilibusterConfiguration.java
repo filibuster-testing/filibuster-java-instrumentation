@@ -31,6 +31,8 @@ public class FilibusterConfiguration {
 
     private final boolean dataNondeterminism;
 
+    private final boolean assumeRpcCaching;
+
     private final FilibusterSearchStrategy searchStrategy;
 
     private final String analysisFile;
@@ -57,6 +59,7 @@ public class FilibusterConfiguration {
         this.dynamicReduction = builder.dynamicReduction;
         this.suppressCombinations = builder.suppressCombinations;
         this.dataNondeterminism = builder.dataNondeterminism;
+        this.assumeRpcCaching = builder.assumeRpcCaching;
         this.searchStrategy = builder.searchStrategy;
         this.analysisFile = builder.analysisFile;
         this.serverBackend = builder.serverBackend;
@@ -104,6 +107,15 @@ public class FilibusterConfiguration {
      */
     public boolean getDataNondeterminism() {
         return this.dataNondeterminism;
+    }
+
+    /**
+     * Do we assume RPC caching?
+     *
+     * @return boolean
+     */
+    public boolean getAssumeRpcCaching() {
+        return this.assumeRpcCaching;
     }
 
     /**
@@ -225,6 +237,7 @@ public class FilibusterConfiguration {
         private boolean dynamicReduction = false;
         private boolean suppressCombinations = false;
         private boolean dataNondeterminism = false;
+        private boolean assumeRpcCaching = false;
 
         private FilibusterSearchStrategy searchStrategy;
 
@@ -280,6 +293,18 @@ public class FilibusterConfiguration {
         @CanIgnoreReturnValue
         public Builder dataNondeterminism(boolean dataNondeterminism) {
             this.dataNondeterminism = dataNondeterminism;
+            return this;
+        }
+
+        /**
+         * Does this test configuration assume RPC caching?
+         *
+         * @param assumeRpcCaching whether the test configuration assumes RPC caching
+         * @return builder
+         */
+        @CanIgnoreReturnValue
+        public Builder assumeRpcCaching(boolean assumeRpcCaching) {
+            this.assumeRpcCaching = assumeRpcCaching;
             return this;
         }
 

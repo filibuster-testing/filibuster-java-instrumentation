@@ -103,7 +103,6 @@ public class Callsite {
             throw e;
         }
 
-
         if (getCallsiteLineNumberProperty()) {
             this.lineNumber = lastStackTraceElementString.substring(lastStackTraceElementString.indexOf(':') + 1, lastStackTraceElementString.indexOf(')'));
         } else {

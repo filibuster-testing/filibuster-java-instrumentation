@@ -154,7 +154,7 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerFakeTest extends Hel
         assertVc.incrementClock("test");
         assertEquals(assertVc.toString(), lastPayload.get("vclock").toString());
 
-        assertEquals("[[\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-3a5406844cfedf6cca8d5acf7de50ff09632e909-51d0c6d179f06a73c7c08e98dc587a0f89598884\", 1]]", lastPayload.getString("execution_index"));
+        assertEquals("[[\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-7e8c44021a00d4cd9d5e8a10b411af4752ed2d08-51d0c6d179f06a73c7c08e98dc587a0f89598884\", 1]]", lastPayload.getString("execution_index"));
 
         MyHelloService.shouldReturnRuntimeExceptionWithDescription = false;
         FilibusterClientInterceptor.disableInstrumentation = true;
@@ -188,7 +188,7 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerFakeTest extends Hel
         assertVc.incrementClock("test");
         assertEquals(assertVc.toString(), lastPayload.get("vclock").toString());
 
-        assertEquals("[[\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-3851265cecf327363ff11a32c5677ca3ee3d7b95-51d0c6d179f06a73c7c08e98dc587a0f89598884\", 1]]", lastPayload.getString("execution_index"));
+        assertEquals("[[\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-ee094f0de4e3e456c494cff85458fa7a04a6478d-51d0c6d179f06a73c7c08e98dc587a0f89598884\", 1]]", lastPayload.getString("execution_index"));
 
         MyHelloService.shouldReturnRuntimeExceptionWithCause = false;
         FilibusterClientInterceptor.disableInstrumentation = true;

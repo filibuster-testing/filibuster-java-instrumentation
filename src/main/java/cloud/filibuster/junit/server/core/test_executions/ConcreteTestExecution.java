@@ -70,8 +70,16 @@ public class ConcreteTestExecution extends TestExecution implements Cloneable {
 
     @Override
     public void addDistributedExecutionIndexWithRequestPayload(DistributedExecutionIndex distributedExecutionIndex, JSONObject payload) {
+        addDistributedExecutionIndexWithRequestPayload(distributedExecutionIndex, payload, /* seen= */ false);
+    }
+
+    public void addDistributedExecutionIndexWithRequestPayload(DistributedExecutionIndex distributedExecutionIndex, JSONObject payload, boolean seen) {
         testExecutionReport.recordInvocation(distributedExecutionIndex, payload);
         super.addDistributedExecutionIndexWithRequestPayload(distributedExecutionIndex, payload);
+
+        if (seen) {
+            testExecutionReport.markRpcAsCached(distributedExecutionIndex);
+        }
     }
 
     @Override

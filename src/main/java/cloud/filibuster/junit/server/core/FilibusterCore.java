@@ -184,7 +184,7 @@ public class FilibusterCore {
         String distributedExecutionIndexString = payload.getString("execution_index");
         DistributedExecutionIndex distributedExecutionIndex = new DistributedExecutionIndexV1().deserialize(distributedExecutionIndexString);
         logger.info("[FILIBUSTER-CORE]: beginInvocation called, distributedExecutionIndex: " + distributedExecutionIndex);
-        currentConcreteTestExecution.addDistributedExecutionIndexWithRequestPayload(distributedExecutionIndex, payload);
+        currentConcreteTestExecution.addDistributedExecutionIndexWithRequestPayload(distributedExecutionIndex, payload, hasSeenRpcUnderSameOrDifferentDistributedExecutionIndex && filibusterConfiguration.getAvoidRedundantInjections());
 
         // Get next generated id.
         int generatedId = currentConcreteTestExecution.incrementGeneratedId();
@@ -206,7 +206,7 @@ public class FilibusterCore {
             }
 
             if (shouldGenerateNewAbstractExecutions && faultInjectionEnabled) {
-                if (filibusterConfiguration.getAssumeRpcCaching()) {
+                if (filibusterConfiguration.getAvoidRedundantInjections()) {
                     if (! hasSeenRpcUnderSameOrDifferentDistributedExecutionIndex) {
                         generateFaultsUsingAnalysisConfiguration(filibusterConfiguration, distributedExecutionIndex, moduleName, methodName);
                     }

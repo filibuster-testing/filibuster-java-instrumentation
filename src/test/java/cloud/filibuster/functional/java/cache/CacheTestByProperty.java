@@ -20,7 +20,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import java.io.IOException;
 import java.util.UUID;
 
-import static cloud.filibuster.instrumentation.helpers.Property.setTestAssumeRpcCachingProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.setTestAvoidRedundantInjectionsProperty;
 import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopAPIServerAndWaitUntilUnavailable;
 import static org.grpcmock.GrpcMock.stubFor;
@@ -47,12 +47,12 @@ public class CacheTestByProperty {
 
     @BeforeAll
     public static void setProperties() {
-        setTestAssumeRpcCachingProperty(true);
+        setTestAvoidRedundantInjectionsProperty(true);
     }
 
     @AfterAll
     public static void resetProperties() {
-        setTestAssumeRpcCachingProperty(false);
+        setTestAvoidRedundantInjectionsProperty(false);
     }
 
     public static int testInvocationCount = 0;
@@ -82,7 +82,7 @@ public class CacheTestByProperty {
             Hello.PurchaseRequest request = Hello.PurchaseRequest.newBuilder().setSessionId(sessionId).build();
             Hello.PurchaseResponse response = blockingStub.purchase(request);
             assertNotNull(response);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             testFailures++;
         }
     }

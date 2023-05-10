@@ -26,14 +26,14 @@ import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider;
 import org.junit.platform.commons.util.AnnotationUtils;
 import org.junit.platform.commons.util.Preconditions;
 
-import static cloud.filibuster.instrumentation.helpers.Property.ASSUME_RPC_CACHING_DEFAULT;
+import static cloud.filibuster.instrumentation.helpers.Property.AVOID_REDUNDANT_INJECTIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.DATA_NONDETERMINISM_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.MAX_ITERATIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.SUPPRESS_COMBINATIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.getEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendDockerImageNameProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestAnalysisResourceFileProperty;
-import static cloud.filibuster.instrumentation.helpers.Property.getTestAssumeRpcCachingProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.getTestAvoidRedundantInjectionsProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestDataNondeterminismProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestMaxIterationsProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestSuppressCombinationsProperty;
@@ -100,11 +100,11 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
             dataNondeterminism = getTestDataNondeterminismProperty();
         }
 
-        boolean assumeRpcCaching = testWithFilibuster.assumeRpcCaching();
+        boolean avoidRedundantInjections = testWithFilibuster.avoidRedundantInjections();
 
-        if (assumeRpcCaching == ASSUME_RPC_CACHING_DEFAULT) {
+        if (avoidRedundantInjections == AVOID_REDUNDANT_INJECTIONS_DEFAULT) {
             // Check the property to see if it was set.
-            assumeRpcCaching = getTestAssumeRpcCachingProperty();
+            avoidRedundantInjections = getTestAvoidRedundantInjectionsProperty();
         }
 
         boolean suppressCombinations = testWithFilibuster.suppressCombinations();
@@ -118,7 +118,7 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
                 .dynamicReduction(testWithFilibuster.dynamicReduction())
                 .suppressCombinations(suppressCombinations)
                 .dataNondeterminism(dataNondeterminism)
-                .assumeRpcCaching(assumeRpcCaching)
+                .avoidRedundantInjections(avoidRedundantInjections)
                 .serverBackend(testWithFilibuster.serverBackend())
                 .searchStrategy(testWithFilibuster.searchStrategy())
                 .dockerImageName(dockerImageName)

@@ -23,7 +23,7 @@ import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.parallel.Isolated;
 
-import static cloud.filibuster.instrumentation.helpers.Property.ASSUME_RPC_CACHING_DEFAULT;
+import static cloud.filibuster.instrumentation.helpers.Property.AVOID_REDUNDANT_INJECTIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.DATA_NONDETERMINISM_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.MAX_ITERATIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.SUPPRESS_COMBINATIONS_DEFAULT;
@@ -153,13 +153,13 @@ public @interface TestWithFilibuster {
     boolean dataNondeterminism() default DATA_NONDETERMINISM_DEFAULT;
 
     /**
-     * Should we assume that RPCs are cached?
+     * Should we avoid redundant fault injections?
      *
      * <p>If so, repeated execution of the same RPC method with the same RPC arguments will be skipped for fault injection.
      *
-     * @return whether caching is assumed.
+     * @return whether we should avoid redundant injections
      */
-    boolean assumeRpcCaching() default ASSUME_RPC_CACHING_DEFAULT;
+    boolean avoidRedundantInjections() default AVOID_REDUNDANT_INJECTIONS_DEFAULT;
 
     /**
      * Analysis file that should be used for this configuration of Filibuster.

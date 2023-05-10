@@ -146,22 +146,22 @@ public class Property {
     }
 
     /***********************************************************************************
-     ** filibuster.test.assume_rpc_caching
+     ** filibuster.test.avoid_redundant_injections
      ***********************************************************************************/
 
-    public static final boolean ASSUME_RPC_CACHING_DEFAULT = false;
+    public static final boolean AVOID_REDUNDANT_INJECTIONS_DEFAULT = false;
 
-    private final static String TEST_ASSUME_RPC_CACHING = "filibuster.test.assume_rpc_caching";
+    private final static String TEST_AVOID_REDUNDANT_INJECTIONS = "filibuster.test.avoid_redundant_injections";
 
-    public static void setTestAssumeRpcCachingProperty(boolean value) {
-        System.setProperty(TEST_ASSUME_RPC_CACHING, String.valueOf(value));
+    public static void setTestAvoidRedundantInjectionsProperty(boolean value) {
+        System.setProperty(TEST_AVOID_REDUNDANT_INJECTIONS, String.valueOf(value));
     }
 
-    public static boolean getTestAssumeRpcCachingProperty() {
-        String propertyValue = System.getProperty(TEST_ASSUME_RPC_CACHING);
+    public static boolean getTestAvoidRedundantInjectionsProperty() {
+        String propertyValue = System.getProperty(TEST_AVOID_REDUNDANT_INJECTIONS);
 
         if (isPropertyNull(propertyValue)) {
-            return ASSUME_RPC_CACHING_DEFAULT;
+            return AVOID_REDUNDANT_INJECTIONS_DEFAULT;
         } else {
             return Boolean.valueOf(propertyValue);
         }

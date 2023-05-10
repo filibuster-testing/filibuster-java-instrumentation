@@ -51,7 +51,7 @@ public class CacheTestByAnnotation {
     @TestWithFilibuster(
             dataNondeterminism = true,
             analysisConfigurationFile = FilibusterSingleFaultUnavailableAnalysisConfigurationFile.class,
-            assumeRpcCaching = true
+            avoidRedundantInjections = true
     )
     @Order(1)
     public void testPurchase() {
@@ -72,7 +72,7 @@ public class CacheTestByAnnotation {
             Hello.PurchaseRequest request = Hello.PurchaseRequest.newBuilder().setSessionId(sessionId).build();
             Hello.PurchaseResponse response = blockingStub.purchase(request);
             assertNotNull(response);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             testFailures++;
         }
     }

@@ -31,7 +31,7 @@ public class FilibusterConfiguration {
 
     private final boolean dataNondeterminism;
 
-    private final boolean assumeRpcCaching;
+    private final boolean avoidRedundantInjections;
 
     private final FilibusterSearchStrategy searchStrategy;
 
@@ -59,7 +59,7 @@ public class FilibusterConfiguration {
         this.dynamicReduction = builder.dynamicReduction;
         this.suppressCombinations = builder.suppressCombinations;
         this.dataNondeterminism = builder.dataNondeterminism;
-        this.assumeRpcCaching = builder.assumeRpcCaching;
+        this.avoidRedundantInjections = builder.avoidRedundantInjections;
         this.searchStrategy = builder.searchStrategy;
         this.analysisFile = builder.analysisFile;
         this.serverBackend = builder.serverBackend;
@@ -110,12 +110,12 @@ public class FilibusterConfiguration {
     }
 
     /**
-     * Do we assume RPC caching?
+     * Do we avoid redundant injections?
      *
      * @return boolean
      */
-    public boolean getAssumeRpcCaching() {
-        return this.assumeRpcCaching;
+    public boolean getAvoidRedundantInjections() {
+        return this.avoidRedundantInjections;
     }
 
     /**
@@ -237,7 +237,7 @@ public class FilibusterConfiguration {
         private boolean dynamicReduction = false;
         private boolean suppressCombinations = false;
         private boolean dataNondeterminism = false;
-        private boolean assumeRpcCaching = false;
+        private boolean avoidRedundantInjections = false;
 
         private FilibusterSearchStrategy searchStrategy;
 
@@ -297,14 +297,14 @@ public class FilibusterConfiguration {
         }
 
         /**
-         * Does this test configuration assume RPC caching?
+         * Do we avoid redundant fault injections?
          *
-         * @param assumeRpcCaching whether the test configuration assumes RPC caching
+         * @param avoidRedundantInjections whether the avoids redundant fault injections
          * @return builder
          */
         @CanIgnoreReturnValue
-        public Builder assumeRpcCaching(boolean assumeRpcCaching) {
-            this.assumeRpcCaching = assumeRpcCaching;
+        public Builder avoidRedundantInjections(boolean avoidRedundantInjections) {
+            this.avoidRedundantInjections = avoidRedundantInjections;
             return this;
         }
 

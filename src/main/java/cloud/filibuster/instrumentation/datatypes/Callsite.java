@@ -87,9 +87,6 @@ public class Callsite {
         }
         this.serializedStackTrace = String.join("", arraySerializedArguments);
 
-        // Ensure we reverse frames so 0 is the first frame.
-        Collections.reverse(filteredStackTrace);
-
         // Get last element and compute callsite file name and line number.
         Map.Entry<String, String> lastStackTraceElement = filteredStackTrace.get(0);
         String lastStackTraceElementString = lastStackTraceElement.getValue();

@@ -29,6 +29,18 @@ service UserService {
   rpc GetUserFromSession (GetUserRequest) returns (GetUserResponse) {}
 }
 
+message GetCartRequest {
+  string session_id = 1;
+}
+
+message GetCartResponse {
+
+}
+
+service CartService {
+  rpc GetCartForSession (GetCartRequest) returns (GetCartResponse) {}
+}
+
 service HelloService {
   rpc Hello (HelloRequest) returns (HelloReply) {}
   rpc PartialHello (HelloRequest) returns (HelloReply) {}

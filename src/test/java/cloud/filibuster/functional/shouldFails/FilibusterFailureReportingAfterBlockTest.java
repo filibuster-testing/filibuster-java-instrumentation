@@ -33,7 +33,7 @@ public class FilibusterFailureReportingAfterBlockTest extends JUnitAnnotationBas
 
         }
 
-        static void FakeMethod() throws ArithmeticException {
+        static void FakeMethod(){
             throw new ArithmeticException();
         }
     }

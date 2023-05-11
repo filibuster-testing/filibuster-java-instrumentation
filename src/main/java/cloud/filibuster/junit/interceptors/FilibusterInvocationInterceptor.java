@@ -61,12 +61,12 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
 
     /**
      * Invocation interceptor for running tests with Filibuster.
-     *
+     * <p>
      * Automatically starts, stops the external Filibuster server and performs necessary IPC.
      *
      * @param filibusterConfiguration configuration of Filibuster server.
-     * @param currentIteration the current iteration that is being executed.
-     * @param maxIterations upper bound on allowable executions.
+     * @param currentIteration        the current iteration that is being executed.
+     * @param maxIterations           upper bound on allowable executions.
      * @param invocationCompletionMap tracks whether teardown has been completed for a given test.
      */
     public FilibusterInvocationInterceptor(
@@ -291,7 +291,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
         } else {
             if (currentIteration == 1) {
                 // First iteration always runs because it's the fault free execution.
-                FilibusterInvocationInterceptorHelpers.proceedAndLogException(invocation, currentIteration, getWebClient(), filibusterConfiguration,false,false);
+                FilibusterInvocationInterceptorHelpers.proceedAndLogException(invocation, currentIteration, getWebClient(), filibusterConfiguration,/* shouldWritePlaceholder= */false,/* shouldPrintRPCSummary= */false);
             } else if (currentIteration == maxIterations) {
                 // Last iteration never runs.
                 invocation.skip();
@@ -301,7 +301,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
                 if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(getWebClient(), currentIteration, "afterEach")) {
                     invocation.skip();
                 } else {
-                    FilibusterInvocationInterceptorHelpers.proceedAndLogException(invocation, currentIteration, getWebClient(), filibusterConfiguration,false,false);
+                    FilibusterInvocationInterceptorHelpers.proceedAndLogException(invocation, currentIteration, getWebClient(), filibusterConfiguration,/* shouldWritePlaceholder= */false,/* shouldPrintRPCSummary= */false);
                 }
             }
         }

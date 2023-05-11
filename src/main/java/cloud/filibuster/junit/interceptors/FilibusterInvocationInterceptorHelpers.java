@@ -31,11 +31,11 @@ public class FilibusterInvocationInterceptorHelpers {
         }
     }
 
-    public static void  proceedAndLogException(InvocationInterceptor.Invocation<Void> invocation,
-                                               int currentIteration,
-                                               WebClient webClient,
-                                               FilibusterConfiguration filibusterConfiguration) throws Throwable {
-        proceedAndLogException(invocation,currentIteration,webClient,filibusterConfiguration,true,true);
+    public static void proceedAndLogException(InvocationInterceptor.Invocation<Void> invocation,
+                                              int currentIteration,
+                                              WebClient webClient,
+                                              FilibusterConfiguration filibusterConfiguration) throws Throwable {
+        proceedAndLogException(invocation, currentIteration, webClient, filibusterConfiguration,/* shouldWritePlaceholder= */true,/* shouldPrintRPCSummary= */true);
     }
 
     @SuppressWarnings("InterruptedExceptionSwallowed")
@@ -67,23 +67,23 @@ public class FilibusterInvocationInterceptorHelpers {
 
     /**
      * Conditionally mark the teardown for a given test iteration complete.
-     *
+     * <p>
      * There is a significant amount of nuance in this function.  The Filibuster server needs to know when a particular
      * test iteration is done and all the teardown is complete.  This is non-trivial because test functions might contain
      * and arbitrary number of afterEach methods (or, none at all.)  Therefore, the only way to ensure that we capture this is to do the following.
-     *
+     * <p>
      * First, instrument the beforeEach and the testTemplate method.  Record a boolean in a map to indicate that the previous test is
      * complete when we reach the start of a new test.  However, some tests might have a beforeEach executed in the first iteration,
      * therefore, we also need to prevent notifying the server on the first iteration (iteration 0, the start of the first actual test.)
      *
      * @param invocationCompletionMap tracks the invocations that have completed and all teardowns have finished.
-     * @param currentIteration the iteration we are currently in, not the iteration that's been completed (current - 1).
-     * @param webClient a web client to use to talk to the Filibuster Server.
+     * @param currentIteration        the iteration we are currently in, not the iteration that's been completed (current - 1).
+     * @param webClient               a web client to use to talk to the Filibuster Server.
      */
     public static void conditionallyMarkTeardownComplete(HashMap<Integer, Boolean> invocationCompletionMap, int currentIteration, WebClient webClient) {
         int previousIteration = currentIteration - 1;
 
-        if (! invocationCompletionMap.containsKey(previousIteration) && (previousIteration != 0)) {
+        if (!invocationCompletionMap.containsKey(previousIteration) && (previousIteration != 0)) {
             try {
                 FilibusterServerAPI.teardownsCompleted(webClient, previousIteration);
             } catch (ExecutionException | InterruptedException e) {

@@ -7,8 +7,6 @@ import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.FilibusterSingleFaultUnavailableAnalysisConfigurationFile;
 import cloud.filibuster.junit.server.core.FilibusterCore;
 import cloud.filibuster.junit.server.core.lint.analyzers.warnings.FilibusterAnalyzerWarning;
-import cloud.filibuster.junit.server.core.lint.analyzers.warnings.RedundantRPCWarning;
-import cloud.filibuster.junit.server.core.lint.analyzers.warnings.UnimplementedFailuresWarning;
 import cloud.filibuster.junit.server.core.reports.TestExecutionReport;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -25,8 +23,6 @@ import static cloud.filibuster.instrumentation.helpers.Property.setTestAvoidRedu
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class RedundantByPropertyNegativeTest extends RedundantBaseTest {

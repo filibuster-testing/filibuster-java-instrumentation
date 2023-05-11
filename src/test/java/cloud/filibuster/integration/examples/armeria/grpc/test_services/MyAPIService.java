@@ -1,6 +1,7 @@
 package cloud.filibuster.integration.examples.armeria.grpc.test_services;
 
 import cloud.filibuster.examples.APIServiceGrpc;
+import cloud.filibuster.examples.CartServiceGrpc;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.examples.UserServiceGrpc;
@@ -87,7 +88,7 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     @Override
     public void helloWithMock(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
         ManagedChannel originalChannel = ManagedChannelBuilder
-                .forAddress(Networking.getHost("hello-mock"), Networking.getPort("hello-mock"))
+                .forAddress(Networking.getHost("mock"), Networking.getPort("mock"))
                 .usePlaintext()
                 .build();
         ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("api_server");
@@ -130,30 +131,40 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     @Override
     public void purchase(Hello.PurchaseRequest req, StreamObserver<Hello.PurchaseResponse> responseObserver) {
         // Open channel to the user service.
-        ManagedChannel originalUserServiceChannel = ManagedChannelBuilder
-                .forAddress(Networking.getHost("user-mock"), Networking.getPort("user-mock"))
+        ManagedChannel originalChannel = ManagedChannelBuilder
+                .forAddress(Networking.getHost("mock"), Networking.getPort("mock"))
                 .usePlaintext()
                 .build();
         ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("api_server");
-        Channel userServiceChannel = ClientInterceptors.intercept(originalUserServiceChannel, clientInterceptor);
+        Channel channel = ClientInterceptors.intercept(originalChannel, clientInterceptor);
 
         // Make call to get the user.
-        getUserFromSession(userServiceChannel, req.getSessionId());
+        getUserFromSession(channel, req.getSessionId());
 
         // Make call to get the user, again.
-        getUserFromSession(userServiceChannel, req.getSessionId());
+        getUserFromSession(channel, req.getSessionId());
+
+        // Get the cart.
+        String cartId = getCartForSession(channel, req.getSessionId());
 
         // Make call to get the user, again.
-        getUserFromSession(userServiceChannel, req.getSessionId());
+        getUserFromSession(channel, req.getSessionId());
+
+        // Set discounts on cart, allow to fail.
+        try {
+            setDiscountOnCart(channel, cartId);
+        } catch (RuntimeException e) {
+            // sorry, couldn't add the discount!
+        }
 
         // Assemble response.
         Hello.PurchaseResponse purchaseResponse = Hello.PurchaseResponse.newBuilder().setSuccess(true).build();
         responseObserver.onNext(purchaseResponse);
         responseObserver.onCompleted();
 
-        originalUserServiceChannel.shutdownNow();
+        originalChannel.shutdownNow();
         try {
-            while (!originalUserServiceChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+            while (!originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
                 Thread.sleep(4000);
             }
         } catch (InterruptedException ie) {
@@ -161,9 +172,24 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         }
     }
 
-    private static void getUserFromSession(Channel userServiceChannel, String sessionId) {
-        UserServiceGrpc.UserServiceBlockingStub userServiceBlockingStub = UserServiceGrpc.newBlockingStub(userServiceChannel);
-        Hello.GetUserRequest firstGetUserRequest = Hello.GetUserRequest.newBuilder().setSessionId(sessionId).build();
-        userServiceBlockingStub.getUserFromSession(firstGetUserRequest);
+    private static String getUserFromSession(Channel channel, String sessionId) {
+        UserServiceGrpc.UserServiceBlockingStub userServiceBlockingStub = UserServiceGrpc.newBlockingStub(channel);
+        Hello.GetUserRequest request = Hello.GetUserRequest.newBuilder().setSessionId(sessionId).build();
+        Hello.GetUserResponse response = userServiceBlockingStub.getUserFromSession(request);
+        return response.getUserId();
+    }
+
+    private static String getCartForSession(Channel channel, String sessionId) {
+        CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
+        Hello.GetCartRequest request = Hello.GetCartRequest.newBuilder().setSessionId(sessionId).build();
+        Hello.GetCartResponse response = cartServiceBlockingStub.getCartForSession(request);
+        return response.getCartId();
+    }
+
+    private static void setDiscountOnCart(Channel channel, String cartId) {
+        CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
+        Hello.SetDiscountRequest request = Hello.SetDiscountRequest.newBuilder().setCartId(cartId).build();
+        Hello.SetDiscountResponse response = cartServiceBlockingStub.setDiscountOnCart(request);
+        return;
     }
 }

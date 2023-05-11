@@ -34,11 +34,20 @@ message GetCartRequest {
 }
 
 message GetCartResponse {
+  string cart_id = 1;
+}
+
+message SetDiscountRequest {
+  string cart_id = 1;
+}
+
+message SetDiscountResponse {
 
 }
 
 service CartService {
   rpc GetCartForSession (GetCartRequest) returns (GetCartResponse) {}
+  rpc SetDiscountOnCart (SetDiscountRequest) returns (SetDiscountResponse) {}
 }
 
 service HelloService {

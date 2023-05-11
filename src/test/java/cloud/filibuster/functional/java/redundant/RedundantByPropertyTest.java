@@ -1,58 +1,39 @@
-package cloud.filibuster.functional.java.cache;
+package cloud.filibuster.functional.java.redundant;
 
 import cloud.filibuster.examples.APIServiceGrpc;
 import cloud.filibuster.examples.Hello;
-import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.FilibusterSingleFaultUnavailableAnalysisConfigurationFile;
 import cloud.filibuster.junit.server.core.FilibusterCore;
 import cloud.filibuster.junit.server.core.lint.analyzers.warnings.FilibusterAnalyzerWarning;
-import cloud.filibuster.junit.server.core.lint.analyzers.warnings.RedundantRPCWarning;
 import cloud.filibuster.junit.server.core.reports.TestExecutionReport;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import org.grpcmock.junit5.GrpcMockExtension;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
 import static cloud.filibuster.instrumentation.helpers.Property.setTestAvoidRedundantInjectionsProperty;
-import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
-import static cloud.filibuster.integration.instrumentation.TestHelper.stopAPIServerAndWaitUntilUnavailable;
-import static org.grpcmock.GrpcMock.stubFor;
-import static org.grpcmock.GrpcMock.unaryMethod;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class CacheNegativeTestByProperty {
-    @RegisterExtension
-    static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
-            .withPort(Networking.getPort("user-mock"))
-            .build();
-
+public class RedundantByPropertyTest extends RedundantBaseTest {
     @BeforeAll
-    public static void startAllServices() throws IOException, InterruptedException {
-        startAPIServerAndWaitUntilAvailable();
+    public static void setProperties() {
+        setTestAvoidRedundantInjectionsProperty(true);
     }
 
     @AfterAll
-    public static void stopAllServices() throws InterruptedException {
-        stopAPIServerAndWaitUntilUnavailable();
-    }
-
-    @BeforeAll
-    public static void setProperties() {
+    public static void resetProperties() {
         setTestAvoidRedundantInjectionsProperty(false);
     }
 
@@ -67,9 +48,6 @@ public class CacheNegativeTestByProperty {
     @Order(1)
     public void testPurchase() {
         testInvocationCount++;
-
-        stubFor(unaryMethod(UserServiceGrpc.getGetUserFromSessionMethod())
-                .willReturn(Hello.GetUserResponse.newBuilder().setUserId("1").build()));
 
         String sessionId = UUID.randomUUID().toString();
 
@@ -91,13 +69,16 @@ public class CacheNegativeTestByProperty {
     @Test
     @Order(2)
     public void testInvocationCount() {
+        // 3 RPCs issued (2 OK, 1 UNIMPLEMENTED)
+        // 1 golden path, 3 fault executions (1 per RPC issued.)
         assertEquals(4, testInvocationCount);
     }
 
     @Test
     @Order(2)
     public void testFailures() {
-        assertEquals(3, testFailures);
+        // 3 RPCs, where 2 are fatal.
+        assertEquals(2, testFailures);
     }
 
     @Order(2)
@@ -105,10 +86,7 @@ public class CacheNegativeTestByProperty {
     public void testWarnings() {
         TestExecutionReport testExecutionReport = FilibusterCore.getMostRecentInitialTestExecutionReport();
         List<FilibusterAnalyzerWarning> warnings = testExecutionReport.getWarnings();
-        for (FilibusterAnalyzerWarning warning : warnings) {
-            assertTrue(warning instanceof RedundantRPCWarning);
-            assertEquals("cloud.filibuster.examples.UserService/GetUserFromSession", warning.getDetails());
-        }
-        assertEquals(2, warnings.size());
+        checkWarningsForRPCs(warnings);
+        assertEquals(1, warnings.size());
     }
 }

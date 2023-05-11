@@ -76,7 +76,7 @@ public class JUnitFilibusterTestWithServiceFaultProfile {
 
     @RegisterExtension
     static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
-            .withPort(Networking.getPort("hello-mock"))
+            .withPort(Networking.getPort("mock"))
             .build();
 
     @BeforeAll

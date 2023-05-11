@@ -65,7 +65,6 @@ public class ConcreteTestExecution extends TestExecution implements Cloneable {
         concreteTestExecution.executedRPCs.putAll(executedRPCs);
         concreteTestExecution.nondeterministicExecutedRPCs.putAll(nondeterministicExecutedRPCs);
         concreteTestExecution.faultsToInject.putAll(faultsToInject);
-        concreteTestExecution.failedRPCs.putAll(failedRPCs);
         return concreteTestExecution;
     }
 

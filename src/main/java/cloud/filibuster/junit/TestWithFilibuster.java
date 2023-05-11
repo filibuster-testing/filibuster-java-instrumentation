@@ -23,6 +23,7 @@ import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.parallel.Isolated;
 
+import static cloud.filibuster.instrumentation.helpers.Property.AVOID_INJECTIONS_ON_UNIMPLEMENTED_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.AVOID_REDUNDANT_INJECTIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.DATA_NONDETERMINISM_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.MAX_ITERATIONS_DEFAULT;
@@ -162,6 +163,13 @@ public @interface TestWithFilibuster {
      * @return whether we should avoid redundant injections
      */
     boolean avoidRedundantInjections() default AVOID_REDUNDANT_INJECTIONS_DEFAULT;
+
+    /**
+     * Should we avoid fault injection when an RPC returns UNIMPLEMENTED?
+     *
+     * @return whether we avoid injection on GRPC UNIMPLEMENTED
+     */
+    boolean avoidInjectionsOnUnimplemented() default AVOID_INJECTIONS_ON_UNIMPLEMENTED_DEFAULT;
 
     /**
      * Analysis file that should be used for this configuration of Filibuster.

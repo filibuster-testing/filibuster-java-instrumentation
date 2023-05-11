@@ -11,7 +11,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -87,9 +86,6 @@ public class Callsite {
         }
         this.serializedStackTrace = String.join("", arraySerializedArguments);
 
-        // Ensure we reverse frames so 0 is the first frame.
-        Collections.reverse(filteredStackTrace);
-
         // Get last element and compute callsite file name and line number.
         Map.Entry<String, String> lastStackTraceElement = filteredStackTrace.get(0);
         String lastStackTraceElementString = lastStackTraceElement.getValue();
@@ -105,7 +101,6 @@ public class Callsite {
 
             throw e;
         }
-
 
         if (getCallsiteLineNumberProperty()) {
             this.lineNumber = lastStackTraceElementString.substring(lastStackTraceElementString.indexOf(':') + 1, lastStackTraceElementString.indexOf(')'));

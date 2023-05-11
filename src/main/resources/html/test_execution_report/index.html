@@ -142,11 +142,16 @@
             padding: 0px;
             margin: 0px;
         }
+
+        .cached {
+            display: none;
+        }
 	</style>
 </head>
 
 <body>
 <section style="margin: 0; padding: 0;">
+    <span style="float: right; display: inline; text-align: right; text-decoration: none; margin-bottom: 10px; margin-left: 10px;"><a style="text-decoration: none;" href="#" onClick="toggleCached();">💵</a></span>
     <span style="float: right; display: inline; text-align: right; text-decoration: none; margin-bottom: 10px; margin-left: 10px;"><a style="text-decoration: none;" href="#" onClick="toggleDebug();">🐞</a></span>
 
     <!-- Assertion failure goes here. -->
@@ -180,6 +185,10 @@
 
             function toggleDebug() {
                 $(".debug").toggle();
+            }
+
+            function toggleCached() {
+                $(".cached").toggle();
             }
 
             function isEmpty(obj) {
@@ -249,7 +258,11 @@
                         } else if (isExceptionResponse) {
                             row += '<tr class="exception">';
                         } else {
-                            row += '<tr class="success">';
+                            if (rpc.cached) {
+                                row += '<tr class="success cached">';
+                            } else {
+                                row += '<tr class="success">';
+                            }
                         }
                     } else {
                         row += '<tr class="fault">';

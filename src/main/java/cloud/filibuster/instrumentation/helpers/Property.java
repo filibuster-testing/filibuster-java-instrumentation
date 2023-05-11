@@ -146,6 +146,28 @@ public class Property {
     }
 
     /***********************************************************************************
+     ** filibuster.test.avoid_redundant_injections
+     ***********************************************************************************/
+
+    public static final boolean AVOID_REDUNDANT_INJECTIONS_DEFAULT = false;
+
+    private final static String TEST_AVOID_REDUNDANT_INJECTIONS = "filibuster.test.avoid_redundant_injections";
+
+    public static void setTestAvoidRedundantInjectionsProperty(boolean value) {
+        System.setProperty(TEST_AVOID_REDUNDANT_INJECTIONS, String.valueOf(value));
+    }
+
+    public static boolean getTestAvoidRedundantInjectionsProperty() {
+        String propertyValue = System.getProperty(TEST_AVOID_REDUNDANT_INJECTIONS);
+
+        if (isPropertyNull(propertyValue)) {
+            return AVOID_REDUNDANT_INJECTIONS_DEFAULT;
+        } else {
+            return Boolean.valueOf(propertyValue);
+        }
+    }
+
+    /***********************************************************************************
      ** filibuster.test.data_nondeterminism
      ***********************************************************************************/
 

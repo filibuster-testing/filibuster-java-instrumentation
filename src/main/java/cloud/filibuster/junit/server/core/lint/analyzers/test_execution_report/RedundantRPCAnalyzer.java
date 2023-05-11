@@ -9,9 +9,14 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import static cloud.filibuster.instrumentation.helpers.Property.getTestAvoidRedundantInjectionsProperty;
+
 public class RedundantRPCAnalyzer extends TestExecutionReportAnalyzer {
+    private final TestExecutionReport testExecutionReport;
+
     public RedundantRPCAnalyzer(TestExecutionReport testExecutionReport) {
         super(testExecutionReport);
+        this.testExecutionReport = testExecutionReport;
     }
 
     private final List<String> seenRPCs = new ArrayList<>();
@@ -39,7 +44,14 @@ public class RedundantRPCAnalyzer extends TestExecutionReportAnalyzer {
             String method = invocation.getString("method");
 
             if (seenRPCs.contains(key)) {
-                this.addWarning(new RedundantRPCWarning(distributedExecutionIndex, method));
+                if (getTestAvoidRedundantInjectionsProperty()) {
+                    List<DistributedExecutionIndex> cachedRPCs = testExecutionReport.getCachedRPCs();
+                    if (!cachedRPCs.contains(distributedExecutionIndex)) {
+                        this.addWarning(new RedundantRPCWarning(distributedExecutionIndex, method));
+                    }
+                } else {
+                    this.addWarning(new RedundantRPCWarning(distributedExecutionIndex, method));
+                }
             } else {
                 seenRPCs.add(key);
             }

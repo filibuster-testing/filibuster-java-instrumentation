@@ -176,11 +176,15 @@ public class FilibusterCore {
         if (currentConcreteTestExecution == null) {
             throw new FilibusterCoreLogicException("currentConcreteTestExecution should not be null at this point, something fatal occurred.");
         }
+
+        // Determine if we've seen this RPC method and arguments before.
+        boolean hasSeenRpcUnderSameOrDifferentDistributedExecutionIndex = currentConcreteTestExecution.hasSeenRpcUnderSameOrDifferentDistributedExecutionIndex(payload);
+
         // Register the RPC using the distributed execution index.
         String distributedExecutionIndexString = payload.getString("execution_index");
         DistributedExecutionIndex distributedExecutionIndex = new DistributedExecutionIndexV1().deserialize(distributedExecutionIndexString);
         logger.info("[FILIBUSTER-CORE]: beginInvocation called, distributedExecutionIndex: " + distributedExecutionIndex);
-        currentConcreteTestExecution.addDistributedExecutionIndexWithRequestPayload(distributedExecutionIndex, payload);
+        currentConcreteTestExecution.addDistributedExecutionIndexWithRequestPayload(distributedExecutionIndex, payload, hasSeenRpcUnderSameOrDifferentDistributedExecutionIndex && filibusterConfiguration.getAvoidRedundantInjections());
 
         // Get next generated id.
         int generatedId = currentConcreteTestExecution.incrementGeneratedId();
@@ -202,7 +206,13 @@ public class FilibusterCore {
             }
 
             if (shouldGenerateNewAbstractExecutions && faultInjectionEnabled) {
-                generateFaultsUsingAnalysisConfiguration(filibusterConfiguration, distributedExecutionIndex, moduleName, methodName);
+                if (filibusterConfiguration.getAvoidRedundantInjections()) {
+                    if (! hasSeenRpcUnderSameOrDifferentDistributedExecutionIndex) {
+                        generateFaultsUsingAnalysisConfiguration(filibusterConfiguration, distributedExecutionIndex, moduleName, methodName);
+                    }
+                } else {
+                    generateFaultsUsingAnalysisConfiguration(filibusterConfiguration, distributedExecutionIndex, moduleName, methodName);
+                }
             }
         }
 

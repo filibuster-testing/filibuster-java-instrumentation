@@ -17,6 +17,9 @@ public abstract class TestExecution {
     // Superseded by DistributedExecutionIndex, but kept in for compatibility and debugging.
     int generatedId = 0;
 
+    // What RPCs failed during the fault free execution?
+    HashMap<DistributedExecutionIndex, JSONObject> failedRPCs = new HashMap<>();
+
     // What RPCs were executed?
     HashMap<DistributedExecutionIndex, JSONObject> executedRPCs = new HashMap<>();
 
@@ -97,7 +100,17 @@ public abstract class TestExecution {
     }
 
     public void addDistributedExecutionIndexWithResponsePayload(DistributedExecutionIndex distributedExecutionIndex, JSONObject payload) {
-        // Nothing for now.
+        if (payload.has("exception")) {
+            this.failedRPCs.put(distributedExecutionIndex, payload);
+        }
+    }
+
+    public boolean didRpcFail(DistributedExecutionIndex distributedExecutionIndex) {
+        return this.failedRPCs.containsKey(distributedExecutionIndex);
+    }
+
+    public JSONObject getRpcFailure(DistributedExecutionIndex distributedExecutionIndex) {
+        return this.failedRPCs.get(distributedExecutionIndex);
     }
 
     public int incrementGeneratedId() {

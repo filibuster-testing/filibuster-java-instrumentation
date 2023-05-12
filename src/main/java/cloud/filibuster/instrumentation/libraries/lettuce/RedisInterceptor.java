@@ -56,7 +56,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         // Construct preliminary call site information.
         // ******************************************************************************************
 
-        CallsiteArguments callsiteArguments = new CallsiteArguments(invocation.getClass(), Arrays.toString(invocation.getArguments()));
+        CallsiteArguments callsiteArguments = new CallsiteArguments(invocation.getArguments().getClass(), Arrays.toString(invocation.getArguments()));
 
         Callsite callsite = new Callsite(redisConnectionString, REDIS_MODULE_NAME, redisMethodName, callsiteArguments);
 

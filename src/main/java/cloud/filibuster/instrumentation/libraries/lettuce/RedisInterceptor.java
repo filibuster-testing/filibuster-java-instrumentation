@@ -68,8 +68,9 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         // Extract callsite information.
         // ******************************************************************************************
 
-        String redisMethodName = invocation.getMethod().getName();  // Possible Redis methods are get, set, sync, async, ...
-        logger.log(Level.INFO, logPrefix + "methodName: " + redisMethodName);
+        // Possible Redis methods are RedisClient/get, RedisClient/set, RedisClient/sync, RedisClient/async, ...
+        String redisFullMethodName = REDIS_MODULE_NAME + "/" + invocation.getMethod().getName();
+        logger.log(Level.INFO, logPrefix + "redisFullMethodName: " + redisFullMethodName);
 
         // ******************************************************************************************
         // Construct preliminary call site information.
@@ -77,7 +78,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
 
         CallsiteArguments callsiteArguments = new CallsiteArguments(invocation.getArguments().getClass(), Arrays.toString(invocation.getArguments()));
 
-        Callsite callsite = new Callsite(redisServiceName, REDIS_MODULE_NAME, redisMethodName, callsiteArguments);
+        Callsite callsite = new Callsite(redisServiceName, REDIS_MODULE_NAME, redisFullMethodName, callsiteArguments);
 
         filibusterClientInstrumentor = new FilibusterClientInstrumentor(redisServiceName, shouldCommunicateWithServer(), contextStorage, callsite);
 

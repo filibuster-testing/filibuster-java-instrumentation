@@ -47,7 +47,6 @@ public class FilibusterConfiguration {
 
     private final FilibusterLatencyProfile latencyProfile;
 
-
     private final String testName;
 
     private final String className;

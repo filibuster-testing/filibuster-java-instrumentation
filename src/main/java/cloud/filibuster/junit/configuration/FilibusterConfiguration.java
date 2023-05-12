@@ -33,6 +33,8 @@ public class FilibusterConfiguration {
 
     private final boolean avoidRedundantInjections;
 
+    private final boolean avoidInjectionsOnOrganicFailures;
+
     private final FilibusterSearchStrategy searchStrategy;
 
     private final String analysisFile;
@@ -59,6 +61,7 @@ public class FilibusterConfiguration {
         this.suppressCombinations = builder.suppressCombinations;
         this.dataNondeterminism = builder.dataNondeterminism;
         this.avoidRedundantInjections = builder.avoidRedundantInjections;
+        this.avoidInjectionsOnOrganicFailures = builder.avoidInjectionsOnOrganicFailures;
         this.searchStrategy = builder.searchStrategy;
         this.analysisFile = builder.analysisFile;
         this.serverBackend = builder.serverBackend;
@@ -115,6 +118,15 @@ public class FilibusterConfiguration {
      */
     public boolean getAvoidRedundantInjections() {
         return this.avoidRedundantInjections;
+    }
+
+    /**
+     * Do we avoid  injections on failing RPCs?
+     *
+     * @return boolean
+     */
+    public boolean getAvoidInjectionsOnOrganicFailures() {
+        return this.avoidInjectionsOnOrganicFailures;
     }
 
     /**
@@ -237,6 +249,7 @@ public class FilibusterConfiguration {
         private boolean suppressCombinations = false;
         private boolean dataNondeterminism = false;
         private boolean avoidRedundantInjections = false;
+        private boolean avoidInjectionsOnOrganicFailures = false;
 
         private FilibusterSearchStrategy searchStrategy;
 
@@ -304,6 +317,18 @@ public class FilibusterConfiguration {
         @CanIgnoreReturnValue
         public Builder avoidRedundantInjections(boolean avoidRedundantInjections) {
             this.avoidRedundantInjections = avoidRedundantInjections;
+            return this;
+        }
+
+        /**
+         * Do we avoid fault injections on failing RPCs?
+         *
+         * @param avoidInjectionsOnOrganicFailures whether the avoids fault injections on failing RPCs
+         * @return builder
+         */
+        @CanIgnoreReturnValue
+        public Builder avoidInjectionsOnOrganicFailures(boolean avoidInjectionsOnOrganicFailures) {
+            this.avoidInjectionsOnOrganicFailures = avoidInjectionsOnOrganicFailures;
             return this;
         }
 

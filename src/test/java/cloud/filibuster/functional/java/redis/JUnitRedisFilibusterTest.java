@@ -28,7 +28,7 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
         statefulRedisConnection.sync().set(key, value);
     }
 
-    @DisplayName("Tests whether Redis sync interceptor can read from existing key")
+    @DisplayName("Tests whether Redis sync interceptor can read from existing key - Single fault injection")
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = RedisSingleFaultCommandTimeoutExceptionAnalysisConfigurationFile.class)
     public void testRedisSyncGet() {
@@ -46,7 +46,7 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
         }
     }
 
-    @DisplayName("Tests whether Redis sync interceptor can read from existing key")
+    @DisplayName("Tests whether Redis sync interceptor can read from existing key - Multiple fault injections")
     @Order(2)
     @TestWithFilibuster(analysisConfigurationFile = RedisDefaultAnalysisConfigurationFile.class)
     public void testRedisSyncGetMultipleTests() {

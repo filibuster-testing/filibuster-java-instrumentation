@@ -41,7 +41,7 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
 
     public static Boolean disableInstrumentation = false;
 
-    private final String logPrefix = "[FILIBUSTER-ARMERIA_HTTP_CLIENT]: ";
+    private static final String logPrefix = "[FILIBUSTER-ARMERIA_HTTP_CLIENT]: ";
 
 
     private static boolean shouldInstrument() {

@@ -30,7 +30,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
     public static Boolean disableServerCommunication = false;
     private final String redisConnectionString;
     private final T interceptedObject;
-    private final String logPrefix = "[FILIBUSTER-REDIS_INTERCEPTOR]: ";
+    private static final String logPrefix = "[FILIBUSTER-REDIS_INTERCEPTOR]: ";
 
     private FilibusterClientInstrumentor filibusterClientInstrumentor;
 

@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 import static cloud.filibuster.instrumentation.Constants.REDIS_MODULE_NAME;
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationServerCommunicationEnabledProperty;
+import static java.util.Objects.requireNonNull;
 
 public class RedisInterceptor<T> implements MethodInterceptor {
     public static Boolean disableInstrumentation = false;
@@ -81,12 +82,18 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         // ******************************************************************************************
 
         JSONObject forcedException = filibusterClientInstrumentor.getForcedException();
+        JSONObject failureMetadata = filibusterClientInstrumentor.getFailureMetadata();
 
         logger.log(Level.INFO, logPrefix + "forcedException: " + forcedException);
+        logger.log(Level.INFO, logPrefix + "failureMetadata: " + failureMetadata);
 
         // ******************************************************************************************
         // If we need to throw, this is where we throw.
         // ******************************************************************************************
+
+        if (failureMetadata != null && filibusterClientInstrumentor.shouldAbort()) {
+            generateExceptionFromFailureMetadata(filibusterClientInstrumentor, failureMetadata);
+        }
 
         if (forcedException != null && filibusterClientInstrumentor.shouldAbort()) {
             generateAndThrowException(filibusterClientInstrumentor, forcedException);
@@ -150,6 +157,26 @@ public class RedisInterceptor<T> implements MethodInterceptor {
 
         // Throw callsite exception.
         throw exceptionToThrow;
+    }
+
+    private void generateExceptionFromFailureMetadata(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject failureMetadata) {
+        requireNonNull(failureMetadata);
+
+        JSONObject exception = failureMetadata.getJSONObject("exception");
+
+        // Create the exception to throw.
+        String exceptionNameString = "io.lettuce.core.internal.RuntimeException";
+        String cause = exception.getJSONObject("metadata").getString("cause");
+        String code = exception.getJSONObject("metadata").getString("code");
+
+        // Notify Filibuster of failure.
+        HashMap<String, String> additionalMetadata = new HashMap<>();
+        additionalMetadata.put("name", exceptionNameString);
+        additionalMetadata.put("code", code);
+        filibusterClientInstrumentor.afterInvocationWithException(exceptionNameString, cause, additionalMetadata);
+
+        // Return status.
+        throw new RuntimeException(cause);
     }
 
     private static boolean shouldInstrument() {

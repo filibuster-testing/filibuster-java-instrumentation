@@ -445,7 +445,7 @@ public class FilibusterCore {
 
                     // Iterate as long as it's null and there's more in the list.
                 } while (nextAbstractTestExecution == null && !unexploredTestExecutions.isEmpty());
-                
+
                 // As long as we have one?
                 if (nextAbstractTestExecution != null) {
                     // Set the abstract execution, which drives fault injection and copy the faults into the concrete execution for the record.

@@ -38,14 +38,13 @@ public class AbstractTestExecution extends TestExecution {
     public boolean shoulBypassForOrganicFailure() {
         boolean found = false;
 
-        HashMap<DistributedExecutionIndex, JSONObject> executedRPCs = sourceConcreteTestExecution.executedRPCs;
-        HashMap<DistributedExecutionIndex, JSONObject> failedRPCs = completedSourceConcreteTestExecution.failedRPCs;
-
-        for (Map.Entry<DistributedExecutionIndex, JSONObject> executedRPC: sourceConcreteTestExecution.executedRPCs.entrySet()) {
-            DistributedExecutionIndex distributedExecutionIndex = executedRPC.getKey();
-            if (organicallyFailedInSourceConcreteTestExecution(distributedExecutionIndex)) {
-                found = true;
-                break;
+        if (sourceConcreteTestExecution != null) {
+            for (Map.Entry<DistributedExecutionIndex, JSONObject> executedRPC: sourceConcreteTestExecution.executedRPCs.entrySet()) {
+                DistributedExecutionIndex distributedExecutionIndex = executedRPC.getKey();
+                if (organicallyFailedInSourceConcreteTestExecution(distributedExecutionIndex)) {
+                    found = true;
+                    break;
+                }
             }
         }
 

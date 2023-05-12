@@ -29,6 +29,8 @@ public class FilibusterServerInterceptor implements ServerInterceptor {
     public static Boolean disableServerCommunication = false;
     public static Boolean disableInstrumentation = false;
 
+    private final String logPrefix = "[FILIBUSTER-GRPC_SERVER_INTERCEPTOR]: ";
+
     @Nullable
     private String requestId;
 
@@ -69,7 +71,7 @@ public class FilibusterServerInterceptor implements ServerInterceptor {
             requestId = RequestId.generateNewRequestId().toString();
         }
 
-        logger.log(Level.INFO, "requestId: " + requestId);
+        logger.log(Level.INFO, logPrefix + "requestId: " + requestId);
 
         return requestId;
     }
@@ -77,28 +79,28 @@ public class FilibusterServerInterceptor implements ServerInterceptor {
     public String getGeneratedIdFromMetadata(Metadata requestHeaders) {
         String generatedId = requestHeaders.get(
                 Metadata.Key.of("x-filibuster-generated-id", Metadata.ASCII_STRING_MARSHALLER));
-        logger.log(Level.INFO, "generatedId: " + generatedId);
+        logger.log(Level.INFO, logPrefix + "generatedId: " + generatedId);
         return generatedId;
     }
 
     public String getVectorClockFromMetadata(Metadata requestHeaders) {
         String vclock = requestHeaders.get(
                 Metadata.Key.of("x-filibuster-vclock", Metadata.ASCII_STRING_MARSHALLER));
-        logger.log(Level.INFO, "vclock: " + vclock);
+        logger.log(Level.INFO, logPrefix + "vclock: " + vclock);
         return vclock;
     }
 
     public String getOriginVectorClockFromMetadata(Metadata requestHeaders) {
         String originVclock = requestHeaders.get(
                 Metadata.Key.of("x-filibuster-origin-vclock", Metadata.ASCII_STRING_MARSHALLER));
-        logger.log(Level.INFO, "originVclock: " + originVclock);
+        logger.log(Level.INFO, logPrefix + "originVclock: " + originVclock);
         return originVclock;
     }
 
     public String getDistributedExecutionIndexFromMetadata(Metadata requestHeaders) {
         String distributedExecutionIndex = requestHeaders.get(
                 Metadata.Key.of("x-filibuster-execution-index", Metadata.ASCII_STRING_MARSHALLER));
-        logger.log(Level.INFO, "executionIndex: " + distributedExecutionIndex);
+        logger.log(Level.INFO, logPrefix + "executionIndex: " + distributedExecutionIndex);
         return distributedExecutionIndex;
     }
 
@@ -110,13 +112,13 @@ public class FilibusterServerInterceptor implements ServerInterceptor {
             ServerCallHandler<REQUEST, RESPONSE> next) {
 
         if (shouldInstrument()) {
-            logger.log(Level.INFO, "Entering server interceptor...");
+            logger.log(Level.INFO, logPrefix + "Entering server interceptor...");
 
             // ******************************************************************************************
             // Setup Filibuster instrumentation.
             // ******************************************************************************************
 
-            logger.log(Level.INFO, "!!! Entering constructor.");
+            logger.log(Level.INFO, logPrefix + "!!! Entering constructor.");
 
             FilibusterServerInstrumentor filibusterServerInstrumentor = new FilibusterServerInstrumentor(
                     serviceName,
@@ -129,7 +131,7 @@ public class FilibusterServerInterceptor implements ServerInterceptor {
                     contextStorage
             );
 
-            logger.log(Level.INFO, "!!! Leaving constructor.");
+            logger.log(Level.INFO, logPrefix + "!!! Leaving constructor.");
 
             // ******************************************************************************************
             // Force sleep if necessary.
@@ -155,17 +157,17 @@ public class FilibusterServerInterceptor implements ServerInterceptor {
             // Notify Filibuster before delegation.
             // ******************************************************************************************
 
-            logger.log(Level.INFO, "!!! Entering beforeInvocation.");
+            logger.log(Level.INFO, logPrefix + "!!! Entering beforeInvocation.");
 
             filibusterServerInstrumentor.beforeInvocation();
 
-            logger.log(Level.INFO, "!!! Leaving beforeInvocation.");
+            logger.log(Level.INFO, logPrefix + "!!! Leaving beforeInvocation.");
 
             // ******************************************************************************************
             // Delegate to underlying service.
             // ******************************************************************************************
 
-            logger.log(Level.INFO, "Leaving server interceptor...");
+            logger.log(Level.INFO, logPrefix + "Leaving server interceptor...");
         }
 
         return next.startCall(new FilibusterServerCall<>(call), headers);

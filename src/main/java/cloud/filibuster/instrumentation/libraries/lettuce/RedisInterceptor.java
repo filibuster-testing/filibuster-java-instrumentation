@@ -12,6 +12,7 @@ import io.lettuce.core.dynamic.intercept.MethodInterceptor;
 import io.lettuce.core.dynamic.intercept.MethodInvocation;
 import org.json.JSONObject;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -22,7 +23,6 @@ import static cloud.filibuster.instrumentation.Constants.REDIS_MODULE_NAME;
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationServerCommunicationEnabledProperty;
 
-
 public class RedisInterceptor<T> implements MethodInterceptor {
     public static Boolean disableInstrumentation = false;
     private static final Logger logger = Logger.getLogger(RedisInterceptorFactory.class.getName());
@@ -30,6 +30,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
     public static Boolean disableServerCommunication = false;
     private final String redisConnectionString;
     private final T interceptedObject;
+    private final String logPrefix = "[FILIBUSTER-REDIS_INTERCEPTOR]: ";
 
 
     public RedisInterceptor(T interceptedObject, String redisConnectionString) {
@@ -40,15 +41,15 @@ public class RedisInterceptor<T> implements MethodInterceptor {
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
-        logger.log(Level.INFO, "RedisIntermediaryInterceptor: invoke() called");
-        logger.log(Level.INFO, "shouldInstrument() is" + shouldInstrument());
+        logger.log(Level.INFO, "RedisInterceptor: invoke() called");
+        logger.log(Level.INFO, logPrefix + "shouldInstrument() is" + shouldInstrument());
 
         // ******************************************************************************************
         // Extract callsite information.
         // ******************************************************************************************
 
-        String redisMethodName = invocation.getMethod().getName();
-        logger.log(Level.INFO, "methodName: " + redisMethodName);
+        String redisMethodName = invocation.getMethod().getName();  // Possible Redis methods are get, set, sync, async, ...
+        logger.log(Level.INFO, logPrefix + "methodName: " + redisMethodName);
 
         // ******************************************************************************************
         // Construct preliminary call site information.
@@ -72,7 +73,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         // Attach metadata to outgoing request.
         // ******************************************************************************************
 
-        logger.log(Level.INFO, "requestId: " + filibusterClientInstrumentor.getOutgoingRequestId());
+        logger.log(Level.INFO, logPrefix + "requestId: " + filibusterClientInstrumentor.getOutgoingRequestId());
 
         // ******************************************************************************************
         // Get forcedException information.
@@ -80,7 +81,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
 
         JSONObject forcedException = filibusterClientInstrumentor.getForcedException();
 
-        logger.log(Level.INFO, "forcedException: " + forcedException);
+        logger.log(Level.INFO, logPrefix + "forcedException: " + forcedException);
 
         // ******************************************************************************************
         // If we need to throw, this is where we throw.
@@ -104,6 +105,8 @@ public class RedisInterceptor<T> implements MethodInterceptor {
             result = method.invoke(interceptedObject, invocation.getArguments());
             returnValueProperties = new HashMap<>();
         } catch (Throwable t) {
+            // getMethod and method.invoke could both throw. In that case, catch the thrown exception, communicate it to
+            // the filibusterClientInstrumentor, and then throw the exception
             filibusterClientInstrumentor.afterInvocationWithException(t);
             throw t;
         }
@@ -118,6 +121,10 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         filibusterClientInstrumentor.afterInvocationComplete(method.getReturnType().getName(), returnValueProperties);
 
         return method.getReturnType().cast(result);
+    }
+
+    private <L> L invokeOnInterceptedObject(Method method, Object[] invocationArguments, Class<L> returnType) throws InvocationTargetException, IllegalAccessException {
+        return returnType.cast(method.invoke(interceptedObject, invocationArguments));
     }
 
     private static void generateAndThrowException(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject forcedException) {

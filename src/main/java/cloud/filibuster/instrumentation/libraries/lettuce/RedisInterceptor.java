@@ -32,6 +32,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
     private final T interceptedObject;
     private final String logPrefix = "[FILIBUSTER-REDIS_INTERCEPTOR]: ";
 
+    private FilibusterClientInstrumentor filibusterClientInstrumentor;
 
     public RedisInterceptor(T interceptedObject, String redisConnectionString) {
         this.contextStorage = new ThreadLocalContextStorage();
@@ -59,7 +60,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
 
         Callsite callsite = new Callsite(redisConnectionString, REDIS_MODULE_NAME, redisMethodName, callsiteArguments);
 
-        FilibusterClientInstrumentor filibusterClientInstrumentor = new FilibusterClientInstrumentor(redisConnectionString, shouldCommunicateWithServer(), contextStorage, callsite);
+        filibusterClientInstrumentor = new FilibusterClientInstrumentor(redisConnectionString, shouldCommunicateWithServer(), contextStorage, callsite);
 
         filibusterClientInstrumentor.prepareForInvocation();
 
@@ -95,36 +96,38 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         // Invoke.
         // ******************************************************************************************
 
-        Class<?>[] paramTypes = new Class[invocation.getMethod().getParameterCount()];
-        Arrays.fill(paramTypes, Object.class);
-        Method method;
-        Object result;
-        HashMap<String, String> returnValueProperties;
+        Object invocationResult = invokeOnInterceptedObject(invocation);
+        HashMap<String, String> returnValueProperties = new HashMap<>();
+
+        // invocationResult could be null (e.g., when querying a key in Redis that does not exist). If it is null, skip
+        // execute the following block
+        if (invocationResult != null) {
+            returnValueProperties.put("toString", invocationResult.toString());
+            // If "invocationResult" is an interface, return an intercepted proxy
+            // (e.g., when calling StatefulRedisConnection.sync() where StatefulRedisConnection is an intercepted proxy,
+            // the returned RedisCommands object should also be an intercepted proxy)
+            if (invocation.getMethod().getReturnType().isInterface()) {
+                invocationResult = new RedisInterceptorFactory<>(invocationResult, redisConnectionString).getProxy(invocation.getMethod().getReturnType());
+            }
+        }
+
+        filibusterClientInstrumentor.afterInvocationComplete(invocation.getMethod().getReturnType().getName(), returnValueProperties);
+
+        return invocationResult;
+    }
+
+    private Object invokeOnInterceptedObject(MethodInvocation invocation) throws InvocationTargetException, IllegalAccessException {
         try {
-            method = interceptedObject.getClass().getMethod(invocation.getMethod().getName(), paramTypes);
-            result = method.invoke(interceptedObject, invocation.getArguments());
-            returnValueProperties = new HashMap<>();
+            Method method = invocation.getMethod();
+            Object[] args = invocation.getArguments();
+            return method.invoke(interceptedObject, args);
         } catch (Throwable t) {
-            // getMethod and method.invoke could both throw. In that case, catch the thrown exception, communicate it to
+            logger.log(Level.INFO, logPrefix + "An exception was thrown in invokeOnInterceptedObject ", t.getMessage());
+            // method.invoke could throw. In that case, catch the thrown exception, communicate it to
             // the filibusterClientInstrumentor, and then throw the exception
             filibusterClientInstrumentor.afterInvocationWithException(t);
             throw t;
         }
-        if (result != null) {  // e.g., when you query a key that is saved in Redis, result is null if key not in Redis
-            returnValueProperties.put("toString", result.toString());
-            // If "result" is an interface, return an intercepted object
-            // (e.g., when calling StatefulRedisConnection.sync(), the returned RedisCommands object should also be a proxy)
-            if (method.getReturnType().isInterface()) {
-                result = new RedisInterceptorFactory<>(method.getReturnType().cast(result), redisConnectionString).getProxy(method.getReturnType());
-            }
-        }
-        filibusterClientInstrumentor.afterInvocationComplete(method.getReturnType().getName(), returnValueProperties);
-
-        return method.getReturnType().cast(result);
-    }
-
-    private <L> L invokeOnInterceptedObject(Method method, Object[] invocationArguments, Class<L> returnType) throws InvocationTargetException, IllegalAccessException {
-        return returnType.cast(method.invoke(interceptedObject, invocationArguments));
     }
 
     private static void generateAndThrowException(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject forcedException) {

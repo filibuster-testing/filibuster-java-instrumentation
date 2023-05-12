@@ -175,7 +175,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         additionalMetadata.put("code", code);
         filibusterClientInstrumentor.afterInvocationWithException(exceptionNameString, cause, additionalMetadata);
 
-        // Return status.
+        // Throw exception.
         throw new RuntimeException(cause);
     }
 

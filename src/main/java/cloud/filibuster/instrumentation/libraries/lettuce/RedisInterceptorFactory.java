@@ -16,6 +16,8 @@ public final class RedisInterceptorFactory<T> {
         String address = redis.getHost();
         Integer port = redis.getFirstMappedPort();
         redisConnectionString = String.format("redis://%s:%d/0", address, port);
+        // Only interfaces can be proxied. RedisClient.create returns a RedisClient, which is not an interface.
+        // Therefore, we need to connect to Redis first, and then proxy the interface StatefulRedisConnection.
         objectToIntercept = (T) RedisClient.create(redisConnectionString).connect();
     }
 
@@ -25,6 +27,9 @@ public final class RedisInterceptorFactory<T> {
     }
 
     public <L> L getProxy(Class<L> itfc) {
+        if (!itfc.isInterface()) {
+            throw new IllegalArgumentException("Only interfaces can be proxied");
+        }
         InvocationProxyFactory myFactory = new InvocationProxyFactory();
         myFactory.addInterface(itfc);
         myFactory.addInterceptor(new RedisInterceptor<>(objectToIntercept, redisConnectionString));

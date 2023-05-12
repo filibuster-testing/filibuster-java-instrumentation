@@ -21,7 +21,9 @@ import java.util.logging.Logger;
 import java.net.URI;
 
 import static cloud.filibuster.instrumentation.Constants.REDIS_MODULE_NAME;
-import static cloud.filibuster.instrumentation.helpers.Property.*;
+import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationEnabledProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationServerCommunicationEnabledProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.getRedisTestPortNondeterminismProperty;
 import static java.util.Objects.requireNonNull;
 
 public class RedisInterceptor<T> implements MethodInterceptor {

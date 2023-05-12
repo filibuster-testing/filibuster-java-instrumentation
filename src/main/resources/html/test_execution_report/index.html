@@ -5,6 +5,7 @@
     <title>Filibuster Test Execution Report</title>
     <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
     <script type="text/javascript" src="./analysis.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inconsolata">
     <style>
         body {
             font-size: 85%;
@@ -126,7 +127,7 @@
         .class_name {
             padding: 0;
             margin-bottom: 10px;
-            font-family: 'Inconsolata';
+            font-family: 'Inconsolata', sans-serif;
             font-size: small;
             font-weight: 500;
             width: 100%;
@@ -272,7 +273,7 @@
                         row += '<tr class="fault">';
                     }
 
-                    row += '<td class="method">' + substringNamespace(rpc.request.method) + '</td>';
+                    row += '<td class="method"><div class="class_name">' + substringNamespace(rpc.request.method) + '</div></td>';
                     row += '<td class="args">';
                     row += '<div class="class_name">' + substringNamespace(rpc.request.args.__class__) + '</div>';
                     row += '<textarea>';

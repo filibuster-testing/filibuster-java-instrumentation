@@ -31,8 +31,6 @@ public class FilibusterConfiguration {
 
     private final boolean dataNondeterminism;
 
-    private final boolean redisPortNondeterminism;
-
     private final boolean avoidRedundantInjections;
 
     private final boolean avoidInjectionsOnOrganicFailures;
@@ -62,7 +60,6 @@ public class FilibusterConfiguration {
         this.dynamicReduction = builder.dynamicReduction;
         this.suppressCombinations = builder.suppressCombinations;
         this.dataNondeterminism = builder.dataNondeterminism;
-        this.redisPortNondeterminism = builder.redisPortNondeterminism;
         this.avoidRedundantInjections = builder.avoidRedundantInjections;
         this.avoidInjectionsOnOrganicFailures = builder.avoidInjectionsOnOrganicFailures;
         this.searchStrategy = builder.searchStrategy;
@@ -112,15 +109,6 @@ public class FilibusterConfiguration {
      */
     public boolean getDataNondeterminism() {
         return this.dataNondeterminism;
-    }
-
-    /**
-     * Does the current configuration contain port nondeterminism?
-     *
-     * @return boolean
-     */
-    public boolean getRedisPortNondeterminism() {
-        return this.redisPortNondeterminism;
     }
 
     /**
@@ -283,7 +271,6 @@ public class FilibusterConfiguration {
         private List<ServiceProfile> serviceProfiles;
 
         private ServiceProfileBehavior serviceProfileBehavior;
-        private boolean redisPortNondeterminism;
 
         /**
          * Should this configuration use dynamic reduction?

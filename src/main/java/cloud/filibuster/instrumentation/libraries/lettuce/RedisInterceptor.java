@@ -204,4 +204,8 @@ public class RedisInterceptor<T> implements MethodInterceptor {
     private static boolean shouldCommunicateWithServer() {
         return getInstrumentationServerCommunicationEnabledProperty() && !disableServerCommunication;
     }
+
+    public String getRedisServiceName () {
+        return this.redisServiceName;
+    }
 }

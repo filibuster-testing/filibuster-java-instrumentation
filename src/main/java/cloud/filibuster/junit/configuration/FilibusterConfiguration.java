@@ -31,7 +31,7 @@ public class FilibusterConfiguration {
 
     private final boolean dataNondeterminism;
 
-    private final boolean portNondeterminism;
+    private final boolean redisPortNondeterminism;
 
     private final boolean avoidRedundantInjections;
 
@@ -62,7 +62,7 @@ public class FilibusterConfiguration {
         this.dynamicReduction = builder.dynamicReduction;
         this.suppressCombinations = builder.suppressCombinations;
         this.dataNondeterminism = builder.dataNondeterminism;
-        this.portNondeterminism = builder.portNondeterminism;
+        this.redisPortNondeterminism = builder.redisPortNondeterminism;
         this.avoidRedundantInjections = builder.avoidRedundantInjections;
         this.avoidInjectionsOnOrganicFailures = builder.avoidInjectionsOnOrganicFailures;
         this.searchStrategy = builder.searchStrategy;
@@ -119,8 +119,8 @@ public class FilibusterConfiguration {
      *
      * @return boolean
      */
-    public boolean getPortNondeterminism() {
-        return this.portNondeterminism;
+    public boolean getRedisPortNondeterminism() {
+        return this.redisPortNondeterminism;
     }
 
     /**
@@ -283,7 +283,7 @@ public class FilibusterConfiguration {
         private List<ServiceProfile> serviceProfiles;
 
         private ServiceProfileBehavior serviceProfileBehavior;
-        private boolean portNondeterminism;
+        private boolean redisPortNondeterminism;
 
         /**
          * Should this configuration use dynamic reduction?
@@ -324,12 +324,12 @@ public class FilibusterConfiguration {
         /**
          * Does this test configuration contain port nondeterminism?
          *
-         * @param portNondeterminism whether the test configuration contains port nondeterminism in Redis.
+         * @param redisPortNondeterminism whether the test configuration contains port nondeterminism in Redis.
          * @return builder
          */
         @CanIgnoreReturnValue
-        public Builder portNondeterminism(boolean portNondeterminism) {
-            this.portNondeterminism = portNondeterminism;
+        public Builder portNondeterminism(boolean redisPortNondeterminism) {
+            this.redisPortNondeterminism = redisPortNondeterminism;
             return this;
         }
 

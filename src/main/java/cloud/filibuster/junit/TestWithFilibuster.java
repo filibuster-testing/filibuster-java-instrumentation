@@ -254,5 +254,5 @@ public @interface TestWithFilibuster {
      *
      * @return whether port nondeterminism is present in the test.
      */
-    boolean portNondeterminism() default PORT_NONDETERMINISM_DEFAULT;
+    boolean redisPortNondeterminism() default REDIS_PORT_NONDETERMINISM_DEFAULT;
 }

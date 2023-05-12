@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.net.URI;
 
 import static cloud.filibuster.instrumentation.Constants.REDIS_MODULE_NAME;
 import static cloud.filibuster.instrumentation.helpers.Property.*;
@@ -43,11 +44,11 @@ public class RedisInterceptor<T> implements MethodInterceptor {
     }
 
     private String getRedisServiceName(String redisConnectionString) {
-        // If portNondeterminism is set, extract the redis host name from the complete connection string. Otherwise, leave
+        // If redisPortNondeterminism is set, extract the redis host name from the complete connection string. Otherwise, leave
         // the redis connection string unchanged.
-        if (getTestPortNondeterminismProperty()) {
+        if (getRedisTestPortNondeterminismProperty()) {
             try {
-                java.net.URI fullRedisServiceName = new java.net.URI(redisConnectionString);
+                URI fullRedisServiceName = new URI(redisConnectionString);
                 redisConnectionString = fullRedisServiceName.getHost();
             } catch (Throwable e) {
                 throw new RuntimeException("Redis connection string could not be processed. URI is probably malformed: ", e);

@@ -28,6 +28,7 @@ import org.junit.platform.commons.util.Preconditions;
 
 import static cloud.filibuster.instrumentation.helpers.Property.*;
 
+
 @SuppressWarnings("JavaDoc")
 public class FilibusterTestExtension implements TestTemplateInvocationContextProvider {
     @Override
@@ -111,18 +112,18 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
             suppressCombinations = getTestSuppressCombinationsProperty();
         }
 
-        boolean portNondeterminism = testWithFilibuster.portNondeterminism();
+        boolean redisPortNondeterminism = testWithFilibuster.redisPortNondeterminism();
 
-        if (portNondeterminism == PORT_NONDETERMINISM_DEFAULT) {
+        if (redisPortNondeterminism == REDIS_PORT_NONDETERMINISM_DEFAULT) {
             // Check the property to see if it was set.
-            portNondeterminism = getTestPortNondeterminismProperty();
+            redisPortNondeterminism = getRedisTestPortNondeterminismProperty();
         }
 
         FilibusterConfiguration filibusterConfiguration = new FilibusterConfiguration.Builder()
                 .dynamicReduction(testWithFilibuster.dynamicReduction())
                 .suppressCombinations(suppressCombinations)
                 .dataNondeterminism(dataNondeterminism)
-                .portNondeterminism(portNondeterminism)
+                .portNondeterminism(redisPortNondeterminism)
                 .avoidRedundantInjections(avoidRedundantInjections)
                 .avoidInjectionsOnOrganicFailures(avoidInjectionsOnOrganicFailures)
                 .serverBackend(testWithFilibuster.serverBackend())

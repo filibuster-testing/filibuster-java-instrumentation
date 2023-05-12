@@ -168,6 +168,28 @@ public class Property {
     }
 
     /***********************************************************************************
+     ** filibuster.test.avoid_injections_on_organic_failures
+     ***********************************************************************************/
+
+    public static final boolean AVOID_INJECTIONS_ON_ORGANIC_FAILURES_DEFAULT = false;
+
+    private final static String TEST_AVOID_INJECTIONS_ON_ORGANIC_FAILURES = "filibuster.test.avoid_injections_on_organic_failures";
+
+    public static void setTestAvoidInjectionsOnOrganicFailuresProperty(boolean value) {
+        System.setProperty(TEST_AVOID_INJECTIONS_ON_ORGANIC_FAILURES, String.valueOf(value));
+    }
+
+    public static boolean getTestAvoidInjectionsOnOrganicFailuresProperty() {
+        String propertyValue = System.getProperty(TEST_AVOID_INJECTIONS_ON_ORGANIC_FAILURES);
+
+        if (isPropertyNull(propertyValue)) {
+            return AVOID_INJECTIONS_ON_ORGANIC_FAILURES_DEFAULT;
+        } else {
+            return Boolean.valueOf(propertyValue);
+        }
+    }
+
+    /***********************************************************************************
      ** filibuster.test.data_nondeterminism
      ***********************************************************************************/
 

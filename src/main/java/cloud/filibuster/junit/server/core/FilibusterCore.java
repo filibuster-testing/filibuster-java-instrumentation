@@ -34,6 +34,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static cloud.filibuster.instrumentation.helpers.Property.getTestAvoidInjectionsOnOrganicFailuresProperty;
+
 @SuppressWarnings({"Varifier", "Var"})
 public class FilibusterCore {
     private static final Logger logger = Logger.getLogger(FilibusterCore.class.getName());
@@ -427,15 +429,30 @@ public class FilibusterCore {
             currentConcreteTestExecution = null;
 
             // If we have another test to run (it will be abstract...)
+            AbstractTestExecution nextAbstractTestExecution;
+
             if (!unexploredTestExecutions.isEmpty()) {
                 logger.info("[FILIBUSTER-CORE]: teardownsCompleted, scheduling next test execution.");
 
-                AbstractTestExecution nextAbstractTestExecution = unexploredTestExecutions.removeAndReturnNextTestExecution();
+                do {
+                    // Get the next execution.
+                    nextAbstractTestExecution = unexploredTestExecutions.removeAndReturnNextTestExecution();
 
-                // Set the abstract execution, which drives fault injection and copy the faults into the concrete execution for the record.
-                currentAbstractTestExecution = nextAbstractTestExecution;
-                currentConcreteTestExecution = new ConcreteTestExecution(nextAbstractTestExecution, filibusterConfiguration.getTestName(),
-                        testUUID, filibusterConfiguration.getClassName());
+                    // If we should bypass, then set back to null.
+                    if (filibusterConfiguration.getAvoidInjectionsOnOrganicFailures() && nextAbstractTestExecution.shoulBypassForOrganicFailure()) {
+                        nextAbstractTestExecution = null;
+                    }
+
+                    // Iterate as long as it's null and there's more in the list.
+                } while (nextAbstractTestExecution == null && !unexploredTestExecutions.isEmpty());
+
+                // As long as we have one?
+                if (nextAbstractTestExecution != null) {
+                    // Set the abstract execution, which drives fault injection and copy the faults into the concrete execution for the record.
+                    currentAbstractTestExecution = nextAbstractTestExecution;
+                    currentConcreteTestExecution = new ConcreteTestExecution(nextAbstractTestExecution, filibusterConfiguration.getTestName(),
+                            testUUID, filibusterConfiguration.getClassName());
+                }
             }
         }
 

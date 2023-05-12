@@ -10,7 +10,6 @@ import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import org.junit.jupiter.api.*;
 
-import static cloud.filibuster.instrumentation.helpers.Property.setRedisTestPortNondeterminismProperty;
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -52,7 +51,6 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
     @TestWithFilibuster(analysisConfigurationFile = RedisDefaultAnalysisConfigurationFile.class)
     public void testRedisSyncGetMultipleTests() {
         try {
-            setRedisTestPortNondeterminismProperty(true);
             StatefulRedisConnection<String, String> myStatefulRedisConnection = new RedisInterceptorFactory<>(statefulRedisConnection, redisConnectionString).getProxy(StatefulRedisConnection.class);
             RedisCommands<String, String> myRedisCommands = myStatefulRedisConnection.sync();
             String returnVal = myRedisCommands.get(key);

@@ -20,8 +20,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static cloud.filibuster.instrumentation.Constants.REDIS_MODULE_NAME;
-import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationEnabledProperty;
-import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationServerCommunicationEnabledProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.*;
 import static java.util.Objects.requireNonNull;
 
 public class RedisInterceptor<T> implements MethodInterceptor {
@@ -29,6 +28,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
     private static final Logger logger = Logger.getLogger(RedisInterceptorFactory.class.getName());
     protected ContextStorage contextStorage;
     public static Boolean disableServerCommunication = false;
+    private final String redisServiceName;
     private final String redisConnectionString;
     private final T interceptedObject;
     private static final String logPrefix = "[FILIBUSTER-REDIS_INTERCEPTOR]: ";
@@ -38,7 +38,22 @@ public class RedisInterceptor<T> implements MethodInterceptor {
     public RedisInterceptor(T interceptedObject, String redisConnectionString) {
         this.contextStorage = new ThreadLocalContextStorage();
         this.redisConnectionString = redisConnectionString;
+        this.redisServiceName = getRedisServiceName(redisConnectionString);
         this.interceptedObject = interceptedObject;
+    }
+
+    private String getRedisServiceName(String redisConnectionString) {
+        // If portNondeterminism is set, extract the redis host name from the complete connection string. Otherwise, leave
+        // the redis connection string unchanged.
+        if (getTestPortNondeterminismProperty()) {
+            try {
+                java.net.URI fullRedisServiceName = new java.net.URI(redisConnectionString);
+                redisConnectionString = fullRedisServiceName.getHost();
+            } catch (Throwable e) {
+                throw new RuntimeException("Redis connection string could not be processed. URI is probably malformed: ", e);
+            }
+        }
+        return redisConnectionString;
     }
 
     @Override
@@ -59,9 +74,9 @@ public class RedisInterceptor<T> implements MethodInterceptor {
 
         CallsiteArguments callsiteArguments = new CallsiteArguments(invocation.getArguments().getClass(), Arrays.toString(invocation.getArguments()));
 
-        Callsite callsite = new Callsite(redisConnectionString, REDIS_MODULE_NAME, redisMethodName, callsiteArguments);
+        Callsite callsite = new Callsite(redisServiceName, REDIS_MODULE_NAME, redisMethodName, callsiteArguments);
 
-        filibusterClientInstrumentor = new FilibusterClientInstrumentor(redisConnectionString, shouldCommunicateWithServer(), contextStorage, callsite);
+        filibusterClientInstrumentor = new FilibusterClientInstrumentor(redisServiceName, shouldCommunicateWithServer(), contextStorage, callsite);
 
         filibusterClientInstrumentor.prepareForInvocation();
 

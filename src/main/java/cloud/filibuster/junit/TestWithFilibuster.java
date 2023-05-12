@@ -24,10 +24,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.parallel.Isolated;
 
 import static cloud.filibuster.instrumentation.helpers.Property.AVOID_INJECTIONS_ON_ORGANIC_FAILURES_DEFAULT;
-import static cloud.filibuster.instrumentation.helpers.Property.AVOID_REDUNDANT_INJECTIONS_DEFAULT;
-import static cloud.filibuster.instrumentation.helpers.Property.DATA_NONDETERMINISM_DEFAULT;
-import static cloud.filibuster.instrumentation.helpers.Property.MAX_ITERATIONS_DEFAULT;
-import static cloud.filibuster.instrumentation.helpers.Property.SUPPRESS_COMBINATIONS_DEFAULT;
+import static cloud.filibuster.instrumentation.helpers.Property.*;
 
 /**
  * Filibuster test annotation for JUnit 5.
@@ -249,4 +246,13 @@ public @interface TestWithFilibuster {
      * @return service profile behavior
      */
     ServiceProfileBehavior serviceProfileBehavior() default ServiceProfileBehavior.NONE;
+
+    /**
+     * Does this test configuration contain port nondeterminism in Redis?
+     * If that is the case, use the hostname only for Redis client identification. Otherwise, use the full connection
+     * string.
+     *
+     * @return whether port nondeterminism is present in the test.
+     */
+    boolean portNondeterminism() default PORT_NONDETERMINISM_DEFAULT;
 }

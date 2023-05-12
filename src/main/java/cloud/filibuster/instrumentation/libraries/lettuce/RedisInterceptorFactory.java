@@ -6,7 +6,7 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.DockerImageName;
 
 @SuppressWarnings("unchecked")
-public final class RedisInterceptorFactory <T> {
+public final class RedisInterceptorFactory<T> {
     private final T objectToIntercept;
     private final String redisConnectionString;
 

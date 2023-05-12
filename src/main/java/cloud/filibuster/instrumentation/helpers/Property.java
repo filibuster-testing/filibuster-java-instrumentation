@@ -424,5 +424,25 @@ public class Property {
         }
     }
 
+    /***********************************************************************************
+     ** filibuster.test.port_nondeterminism
+     ***********************************************************************************/
 
+    public static final boolean PORT_NONDETERMINISM_DEFAULT = false;
+
+    private final static String TEST_PORT_NONDETERMINISM = "filibuster.test.redis.port_nondeterminism";
+
+    public static void setTestPortNondeterminismProperty(boolean value) {
+        System.setProperty(TEST_PORT_NONDETERMINISM, String.valueOf(value));
+    }
+
+    public static boolean getTestPortNondeterminismProperty() {
+        String propertyValue = System.getProperty(TEST_PORT_NONDETERMINISM);
+
+        if (isPropertyNull(propertyValue)) {
+            return PORT_NONDETERMINISM_DEFAULT;
+        } else {
+            return Boolean.valueOf(propertyValue);
+        }
+    }
 }

@@ -33,8 +33,6 @@ public class FilibusterConfiguration {
 
     private final boolean avoidRedundantInjections;
 
-    private final boolean avoidInjectionsOnUnimplemented;
-
     private final FilibusterSearchStrategy searchStrategy;
 
     private final String analysisFile;
@@ -61,7 +59,6 @@ public class FilibusterConfiguration {
         this.suppressCombinations = builder.suppressCombinations;
         this.dataNondeterminism = builder.dataNondeterminism;
         this.avoidRedundantInjections = builder.avoidRedundantInjections;
-        this.avoidInjectionsOnUnimplemented = builder.avoidInjectionsOnUnimplemented;
         this.searchStrategy = builder.searchStrategy;
         this.analysisFile = builder.analysisFile;
         this.serverBackend = builder.serverBackend;
@@ -118,15 +115,6 @@ public class FilibusterConfiguration {
      */
     public boolean getAvoidRedundantInjections() {
         return this.avoidRedundantInjections;
-    }
-
-    /**
-     * Do we avoid injection on UNIMPLEMENTED?
-     *
-     * @return boolean
-     */
-    public boolean getAvoidInjectionsOnUnimplemented() {
-        return this.avoidInjectionsOnUnimplemented;
     }
 
     /**
@@ -249,7 +237,6 @@ public class FilibusterConfiguration {
         private boolean suppressCombinations = false;
         private boolean dataNondeterminism = false;
         private boolean avoidRedundantInjections = false;
-        private boolean avoidInjectionsOnUnimplemented = false;
 
         private FilibusterSearchStrategy searchStrategy;
 
@@ -317,18 +304,6 @@ public class FilibusterConfiguration {
         @CanIgnoreReturnValue
         public Builder avoidRedundantInjections(boolean avoidRedundantInjections) {
             this.avoidRedundantInjections = avoidRedundantInjections;
-            return this;
-        }
-
-        /**
-         * Do we avoid fault injection on UNIMPLEMENTED?
-         *
-         * @param avoidInjectionsOnUnimplemented whether the avoids fault injection on UNIMPLEMENTED
-         * @return builder
-         */
-        @CanIgnoreReturnValue
-        public Builder avoidInjectionsOnUnimplemented(boolean avoidInjectionsOnUnimplemented) {
-            this.avoidInjectionsOnUnimplemented = avoidInjectionsOnUnimplemented;
             return this;
         }
 

@@ -1,6 +1,5 @@
 1.6.5:
    - (jiujiu1123) small font fix
-   - (cmeiklejohn) Add new option avoidInjectionsOnUnimplemented.
 1.6.4:
    - (jiujiu1123) Fix the issue where failing test in after block is not reported
    - (jiujiu1123) Allow for test failure stack traces to be propagated up to the UI

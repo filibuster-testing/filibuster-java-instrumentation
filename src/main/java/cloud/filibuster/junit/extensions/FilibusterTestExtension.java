@@ -26,7 +26,6 @@ import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider;
 import org.junit.platform.commons.util.AnnotationUtils;
 import org.junit.platform.commons.util.Preconditions;
 
-import static cloud.filibuster.instrumentation.helpers.Property.AVOID_INJECTIONS_ON_UNIMPLEMENTED_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.AVOID_REDUNDANT_INJECTIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.DATA_NONDETERMINISM_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.MAX_ITERATIONS_DEFAULT;
@@ -34,7 +33,6 @@ import static cloud.filibuster.instrumentation.helpers.Property.SUPPRESS_COMBINA
 import static cloud.filibuster.instrumentation.helpers.Property.getEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendDockerImageNameProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestAnalysisResourceFileProperty;
-import static cloud.filibuster.instrumentation.helpers.Property.getTestAvoidInjectionsOnUnimplementedProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestAvoidRedundantInjectionsProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestDataNondeterminismProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestMaxIterationsProperty;
@@ -109,13 +107,6 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
             avoidRedundantInjections = getTestAvoidRedundantInjectionsProperty();
         }
 
-        boolean avoidInjectionsOnUnimplemented = testWithFilibuster.avoidInjectionsOnUnimplemented();
-
-        if (avoidInjectionsOnUnimplemented == AVOID_INJECTIONS_ON_UNIMPLEMENTED_DEFAULT) {
-            // Check the property to see if it was set.
-            avoidInjectionsOnUnimplemented = getTestAvoidInjectionsOnUnimplementedProperty();
-        }
-
         boolean suppressCombinations = testWithFilibuster.suppressCombinations();
 
         if (suppressCombinations == SUPPRESS_COMBINATIONS_DEFAULT) {
@@ -128,7 +119,6 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
                 .suppressCombinations(suppressCombinations)
                 .dataNondeterminism(dataNondeterminism)
                 .avoidRedundantInjections(avoidRedundantInjections)
-                .avoidInjectionsOnUnimplemented(avoidInjectionsOnUnimplemented)
                 .serverBackend(testWithFilibuster.serverBackend())
                 .searchStrategy(testWithFilibuster.searchStrategy())
                 .dockerImageName(dockerImageName)

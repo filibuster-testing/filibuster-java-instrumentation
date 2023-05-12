@@ -168,28 +168,6 @@ public class Property {
     }
 
     /***********************************************************************************
-     ** filibuster.test.avoid_injections_on_unimplemented
-     ***********************************************************************************/
-
-    public static final boolean AVOID_INJECTIONS_ON_UNIMPLEMENTED_DEFAULT = false;
-
-    private final static String TEST_AVOID_INJECTIONS_ON_UNIMPLEMENTED = "filibuster.test.avoid_injections_on_unimplemented";
-
-    public static void setTestAvoidInjectionsOnUnimplementedProperty(boolean value) {
-        System.setProperty(TEST_AVOID_INJECTIONS_ON_UNIMPLEMENTED, String.valueOf(value));
-    }
-
-    public static boolean getTestAvoidInjectionsOnUnimplementedProperty() {
-        String propertyValue = System.getProperty(TEST_AVOID_INJECTIONS_ON_UNIMPLEMENTED);
-
-        if (isPropertyNull(propertyValue)) {
-            return AVOID_INJECTIONS_ON_UNIMPLEMENTED_DEFAULT;
-        } else {
-            return Boolean.valueOf(propertyValue);
-        }
-    }
-
-    /***********************************************************************************
      ** filibuster.test.data_nondeterminism
      ***********************************************************************************/
 

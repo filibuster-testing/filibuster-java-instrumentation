@@ -49,7 +49,7 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
 
     @DisplayName("Tests whether Redis sync interceptor can read from existing key - Multiple fault injections")
     @Order(2)
-    @TestWithFilibuster(analysisConfigurationFile = RedisDefaultAnalysisConfigurationFile.class, redisPortNondeterminism = true)
+    @TestWithFilibuster(analysisConfigurationFile = RedisDefaultAnalysisConfigurationFile.class)
     public void testRedisSyncGetMultipleTests() {
         try {
             setRedisTestPortNondeterminismProperty(true);
@@ -60,8 +60,7 @@ public class JUnitRedisFilibusterTest extends JUnitAnnotationBaseTest {
             assertFalse(wasFaultInjected());
         } catch (Throwable t) {
             if (wasFaultInjected()) {
-                if (t.getMessage().equals("Command timed out after 100 millisecond(s)") ||
-                        t.getMessage().equals("Connection closed prematurely"))
+                if (t.getMessage().equals("Command timed out after 100 millisecond(s)") || t.getMessage().equals("Connection closed prematurely"))
                     return;
             }
             throw t;

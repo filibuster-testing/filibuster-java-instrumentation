@@ -322,18 +322,6 @@ public class FilibusterConfiguration {
         }
 
         /**
-         * Does this test configuration contain port nondeterminism?
-         *
-         * @param redisPortNondeterminism whether the test configuration contains port nondeterminism in Redis.
-         * @return builder
-         */
-        @CanIgnoreReturnValue
-        public Builder portNondeterminism(boolean redisPortNondeterminism) {
-            this.redisPortNondeterminism = redisPortNondeterminism;
-            return this;
-        }
-
-        /**
          * Do we avoid redundant fault injections?
          *
          * @param avoidRedundantInjections whether the avoids redundant fault injections
@@ -381,7 +369,8 @@ public class FilibusterConfiguration {
 
             try {
                 serverBackend = clazz.getDeclaredConstructor().newInstance();
-            } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            } catch (InstantiationException | NoSuchMethodException | IllegalAccessException |
+                     InvocationTargetException e) {
                 throw new FilibusterUnsupportedServerBackendException("Backend " + clazz + " is not supported.", e);
             }
 
@@ -449,7 +438,8 @@ public class FilibusterConfiguration {
 
             try {
                 latencyProfile = clazz.getDeclaredConstructor().newInstance();
-            } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            } catch (InstantiationException | NoSuchMethodException | IllegalAccessException |
+                     InvocationTargetException e) {
                 throw new FilibusterUnsupportedServerBackendException("Backend " + clazz + " is not supported.", e);
             }
 

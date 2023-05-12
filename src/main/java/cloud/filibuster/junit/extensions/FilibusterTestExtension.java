@@ -30,10 +30,8 @@ import static cloud.filibuster.instrumentation.helpers.Property.AVOID_INJECTIONS
 import static cloud.filibuster.instrumentation.helpers.Property.AVOID_REDUNDANT_INJECTIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.DATA_NONDETERMINISM_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.MAX_ITERATIONS_DEFAULT;
-import static cloud.filibuster.instrumentation.helpers.Property.REDIS_PORT_NONDETERMINISM_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.SUPPRESS_COMBINATIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.getEnabledProperty;
-import static cloud.filibuster.instrumentation.helpers.Property.getRedisTestPortNondeterminismProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendDockerImageNameProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestAnalysisResourceFileProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestAvoidInjectionsOnOrganicFailuresProperty;
@@ -58,8 +56,7 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
         String displayName = context.getDisplayName();
         String analysisFile;
 
-        Preconditions.condition(AnnotationUtils.findAnnotation(testMethod, TestWithFilibuster.class).isPresent(), () ->
-                "Configuration error: @FilibusterTest must be used on any methods extended with FilibusterTestExtension.'.");
+        Preconditions.condition(AnnotationUtils.findAnnotation(testMethod, TestWithFilibuster.class).isPresent(), () -> "Configuration error: @FilibusterTest must be used on any methods extended with FilibusterTestExtension.'.");
         TestWithFilibuster testWithFilibuster = AnnotationUtils.findAnnotation(testMethod, TestWithFilibuster.class).get();
 
         // Increase iterations by 1.
@@ -69,10 +66,10 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
 
         FilibusterTestDisplayNameFormatter formatter = displayNameFormatter(testWithFilibuster, testMethod, displayName);
 
-        if (! testWithFilibuster.analysisFile().isEmpty()) {
+        if (!testWithFilibuster.analysisFile().isEmpty()) {
             // Annotation analysisFile always takes precedence.
             analysisFile = testWithFilibuster.analysisFile();
-        } else if (! getTestAnalysisResourceFileProperty().isEmpty()) {
+        } else if (!getTestAnalysisResourceFileProperty().isEmpty()) {
             // Property next.
             String analysisResourceFile = getTestAnalysisResourceFileProperty();
             URL analysisFileResourcePath = FilibusterTestExtension.class.getClassLoader().getResource(analysisResourceFile);
@@ -92,7 +89,7 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
         // Otherwise, we use the one taken from the system property.
         String dockerImageName;
 
-        if (! testWithFilibuster.dockerImageName().isEmpty()) {
+        if (!testWithFilibuster.dockerImageName().isEmpty()) {
             dockerImageName = testWithFilibuster.dockerImageName();
         } else {
             dockerImageName = getServerBackendDockerImageNameProperty();
@@ -126,18 +123,10 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
             suppressCombinations = getTestSuppressCombinationsProperty();
         }
 
-        boolean redisPortNondeterminism = testWithFilibuster.redisPortNondeterminism();
-
-        if (redisPortNondeterminism == REDIS_PORT_NONDETERMINISM_DEFAULT) {
-            // Check the property to see if it was set.
-            redisPortNondeterminism = getRedisTestPortNondeterminismProperty();
-        }
-
         FilibusterConfiguration filibusterConfiguration = new FilibusterConfiguration.Builder()
                 .dynamicReduction(testWithFilibuster.dynamicReduction())
                 .suppressCombinations(suppressCombinations)
                 .dataNondeterminism(dataNondeterminism)
-                .portNondeterminism(redisPortNondeterminism)
                 .avoidRedundantInjections(avoidRedundantInjections)
                 .avoidInjectionsOnOrganicFailures(avoidInjectionsOnOrganicFailures)
                 .serverBackend(testWithFilibuster.serverBackend())
@@ -189,7 +178,8 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
 
         try {
             analysisConfigurationFile = clazz.getDeclaredConstructor().newInstance();
-        } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+        } catch (InstantiationException | NoSuchMethodException | IllegalAccessException |
+                 InvocationTargetException e) {
             throw new FilibusterUnsupportedCustomAnalysisFileException("Class doesn't match expected contract: " + e);
         }
 

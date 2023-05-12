@@ -34,8 +34,6 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static cloud.filibuster.instrumentation.helpers.Property.getTestAvoidInjectionsOnOrganicFailuresProperty;
-
 @SuppressWarnings({"Varifier", "Var"})
 public class FilibusterCore {
     private static final Logger logger = Logger.getLogger(FilibusterCore.class.getName());
@@ -209,7 +207,7 @@ public class FilibusterCore {
 
             if (shouldGenerateNewAbstractExecutions && faultInjectionEnabled) {
                 if (filibusterConfiguration.getAvoidRedundantInjections()) {
-                    if (! hasSeenRpcUnderSameOrDifferentDistributedExecutionIndex) {
+                    if (!hasSeenRpcUnderSameOrDifferentDistributedExecutionIndex) {
                         generateFaultsUsingAnalysisConfiguration(filibusterConfiguration, distributedExecutionIndex, moduleName, methodName);
                     }
                 } else {

@@ -27,7 +27,6 @@ import static cloud.filibuster.instrumentation.helpers.Property.AVOID_INJECTIONS
 import static cloud.filibuster.instrumentation.helpers.Property.AVOID_REDUNDANT_INJECTIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.DATA_NONDETERMINISM_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.MAX_ITERATIONS_DEFAULT;
-import static cloud.filibuster.instrumentation.helpers.Property.REDIS_PORT_NONDETERMINISM_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.SUPPRESS_COMBINATIONS_DEFAULT;
 
 /**
@@ -251,12 +250,4 @@ public @interface TestWithFilibuster {
      */
     ServiceProfileBehavior serviceProfileBehavior() default ServiceProfileBehavior.NONE;
 
-    /**
-     * Does this test configuration contain port nondeterminism in Redis?
-     * If that is the case, use the hostname only for Redis client identification. Otherwise, use the full connection
-     * string.
-     *
-     * @return whether port nondeterminism is present in the test.
-     */
-    boolean redisPortNondeterminism() default REDIS_PORT_NONDETERMINISM_DEFAULT;
 }

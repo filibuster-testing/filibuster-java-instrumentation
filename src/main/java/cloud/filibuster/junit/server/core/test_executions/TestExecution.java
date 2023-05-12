@@ -26,6 +26,9 @@ public abstract class TestExecution {
     // What faults should be injected in this execution?
     HashMap<DistributedExecutionIndex, JSONObject> faultsToInject = new HashMap<>();
 
+    // What RPCs failed?
+    HashMap<DistributedExecutionIndex, JSONObject> failedRPCs = new HashMap<>();
+
     HashMap<String, Boolean> firstRequestSeenByService = new HashMap<>();
 
     public boolean hasSeenFirstRequestFromService(String serviceName) {
@@ -97,7 +100,9 @@ public abstract class TestExecution {
     }
 
     public void addDistributedExecutionIndexWithResponsePayload(DistributedExecutionIndex distributedExecutionIndex, JSONObject payload) {
-        // Nothing for now.
+        if (payload.has("exception")) {
+            failedRPCs.put(distributedExecutionIndex, payload);
+        }
     }
 
     public int incrementGeneratedId() {

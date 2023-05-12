@@ -17,7 +17,7 @@ public class AbstractTestExecution extends TestExecution {
     // This will reference RPCs that this abstract execution does not know about -- if they happened after the this
     // abstract execution was cut.
     @Nullable
-    private ConcreteTestExecution completedSourceConcreteTestExecution; 
+    private ConcreteTestExecution completedSourceConcreteTestExecution;
 
     public AbstractTestExecution() {
     }

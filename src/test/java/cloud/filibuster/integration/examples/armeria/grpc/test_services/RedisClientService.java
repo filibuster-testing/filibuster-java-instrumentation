@@ -1,33 +1,34 @@
 package cloud.filibuster.integration.examples.armeria.grpc.test_services;
 
 import io.lettuce.core.RedisClient;
-import io.lettuce.core.api.StatefulRedisConnection;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import javax.annotation.Nullable;
 
-public class RedisConnection {
-    public StatefulRedisConnection<String, String> connection;
+public class RedisClientService {
+    public RedisClient redisClient;
+    public String connectionString;
 
     @Nullable
-    private static RedisConnection single_instance = null;
+    private static RedisClientService single_instance = null;
 
-    private RedisConnection() {
+    private RedisClientService() {
         GenericContainer<?> redis = new GenericContainer<>(DockerImageName.parse("redis:5.0.3-alpine"))
                 .withExposedPorts(6379);
         redis.start();
         String address = redis.getHost();
         Integer port = redis.getFirstMappedPort();
-        RedisClient client = RedisClient.create(String.format("redis://%s:%d/0", address, port));
-        connection = client.connect();
+        connectionString = String.format("redis://%s:%d/0", address, port);
+        RedisClient client = RedisClient.create(connectionString);
+        redisClient = client;
     }
 
     // Static method to create instance of Singleton class
-    public static synchronized RedisConnection getInstance()
+    public static synchronized RedisClientService getInstance()
     {
         if (single_instance == null) {
-            single_instance = new RedisConnection();
+            single_instance = new RedisClientService();
         }
 
         return single_instance;

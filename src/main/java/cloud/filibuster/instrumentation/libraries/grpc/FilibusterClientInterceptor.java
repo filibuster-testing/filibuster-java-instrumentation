@@ -40,6 +40,8 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
     public static Boolean disableServerCommunication = false;
     public static Boolean disableInstrumentation = false;
 
+    private final String logPrefix = "[FILIBUSTER-GRPC_CLIENT_INTERCEPTOR]: ";
+
     private static boolean shouldInstrument() {
         if (getInstrumentationEnabledProperty() && !disableInstrumentation) {
             return true;
@@ -193,7 +195,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
 
             @Override
             public void start(Listener<RESPONSE> responseListener, Metadata headers) {
-                logger.log(Level.INFO, "INSIDE: start!");
+                logger.log(Level.INFO, logPrefix + "INSIDE: start!");
 
                 this.headers = headers;
                 this.responseListener = responseListener;
@@ -212,8 +214,8 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
             // message: type of the message issued from the Client (e.g., Hello$HelloRequest)
             @Override
             public void sendMessage(REQUEST message) {
-                logger.log(Level.INFO, "INSIDE: sendMessage!");
-                logger.log(Level.INFO, "message: " + message.toString());
+                logger.log(Level.INFO, logPrefix + "INSIDE: sendMessage!");
+                logger.log(Level.INFO, logPrefix + "message: " + message.toString());
 
                 // ******************************************************************************************
                 // Figure out if we are inside of instrumentation.
@@ -221,9 +223,9 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
 
                 String instrumentationRequestStr = headers.get(
                         Metadata.Key.of("x-filibuster-instrumentation", Metadata.ASCII_STRING_MARSHALLER));
-                logger.log(Level.INFO, "instrumentationRequestStr: " + instrumentationRequestStr);
+                logger.log(Level.INFO, logPrefix + "instrumentationRequestStr: " + instrumentationRequestStr);
                 boolean instrumentationRequest = Boolean.parseBoolean(instrumentationRequestStr);
-                logger.log(Level.INFO, "instrumentationRequest: " + instrumentationRequest);
+                logger.log(Level.INFO, logPrefix + "instrumentationRequest: " + instrumentationRequest);
 
                 if (! shouldInstrument() || instrumentationRequest) {
                     delegate = next.newCall(method, callOptions);
@@ -242,10 +244,10 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                     String grpcServiceName = grpcFullMethodName.substring(0, grpcFullMethodName.indexOf("/"));
                     String grpcRpcName = grpcFullMethodName.replace(grpcServiceName + "/", "");
 
-                    logger.log(Level.INFO, "method: " + method);
-                    logger.log(Level.INFO, "grpcFullMethodName: " + grpcFullMethodName);
-                    logger.log(Level.INFO, "grpcServiceName: " + grpcServiceName);
-                    logger.log(Level.INFO, "grpcRpcName: " + grpcRpcName);
+                    logger.log(Level.INFO, logPrefix + "method: " + method);
+                    logger.log(Level.INFO, logPrefix + "grpcFullMethodName: " + grpcFullMethodName);
+                    logger.log(Level.INFO, logPrefix + "grpcServiceName: " + grpcServiceName);
+                    logger.log(Level.INFO, logPrefix + "grpcRpcName: " + grpcRpcName);
 
                     // ******************************************************************************************
                     // Construct preliminary call site information.
@@ -282,7 +284,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                     // Attach metadata to outgoing request.
                     // ******************************************************************************************
 
-                    logger.log(Level.INFO, "requestId: " + filibusterClientInstrumentor.getOutgoingRequestId());
+                    logger.log(Level.INFO, logPrefix + "requestId: " + filibusterClientInstrumentor.getOutgoingRequestId());
 
                     if (filibusterClientInstrumentor.getOutgoingRequestId() != null) {
                         headers.put(
@@ -320,8 +322,8 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                     JSONObject forcedException = filibusterClientInstrumentor.getForcedException();
                     JSONObject failureMetadata = filibusterClientInstrumentor.getFailureMetadata();
 
-                    logger.log(Level.INFO, "forcedException: " + forcedException);
-                    logger.log(Level.INFO, "failureMetadata: " + failureMetadata);
+                    logger.log(Level.INFO, logPrefix + "forcedException: " + forcedException);
+                    logger.log(Level.INFO, logPrefix + "failureMetadata: " + failureMetadata);
 
                     // ******************************************************************************************
                     // Setup additional failure headers, if necessary.
@@ -399,8 +401,8 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
         // message: type of message issued from the Server to the Client (e.g., Hello$HelloReply)
         @Override
         public void onMessage(RESPONSE message) {
-            logger.log(Level.INFO, "INSIDE: onMessage!");
-            logger.log(Level.INFO, "message: " + message);
+            logger.log(Level.INFO, logPrefix + "INSIDE: onMessage!");
+            logger.log(Level.INFO, logPrefix + "message: " + message);
 
             if (! filibusterClientInstrumentor.shouldAbort()) {
                 // Request completed normally, but we want to throw the exception anyway, generate and throw.
@@ -424,9 +426,9 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
         // trailers metadata headers.
         @Override
         public void onClose(Status status, Metadata trailers) {
-            logger.log(Level.INFO, "INSIDE: onClose!");
-            logger.log(Level.INFO, "status: " + status);
-            logger.log(Level.INFO, "trailers: " + trailers);
+            logger.log(Level.INFO, logPrefix + "INSIDE: onClose!");
+            logger.log(Level.INFO, logPrefix + "status: " + status);
+            logger.log(Level.INFO, logPrefix + "trailers: " + trailers);
 
             if (! filibusterClientInstrumentor.shouldAbort()) {
                 Status rewrittenStatus = generateCorrectStatusForAbort(filibusterClientInstrumentor);
@@ -462,7 +464,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
 
         @Override
         public void onReady() {
-            logger.log(Level.INFO, "INSIDE: onReady!");
+            logger.log(Level.INFO, logPrefix + "INSIDE: onReady!");
             delegate().onReady();
         }
     }

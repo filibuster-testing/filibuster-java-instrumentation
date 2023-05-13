@@ -28,6 +28,8 @@ public class FilibusterDecoratingHttpService extends SimpleDecoratingHttpService
     public static Boolean disableServerCommunication = false;
     public static Boolean disableInstrumentation = false;
 
+    private final String logPrefix = "[FILIBUSTER-ARMERIA_HTTP_SERVICE]: ";
+
     private static boolean shouldInstrument() {
         if (getInstrumentationEnabledProperty() && !disableInstrumentation) {
             return true;
@@ -117,7 +119,7 @@ public class FilibusterDecoratingHttpService extends SimpleDecoratingHttpService
         // Setup Filibuster instrumentation.
         // ******************************************************************************************
 
-        logger.log(Level.SEVERE, "INVOKING CONSTRUCTOR");
+        logger.log(Level.SEVERE, logPrefix + "INVOKING CONSTRUCTOR");
         FilibusterServerInstrumentor filibusterServerInstrumentor = new FilibusterServerInstrumentor(
                 serviceName,
                 shouldCommunicateWithServer(),
@@ -128,11 +130,11 @@ public class FilibusterDecoratingHttpService extends SimpleDecoratingHttpService
                 getDistributedExecutionIndexFromRequestMetadata(req),
                 contextStorage
         );
-        logger.log(Level.SEVERE, "DONE");
+        logger.log(Level.SEVERE, logPrefix + "DONE");
 
-        logger.log(Level.SEVERE, "INVOKING SETUP CONTEXT");
+        logger.log(Level.SEVERE, logPrefix + "INVOKING SETUP CONTEXT");
         setupContext(ctx, req);
-        logger.log(Level.SEVERE, "DONE INVOKING SETUP CONTEXT");
+        logger.log(Level.SEVERE, logPrefix + "DONE INVOKING SETUP CONTEXT");
 
         // ******************************************************************************************
         // Force sleep if necessary.

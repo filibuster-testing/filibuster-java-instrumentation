@@ -424,5 +424,25 @@ public class Property {
         }
     }
 
+    /***********************************************************************************
+     ** filibuster.test.redis.port_nondeterminism
+     ***********************************************************************************/
 
+    public static final boolean REDIS_PORT_NONDETERMINISM_DEFAULT = false;
+
+    private final static String REDIS_TEST_PORT_NONDETERMINISM = "filibuster.test.redis.port_nondeterminism";
+
+    public static void setRedisTestPortNondeterminismProperty(boolean value) {
+        System.setProperty(REDIS_TEST_PORT_NONDETERMINISM, String.valueOf(value));
+    }
+
+    public static boolean getRedisTestPortNondeterminismProperty() {
+        String propertyValue = System.getProperty(REDIS_TEST_PORT_NONDETERMINISM);
+
+        if (isPropertyNull(propertyValue)) {
+            return REDIS_PORT_NONDETERMINISM_DEFAULT;
+        } else {
+            return Boolean.valueOf(propertyValue);
+        }
+    }
 }

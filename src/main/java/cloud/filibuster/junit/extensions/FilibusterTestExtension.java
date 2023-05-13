@@ -40,6 +40,7 @@ import static cloud.filibuster.instrumentation.helpers.Property.getTestDataNonde
 import static cloud.filibuster.instrumentation.helpers.Property.getTestMaxIterationsProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestSuppressCombinationsProperty;
 
+
 @SuppressWarnings("JavaDoc")
 public class FilibusterTestExtension implements TestTemplateInvocationContextProvider {
     @Override
@@ -55,8 +56,7 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
         String displayName = context.getDisplayName();
         String analysisFile;
 
-        Preconditions.condition(AnnotationUtils.findAnnotation(testMethod, TestWithFilibuster.class).isPresent(), () ->
-                "Configuration error: @FilibusterTest must be used on any methods extended with FilibusterTestExtension.'.");
+        Preconditions.condition(AnnotationUtils.findAnnotation(testMethod, TestWithFilibuster.class).isPresent(), () -> "Configuration error: @FilibusterTest must be used on any methods extended with FilibusterTestExtension.'.");
         TestWithFilibuster testWithFilibuster = AnnotationUtils.findAnnotation(testMethod, TestWithFilibuster.class).get();
 
         // Increase iterations by 1.
@@ -66,10 +66,10 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
 
         FilibusterTestDisplayNameFormatter formatter = displayNameFormatter(testWithFilibuster, testMethod, displayName);
 
-        if (! testWithFilibuster.analysisFile().isEmpty()) {
+        if (!testWithFilibuster.analysisFile().isEmpty()) {
             // Annotation analysisFile always takes precedence.
             analysisFile = testWithFilibuster.analysisFile();
-        } else if (! getTestAnalysisResourceFileProperty().isEmpty()) {
+        } else if (!getTestAnalysisResourceFileProperty().isEmpty()) {
             // Property next.
             String analysisResourceFile = getTestAnalysisResourceFileProperty();
             URL analysisFileResourcePath = FilibusterTestExtension.class.getClassLoader().getResource(analysisResourceFile);
@@ -89,7 +89,7 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
         // Otherwise, we use the one taken from the system property.
         String dockerImageName;
 
-        if (! testWithFilibuster.dockerImageName().isEmpty()) {
+        if (!testWithFilibuster.dockerImageName().isEmpty()) {
             dockerImageName = testWithFilibuster.dockerImageName();
         } else {
             dockerImageName = getServerBackendDockerImageNameProperty();
@@ -178,7 +178,8 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
 
         try {
             analysisConfigurationFile = clazz.getDeclaredConstructor().newInstance();
-        } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+        } catch (InstantiationException | NoSuchMethodException | IllegalAccessException |
+                 InvocationTargetException e) {
             throw new FilibusterUnsupportedCustomAnalysisFileException("Class doesn't match expected contract: " + e);
         }
 

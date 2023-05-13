@@ -41,6 +41,9 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
 
     public static Boolean disableInstrumentation = false;
 
+    private static final String logPrefix = "[FILIBUSTER-ARMERIA_HTTP_CLIENT]: ";
+
+
     private static boolean shouldInstrument() {
         if (getInstrumentationEnabledProperty() && !disableInstrumentation) {
             return true;
@@ -111,16 +114,16 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
 
     @Override
     public HttpResponse execute(ClientRequestContext ctx, HttpRequest req) throws Exception {
-//        logger.log(Level.INFO, "req.headers().contains(\"X-Filibuster-Instrumentation\"): " + req.headers().contains("X-Filibuster-Instrumentation"));
+//        logger.log(Level.INFO, logPrefix +"req.headers().contains(\"X-Filibuster-Instrumentation\"): " + req.headers().contains("X-Filibuster-Instrumentation"));
 
         if (! shouldInstrument() || req.headers().contains("X-Filibuster-Instrumentation")) {
             boolean shouldInstrument = shouldInstrument();
             boolean isInstrumentationRequest = req.headers().contains("X-Filibuster-Instrumentation");
-//            logger.log(Level.INFO, "shouldInstrument(): " + shouldInstrument());
-//            logger.log(Level.INFO, "req.headers().contains(\"X-Filibuster-Instrumentation\"): " + req.headers().contains("X-Filibuster-Instrumentation"));
-//            logger.log(Level.INFO, "req.method().toString(): " + req.method());
-//            logger.log(Level.INFO, "req.uri().toString(): " + req.uri());
-//            logger.log(Level.INFO, "!!!! Bailing out of client instrumentation early !!!!");
+//            logger.log(Level.INFO, logPrefix +"shouldInstrument(): " + shouldInstrument());
+//            logger.log(Level.INFO, logPrefix +"req.headers().contains(\"X-Filibuster-Instrumentation\"): " + req.headers().contains("X-Filibuster-Instrumentation"));
+//            logger.log(Level.INFO, logPrefix +"req.method().toString(): " + req.method());
+//            logger.log(Level.INFO, logPrefix +"req.uri().toString(): " + req.uri());
+//            logger.log(Level.INFO, logPrefix +"!!!! Bailing out of client instrumentation early !!!!");
             return unwrap().execute(ctx, req);
         }
 
@@ -203,8 +206,8 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
         JSONObject forcedException = filibusterClientInstrumentor.getForcedException();
         JSONObject failureMetadata = filibusterClientInstrumentor.getFailureMetadata();
 
-        logger.log(Level.INFO, "forcedException: " + forcedException);
-        logger.log(Level.INFO, "failureMetadata: " + failureMetadata);
+        logger.log(Level.INFO, logPrefix +"forcedException: " + forcedException);
+        logger.log(Level.INFO, logPrefix +"failureMetadata: " + failureMetadata);
 
         // ******************************************************************************************
         // Attach metadata to outgoing request.
@@ -307,7 +310,7 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
         // Issue request.
         // ******************************************************************************************
 
-        logger.log(Level.INFO, "Issuing request!");
+        logger.log(Level.INFO, logPrefix +"Issuing request!");
         HttpResponse response = delegateWithContext(ctx, req);
 
         // ******************************************************************************************
@@ -317,7 +320,7 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
         response.whenComplete().handle((result, cause) -> {
             // Only if this fires with an exception.
             if (cause != null) {
-                logger.log(Level.INFO, "cause: " + cause);
+                logger.log(Level.INFO, logPrefix +"cause: " + cause);
 
                 // Notify Filibuster.
                 if (!(cause instanceof CancelledSubscriptionException)) {
@@ -379,11 +382,11 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
                             String className = "com.linecorp.armeria.common.HttpResponse";
                             String statusCode = responseHeaders.get(HttpHeaderNames.STATUS);
 
-                            logger.log(Level.INFO, "responseHeaders: " + responseHeaders);
-                            logger.log(Level.INFO, "statusCode: " + statusCode);
+                            logger.log(Level.INFO, logPrefix +"responseHeaders: " + responseHeaders);
+                            logger.log(Level.INFO, logPrefix +"statusCode: " + statusCode);
 
                             // Notify Filibuster.
-                            logger.log(Level.INFO, "Notifying Filibuster!!!");
+                            logger.log(Level.INFO, logPrefix +"Notifying Filibuster!!!");
                             HashMap<String, String> returnValueProperties = new HashMap<>();
                             returnValueProperties.put("status_code", statusCode);
                             filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties);

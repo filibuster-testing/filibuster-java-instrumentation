@@ -356,7 +356,8 @@ public class FilibusterConfiguration {
 
             try {
                 serverBackend = clazz.getDeclaredConstructor().newInstance();
-            } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            } catch (InstantiationException | NoSuchMethodException | IllegalAccessException |
+                     InvocationTargetException e) {
                 throw new FilibusterUnsupportedServerBackendException("Backend " + clazz + " is not supported.", e);
             }
 
@@ -424,7 +425,8 @@ public class FilibusterConfiguration {
 
             try {
                 latencyProfile = clazz.getDeclaredConstructor().newInstance();
-            } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            } catch (InstantiationException | NoSuchMethodException | IllegalAccessException |
+                     InvocationTargetException e) {
                 throw new FilibusterUnsupportedServerBackendException("Backend " + clazz + " is not supported.", e);
             }
 

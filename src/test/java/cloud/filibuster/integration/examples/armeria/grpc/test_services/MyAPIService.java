@@ -100,7 +100,7 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     public void redisHello(Hello.RedisRequest req, StreamObserver<Hello.RedisReply> responseObserver) {
         Hello.RedisReply reply;
         try {
-            StatefulRedisConnection<String, String> connection = RedisConnection.getInstance().connection;
+            StatefulRedisConnection<String, String> connection = RedisClientService.getInstance().redisClient.connect();
             String retrievedValue = connection.sync().get(req.getKey());
 
             if (retrievedValue != null) {  // Return cache value if there is a hit

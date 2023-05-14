@@ -1,3 +1,6 @@
+1.7.0:
+   - (cmeiklejohn) Bug fix for UX rendering of failures.
+   - (MichaelA-ops) Add prototype Redis fault injection support.
 1.6.5:
    - (jiujiu1123) small font fix
    - (cmeiklejohn) Add new property filibuster.test.avoid_injections_on_organic_failures.

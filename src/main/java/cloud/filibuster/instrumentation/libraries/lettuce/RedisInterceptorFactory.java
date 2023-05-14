@@ -10,6 +10,7 @@ public final class RedisInterceptorFactory<T> {
     private final T objectToIntercept;
     private final String redisConnectionString;
 
+    @SuppressWarnings("resource")
     public RedisInterceptorFactory() {
         GenericContainer<?> redis = new GenericContainer<>(DockerImageName.parse("redis:5.0.3-alpine")).withExposedPorts(6379);
         redis.start();

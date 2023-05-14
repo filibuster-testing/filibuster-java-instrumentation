@@ -183,23 +183,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
     }
 
     private static void generateExceptionFromFailureMetadata(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject failureMetadata) {
-        requireNonNull(failureMetadata);
-
-        JSONObject exception = failureMetadata.getJSONObject("exception");
-
-        // Create the exception to throw.
-        String exceptionNameString = "io.lettuce.core.internal.RuntimeException";
-        String cause = exception.getJSONObject("metadata").getString("cause");
-        String code = exception.getJSONObject("metadata").getString("code");
-
-        // Notify Filibuster of failure.
-        HashMap<String, String> additionalMetadata = new HashMap<>();
-        additionalMetadata.put("name", exceptionNameString);
-        additionalMetadata.put("code", code);
-        filibusterClientInstrumentor.afterInvocationWithException(exceptionNameString, cause, additionalMetadata);
-
-        // Throw exception.
-        throw new RuntimeException(cause);
+        throw new FilibusterFaultInjectionException("failure metadata not supported for Lettuce.");
     }
 
     private static boolean shouldInstrument() {

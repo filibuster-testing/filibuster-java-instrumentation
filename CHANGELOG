@@ -1,3 +1,5 @@
+1.7.1:
+   - (cmeiklejohn) Fix ordering of writes of the UX report.
 1.7.0:
    - (cmeiklejohn) Bug fix for UX rendering of failures.
    - (MichaelA-ops) Add prototype Redis fault injection support.

@@ -28,7 +28,7 @@ public class FilibusterDecoratingHttpService extends SimpleDecoratingHttpService
     public static Boolean disableServerCommunication = false;
     public static Boolean disableInstrumentation = false;
 
-    private final String logPrefix = "[FILIBUSTER-ARMERIA_HTTP_SERVICE]: ";
+    private static final String logPrefix = "[FILIBUSTER-ARMERIA_HTTP_SERVICE]: ";
 
     private static boolean shouldInstrument() {
         if (getInstrumentationEnabledProperty() && !disableInstrumentation) {

@@ -29,7 +29,7 @@ public class FilibusterServerInterceptor implements ServerInterceptor {
     public static Boolean disableServerCommunication = false;
     public static Boolean disableInstrumentation = false;
 
-    private final String logPrefix = "[FILIBUSTER-GRPC_SERVER_INTERCEPTOR]: ";
+    private static final String logPrefix = "[FILIBUSTER-GRPC_SERVER_INTERCEPTOR]: ";
 
     @Nullable
     private String requestId;

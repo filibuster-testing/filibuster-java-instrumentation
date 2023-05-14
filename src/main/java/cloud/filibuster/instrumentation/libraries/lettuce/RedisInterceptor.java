@@ -1,6 +1,7 @@
 package cloud.filibuster.instrumentation.libraries.lettuce;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
+import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
 import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
@@ -24,7 +25,6 @@ import static cloud.filibuster.instrumentation.Constants.REDIS_MODULE_NAME;
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationServerCommunicationEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getRedisTestPortNondeterminismProperty;
-import static java.util.Objects.requireNonNull;
 
 public class RedisInterceptor<T> implements MethodInterceptor {
     public static Boolean disableInstrumentation = false;
@@ -57,7 +57,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
                 URI fullRedisServiceName = new URI(redisConnectionString);
                 redisConnectionString = fullRedisServiceName.getHost();
             } catch (Throwable e) {
-                throw new RuntimeException("Redis connection string could not be processed. URI is probably malformed: ", e);
+                throw new FilibusterRuntimeException("Redis connection string could not be processed. URI is probably malformed: ", e);
             }
         }
         return redisConnectionString;

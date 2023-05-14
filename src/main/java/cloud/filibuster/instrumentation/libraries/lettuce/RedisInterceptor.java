@@ -178,7 +178,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         throw exceptionToThrow;
     }
 
-    private void generateExceptionFromFailureMetadata(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject failureMetadata) {
+    private static void generateExceptionFromFailureMetadata(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject failureMetadata) {
         requireNonNull(failureMetadata);
 
         JSONObject exception = failureMetadata.getJSONObject("exception");

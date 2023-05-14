@@ -26,8 +26,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("unchecked")
 public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
-    String key = "test";
-    String value = "example";
+    final String key = "test";
+    final String value = "example";
 
     @BeforeAll
     public static void startAllServices() throws IOException, InterruptedException {

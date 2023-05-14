@@ -27,10 +27,10 @@ import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentati
 import static cloud.filibuster.instrumentation.helpers.Property.getRedisTestPortNondeterminismProperty;
 
 public class RedisInterceptor<T> implements MethodInterceptor {
-    public static Boolean disableInstrumentation = false;
+    public static final Boolean disableInstrumentation = false;
     private static final Logger logger = Logger.getLogger(RedisInterceptorFactory.class.getName());
-    protected ContextStorage contextStorage;
-    public static Boolean disableServerCommunication = false;
+    protected final ContextStorage contextStorage;
+    public static final Boolean disableServerCommunication = false;
     private final String redisServiceName;
     private final String redisConnectionString;
     private final T interceptedObject;
@@ -115,7 +115,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         // ******************************************************************************************
 
         if (failureMetadata != null && filibusterClientInstrumentor.shouldAbort()) {
-            generateExceptionFromFailureMetadata(filibusterClientInstrumentor, failureMetadata);
+            generateExceptionFromFailureMetadata();
         }
 
         if (forcedException != null && filibusterClientInstrumentor.shouldAbort()) {
@@ -182,7 +182,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         throw exceptionToThrow;
     }
 
-    private static void generateExceptionFromFailureMetadata(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject failureMetadata) {
+    private static void generateExceptionFromFailureMetadata() {
         throw new FilibusterFaultInjectionException("failure metadata not supported for Lettuce.");
     }
 

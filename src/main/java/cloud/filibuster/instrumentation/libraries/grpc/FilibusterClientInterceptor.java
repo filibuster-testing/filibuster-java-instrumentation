@@ -40,7 +40,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
     public static Boolean disableServerCommunication = false;
     public static Boolean disableInstrumentation = false;
 
-    private final String logPrefix = "[FILIBUSTER-GRPC_CLIENT_INTERCEPTOR]: ";
+    private static final String logPrefix = "[FILIBUSTER-GRPC_CLIENT_INTERCEPTOR]: ";
 
     private static boolean shouldInstrument() {
         if (getInstrumentationEnabledProperty() && !disableInstrumentation) {

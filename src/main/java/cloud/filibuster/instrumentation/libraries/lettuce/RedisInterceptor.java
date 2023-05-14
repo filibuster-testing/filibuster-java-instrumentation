@@ -1,6 +1,7 @@
 package cloud.filibuster.instrumentation.libraries.lettuce;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
+import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
 import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
@@ -24,7 +25,6 @@ import static cloud.filibuster.instrumentation.Constants.REDIS_MODULE_NAME;
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationServerCommunicationEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getRedisTestPortNondeterminismProperty;
-import static java.util.Objects.requireNonNull;
 
 public class RedisInterceptor<T> implements MethodInterceptor {
     public static Boolean disableInstrumentation = false;
@@ -45,7 +45,11 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         this.interceptedObject = interceptedObject;
     }
 
-    private String getRedisServiceName(String redisConnectionString) {
+    public String getRedisServiceName () {
+        return this.redisServiceName;
+    }
+
+    private static String getRedisServiceName(String redisConnectionString) {
         // If redisPortNondeterminism is set, extract the redis host name from the complete connection string. Otherwise, leave
         // the redis connection string unchanged.
         if (getRedisTestPortNondeterminismProperty()) {
@@ -53,7 +57,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
                 URI fullRedisServiceName = new URI(redisConnectionString);
                 redisConnectionString = fullRedisServiceName.getHost();
             } catch (Throwable e) {
-                throw new RuntimeException("Redis connection string could not be processed. URI is probably malformed: ", e);
+                throw new FilibusterRuntimeException("Redis connection string could not be processed. URI is probably malformed: ", e);
             }
         }
         return redisConnectionString;
@@ -178,24 +182,8 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         throw exceptionToThrow;
     }
 
-    private void generateExceptionFromFailureMetadata(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject failureMetadata) {
-        requireNonNull(failureMetadata);
-
-        JSONObject exception = failureMetadata.getJSONObject("exception");
-
-        // Create the exception to throw.
-        String exceptionNameString = "io.lettuce.core.internal.RuntimeException";
-        String cause = exception.getJSONObject("metadata").getString("cause");
-        String code = exception.getJSONObject("metadata").getString("code");
-
-        // Notify Filibuster of failure.
-        HashMap<String, String> additionalMetadata = new HashMap<>();
-        additionalMetadata.put("name", exceptionNameString);
-        additionalMetadata.put("code", code);
-        filibusterClientInstrumentor.afterInvocationWithException(exceptionNameString, cause, additionalMetadata);
-
-        // Throw exception.
-        throw new RuntimeException(cause);
+    private static void generateExceptionFromFailureMetadata(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject failureMetadata) {
+        throw new FilibusterFaultInjectionException("failure metadata not supported for Lettuce.");
     }
 
     private static boolean shouldInstrument() {
@@ -206,7 +194,4 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         return getInstrumentationServerCommunicationEnabledProperty() && !disableServerCommunication;
     }
 
-    public String getRedisServiceName () {
-        return this.redisServiceName;
-    }
 }

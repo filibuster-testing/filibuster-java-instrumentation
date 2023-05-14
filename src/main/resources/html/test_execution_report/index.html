@@ -238,6 +238,16 @@
 
                 var group = "";
 
+                if (analysis.rpcs.length === 0) {
+                    var row = "";
+                    row += "<tr>";
+                    row += "<td style='text-align: center;' colspan='4'>";
+                    row += "<span style='text-align: center;'>No RPCs Executed</span>";
+                    row += "</td>";
+                    row += "</tr>";
+                    $('#rpcs').append(row);
+                }
+
                 for (i in analysis.rpcs) {
                     var rpc = analysis.rpcs[i];
                     var isFaulted = !isEmpty(rpc.fault);

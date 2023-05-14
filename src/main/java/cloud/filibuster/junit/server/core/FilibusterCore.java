@@ -71,9 +71,6 @@ public class FilibusterCore {
         currentConcreteTestExecution = new ConcreteTestExecution(testName, testUUID, className);
         this.filibusterConfiguration = filibusterConfiguration;
 
-        this.testReport = new TestReport(testName, testUUID, className);
-        testReport.writeOutPlaceholder();
-
         if (filibusterConfiguration.getSearchStrategy() == FilibusterSearchStrategy.DFS) {
             this.exploredTestExecutions = new TestExecutionStack<>();
             this.unexploredTestExecutions = new TestExecutionStack<>();
@@ -83,8 +80,13 @@ public class FilibusterCore {
         } else {
             throw new FilibusterCoreLogicException("Unsupported search strategy: " + filibusterConfiguration.getSearchStrategy());
         }
-        // This statement ensures the placeholders and written
+
+        // This statement clears out /tmp/filibuster and sets up the execution.
         TestSuiteReport.getInstance();
+
+        // This statement writes out the place holder for the report
+        this.testReport = new TestReport(testName, testUUID, className);
+        testReport.writeOutPlaceholder();
     }
 
     // Aggregate test execution report.

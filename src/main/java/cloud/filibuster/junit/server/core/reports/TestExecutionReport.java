@@ -51,7 +51,8 @@ public class TestExecutionReport {
 
     private boolean hasReportBeenMaterialized = false;
 
-    private boolean testExecutionPassed = false;
+    // Defaults to true, we can only ever move this to false but never back.
+    private boolean testExecutionPassed = true;
 
     private final List<FailureMetadata> failures = new ArrayList<>();
 
@@ -285,7 +286,15 @@ public class TestExecutionReport {
 
     public void writeTestReport(int currentIteration, boolean exceptionOccurred, @Nullable Throwable throwable) {
         testExecutionNumber = currentIteration;
-        testExecutionPassed = !exceptionOccurred;
+
+        // This function might be invoked an arbitrary number of times
+        // for each block (after, before, etc.) therefore, always merge
+        // to false, never fail in the test and reset to passing if the
+        // after block passes.
+        //
+        // Who said all of that work on CRDTs didn't pay off?
+        //
+        testExecutionPassed = testExecutionPassed && !exceptionOccurred;
 
         if (!hasReportBeenMaterialized || throwable != null) {
             if (throwable != null) {

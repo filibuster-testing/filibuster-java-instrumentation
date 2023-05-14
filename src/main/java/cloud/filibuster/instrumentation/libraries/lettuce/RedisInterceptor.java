@@ -45,7 +45,11 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         this.interceptedObject = interceptedObject;
     }
 
-    private String getRedisServiceName(String redisConnectionString) {
+    public String getRedisServiceName () {
+        return this.redisServiceName;
+    }
+
+    private static String getRedisServiceName(String redisConnectionString) {
         // If redisPortNondeterminism is set, extract the redis host name from the complete connection string. Otherwise, leave
         // the redis connection string unchanged.
         if (getRedisTestPortNondeterminismProperty()) {
@@ -206,7 +210,4 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         return getInstrumentationServerCommunicationEnabledProperty() && !disableServerCommunication;
     }
 
-    public String getRedisServiceName () {
-        return this.redisServiceName;
-    }
 }

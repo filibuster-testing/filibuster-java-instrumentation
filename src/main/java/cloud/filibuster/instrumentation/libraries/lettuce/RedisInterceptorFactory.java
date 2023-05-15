@@ -36,4 +36,5 @@ public final class RedisInterceptorFactory<T> {
         myFactory.addInterceptor(new RedisInterceptor<>(objectToIntercept, redisConnectionString));
         return myFactory.createProxy(itfc.getClassLoader());
     }
+
 }

@@ -138,7 +138,8 @@ public class RedisInterceptor<T> implements MethodInterceptor {
             // (e.g., when calling StatefulRedisConnection.sync() where StatefulRedisConnection is an intercepted proxy,
             // the returned RedisCommands object should also be an intercepted proxy)
             if (invocation.getMethod().getReturnType().isInterface()) {
-                invocationResult = new RedisInterceptorFactory<>(invocationResult, redisConnectionString).getProxy(invocation.getMethod().getReturnType());
+                invocationResult = new RedisInterceptorFactory<>(invocationResult, redisConnectionString)
+                        .getProxy(invocation.getMethod().getReturnType());
             }
         }
 
@@ -149,6 +150,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
 
     private Object invokeOnInterceptedObject(MethodInvocation invocation) throws InvocationTargetException, IllegalAccessException {
         try {
+            //method.invoke(((MethodInterceptorChain.PooledMethodInvocation) invocation).getInvocationTarget(), args)
             Method method = invocation.getMethod();
             Object[] args = invocation.getArguments();
             return method.invoke(interceptedObject, args);

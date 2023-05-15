@@ -22,14 +22,15 @@ public class RedisExhaustiveAnalysisConfigurationFile implements FilibusterAnaly
     static {
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
-        createException(filibusterCustomAnalysisConfigurationFileBuilder,
-                "io.lettuce.core.RedisCommandTimeoutException",
-                "/(get|set)\\b",
-                "Command timed out after 100 millisecond(s)");
-        createException(filibusterCustomAnalysisConfigurationFileBuilder,
-                "io.lettuce.core.RedisConnectionException",
-                "/(sync|async)\\b",
-                "Connection closed prematurely");
+        String[][] exceptions = new String[][]{
+                {"io.lettuce.core.RedisCommandTimeoutException", "/(get|set)\\b", "Command timed out after 100 millisecond(s)"},
+                {"io.lettuce.core.RedisConnectionException", "/(sync|async)\\b", "Connection closed prematurely"},
+                {"io.lettuce.core.RedisBusyException", "/(flushall|flushdb)\\b", "BUSY Redis is busy running a script. You can only call SCRIPT KILL or SHUTDOWN NOSAVE"}
+        };
+
+        for (String[] exception : exceptions) {
+            createException(filibusterCustomAnalysisConfigurationFileBuilder, exception[0], exception[1], exception[2]);
+        }
 
         filibusterCustomAnalysisConfigurationFile = filibusterCustomAnalysisConfigurationFileBuilder.build();
     }

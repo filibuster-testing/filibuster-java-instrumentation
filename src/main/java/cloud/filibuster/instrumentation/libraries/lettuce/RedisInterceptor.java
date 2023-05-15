@@ -183,7 +183,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
     }
 
     private static void generateExceptionFromFailureMetadata() {
-        throw new FilibusterFaultInjectionException("failure metadata not supported for Lettuce.");
+        throw new FilibusterFaultInjectionException("Failure metadata not supported for Lettuce.");
     }
 
     private static boolean shouldInstrument() {

@@ -4,7 +4,7 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.RedisSingleFaultCommandTimeoutExceptionAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.RedisSingleByzantineFaultAnalysisConfigurationFile;
 import io.lettuce.core.RedisCommandTimeoutException;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
@@ -54,7 +54,7 @@ public class JUnitRedisFilibusterByzantineStringTest extends JUnitAnnotationBase
 
     @DisplayName("Tests whether Redis sync interceptor can read from existing key - Byzantine string fault injection")
     @Order(1)
-    @TestWithFilibuster(analysisConfigurationFile = RedisSingleFaultCommandTimeoutExceptionAnalysisConfigurationFile.class)
+    @TestWithFilibuster(analysisConfigurationFile = RedisSingleByzantineFaultAnalysisConfigurationFile.class)
     public void testRedisByzantineGet() {
         try {
             numberOfTestExecutions++;

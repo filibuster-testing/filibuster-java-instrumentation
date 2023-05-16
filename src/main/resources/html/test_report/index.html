@@ -155,6 +155,12 @@
             height: 90vh;  /* Set height to 100% of the viewport height */
             width: 8vw;  /* Set width to 100% of the viewport width */
         }
+
+        .warning {
+            font-size: small;
+            background-color: lightyellow;
+            font-weight: 400;
+        }
 	</style>
 </head>
 
@@ -162,13 +168,23 @@
 <section style="margin: 0 auto; height: 100vh;">
     <div class="container" style="margin: 0 auto; padding: 0; height: 100vh;">
         <div id="sidebar" class="sidebar" style="display: inline-block; vertical-align:top; width: 8vw; padding: 0; margin: 0;"></div>
-        <div id="results" class="results" style="display: inline-block; vertical-align:top; width: 90vw; padding: 0; margin: 0;"></div>
+        <div id="results-container" style="display: inline-block; vertical-align:top; width: 90vw; padding: 0; margin: 0;">
+            <span id="report_warning" class="warning" style="font-size: small; font-weight: 400; display: inline-block; text-align: left; vertical-align:top; width: 90vw; padding: 0; margin: 0;"">hi</span>
+            <div id="results" class="results" style="display: inline-block; vertical-align:top; width: 90vw; padding: 0; margin: 0;">
+            </div>
+        </div>
+
     </div>
 
     <script>
         $(document).ready(function () {
             var sidebarIFrame = '<iframe frameborder="0" marginwidth="0" marginheight="0" scrolling="auto" src="./sidebar.html" class="sidebar" name="test_sidebar_frame"></iframe>';
             $('#sidebar').html(sidebarIFrame);
+
+            if (summary.iterations_remaining > 0) {
+                console.log("whoop");
+                $('#report_warning').html("️️⚠️ " + summary.iterations_remaining + " or more iterations remain, perhaps try increasing max iterations and re-running test.");
+            }
 
             for (i in summary.reports) {
                 var report = summary.reports[i];

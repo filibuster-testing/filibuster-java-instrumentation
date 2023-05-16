@@ -138,7 +138,7 @@ public class JUnitRedisFilibusterExhaustiveTests extends JUnitAnnotationBaseTest
     @Test
     @Order(2)
     public void testNumExecutions() {
-        assertEquals(10, numberOfTestExecutions);
+        assertEquals(13, numberOfTestExecutions);
     }
 
     @DisplayName("Verify correct number of Filibuster exceptions.")

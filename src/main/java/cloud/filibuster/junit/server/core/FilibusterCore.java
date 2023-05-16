@@ -372,6 +372,14 @@ public class FilibusterCore {
         logger.info("[FILIBUSTER-CORE]: completeIteration returning");
     }
 
+    // How many (under-approximation) test iterations remain?
+    public synchronized int iterationsRemaining() {
+        logger.info("[FILIBUSTER-CORE]: iterationsRemaining called");
+        int iterationsRemaining = unexploredTestExecutions.size();
+        logger.info("[FILIBUSTER-CORE]: iterationsRemaining returning: " + iterationsRemaining);
+        return iterationsRemaining;
+    }
+
     // Is there a test execution?
     public synchronized boolean hasNextIteration(int currentIteration) {
         logger.info("[FILIBUSTER-CORE]: hasNextIteration called, currentIteration: " + currentIteration);
@@ -537,6 +545,7 @@ public class FilibusterCore {
         logger.info("[FILIBUSTER-CORE]: terminate called.");
 
         if (testReport != null) {
+            testReport.setIterationsRemaining(iterationsRemaining());
             testReport.writeTestReport();
             if (Property.getReportsTestSuiteReportEnabledProperty()) {
                 TestSuiteReport.getInstance().addTestReport(testReport);

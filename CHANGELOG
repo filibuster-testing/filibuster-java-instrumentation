@@ -1,3 +1,5 @@
+1.7.2:
+   - (cmeiklejohn) Provide a warning if maxIterations value is less than the under-approximated iterations remaining.
 1.7.1:
    - (cmeiklejohn) Fix ordering of writes of the UX report.
 1.7.0:

@@ -30,7 +30,7 @@ public class LCS {
             }
         }
         int beginIndex = pos - len;
-        if (beginIndex < 0 || len < 0) {  // To cover cases where the LCS is empty
+        if (beginIndex < 0) {  // To cover cases where the LCS is empty
             return "";
         }
         return str1.substring(beginIndex, pos);

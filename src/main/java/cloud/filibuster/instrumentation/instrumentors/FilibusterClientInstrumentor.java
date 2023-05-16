@@ -204,6 +204,9 @@ final public class FilibusterClientInstrumentor {
     @Nullable
     private JSONObject failureMetadata;
 
+    @Nullable
+    private JSONObject byzantineFault;
+
     private String requestId;
     public static String overrideRequestId;
     private final ContextStorage contextStorage;
@@ -432,6 +435,16 @@ final public class FilibusterClientInstrumentor {
     }
 
     /**
+     * Return byzantine fault that needs to be injected.
+     * This value will be null until the Filibuster server has been contacted for this request.
+     *
+     * @return JSON object containing failure to inject.
+     */
+    public JSONObject getByzantineFault() {
+        return this.byzantineFault;
+    }
+
+    /**
      * Should this request be allowed to reach the remote service or should it be skipped?
      *
      * @return whether it should be aborted or not.
@@ -639,6 +652,10 @@ final public class FilibusterClientInstrumentor {
             if (jsonObject.has("failure_metadata")) {
                 failureMetadata = jsonObject.getJSONObject("failure_metadata");
             }
+
+            if (jsonObject.has("byzantine_fault")) {
+                byzantineFault = jsonObject.getJSONObject("byzantine_fault");
+            }
         }
         else if (shouldCommunicateWithServer && counterexampleNotProvided()) {
             if (getServerBackendCanInvokeDirectlyProperty()) {
@@ -652,6 +669,10 @@ final public class FilibusterClientInstrumentor {
 
                     if (jsonObject.has("failure_metadata")) {
                         failureMetadata = jsonObject.getJSONObject("failure_metadata");
+                    }
+
+                    if (jsonObject.has("byzantine_fault")) {
+                        byzantineFault = jsonObject.getJSONObject("byzantine_fault");
                     }
                 } else {
                     throw new FilibusterRuntimeException("No current filibuster core instance, this could indicate a problem.");
@@ -692,6 +713,10 @@ final public class FilibusterClientInstrumentor {
 
                         if (jsonObject.has("failure_metadata")) {
                             failureMetadata = jsonObject.getJSONObject("failure_metadata");
+                        }
+
+                        if (jsonObject.has("byzantine_fault")) {
+                            byzantineFault = jsonObject.getJSONObject("byzantine_fault");
                         }
                     } catch (RuntimeException e) {
                         logger.log(Level.SEVERE, "cannot connect to the Filibuster server: " + e);

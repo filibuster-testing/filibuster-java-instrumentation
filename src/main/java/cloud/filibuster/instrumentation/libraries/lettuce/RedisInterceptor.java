@@ -114,9 +114,11 @@ public class RedisInterceptor<T> implements MethodInterceptor {
 
         JSONObject forcedException = filibusterClientInstrumentor.getForcedException();
         JSONObject failureMetadata = filibusterClientInstrumentor.getFailureMetadata();
+        JSONObject byzantineFault = filibusterClientInstrumentor.getByzantineFault();
 
         logger.log(Level.INFO, logPrefix + "forcedException: " + forcedException);
         logger.log(Level.INFO, logPrefix + "failureMetadata: " + failureMetadata);
+        logger.log(Level.INFO, logPrefix + "byzantineFault: " + byzantineFault);
 
         // ******************************************************************************************
         // If we need to throw, this is where we throw.
@@ -128,6 +130,10 @@ public class RedisInterceptor<T> implements MethodInterceptor {
 
         if (forcedException != null && filibusterClientInstrumentor.shouldAbort()) {
             generateAndThrowException(filibusterClientInstrumentor, forcedException);
+        }
+
+        if (byzantineFault != null && filibusterClientInstrumentor.shouldAbort()) {
+            logger.log(Level.INFO, logPrefix + "Byzantine fault would be injected here!!!" + byzantineFault);
         }
 
         // ******************************************************************************************

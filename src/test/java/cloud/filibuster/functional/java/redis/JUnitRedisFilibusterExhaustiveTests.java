@@ -7,9 +7,11 @@ import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.RedisExhaustiveAnalysisConfigurationFile;
 import io.lettuce.core.RedisBusyException;
 import io.lettuce.core.RedisCommandExecutionException;
+import io.lettuce.core.RedisCommandInterruptedException;
 import io.lettuce.core.RedisCommandTimeoutException;
 import io.lettuce.core.RedisConnectionException;
 import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.sync.RedisCommands;
 import junit.framework.AssertionFailedError;
 import org.junit.jupiter.api.AfterEach;
@@ -21,8 +23,12 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
+import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import static cloud.filibuster.instrumentation.Constants.REDIS_MODULE_NAME;
@@ -44,7 +50,7 @@ public class JUnitRedisFilibusterExhaustiveTests extends JUnitAnnotationBaseTest
     static String redisConnectionString;
     private final static Set<String> testExceptionsThrown = new HashSet<>();
     private static int numberOfTestExecutions = 0;
-    private static final HashMap<Class<?>, String[][]> allowedExceptions = new HashMap<>();
+    private static final Map<Class<?>, Entry<List<String>, String>> allowedExceptions = new HashMap<>();
 
     @BeforeAll
     public static void primeCacheBeforeAll() {
@@ -63,17 +69,21 @@ public class JUnitRedisFilibusterExhaustiveTests extends JUnitAnnotationBaseTest
     }
 
     static {
-        allowedExceptions.put(RedisCommandTimeoutException.class, new String[][]{
-                {"get", "Command timed out after 100 millisecond(s)"},
-                {"hgetall", "Command timed out after 100 millisecond(s)"},
-                {"hset", "Command timed out after 100 millisecond(s)"}});
-        allowedExceptions.put(RedisConnectionException.class, new String[][]{{"sync", "Connection closed prematurely"}});
-        allowedExceptions.put(RedisBusyException.class, new String[][]{
-                {"flushall", "BUSY Redis is busy running a script. You can only call SCRIPT KILL or SHUTDOWN NOSAVE"},
-                {"flushdb", "BUSY Redis is busy running a script. You can only call SCRIPT KILL or SHUTDOWN NOSAVE"}});
-        allowedExceptions.put(RedisCommandExecutionException.class, new String[][]{
-                {"hgetall", "WRONGTYPE Operation against a key holding the wrong kind of value"},
-                {"hset", "WRONGTYPE Operation against a key holding the wrong kind of value"}});
+        allowedExceptions.put(RedisCommandTimeoutException.class,
+                new AbstractMap.SimpleEntry<>(List.of("get", "hgetall", "hset"), "Command timed out after 100 millisecond(s)"));
+
+        allowedExceptions.put(RedisConnectionException.class,
+                new AbstractMap.SimpleEntry<>(List.of("sync", "async"), "Connection closed prematurely"));
+
+        allowedExceptions.put(RedisBusyException.class,
+                new AbstractMap.SimpleEntry<>(List.of("flushall", "flushdb"), "BUSY Redis is busy running a script. You can only call SCRIPT KILL or SHUTDOWN NOSAVE"));
+
+        allowedExceptions.put(RedisCommandExecutionException.class,
+                new AbstractMap.SimpleEntry<>(List.of("hgetall", "hset"), "WRONGTYPE Operation against a key holding the wrong kind of value"));
+
+        allowedExceptions.put(RedisCommandInterruptedException.class,
+                new AbstractMap.SimpleEntry<>(List.of("await"), "Command interrupted"));
+
 
     }
 
@@ -101,28 +111,25 @@ public class JUnitRedisFilibusterExhaustiveTests extends JUnitAnnotationBaseTest
             myRedisCommands.hset(key, key, value);
             myRedisCommands.hgetall(key);
 
+            // Test RedisCommandInterruptedException
+            RedisAsyncCommands<String, String> myRedisAsyncCommands = myStatefulRedisConnection.async();
+            myRedisAsyncCommands.get(key).await(10, java.util.concurrent.TimeUnit.SECONDS);
+
             assertFalse(wasFaultInjected());
         } catch (Throwable t) {
             testExceptionsThrown.add(t.getMessage());
-            boolean found = false;
 
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
             assertTrue(wasFaultInjectedOnService(REDIS_MODULE_NAME), "Fault was not injected on the Redis module: " + t);
 
-            String[][] exceptionsInfoList = allowedExceptions.get(t.getClass());
-            if (exceptionsInfoList != null) {
-                for (String[] exceptionInfo : exceptionsInfoList) {
-                    if (wasFaultInjectedOnMethod(REDIS_MODULE_NAME, exceptionInfo[0])) {
-                        found = true;
-                        assertEquals(exceptionInfo[1], t.getMessage(), "Unexpected fault message" + t);
-                        break;
-                    }
-                }
-                if (!found) {
-                    throw new AssertionFailedError("Injected fault details did not match the predefined criteria: " + t);
-                }
+            Entry<List<String>, String> methodsMessagePair = allowedExceptions.get(t.getClass());
+            if (methodsMessagePair != null) {
+                assertEquals(methodsMessagePair.getValue(), t.getMessage(), "Unexpected fault message: " + t);
+                assertTrue(methodsMessagePair.getKey().stream().anyMatch(method ->
+                                wasFaultInjectedOnMethod(REDIS_MODULE_NAME, method)),
+                        "Fault was not injected on any of the expected methods (" + methodsMessagePair.getKey() + "): " + t);
             } else {
-                throw new AssertionFailedError("Injected fault could not be found: " + t);
+                throw new AssertionFailedError("Injected fault was not defined for this test: " + t);
             }
         }
     }

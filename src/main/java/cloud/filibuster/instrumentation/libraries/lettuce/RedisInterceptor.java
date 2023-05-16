@@ -9,6 +9,7 @@ import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
 import io.lettuce.core.RedisBusyException;
 import io.lettuce.core.RedisCommandExecutionException;
+import io.lettuce.core.RedisCommandInterruptedException;
 import io.lettuce.core.RedisCommandTimeoutException;
 import io.lettuce.core.RedisConnectionException;
 import io.lettuce.core.dynamic.intercept.MethodInterceptor;
@@ -183,6 +184,9 @@ public class RedisInterceptor<T> implements MethodInterceptor {
                 break;
             case "io.lettuce.core.RedisCommandExecutionException":
                 exceptionToThrow = new RedisCommandExecutionException(causeString);
+                break;
+            case "io.lettuce.core.RedisCommandInterruptedException":
+                exceptionToThrow = new RedisCommandInterruptedException(new Throwable(causeString));
                 break;
             default:
                 throw new FilibusterFaultInjectionException("Cannot determine the execution cause to throw: " + causeString);

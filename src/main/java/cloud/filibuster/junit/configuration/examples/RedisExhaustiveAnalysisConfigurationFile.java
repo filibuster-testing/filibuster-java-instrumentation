@@ -26,7 +26,8 @@ public class RedisExhaustiveAnalysisConfigurationFile implements FilibusterAnaly
                 {"io.lettuce.core.RedisCommandTimeoutException", "/(get|set|hget|hset|hgetall)\\b", "Command timed out after 100 millisecond(s)"},
                 {"io.lettuce.core.RedisConnectionException", "/(sync|async)\\b", "Connection closed prematurely"},
                 {"io.lettuce.core.RedisBusyException", "/(flushall|flushdb)\\b", "BUSY Redis is busy running a script. You can only call SCRIPT KILL or SHUTDOWN NOSAVE"},
-                {"io.lettuce.core.RedisCommandExecutionException", "/(hget|hgetall|hset)\\b", "WRONGTYPE Operation against a key holding the wrong kind of value"}
+                {"io.lettuce.core.RedisCommandExecutionException", "/(hget|hgetall|hset)\\b", "WRONGTYPE Operation against a key holding the wrong kind of value"},
+                {"io.lettuce.core.RedisCommandInterruptedException", "/(await)\\b", "Command interrupted"}
         };
 
         for (String[] exception : exceptions) {

@@ -12,9 +12,9 @@ import static cloud.filibuster.instrumentation.Constants.REDIS_MODULE_NAME;
 public class RedisSingleFaultCommandTimeoutExceptionAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
-    private static Map<String, String> createErrorMap(String cause) {
+    private static Map<String, String> createErrorMap() {
         Map<String, String> myMap = new HashMap<>();
-        myMap.put("cause", cause);
+        myMap.put("cause", "Command timed out after 100 millisecond(s)");
         myMap.put("code", "");
         return myMap;
     }
@@ -26,7 +26,7 @@ public class RedisSingleFaultCommandTimeoutExceptionAnalysisConfigurationFile im
                 .name("io.lettuce.core.RedisCommandTimeoutException")
                 .pattern(REDIS_MODULE_NAME + "/(get|set)\\b");
 
-        filibusterAnalysisConfigurationBuilderRedisExceptions.exception("io.lettuce.core.RedisCommandTimeoutException", createErrorMap("Command timed out after 100 millisecond(s)"));
+        filibusterAnalysisConfigurationBuilderRedisExceptions.exception("io.lettuce.core.RedisCommandTimeoutException", createErrorMap());
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());
 

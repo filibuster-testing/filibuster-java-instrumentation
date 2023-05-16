@@ -29,7 +29,8 @@ public class RedisExhaustiveAnalysisConfigurationFile implements FilibusterAnaly
                 {"io.lettuce.core.RedisCommandExecutionException", "/(hget|hgetall|hset)\\b", "WRONGTYPE Operation against a key holding the wrong kind of value"},
                 {"io.lettuce.core.RedisCommandInterruptedException", "/(await)\\b", "Command interrupted"},
                 {"io.lettuce.core.cluster.UnknownPartitionException", "/(getConnection)\\b", "Connection not allowed. This partition is not known in the cluster view"},
-                {"io.lettuce.core.cluster.PartitionSelectorException", "/(getConnection)\\b", "Cannot determine a partition to read for slot"}
+                {"io.lettuce.core.cluster.PartitionSelectorException", "/(getConnection)\\b", "Cannot determine a partition to read for slot"},
+                {"io.lettuce.core.dynamic.CommandCreationException", "/(createCommand)\\b", "Command methods do not support Timeout parameters"},
         };
 
         for (String[] exception : exceptions) {

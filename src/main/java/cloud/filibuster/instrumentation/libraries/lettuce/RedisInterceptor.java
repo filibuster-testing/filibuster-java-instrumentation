@@ -12,6 +12,7 @@ import io.lettuce.core.RedisCommandExecutionException;
 import io.lettuce.core.RedisCommandInterruptedException;
 import io.lettuce.core.RedisCommandTimeoutException;
 import io.lettuce.core.RedisConnectionException;
+import io.lettuce.core.cluster.UnknownPartitionException;
 import io.lettuce.core.dynamic.intercept.MethodInterceptor;
 import io.lettuce.core.dynamic.intercept.MethodInvocation;
 import org.json.JSONObject;
@@ -187,6 +188,9 @@ public class RedisInterceptor<T> implements MethodInterceptor {
                 break;
             case "io.lettuce.core.RedisCommandInterruptedException":
                 exceptionToThrow = new RedisCommandInterruptedException(new Throwable(causeString));
+                break;
+            case "io.lettuce.core.cluster.UnknownPartitionException":
+                exceptionToThrow = new UnknownPartitionException(causeString);
                 break;
             default:
                 throw new FilibusterFaultInjectionException("Cannot determine the execution cause to throw: " + causeString);

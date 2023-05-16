@@ -76,6 +76,18 @@ public class FilibusterServer {
         // JUnit hooks.
 
         sb.annotatedService(new Object() {
+            @Get("/filibuster/iterations-remaining")
+            @ProducesJson
+            @ConsumesJson
+            public HttpResponse iterationsRemaining() {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("iterations-remaining", FilibusterCore.getCurrentInstance().iterationsRemaining());
+                return HttpResponse.of(jsonObject.toString());
+            }
+        });
+
+
+        sb.annotatedService(new Object() {
             @Get("/filibuster/has-next-iteration/{current_iteration}")
             @ProducesJson
             @ConsumesJson

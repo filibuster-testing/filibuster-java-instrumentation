@@ -41,6 +41,11 @@ public class TestReport {
         return testName;
     }
 
+    private int iterationsRemaining = 0;
+
+    public void setIterationsRemaining(int iterationsRemaining) {
+        this.iterationsRemaining = iterationsRemaining;
+    }
 
     public void addTestExecutionReport(TestExecutionReport testExecutionReport) {
         testExecutionReports.add(testExecutionReport);
@@ -127,6 +132,7 @@ public class TestReport {
         }
 
         result.put("reports", materializedReportMetadatas);
+        result.put("iterations_remaining", iterationsRemaining);
         return result;
     }
 

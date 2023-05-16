@@ -33,6 +33,6 @@ public class LCS {
         if (beginIndex < 0 || len < 0) {  // To cover cases where the LCS is empty
             return "";
         }
-        return str1.substring(pos - len, pos);
+        return str1.substring(beginIndex, pos);
     }
 }

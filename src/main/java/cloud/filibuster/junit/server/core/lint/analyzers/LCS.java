@@ -29,7 +29,10 @@ public class LCS {
                 }
             }
         }
-
-        return str1.substring(pos - len, pos);
+        int beginIndex = pos - len;
+        if (beginIndex < 0) {  // To cover cases where the LCS is empty
+            return "";
+        }
+        return str1.substring(beginIndex, pos);
     }
 }

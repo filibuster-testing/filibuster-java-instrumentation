@@ -7,14 +7,22 @@ import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
+import io.lettuce.core.RedisBusyException;
+import io.lettuce.core.RedisCommandExecutionException;
+import io.lettuce.core.RedisCommandInterruptedException;
 import io.lettuce.core.RedisCommandTimeoutException;
 import io.lettuce.core.RedisConnectionException;
+import io.lettuce.core.cluster.PartitionSelectorException;
+import io.lettuce.core.cluster.UnknownPartitionException;
+import io.lettuce.core.cluster.models.partitions.Partitions;
+import io.lettuce.core.dynamic.batch.BatchException;
 import io.lettuce.core.dynamic.intercept.MethodInterceptor;
 import io.lettuce.core.dynamic.intercept.MethodInvocation;
 import org.json.JSONObject;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.logging.Level;
@@ -45,7 +53,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         this.interceptedObject = interceptedObject;
     }
 
-    public String getRedisServiceName () {
+    public String getRedisServiceName() {
         return this.redisServiceName;
     }
 
@@ -136,8 +144,10 @@ public class RedisInterceptor<T> implements MethodInterceptor {
             // If "invocationResult" is an interface, return an intercepted proxy
             // (e.g., when calling StatefulRedisConnection.sync() where StatefulRedisConnection is an intercepted proxy,
             // the returned RedisCommands object should also be an intercepted proxy)
-            if (invocation.getMethod().getReturnType().isInterface()) {
-                invocationResult = new RedisInterceptorFactory<>(invocationResult, redisConnectionString).getProxy(invocation.getMethod().getReturnType());
+            if (invocation.getMethod().getReturnType().isInterface() &&
+                    invocation.getMethod().getReturnType().getClassLoader() != null) {
+                invocationResult = new RedisInterceptorFactory<>(invocationResult, redisConnectionString)
+                        .getProxy(invocation.getMethod().getReturnType());
             }
         }
 
@@ -167,12 +177,33 @@ public class RedisInterceptor<T> implements MethodInterceptor {
 
         RuntimeException exceptionToThrow;
 
-        if (exceptionNameString.equals("io.lettuce.core.RedisCommandTimeoutException")) {
-            exceptionToThrow = new RedisCommandTimeoutException(causeString);
-        } else if (exceptionNameString.equals("io.lettuce.core.RedisConnectionException")) {
-            exceptionToThrow = new RedisConnectionException(causeString);
-        } else {
-            throw new FilibusterFaultInjectionException("Cannot determine the execution cause to throw: " + causeString);
+        switch (exceptionNameString) {
+            case "io.lettuce.core.RedisCommandTimeoutException":
+                exceptionToThrow = new RedisCommandTimeoutException(causeString);
+                break;
+            case "io.lettuce.core.RedisConnectionException":
+                exceptionToThrow = new RedisConnectionException(causeString);
+                break;
+            case "io.lettuce.core.RedisBusyException":
+                exceptionToThrow = new RedisBusyException(causeString);
+                break;
+            case "io.lettuce.core.RedisCommandExecutionException":
+                exceptionToThrow = new RedisCommandExecutionException(causeString);
+                break;
+            case "io.lettuce.core.RedisCommandInterruptedException":
+                exceptionToThrow = new RedisCommandInterruptedException(new Throwable(causeString));
+                break;
+            case "io.lettuce.core.cluster.UnknownPartitionException":
+                exceptionToThrow = new UnknownPartitionException(causeString);
+                break;
+            case "io.lettuce.core.cluster.PartitionSelectorException":
+                exceptionToThrow = new PartitionSelectorException(causeString, new Partitions());
+                break;
+            case "io.lettuce.core.dynamic.batch.BatchException":
+                exceptionToThrow = new BatchException(new ArrayList<>());
+                break;
+            default:
+                throw new FilibusterFaultInjectionException("Cannot determine the execution cause to throw: " + causeString);
         }
 
         // Notify Filibuster.
@@ -183,7 +214,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
     }
 
     private static void generateExceptionFromFailureMetadata() {
-        throw new FilibusterFaultInjectionException("failure metadata not supported for Lettuce.");
+        throw new FilibusterFaultInjectionException("Failure metadata not supported for Lettuce.");
     }
 
     private static boolean shouldInstrument() {

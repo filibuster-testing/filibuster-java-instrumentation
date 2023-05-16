@@ -13,6 +13,7 @@ public class RedisClientService {
     @Nullable
     private static RedisClientService single_instance = null;
 
+    @SuppressWarnings("resource")
     private RedisClientService() {
         GenericContainer<?> redis = new GenericContainer<>(DockerImageName.parse("redis:5.0.3-alpine"))
                 .withExposedPorts(6379);
@@ -20,8 +21,7 @@ public class RedisClientService {
         String address = redis.getHost();
         Integer port = redis.getFirstMappedPort();
         connectionString = String.format("redis://%s:%d/0", address, port);
-        RedisClient client = RedisClient.create(connectionString);
-        redisClient = client;
+        redisClient = RedisClient.create(connectionString);
     }
 
     // Static method to create instance of Singleton class

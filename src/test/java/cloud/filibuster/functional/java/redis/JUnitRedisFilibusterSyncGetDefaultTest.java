@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("unchecked")
-public class JUnitRedisFilibusterSyncGetMultipleTests extends JUnitAnnotationBaseTest {
+public class JUnitRedisFilibusterSyncGetDefaultTest extends JUnitAnnotationBaseTest {
     static final String key = "test";
     static final String value = "example";
     static StatefulRedisConnection<String, String> statefulRedisConnection;
@@ -57,7 +57,7 @@ public class JUnitRedisFilibusterSyncGetMultipleTests extends JUnitAnnotationBas
     @DisplayName("Tests whether Redis sync interceptor can read from existing key - Multiple fault injections")
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = RedisDefaultAnalysisConfigurationFile.class)
-    public void testRedisSyncGetMultipleTests() {
+    public void testRedisSyncGetDefaultTests() {
         try {
             numberOfTestExecutions++;
 

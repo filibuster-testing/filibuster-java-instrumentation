@@ -31,6 +31,7 @@ public class RedisExhaustiveAnalysisConfigurationFile implements FilibusterAnaly
                 {"io.lettuce.core.cluster.UnknownPartitionException", "/(getConnection)\\b", "Connection not allowed. This partition is not known in the cluster view"},
                 {"io.lettuce.core.cluster.PartitionSelectorException", "/(getConnection)\\b", "Cannot determine a partition to read for slot"},
                 {"io.lettuce.core.dynamic.CommandCreationException", "/(createCommand)\\b", "Command methods do not support Timeout parameters"},
+                {"io.lettuce.core.dynamic.batch.BatchException", "/(flush|llen)\\b", "Error during batch command execution"},
         };
 
         for (String[] exception : exceptions) {

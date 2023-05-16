@@ -16,12 +16,14 @@ import io.lettuce.core.cluster.PartitionSelectorException;
 import io.lettuce.core.cluster.UnknownPartitionException;
 import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.dynamic.CommandCreationException;
+import io.lettuce.core.dynamic.batch.BatchException;
 import io.lettuce.core.dynamic.intercept.MethodInterceptor;
 import io.lettuce.core.dynamic.intercept.MethodInvocation;
 import org.json.JSONObject;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.logging.Level;
@@ -201,6 +203,9 @@ public class RedisInterceptor<T> implements MethodInterceptor {
             case "io.lettuce.core.dynamic.CommandCreationException":
                 // Null because CommandMethod is not available
                 exceptionToThrow = new CommandCreationException(null, causeString);
+                break;
+            case "io.lettuce.core.dynamic.batch.BatchException":
+                exceptionToThrow = new BatchException(new ArrayList<>());
                 break;
             default:
                 throw new FilibusterFaultInjectionException("Cannot determine the execution cause to throw: " + causeString);

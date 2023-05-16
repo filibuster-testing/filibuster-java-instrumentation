@@ -8,6 +8,7 @@ import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrument
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
 import io.lettuce.core.RedisBusyException;
+import io.lettuce.core.RedisCommandExecutionException;
 import io.lettuce.core.RedisCommandTimeoutException;
 import io.lettuce.core.RedisConnectionException;
 import io.lettuce.core.dynamic.intercept.MethodInterceptor;
@@ -137,7 +138,8 @@ public class RedisInterceptor<T> implements MethodInterceptor {
             // If "invocationResult" is an interface, return an intercepted proxy
             // (e.g., when calling StatefulRedisConnection.sync() where StatefulRedisConnection is an intercepted proxy,
             // the returned RedisCommands object should also be an intercepted proxy)
-            if (invocation.getMethod().getReturnType().isInterface()) {
+            if (invocation.getMethod().getReturnType().isInterface() &&
+                    invocation.getMethod().getReturnType().getClassLoader() != null) {
                 invocationResult = new RedisInterceptorFactory<>(invocationResult, redisConnectionString)
                         .getProxy(invocation.getMethod().getReturnType());
             }
@@ -150,7 +152,6 @@ public class RedisInterceptor<T> implements MethodInterceptor {
 
     private Object invokeOnInterceptedObject(MethodInvocation invocation) throws InvocationTargetException, IllegalAccessException {
         try {
-            //method.invoke(((MethodInterceptorChain.PooledMethodInvocation) invocation).getInvocationTarget(), args)
             Method method = invocation.getMethod();
             Object[] args = invocation.getArguments();
             return method.invoke(interceptedObject, args);
@@ -179,6 +180,9 @@ public class RedisInterceptor<T> implements MethodInterceptor {
                 break;
             case "io.lettuce.core.RedisBusyException":
                 exceptionToThrow = new RedisBusyException(causeString);
+                break;
+            case "io.lettuce.core.RedisCommandExecutionException":
+                exceptionToThrow = new RedisCommandExecutionException(causeString);
                 break;
             default:
                 throw new FilibusterFaultInjectionException("Cannot determine the execution cause to throw: " + causeString);

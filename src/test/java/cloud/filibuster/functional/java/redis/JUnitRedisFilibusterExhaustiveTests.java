@@ -6,6 +6,7 @@ import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisCli
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.RedisExhaustiveAnalysisConfigurationFile;
 import io.lettuce.core.RedisBusyException;
+import io.lettuce.core.RedisCommandExecutionException;
 import io.lettuce.core.RedisCommandTimeoutException;
 import io.lettuce.core.RedisConnectionException;
 import io.lettuce.core.api.StatefulRedisConnection;
@@ -62,15 +63,21 @@ public class JUnitRedisFilibusterExhaustiveTests extends JUnitAnnotationBaseTest
     }
 
     static {
-        allowedExceptions.put(RedisCommandTimeoutException.class, new String[][]{{"get", "Command timed out after 100 millisecond(s)"}});
+        allowedExceptions.put(RedisCommandTimeoutException.class, new String[][]{
+                {"get", "Command timed out after 100 millisecond(s)"},
+                {"hgetall", "Command timed out after 100 millisecond(s)"},
+                {"hset", "Command timed out after 100 millisecond(s)"}});
         allowedExceptions.put(RedisConnectionException.class, new String[][]{{"sync", "Connection closed prematurely"}});
         allowedExceptions.put(RedisBusyException.class, new String[][]{
                 {"flushall", "BUSY Redis is busy running a script. You can only call SCRIPT KILL or SHUTDOWN NOSAVE"},
                 {"flushdb", "BUSY Redis is busy running a script. You can only call SCRIPT KILL or SHUTDOWN NOSAVE"}});
+        allowedExceptions.put(RedisCommandExecutionException.class, new String[][]{
+                {"hgetall", "WRONGTYPE Operation against a key holding the wrong kind of value"},
+                {"hset", "WRONGTYPE Operation against a key holding the wrong kind of value"}});
 
     }
 
-    @DisplayName("Tests whether Redis sync interceptor can read from existing key - Exhaustive fault injections")
+    @DisplayName("Exhaustive Redis fault injections")
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = RedisExhaustiveAnalysisConfigurationFile.class)
     public void testRedisSyncGetExhaustiveTests() {
@@ -89,6 +96,10 @@ public class JUnitRedisFilibusterExhaustiveTests extends JUnitAnnotationBaseTest
             myRedisCommands.flushall();
             myRedisCommands.flushdb();
             assertNull(myRedisCommands.get(key));
+
+            // Test RedisCommandExecutionException
+            myRedisCommands.hset(key, key, value);
+            myRedisCommands.hgetall(key);
 
             assertFalse(wasFaultInjected());
         } catch (Throwable t) {
@@ -120,14 +131,14 @@ public class JUnitRedisFilibusterExhaustiveTests extends JUnitAnnotationBaseTest
     @Test
     @Order(2)
     public void testNumExecutions() {
-        assertEquals(6, numberOfTestExecutions);
+        assertEquals(10, numberOfTestExecutions);
     }
 
-    @DisplayName("Verify correct number of generated Filibuster tests.")
+    @DisplayName("Verify correct number of Filibuster exceptions.")
     @Test
     @Order(3)
     public void testNumExceptions() {
-        assertEquals(3, testExceptionsThrown.size());
+        assertEquals(allowedExceptions.size(), testExceptionsThrown.size());
     }
 
 }

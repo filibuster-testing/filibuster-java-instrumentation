@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("unchecked")
-public class JUnitRedisFilibusterSyncGetDefaultTests extends JUnitAnnotationBaseTest {
+public class JUnitRedisFilibusterSyncGetDefaultTest extends JUnitAnnotationBaseTest {
     static final String key = "test";
     static final String value = "example";
     static StatefulRedisConnection<String, String> statefulRedisConnection;

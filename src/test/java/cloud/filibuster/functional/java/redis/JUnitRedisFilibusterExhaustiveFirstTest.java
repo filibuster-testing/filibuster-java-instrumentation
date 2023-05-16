@@ -10,6 +10,7 @@ import io.lettuce.core.RedisCommandExecutionException;
 import io.lettuce.core.RedisCommandInterruptedException;
 import io.lettuce.core.RedisCommandTimeoutException;
 import io.lettuce.core.RedisConnectionException;
+import io.lettuce.core.RedisNoScriptException;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.sync.RedisCommands;
@@ -42,7 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("unchecked")
-public class JUnitRedisFilibusterExhaustiveTests extends JUnitAnnotationBaseTest {
+public class JUnitRedisFilibusterExhaustiveFirstTest extends JUnitAnnotationBaseTest {
     static final String key = "test";
     static final String value = "example";
     static StatefulRedisConnection<String, String> statefulRedisConnection;
@@ -84,13 +85,16 @@ public class JUnitRedisFilibusterExhaustiveTests extends JUnitAnnotationBaseTest
         allowedExceptions.put(RedisCommandInterruptedException.class,
                 new AbstractMap.SimpleEntry<>(List.of("await"), "Command interrupted"));
 
+        allowedExceptions.put(RedisNoScriptException.class,
+                new AbstractMap.SimpleEntry<>(List.of("evalsha"), "Command interrupted"));
+
 
     }
 
     @DisplayName("Exhaustive Redis fault injections")
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = RedisExhaustiveAnalysisConfigurationFile.class)
-    public void testRedisSyncGetExhaustiveTests() {
+    public void testRedisExhaustiveTests() {
         try {
             numberOfTestExecutions++;
 

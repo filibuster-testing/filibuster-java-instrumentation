@@ -10,7 +10,6 @@ import io.lettuce.core.RedisCommandExecutionException;
 import io.lettuce.core.RedisCommandInterruptedException;
 import io.lettuce.core.RedisCommandTimeoutException;
 import io.lettuce.core.RedisConnectionException;
-import io.lettuce.core.RedisNoScriptException;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.sync.RedisCommands;
@@ -84,10 +83,6 @@ public class JUnitRedisFilibusterExhaustiveFirstTest extends JUnitAnnotationBase
 
         allowedExceptions.put(RedisCommandInterruptedException.class,
                 new AbstractMap.SimpleEntry<>(List.of("await"), "Command interrupted"));
-
-        allowedExceptions.put(RedisNoScriptException.class,
-                new AbstractMap.SimpleEntry<>(List.of("evalsha"), "Command interrupted"));
-
 
     }
 

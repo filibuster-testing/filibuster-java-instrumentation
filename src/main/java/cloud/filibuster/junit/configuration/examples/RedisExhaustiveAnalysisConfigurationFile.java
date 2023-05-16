@@ -28,7 +28,8 @@ public class RedisExhaustiveAnalysisConfigurationFile implements FilibusterAnaly
                 {"io.lettuce.core.RedisBusyException", "/(flushall|flushdb)\\b", "BUSY Redis is busy running a script. You can only call SCRIPT KILL or SHUTDOWN NOSAVE"},
                 {"io.lettuce.core.RedisCommandExecutionException", "/(hget|hgetall|hset)\\b", "WRONGTYPE Operation against a key holding the wrong kind of value"},
                 {"io.lettuce.core.RedisCommandInterruptedException", "/(await)\\b", "Command interrupted"},
-                {"io.lettuce.core.cluster.UnknownPartitionException", "/(getConnection)\\b", "Connection not allowed. This partition is not known in the cluster view."}
+                {"io.lettuce.core.cluster.UnknownPartitionException", "/(getConnection)\\b", "Connection not allowed. This partition is not known in the cluster view"},
+                {"io.lettuce.core.cluster.PartitionSelectorException", "/(getConnection)\\b", "Cannot determine a partition to read for slot"}
         };
 
         for (String[] exception : exceptions) {

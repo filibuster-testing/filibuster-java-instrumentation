@@ -42,7 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("unchecked")
-public class JUnitRedisFilibusterExhaustiveCoreTest extends JUnitAnnotationBaseTest {
+public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnotationBaseTest {
     static final String key = "test";
     static final String value = "example";
     static StatefulRedisConnection<String, String> statefulRedisConnection;
@@ -86,7 +86,7 @@ public class JUnitRedisFilibusterExhaustiveCoreTest extends JUnitAnnotationBaseT
 
     }
 
-    @DisplayName("Exhaustive Redis fault injections")
+    @DisplayName("Exhaustive Core Redis fault injections")
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = RedisExhaustiveAnalysisConfigurationFile.class)
     public void testRedisExhaustiveCoreTests() {

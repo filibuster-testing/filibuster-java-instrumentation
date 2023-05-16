@@ -15,7 +15,6 @@ import io.lettuce.core.RedisConnectionException;
 import io.lettuce.core.cluster.PartitionSelectorException;
 import io.lettuce.core.cluster.UnknownPartitionException;
 import io.lettuce.core.cluster.models.partitions.Partitions;
-import io.lettuce.core.dynamic.CommandCreationException;
 import io.lettuce.core.dynamic.batch.BatchException;
 import io.lettuce.core.dynamic.intercept.MethodInterceptor;
 import io.lettuce.core.dynamic.intercept.MethodInvocation;
@@ -199,10 +198,6 @@ public class RedisInterceptor<T> implements MethodInterceptor {
                 break;
             case "io.lettuce.core.cluster.PartitionSelectorException":
                 exceptionToThrow = new PartitionSelectorException(causeString, new Partitions());
-                break;
-            case "io.lettuce.core.dynamic.CommandCreationException":
-                // Null because CommandMethod is not available
-                exceptionToThrow = new CommandCreationException(null, causeString);
                 break;
             case "io.lettuce.core.dynamic.batch.BatchException":
                 exceptionToThrow = new BatchException(new ArrayList<>());

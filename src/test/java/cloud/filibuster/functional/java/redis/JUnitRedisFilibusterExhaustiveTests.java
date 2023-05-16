@@ -4,7 +4,7 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.RedisDefaultAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.RedisExhaustiveAnalysisConfigurationFile;
 import io.lettuce.core.RedisBusyException;
 import io.lettuce.core.RedisCommandTimeoutException;
 import io.lettuce.core.RedisConnectionException;
@@ -72,7 +72,7 @@ public class JUnitRedisFilibusterExhaustiveTests extends JUnitAnnotationBaseTest
 
     @DisplayName("Tests whether Redis sync interceptor can read from existing key - Exhaustive fault injections")
     @Order(1)
-    @TestWithFilibuster(analysisConfigurationFile = RedisDefaultAnalysisConfigurationFile.class)
+    @TestWithFilibuster(analysisConfigurationFile = RedisExhaustiveAnalysisConfigurationFile.class)
     public void testRedisSyncGetExhaustiveTests() {
         try {
             numberOfTestExecutions++;
@@ -82,14 +82,11 @@ public class JUnitRedisFilibusterExhaustiveTests extends JUnitAnnotationBaseTest
             // Test RedisConnectionException
             RedisCommands<String, String> myRedisCommands = myStatefulRedisConnection.sync();
 
-            myRedisCommands.get(key);
-            myRedisCommands.get(key);
-            myRedisCommands.get(key);
-
             // Test RedisCommandTimeoutException
             assertEquals(value, myRedisCommands.get(key));
 
             // Test RedisBusyException
+            myRedisCommands.flushall();
             myRedisCommands.flushdb();
             assertNull(myRedisCommands.get(key));
 
@@ -123,14 +120,14 @@ public class JUnitRedisFilibusterExhaustiveTests extends JUnitAnnotationBaseTest
     @Test
     @Order(2)
     public void testNumExecutions() {
-        assertEquals(3, numberOfTestExecutions);
+        assertEquals(6, numberOfTestExecutions);
     }
 
     @DisplayName("Verify correct number of generated Filibuster tests.")
     @Test
     @Order(3)
     public void testNumExceptions() {
-        assertEquals(2, testExceptionsThrown.size());
+        assertEquals(3, testExceptionsThrown.size());
     }
 
 }

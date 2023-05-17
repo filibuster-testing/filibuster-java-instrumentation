@@ -642,9 +642,9 @@ public class FilibusterCore {
                     String byzantineFaultName = errorObject.getString("name");
                     JSONObject byzantineMetadata = errorObject.getJSONObject("metadata");
 
-                    HashMap<String, String> byzantineMetadataMap = new HashMap<>();
+                    HashMap<String, Object> byzantineMetadataMap = new HashMap<>();
                     for (String metadataObjectKey : byzantineMetadata.keySet()) {
-                        byzantineMetadataMap.put(metadataObjectKey, byzantineMetadata.getString(metadataObjectKey));
+                        byzantineMetadataMap.put(metadataObjectKey, byzantineMetadata.get(metadataObjectKey));
                     }
 
                     filibusterAnalysisConfigurationBuilder.byzantine(byzantineFaultName, byzantineMetadataMap);

@@ -143,7 +143,7 @@ public class FilibusterAnalysisConfiguration {
         }
 
         @CanIgnoreReturnValue
-        public Builder byzantine(String name, Map<String, String> metadata) {
+        public <T> Builder byzantine(String name, Map<String, T> metadata) {
             JSONObject byzantine = new JSONObject();
             byzantine.put("name", name);
             byzantine.put("metadata", metadata);

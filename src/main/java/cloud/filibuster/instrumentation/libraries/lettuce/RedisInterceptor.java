@@ -180,7 +180,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         String byzantineFaultName = byzantineFault.getString("name");
         JSONObject byzantineFaultMetadata = byzantineFault.getJSONObject("metadata");
 
-        String byzantineFaultValue = byzantineFaultMetadata.getString("value");
+        Object byzantineFaultValue = byzantineFaultMetadata.get("value");
 
         logger.log(Level.INFO, logPrefix + "byzantineFaultName: " + byzantineFaultName);
         logger.log(Level.INFO, logPrefix + "byzantineFaultValue: " + byzantineFaultValue);
@@ -188,9 +188,9 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         // Notify Filibuster.
         HashMap<String, String> additionalMetadata = new HashMap<>();
         additionalMetadata.put("name", byzantineFaultName);
-        additionalMetadata.put("value", byzantineFaultValue);
+        additionalMetadata.put("value", byzantineFaultValue.toString());
 
-        filibusterClientInstrumentor.afterInvocationWithException(byzantineFaultName, byzantineFaultValue, additionalMetadata);
+        filibusterClientInstrumentor.afterInvocationWithException(byzantineFaultName, byzantineFaultValue.toString(), additionalMetadata);
 
         return byzantineFaultValue;
     }

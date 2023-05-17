@@ -26,6 +26,7 @@ public class RedisSingleByzantineFaultAnalysisConfigurationFile implements Filib
                 .pattern(REDIS_MODULE_NAME + "/(get)\\b");
 
 
+        // Potentially use junit-quickcheck to generate the possible values -> Would make the tests more "flaky"
         String[] possibleValues = {"123", "", "abcd", "-123ABC", "ThisIsATestString"};
         for (String value : possibleValues) {
             filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine("my_string_get_byzantine_fault", createBzyantineFaultMap(value));

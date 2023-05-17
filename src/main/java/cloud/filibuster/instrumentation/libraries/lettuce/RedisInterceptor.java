@@ -192,7 +192,6 @@ public class RedisInterceptor<T> implements MethodInterceptor {
 
         filibusterClientInstrumentor.afterInvocationWithException(byzantineFaultName, byzantineFaultValue, additionalMetadata);
 
-
         return byzantineFaultValue;
     }
 

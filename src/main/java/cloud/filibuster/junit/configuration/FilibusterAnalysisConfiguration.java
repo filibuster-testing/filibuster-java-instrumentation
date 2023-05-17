@@ -1,6 +1,7 @@
 package cloud.filibuster.junit.configuration;
 
 import cloud.filibuster.instrumentation.datatypes.Pair;
+import cloud.filibuster.junit.configuration.examples.byzantine.decoders.ByzantineDecoder;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import org.json.JSONObject;
 
@@ -143,10 +144,11 @@ public class FilibusterAnalysisConfiguration {
         }
 
         @CanIgnoreReturnValue
-        public <T> Builder byzantine(String name, Map<String, T> metadata) {
+        public <T> Builder byzantine(String name, Map<String, T> metadata, ByzantineDecoder decoder) {
             JSONObject byzantine = new JSONObject();
             byzantine.put("name", name);
             byzantine.put("metadata", metadata);
+            byzantine.put("decoder", decoder);
             byzantines.add(byzantine);
             return this;
         }

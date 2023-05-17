@@ -7,6 +7,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.exceptions.filibuster.FilibusterLatencyInjectionException;
 import cloud.filibuster.instrumentation.helpers.Property;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
+import cloud.filibuster.junit.configuration.examples.byzantine.decoders.ByzantineDecoder;
 import cloud.filibuster.junit.server.core.reports.TestSuiteReport;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration.MatcherType;
@@ -647,7 +648,7 @@ public class FilibusterCore {
                         byzantineMetadataMap.put(metadataObjectKey, byzantineMetadata.get(metadataObjectKey));
                     }
 
-                    filibusterAnalysisConfigurationBuilder.byzantine(byzantineFaultName, byzantineMetadataMap);
+                    filibusterAnalysisConfigurationBuilder.byzantine(byzantineFaultName, byzantineMetadataMap, ByzantineDecoder.valueOf(errorObject.getString("decoder")));
                     logger.info("[FILIBUSTER-CORE]: analysisFile, found new configuration, byzantineFaultName: " + byzantineFaultName + ", byzantineMetadata: " + byzantineMetadataMap);
                 }
             }

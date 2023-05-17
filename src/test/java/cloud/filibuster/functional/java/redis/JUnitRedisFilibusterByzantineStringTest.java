@@ -35,7 +35,7 @@ public class JUnitRedisFilibusterByzantineStringTest extends JUnitAnnotationBase
     static String redisConnectionString;
     private static int numberOfTestExecutions = 0;
     private final List<String> expectedValues = Arrays.asList("123", "", "abcd", "-123ABC", "ThisIsATestString");
-    private final Set<String> actualValues = new HashSet<>();
+    private static final Set<String> actualValues = new HashSet<>();
 
     @BeforeAll
     public static void primeCache() {
@@ -68,7 +68,8 @@ public class JUnitRedisFilibusterByzantineStringTest extends JUnitAnnotationBase
     @Test
     @Order(2)
     public void testNumExecutions() {
-        assertEquals(expectedValues.size(), numberOfTestExecutions);
+        // One execution for each expected value + 1 for the non-faulty execution
+        assertEquals(expectedValues.size() + 1, numberOfTestExecutions);
     }
 
     @DisplayName("Verify whether all expected values were returned.")

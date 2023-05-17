@@ -185,7 +185,13 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         logger.log(Level.INFO, logPrefix + "byzantineFaultName: " + byzantineFaultName);
         logger.log(Level.INFO, logPrefix + "byzantineFaultValue: " + byzantineFaultValue);
 
-        // TODO Notify Filibuster through filibusterClientInstrumentor.
+        // Notify Filibuster.
+        HashMap<String, String> additionalMetadata = new HashMap<>();
+        additionalMetadata.put("name", byzantineFaultName);
+        additionalMetadata.put("value", byzantineFaultValue);
+
+        filibusterClientInstrumentor.afterInvocationWithException(byzantineFaultName, byzantineFaultValue, additionalMetadata);
+
 
         return byzantineFaultValue;
     }

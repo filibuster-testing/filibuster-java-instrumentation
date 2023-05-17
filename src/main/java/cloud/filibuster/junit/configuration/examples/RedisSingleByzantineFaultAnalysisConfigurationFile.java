@@ -12,10 +12,9 @@ import static cloud.filibuster.instrumentation.Constants.REDIS_MODULE_NAME;
 public class RedisSingleByzantineFaultAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
-    private static Map<String, String> createErrorMap() {
+    private static Map<String, String> createBzyantineFaultMap(String value) {
         Map<String, String> myMap = new HashMap<>();
-        myMap.put("cause", "");
-        myMap.put("code", "");
+        myMap.put("value", value);
         return myMap;
     }
 
@@ -23,11 +22,14 @@ public class RedisSingleByzantineFaultAnalysisConfigurationFile implements Filib
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
-                .name("my_byzantine_fault")
+                .name("my_string_get_byzantine_fault")
                 .pattern(REDIS_MODULE_NAME + "/(get)\\b");
 
 
-        filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine("my_byzantine_fault", createErrorMap());
+        String[] possibleValues = {"123", "", "abcd", "-123ABC", "ThisIsATestString"};
+        for (String value : possibleValues) {
+            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine("my_string_get_byzantine_fault", createBzyantineFaultMap(value));
+        }
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());
 

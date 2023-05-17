@@ -133,7 +133,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         }
 
         if (byzantineFault != null && filibusterClientInstrumentor.shouldAbort()) {
-            logger.log(Level.INFO, logPrefix + "Byzantine fault would be injected here!!!" + byzantineFault);
+            return injectByzantineFault(filibusterClientInstrumentor, byzantineFault);
         }
 
         // ******************************************************************************************
@@ -174,6 +174,20 @@ public class RedisInterceptor<T> implements MethodInterceptor {
             filibusterClientInstrumentor.afterInvocationWithException(t);
             throw t;
         }
+    }
+
+    private static Object injectByzantineFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject byzantineFault) {
+        String byzantineFaultName = byzantineFault.getString("name");
+        JSONObject byzantineFaultMetadata = byzantineFault.getJSONObject("metadata");
+
+        String byzantineFaultValue = byzantineFaultMetadata.getString("value");
+
+        logger.log(Level.INFO, logPrefix + "byzantineFaultName: " + byzantineFaultName);
+        logger.log(Level.INFO, logPrefix + "byzantineFaultValue: " + byzantineFaultValue);
+
+        // TODO Notify Filibuster through filibusterClientInstrumentor.
+
+        return byzantineFaultValue;
     }
 
     private static void generateAndThrowException(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject forcedException) {

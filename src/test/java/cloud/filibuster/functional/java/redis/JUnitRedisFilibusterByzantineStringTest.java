@@ -5,7 +5,6 @@ import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactor
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.RedisSingleByzantineFaultAnalysisConfigurationFile;
-import io.lettuce.core.RedisCommandTimeoutException;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import org.junit.jupiter.api.BeforeAll;
@@ -15,7 +14,7 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,7 +24,6 @@ import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -35,11 +33,9 @@ public class JUnitRedisFilibusterByzantineStringTest extends JUnitAnnotationBase
     static final String value = "example";
     static StatefulRedisConnection<String, String> statefulRedisConnection;
     static String redisConnectionString;
-    private final static Set<String> testExceptionsThrown = new HashSet<>();
-
     private static int numberOfTestExecutions = 0;
-
-    private static final List<String> allowedExceptionMessages = new ArrayList<>();
+    private final List<String> expectedValues = Arrays.asList("123", "", "abcd", "-123ABC", "ThisIsATestString");
+    private final Set<String> actualValues = new HashSet<>();
 
     @BeforeAll
     public static void primeCache() {
@@ -48,30 +44,23 @@ public class JUnitRedisFilibusterByzantineStringTest extends JUnitAnnotationBase
         statefulRedisConnection.sync().set(key, value);
     }
 
-    static {
-        allowedExceptionMessages.add("Command timed out after 100 millisecond(s)");
-    }
-
     @DisplayName("Tests whether Redis sync interceptor can read from existing key - Byzantine string fault injection")
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = RedisSingleByzantineFaultAnalysisConfigurationFile.class)
     public void testRedisByzantineGet() {
-        try {
-            numberOfTestExecutions++;
+        numberOfTestExecutions++;
 
-            StatefulRedisConnection<String, String> myStatefulRedisConnection = new RedisInterceptorFactory<>(statefulRedisConnection, redisConnectionString).getProxy(StatefulRedisConnection.class);
-            RedisCommands<String, String> myRedisCommands = myStatefulRedisConnection.sync();
-            String returnVal = myRedisCommands.get(key);
-            assertEquals(value, returnVal);
-            assertFalse(wasFaultInjected());
-        } catch (Throwable t) {
-            testExceptionsThrown.add(t.getMessage());
+        StatefulRedisConnection<String, String> myStatefulRedisConnection = new RedisInterceptorFactory<>(statefulRedisConnection, redisConnectionString).getProxy(StatefulRedisConnection.class);
+        RedisCommands<String, String> myRedisCommands = myStatefulRedisConnection.sync();
+        String returnVal = myRedisCommands.get(key);
 
-            assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
-            assertTrue(wasFaultInjectedOnService(REDIS_MODULE_NAME), "Fault was not injected on the Redis module: " + t);
-            assertTrue(wasFaultInjectedOnMethod(REDIS_MODULE_NAME, "get"), "Fault was not injected on the expected Redis method: " + t);
-            assertTrue(t instanceof RedisCommandTimeoutException, "Fault was not of the correct type: " + t);
-            assertTrue(allowedExceptionMessages.contains(t.getMessage()), "Unexpected fault message: " + t);
+        if (!wasFaultInjected()) {
+            assertEquals(value, returnVal, "The value returned from Redis was not the expected value although no byzantine fault was injected.");
+        } else {
+            actualValues.add(returnVal);
+            assertTrue(expectedValues.contains(returnVal), "An unexpected value was returned: " + returnVal);
+            assertTrue(wasFaultInjectedOnService(REDIS_MODULE_NAME), "Fault was not injected on the Redis module");
+            assertTrue(wasFaultInjectedOnMethod(REDIS_MODULE_NAME, "get"), "Fault was not injected on the expected Redis method");
         }
     }
 
@@ -79,14 +68,14 @@ public class JUnitRedisFilibusterByzantineStringTest extends JUnitAnnotationBase
     @Test
     @Order(2)
     public void testNumExecutions() {
-        assertEquals(2, numberOfTestExecutions);
+        assertEquals(expectedValues.size(), numberOfTestExecutions);
     }
 
-    @DisplayName("Verify correct number of generated Filibuster tests.")
+    @DisplayName("Verify whether all expected values were returned.")
     @Test
-    @Order(3)
-    public void testNumExceptions() {
-        assertEquals(1, testExceptionsThrown.size());
+    @Order(2)
+    public void testNumReturnValues() {
+        assertEquals(expectedValues.size(), actualValues.size());
     }
 
 }

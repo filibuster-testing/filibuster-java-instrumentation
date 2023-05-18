@@ -34,7 +34,7 @@ public class JUnitRedisFilibusterByzantineStringTest extends JUnitAnnotationBase
     static StatefulRedisConnection<String, String> statefulRedisConnection;
     static String redisConnectionString;
     private static int numberOfTestExecutions = 0;
-    private final List<String> expectedValues = Arrays.asList("123", "", "abcd", "-123ABC", "ThisIsATestString");
+    private final List<String> expectedValues = Arrays.asList(null, "123", "", "abcd", "-123ABC", "ThisIsATestString");
     private static final Set<String> actualValues = new HashSet<>();
 
     @BeforeAll

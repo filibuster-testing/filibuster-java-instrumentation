@@ -201,6 +201,10 @@ public class TestSuiteReport {
             if (! ter.isTestExecutionPassed()) {
                 workbookRowNumber++;
 
+                if (workbookSheet == null) {
+                    throw new FilibusterTestReportWriterException("workbook sheet is null, this should never happen.");
+                }
+                
                 Row row = workbookSheet.createRow(workbookRowNumber);
 
                 Cell cell = row.createCell(0);

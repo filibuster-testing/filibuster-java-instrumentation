@@ -5,7 +5,7 @@ import cloud.filibuster.examples.Hello;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.RedisSingleGetStringByzantineFaultAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.redis.byzantine.RedisSingleGetBasicStringByzantineFaultAnalysisConfigurationFile;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.BeforeAll;
@@ -31,8 +31,8 @@ public class JUnitRedisFilibusterBuggyFallbackByzantineTest {
     }
 
     @DisplayName("Tests reading data from Redis")
-    @TestWithFilibuster(analysisConfigurationFile = RedisSingleGetStringByzantineFaultAnalysisConfigurationFile.class)
-    public void testRedisHello() {
+    @TestWithFilibuster(analysisConfigurationFile = RedisSingleGetBasicStringByzantineFaultAnalysisConfigurationFile.class)
+    public void testRedisByzantineBuggyFallback() {
         ManagedChannel apiChannel = ManagedChannelBuilder.forAddress(Networking.getHost("api_server"), Networking.getPort("api_server")).usePlaintext().build();
 
         try {
@@ -41,7 +41,7 @@ public class JUnitRedisFilibusterBuggyFallbackByzantineTest {
             Hello.RedisReply reply = blockingStub.redisHello(readRequest);
             assertEquals(value, reply.getValue());
         } catch (Throwable t) {
-            if (wasFaultInjected() && t.getMessage().equals("io.grpc.StatusRuntimeException: INTERNAL: java.lang.Exception: An exception was thrown at Hello service")) {
+            if (wasFaultInjected()) {
                 return;
             }
             throw t;

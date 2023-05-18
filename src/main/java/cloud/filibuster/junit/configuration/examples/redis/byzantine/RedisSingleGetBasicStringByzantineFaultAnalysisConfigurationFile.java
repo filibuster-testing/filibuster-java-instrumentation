@@ -1,21 +1,21 @@
-package cloud.filibuster.junit.configuration.examples;
+package cloud.filibuster.junit.configuration.examples.redis.byzantine;
 
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.redis.byzantine.decoders.ByzantineDecoder;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static cloud.filibuster.instrumentation.Constants.REDIS_MODULE_NAME;
 
-public class RedisSingleFaultCommandTimeoutExceptionAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
+public class RedisSingleGetBasicStringByzantineFaultAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
-    private static Map<String, String> createErrorMap() {
-        Map<String, String> myMap = new HashMap<>();
-        myMap.put("cause", "Command timed out after 100 millisecond(s)");
-        myMap.put("code", "");
+    private static <T> Map<String, T> createBzyantineFaultMap(T value) {
+        Map<String, T> myMap = new HashMap<>();
+        myMap.put("value", value);
         return myMap;
     }
 
@@ -23,10 +23,14 @@ public class RedisSingleFaultCommandTimeoutExceptionAnalysisConfigurationFile im
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
-                .name("io.lettuce.core.RedisCommandTimeoutException")
-                .pattern(REDIS_MODULE_NAME + "/(get|set)\\b");
+                .name("my_string_get_byzantine_fault")
+                .pattern(REDIS_MODULE_NAME + "/(get)\\b");
 
-        filibusterAnalysisConfigurationBuilderRedisExceptions.exception("io.lettuce.core.RedisCommandTimeoutException", createErrorMap());
+
+        String[] possibleValues = {null, ""};
+        for (String value : possibleValues) {
+            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine("my_string_get_byzantine_fault", createBzyantineFaultMap(value), ByzantineDecoder.STRING);
+        }
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());
 

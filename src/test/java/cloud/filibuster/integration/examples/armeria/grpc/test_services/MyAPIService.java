@@ -125,13 +125,13 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
                         .setValue(throwException.getMessage())
                         .build();
             }
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
         } catch (RuntimeException e) {
-            reply = Hello.RedisReply.newBuilder()
-                    .setValue(e.toString())
-                    .build();
+            //Propagate exception back to the caller
+            Status status = Status.INTERNAL.withDescription(e.getMessage()).augmentDescription("MyAPIService could not process the request as an exception was thrown");
+            responseObserver.onError(status.asRuntimeException());
         }
-        responseObserver.onNext(reply);
-        responseObserver.onCompleted();
     }
 
     @Override

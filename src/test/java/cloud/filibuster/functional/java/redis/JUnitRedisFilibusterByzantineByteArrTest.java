@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -34,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SuppressWarnings("unchecked")
 public class JUnitRedisFilibusterByzantineByteArrTest extends JUnitAnnotationBaseTest {
     static final String key = "test";
-    static final byte[] value = "example".getBytes();
+    static final byte[] value = "example".getBytes(Charset.defaultCharset());
     static StatefulRedisConnection<String, byte[]> statefulRedisConnection;
     static String redisConnectionString;
     private static int numberOfTestExecutions = 0;
@@ -48,7 +49,7 @@ public class JUnitRedisFilibusterByzantineByteArrTest extends JUnitAnnotationBas
         statefulRedisConnection.sync().set(key, value);
     }
 
-    @DisplayName("Tests whether Redis sync interceptor can read from existing key - Byzantine string fault injection")
+    @DisplayName("Tests whether Redis sync interceptor can read from existing key - Byzantine byte array fault injection")
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = RedisSingleGetByteArrByzantineFaultAnalysisConfigurationFile.class)
     public void testRedisByzantineGet() {

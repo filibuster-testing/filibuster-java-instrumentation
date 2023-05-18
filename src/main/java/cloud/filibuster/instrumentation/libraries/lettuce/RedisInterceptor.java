@@ -218,9 +218,8 @@ public class RedisInterceptor<T> implements MethodInterceptor {
                 // Cast the JSONArray to a byte array.
                 ((JSONArray) byzantineFaultValue).toList().forEach(item -> byteArray.add(Byte.valueOf(item.toString())));
                 return Bytes.toArray(byteArray);
-            default:
-                throw new FilibusterRuntimeException("castByzantineFaultValue: Unknown ByzantineDecoder: " + decoder);
         }
+        throw new FilibusterRuntimeException("castByzantineFaultValue: Unknown ByzantineDecoder: " + decoder);
     }
 
     private static void generateAndThrowException(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject forcedException) {

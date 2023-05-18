@@ -204,7 +204,7 @@ public class TestSuiteReport {
                 if (workbookSheet == null) {
                     throw new FilibusterTestReportWriterException("workbook sheet is null, this should never happen.");
                 }
-                
+
                 Row row = workbookSheet.createRow(workbookRowNumber);
 
                 Cell cell = row.createCell(0);
@@ -228,6 +228,11 @@ public class TestSuiteReport {
 
     private static synchronized void initializeWorkbookAndSheet() {
         workbookSheet = workbook.createSheet("Failures");
+
+        if (workbookSheet == null) {
+            throw new FilibusterTestReportWriterException("workbook sheet is null, this should never happen.");
+        }
+
         workbookSheet.setColumnWidth(0, 20000);
         workbookSheet.setColumnWidth(1, 20000);
         workbookSheet.setColumnWidth(2, 20000);

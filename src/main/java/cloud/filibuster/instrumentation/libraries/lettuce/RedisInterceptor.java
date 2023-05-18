@@ -197,12 +197,13 @@ public class RedisInterceptor<T> implements MethodInterceptor {
 
         // Build the additional metadata used to notify Filibuster.
         HashMap<String, String> additionalMetadata = new HashMap<>();
+        String byzantineFaultValueString = byzantineFaultValue != null ? byzantineFaultValue.toString() : "null";
         additionalMetadata.put("name", byzantineFaultName);
-        additionalMetadata.put("value", (String) byzantineFaultValue);
+        additionalMetadata.put("value", byzantineFaultValueString);
         additionalMetadata.put("decoder", byzantineDecoder.toString());
 
         // Notify Filibuster.
-        filibusterClientInstrumentor.afterInvocationWithException(byzantineFaultName, (String) byzantineFaultValue, additionalMetadata);
+        filibusterClientInstrumentor.afterInvocationWithException(byzantineFaultName, byzantineFaultValueString, additionalMetadata);
 
         return byzantineFaultValue;
     }

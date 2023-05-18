@@ -129,7 +129,8 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
             responseObserver.onCompleted();
         } catch (RuntimeException e) {
             //Propagate exception back to the caller
-            Status status = Status.INTERNAL.withDescription(e.getMessage()).augmentDescription("MyAPIService could not process the request as an exception was thrown");
+            Status status = Status.INTERNAL.withDescription(e.getMessage())
+                    .augmentDescription("MyAPIService could not process the request as an exception was thrown at Redis return value: " + retrievedValue);
             responseObserver.onError(status.asRuntimeException());
         }
     }

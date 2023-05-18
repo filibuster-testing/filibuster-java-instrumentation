@@ -185,41 +185,46 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         JSONObject byzantineFaultMetadata = byzantineFault.getJSONObject("metadata");
         Object byzantineDecoder = byzantineFault.get("decoder");
 
-        Object byzantineFaultValue = byzantineFaultMetadata.get("value");
+        // If a value was assigned, return it. Otherwise, return null.
+        Object byzantineFaultValue = byzantineFaultMetadata.has("value") ? byzantineFaultMetadata.get("value") : null;
 
         // Cast the byzantineFaultValue to the correct type.
         byzantineFaultValue = castByzantineFaultValue(byzantineFaultValue, byzantineDecoder);
 
         logger.log(Level.INFO, logPrefix + "byzantineFaultName: " + byzantineFaultName);
         logger.log(Level.INFO, logPrefix + "byzantineDecoder: " + byzantineDecoder);
-        logger.log(Level.INFO, logPrefix + "byzantineFaultValue: " + byzantineFaultValue.toString());
+        logger.log(Level.INFO, logPrefix + "byzantineFaultValue: " + byzantineFaultValue);
 
         // Build the additional metadata used to notify Filibuster.
         HashMap<String, String> additionalMetadata = new HashMap<>();
         additionalMetadata.put("name", byzantineFaultName);
-        additionalMetadata.put("value", byzantineFaultValue.toString());
+        additionalMetadata.put("value", (String) byzantineFaultValue);
         additionalMetadata.put("decoder", byzantineDecoder.toString());
 
         // Notify Filibuster.
-        filibusterClientInstrumentor.afterInvocationWithException(byzantineFaultName, byzantineFaultValue.toString(), additionalMetadata);
+        filibusterClientInstrumentor.afterInvocationWithException(byzantineFaultName, (String) byzantineFaultValue, additionalMetadata);
 
         return byzantineFaultValue;
     }
 
     // Cast the byzantineFaultValue to the correct type.
     private static Object castByzantineFaultValue(Object byzantineFaultValue, Object byzantineType) {
-        // Get the decoder enum.
-        ByzantineDecoder decoder = ByzantineDecoder.valueOf(byzantineType.toString());
-        switch (decoder) {
-            case STRING:
-                return byzantineFaultValue.toString();
-            case BYTE_ARRAY:
-                List<Byte> byteArray = new ArrayList<>();
-                // Cast the JSONArray to a byte array.
-                ((JSONArray) byzantineFaultValue).toList().forEach(item -> byteArray.add(Byte.valueOf(item.toString())));
-                return Bytes.toArray(byteArray);
+        // If a value was assigned to byzantineFaultValue, decode and return it. Otherwise, return null.
+        if (byzantineFaultValue != null) {
+            // Get the decoder enum.
+            ByzantineDecoder decoder = ByzantineDecoder.valueOf(byzantineType.toString());
+            switch (decoder) {
+                case STRING:
+                    return byzantineFaultValue.toString();
+                case BYTE_ARRAY:
+                    List<Byte> byteArray = new ArrayList<>();
+                    // Cast the JSONArray to a byte array.
+                    ((JSONArray) byzantineFaultValue).toList().forEach(item -> byteArray.add(Byte.valueOf(item.toString())));
+                    return Bytes.toArray(byteArray);
+            }
+            throw new FilibusterRuntimeException("castByzantineFaultValue: Unknown ByzantineDecoder: " + decoder);
         }
-        throw new FilibusterRuntimeException("castByzantineFaultValue: Unknown ByzantineDecoder: " + decoder);
+        return null;
     }
 
     private static void generateAndThrowException(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject forcedException) {

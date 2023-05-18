@@ -28,7 +28,7 @@ public class RedisSingleGetStringByzantineFaultAnalysisConfigurationFile impleme
 
 
         // Potentially use junit-quickcheck to generate the possible values -> Would make the tests more "flaky"
-        String[] possibleValues = {"123", "", "abcd", "-123ABC", "ThisIsATestString"};
+        String[] possibleValues = {null, "123", "", "abcd", "-123ABC", "ThisIsATestString"};
         for (String value : possibleValues) {
             filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine("my_string_get_byzantine_fault", createBzyantineFaultMap(value), ByzantineDecoder.STRING);
         }

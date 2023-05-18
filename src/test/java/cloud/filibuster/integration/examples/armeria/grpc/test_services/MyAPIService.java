@@ -8,6 +8,7 @@ import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.exceptions.CircuitBreakerException;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
+import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
 import io.grpc.ClientInterceptors;
@@ -97,13 +98,16 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void redisHello(Hello.RedisRequest req, StreamObserver<Hello.RedisReply> responseObserver) {
         Hello.RedisReply reply;
-        try {
-            StatefulRedisConnection<String, String> connection = RedisClientService.getInstance().redisClient.connect();
-            String retrievedValue = connection.sync().get(req.getKey());
+        RedisClientService redisClient = RedisClientService.getInstance();
+        StatefulRedisConnection<String, String> connection = new RedisInterceptorFactory<>(redisClient.redisClient.connect(), redisClient.connectionString).getProxy(StatefulRedisConnection.class);
 
-            if (retrievedValue != null) {  // Return cache value if there is a hit
+        String retrievedValue = connection.sync().get(req.getKey());
+
+        try {
+            if (retrievedValue != null && !retrievedValue.isEmpty()) {  // Return cache value if there is a hit
                 reply = Hello.RedisReply.newBuilder().setValue(retrievedValue).build();
             } else {  // Else make a call to the Hello service, the hello service always returns an error
                 ManagedChannel helloChannel = ManagedChannelBuilder
@@ -122,7 +126,9 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
                         .build();
             }
         } catch (RuntimeException e) {
-            reply = Hello.RedisReply.newBuilder().setValue(e.toString()).build();
+            reply = Hello.RedisReply.newBuilder()
+                    .setValue(e.toString())
+                    .build();
         }
         responseObserver.onNext(reply);
         responseObserver.onCompleted();

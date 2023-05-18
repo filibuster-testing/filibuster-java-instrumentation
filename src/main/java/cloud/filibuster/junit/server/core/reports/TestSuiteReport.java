@@ -216,10 +216,14 @@ public class TestSuiteReport {
                 cell.setCellStyle(workbookCellStyle);
 
                 cell = row.createCell(2);
-                cell.setCellValue(ter.getFailures().get(0).getAssertionFailureMessage());
+                cell.setCellValue(ter.getFaultsInjected());
                 cell.setCellStyle(workbookCellStyle);
 
                 cell = row.createCell(3);
+                cell.setCellValue(ter.getFailures().get(0).getAssertionFailureMessage());
+                cell.setCellStyle(workbookCellStyle);
+
+                cell = row.createCell(4);
                 cell.setCellValue(ter.getFailures().get(0).getAssertionFailureStackTrace());
                 cell.setCellStyle(workbookCellStyle);
             }
@@ -236,7 +240,8 @@ public class TestSuiteReport {
         workbookSheet.setColumnWidth(0, 20000);
         workbookSheet.setColumnWidth(1, 20000);
         workbookSheet.setColumnWidth(2, 20000);
-        workbookSheet.setColumnWidth(3, 40000);
+        workbookSheet.setColumnWidth(3, 20000);
+        workbookSheet.setColumnWidth(4, 40000);
 
         CellStyle headerStyle = workbook.createCellStyle();
         headerStyle.setFillForegroundColor(IndexedColors.LIGHT_CORNFLOWER_BLUE.getIndex());
@@ -257,10 +262,14 @@ public class TestSuiteReport {
         headerCell.setCellStyle(headerStyle);
 
         headerCell = header.createCell(2);
-        headerCell.setCellValue("Failure Message");
+        headerCell.setCellValue("Fault Injected");
         headerCell.setCellStyle(headerStyle);
 
         headerCell = header.createCell(3);
+        headerCell.setCellValue("Failure Message");
+        headerCell.setCellStyle(headerStyle);
+
+        headerCell = header.createCell(4);
         headerCell.setCellValue("Failure Stack Trace");
         headerCell.setCellStyle(headerStyle);
 

@@ -266,7 +266,7 @@ public class TestSuiteReport {
 
         workbookCellStyle = workbook.createCellStyle();
 
-        if (workbookSheet == null) {
+        if (workbookCellStyle == null) {
             throw new FilibusterTestReportWriterException("workbook cell style is null, this should never happen.");
         }
 

@@ -40,7 +40,7 @@ import static cloud.filibuster.instrumentation.helpers.Property.getRedisTestPort
 
 public class RedisInterceptor<T> implements MethodInterceptor {
     public static final Boolean disableInstrumentation = false;
-    private static final Logger logger = Logger.getLogger(RedisInterceptorFactory.class.getName());
+    private static final Logger logger = Logger.getLogger(RedisInterceptor.class.getName());
     protected final ContextStorage contextStorage;
     public static final Boolean disableServerCommunication = false;
     private final String redisServiceName;
@@ -216,7 +216,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
             case BYTE_ARRAY:
                 List<Byte> byteArray = new ArrayList<>();
                 // Cast the JSONArray to a byte array.
-                ((JSONArray) byzantineFaultValue).toList().forEach((item) -> byteArray.add(Byte.valueOf(item.toString())));
+                ((JSONArray) byzantineFaultValue).toList().forEach(item -> byteArray.add(Byte.valueOf(item.toString())));
                 return Bytes.toArray(byteArray);
             default:
                 throw new FilibusterRuntimeException("castByzantineFaultValue: Unknown ByzantineDecoder: " + decoder);

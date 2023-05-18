@@ -91,7 +91,6 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
     @DisplayName("Exhaustive Core Redis fault injections")
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = RedisExhaustiveAnalysisConfigurationFile.class)
-    @Test
     public void testRedisExhaustiveCoreTests() {
         try {
             numberOfTestExecutions++;

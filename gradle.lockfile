@@ -208,6 +208,7 @@ org.ow2.asm:asm:9.1=jacocoAnt
 org.pcollections:pcollections:3.1.4=annotationProcessor,errorprone,testAnnotationProcessor
 org.reactivestreams:reactive-streams:1.0.3=compileClasspath,compileProtoPath,runtimeClasspath,testCompileClasspath,testCompileProtoPath,testRuntimeClasspath
 org.rnorth.duct-tape:duct-tape:1.0.8=compileClasspath,compileProtoPath,runtimeClasspath,testCompileClasspath,testCompileProtoPath,testRuntimeClasspath
+org.slf4j:jcl-over-slf4j:1.7.26=compileClasspath,testCompileClasspath
 org.slf4j:jcl-over-slf4j:1.7.34=compileProtoPath,runtimeClasspath,testCompileProtoPath,testRuntimeClasspath
 org.slf4j:log4j-over-slf4j:1.7.30=runtimeClasspath,testRuntimeClasspath
 org.slf4j:slf4j-api:1.7.36=compileClasspath,compileProtoPath,runtimeClasspath,testCompileClasspath,testCompileProtoPath,testRuntimeClasspath

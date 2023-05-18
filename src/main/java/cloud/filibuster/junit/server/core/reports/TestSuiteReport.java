@@ -196,7 +196,7 @@ public class TestSuiteReport {
         addToWorkbook(testExecutionReports);
     }
 
-    private static void addToWorkbook(List<TestExecutionReport> testExecutionReports) {
+    private static synchronized void addToWorkbook(List<TestExecutionReport> testExecutionReports) {
         for (TestExecutionReport ter : testExecutionReports) {
             if (! ter.isTestExecutionPassed()) {
                 workbookRowNumber++;
@@ -222,7 +222,7 @@ public class TestSuiteReport {
         }
     }
 
-    private static void initializeWorkbookAndSheet() {
+    private static synchronized void initializeWorkbookAndSheet() {
         workbookSheet = workbook.createSheet("Failures");
         workbookSheet.setColumnWidth(0, 20000);
         workbookSheet.setColumnWidth(1, 20000);
@@ -259,7 +259,7 @@ public class TestSuiteReport {
         workbookCellStyle.setWrapText(true);
     }
 
-    private static void writeExcelFile() {
+    private static synchronized void writeExcelFile() {
         String fileLocation = "/tmp/filibuster/failures.xlsx";
         FileOutputStream outputStream = null;
 

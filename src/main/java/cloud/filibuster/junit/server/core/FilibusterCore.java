@@ -7,6 +7,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.exceptions.filibuster.FilibusterLatencyInjectionException;
 import cloud.filibuster.instrumentation.helpers.Property;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
+import cloud.filibuster.junit.configuration.examples.byzantine.decoders.ByzantineDecoder;
 import cloud.filibuster.junit.server.core.reports.TestSuiteReport;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration.MatcherType;
@@ -234,6 +235,10 @@ public class FilibusterCore {
                 JSONObject failureMetadataFaultObject = faultObject.getJSONObject("failure_metadata");
                 logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using failure_metadata: " + failureMetadataFaultObject.toString(4));
                 response.put("failure_metadata", failureMetadataFaultObject);
+            } else if (faultObject.has("byzantine_fault")) {
+                JSONObject byzantineFaultObject = faultObject.getJSONObject("byzantine_fault");
+                logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using byzantine_fault: " + byzantineFaultObject.toString(4));
+                response.put("byzantine_fault", byzantineFaultObject);
             } else if (faultObject.has("latency")) {
                 JSONObject latencyObject = faultObject.getJSONObject("latency");
                 logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using latency: " + latencyObject.toString(4));
@@ -629,6 +634,25 @@ public class FilibusterCore {
                 }
             }
 
+            if (nameObject.has("byzantines")) {
+                JSONArray jsonArray = nameObject.getJSONArray("byzantines");
+
+                for (Object obj : jsonArray) {
+                    JSONObject errorObject = (JSONObject) obj;
+
+                    String byzantineFaultName = errorObject.getString("name");
+                    JSONObject byzantineMetadata = errorObject.getJSONObject("metadata");
+
+                    HashMap<String, Object> byzantineMetadataMap = new HashMap<>();
+                    for (String metadataObjectKey : byzantineMetadata.keySet()) {
+                        byzantineMetadataMap.put(metadataObjectKey, byzantineMetadata.get(metadataObjectKey));
+                    }
+
+                    filibusterAnalysisConfigurationBuilder.byzantine(byzantineFaultName, byzantineMetadataMap, ByzantineDecoder.valueOf(errorObject.getString("decoder")));
+                    logger.info("[FILIBUSTER-CORE]: analysisFile, found new configuration, byzantineFaultName: " + byzantineFaultName + ", byzantineMetadata: " + byzantineMetadataMap);
+                }
+            }
+
             FilibusterAnalysisConfiguration filibusterAnalysisConfiguration = filibusterAnalysisConfigurationBuilder.build();
             filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfiguration);
         }
@@ -706,6 +730,13 @@ public class FilibusterCore {
                                 createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultTypeObject);
                             }
                         }
+                    }
+
+                    // Byzantine faults
+                    List<JSONObject> byzantineFaultObjects = filibusterAnalysisConfiguration.getByzantineFaultObjects();
+
+                    for (JSONObject faultObject : byzantineFaultObjects) {
+                        createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject);
                     }
                 }
             }

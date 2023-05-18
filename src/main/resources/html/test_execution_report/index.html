@@ -204,6 +204,10 @@
                 return "exception" in obj;
             }
 
+            function containsByzantineFaultKey(obj) {
+                return "byzantine_fault" in obj;
+            }
+
             function toggleWarnings() {
                 $('tr.warning').toggle();
             }
@@ -252,6 +256,7 @@
                     var rpc = analysis.rpcs[i];
                     var isFaulted = !isEmpty(rpc.fault);
                     var isExceptionResponse = containsExceptionKey(rpc.response);
+                    var isByzantineFault = containsByzantineFaultKey(rpc.fault);
 
                     if (rpc.group !== group) {
                         group = rpc.group;
@@ -293,6 +298,14 @@
 
                     if (isEmpty(rpc.response)) {
                         row += '<td>⚠️ No RPC response was recorded.</td>';
+                    } else if (isByzantineFault) {
+                        row += '<td>';
+                        row += '<div class="class_name">' + substringNamespace(rpc.response.exception.name) + '</div>';
+                        row += '<textarea>';
+
+                        row += '\ninjected byzantine value = ' + rpc.response.exception.metadata.value.toString();
+
+                        row += '</textarea></td>';
                     } else if (isExceptionResponse) {
                         row += '<td>';
                         row += '<div class="class_name">' + substringNamespace(rpc.response.exception.name) + '</div>';

@@ -1,6 +1,7 @@
 package cloud.filibuster.junit.configuration;
 
 import cloud.filibuster.instrumentation.datatypes.Pair;
+import cloud.filibuster.junit.configuration.examples.byzantine.decoders.ByzantineDecoder;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import org.json.JSONObject;
 
@@ -18,8 +19,10 @@ public class FilibusterAnalysisConfiguration {
     private final List<JSONObject> exceptionFaultObjects = new ArrayList<>();
     private final List<JSONObject> errorFaultObjects = new ArrayList<>();
     private final List<JSONObject> latencyFaultObjects = new ArrayList<>();
+    private final List<JSONObject> byzantineFaultObjects = new ArrayList<>();
     private final String name;
     private final String pattern;
+
 
     @SuppressWarnings("Varifier")
     public FilibusterAnalysisConfiguration(Builder builder) {
@@ -58,11 +61,25 @@ public class FilibusterAnalysisConfiguration {
             }
         }
 
+        if (builder.byzantines.size() > 0) {
+            configurationObject.put("byzantines", builder.byzantines);
+
+            for (JSONObject byzantineObject : builder.byzantines) {
+                JSONObject byzantine = new JSONObject();
+                byzantine.put("byzantine_fault", byzantineObject);
+                byzantineFaultObjects.add(byzantine);
+            }
+        }
+
         analysisConfiguration.put(builder.name, configurationObject);
     }
 
     public List<JSONObject> getExceptionFaultObjects() {
         return this.exceptionFaultObjects;
+    }
+
+    public List<JSONObject> getByzantineFaultObjects() {
+        return this.byzantineFaultObjects;
     }
 
     public List<JSONObject> getErrorFaultObjects() {
@@ -94,6 +111,7 @@ public class FilibusterAnalysisConfiguration {
         private final List<JSONObject> exceptions = new ArrayList<>();
         private final List<JSONObject> errors = new ArrayList<>();
         private final List<JSONObject> latencies = new ArrayList<>();
+        private final List<JSONObject> byzantines = new ArrayList<>();
 
         @CanIgnoreReturnValue
         public Builder name(String name) {
@@ -122,6 +140,16 @@ public class FilibusterAnalysisConfiguration {
             exception.put("name", name);
             exception.put("metadata", metadata);
             exceptions.add(exception);
+            return this;
+        }
+
+        @CanIgnoreReturnValue
+        public <T> Builder byzantine(String name, Map<String, T> metadata, ByzantineDecoder decoder) {
+            JSONObject byzantine = new JSONObject();
+            byzantine.put("name", name);
+            byzantine.put("metadata", metadata);
+            byzantine.put("decoder", decoder);
+            byzantines.add(byzantine);
             return this;
         }
 

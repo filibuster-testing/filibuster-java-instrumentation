@@ -7,6 +7,8 @@ import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
+import cloud.filibuster.junit.configuration.examples.byzantine.decoders.ByzantineDecoder;
+import com.google.common.primitives.Bytes;
 import io.lettuce.core.RedisBusyException;
 import io.lettuce.core.RedisCommandExecutionException;
 import io.lettuce.core.RedisCommandInterruptedException;
@@ -18,6 +20,7 @@ import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.dynamic.batch.BatchException;
 import io.lettuce.core.dynamic.intercept.MethodInterceptor;
 import io.lettuce.core.dynamic.intercept.MethodInvocation;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.lang.reflect.InvocationTargetException;
@@ -25,6 +28,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.net.URI;
@@ -114,9 +118,11 @@ public class RedisInterceptor<T> implements MethodInterceptor {
 
         JSONObject forcedException = filibusterClientInstrumentor.getForcedException();
         JSONObject failureMetadata = filibusterClientInstrumentor.getFailureMetadata();
+        JSONObject byzantineFault = filibusterClientInstrumentor.getByzantineFault();
 
         logger.log(Level.INFO, logPrefix + "forcedException: " + forcedException);
         logger.log(Level.INFO, logPrefix + "failureMetadata: " + failureMetadata);
+        logger.log(Level.INFO, logPrefix + "byzantineFault: " + byzantineFault);
 
         // ******************************************************************************************
         // If we need to throw, this is where we throw.
@@ -128,6 +134,10 @@ public class RedisInterceptor<T> implements MethodInterceptor {
 
         if (forcedException != null && filibusterClientInstrumentor.shouldAbort()) {
             generateAndThrowException(filibusterClientInstrumentor, forcedException);
+        }
+
+        if (byzantineFault != null && filibusterClientInstrumentor.shouldAbort()) {
+            return injectByzantineFault(filibusterClientInstrumentor, byzantineFault);
         }
 
         // ******************************************************************************************
@@ -167,6 +177,49 @@ public class RedisInterceptor<T> implements MethodInterceptor {
             // the filibusterClientInstrumentor, and then throw the exception
             filibusterClientInstrumentor.afterInvocationWithException(t);
             throw t;
+        }
+    }
+
+    private static Object injectByzantineFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject byzantineFault) {
+        String byzantineFaultName = byzantineFault.getString("name");
+        JSONObject byzantineFaultMetadata = byzantineFault.getJSONObject("metadata");
+        Object byzantineDecoder = byzantineFault.get("decoder");
+
+        Object byzantineFaultValue = byzantineFaultMetadata.get("value");
+
+        // Cast the byzantineFaultValue to the correct type.
+        byzantineFaultValue = castByzantineFaultValue(byzantineFaultValue, byzantineDecoder);
+
+        logger.log(Level.INFO, logPrefix + "byzantineFaultName: " + byzantineFaultName);
+        logger.log(Level.INFO, logPrefix + "byzantineDecoder: " + byzantineDecoder);
+        logger.log(Level.INFO, logPrefix + "byzantineFaultValue: " + byzantineFaultValue.toString());
+
+        // Build the additional metadata used to notify Filibuster.
+        HashMap<String, String> additionalMetadata = new HashMap<>();
+        additionalMetadata.put("name", byzantineFaultName);
+        additionalMetadata.put("value", byzantineFaultValue.toString());
+        additionalMetadata.put("decoder", byzantineDecoder.toString());
+
+        // Notify Filibuster.
+        filibusterClientInstrumentor.afterInvocationWithException(byzantineFaultName, byzantineFaultValue.toString(), additionalMetadata);
+
+        return byzantineFaultValue;
+    }
+
+    // Cast the byzantineFaultValue to the correct type.
+    private static Object castByzantineFaultValue(Object byzantineFaultValue, Object byzantineType) {
+        // Get the decoder enum.
+        ByzantineDecoder decoder = ByzantineDecoder.valueOf(byzantineType.toString());
+        switch (decoder) {
+            case STRING:
+                return byzantineFaultValue.toString();
+            case BYTE_ARRAY:
+                List<Byte> byteArray = new ArrayList<>();
+                // Cast the JSONArray to a byte array.
+                ((JSONArray) byzantineFaultValue).toList().forEach((item) -> byteArray.add(Byte.valueOf(item.toString())));
+                return Bytes.toArray(byteArray);
+            default:
+                throw new FilibusterRuntimeException("castByzantineFaultValue: Unknown ByzantineDecoder: " + decoder);
         }
     }
 

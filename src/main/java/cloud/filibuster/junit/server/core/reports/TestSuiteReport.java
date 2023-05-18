@@ -185,7 +185,7 @@ public class TestSuiteReport {
 
     }
 
-    public void addTestReport(TestReport testReport) {
+    public synchronized void addTestReport(TestReport testReport) {
         String testName = testReport.getTestName();
         String className = testReport.getClassName();
         File testPath = testReport.getReportPath();

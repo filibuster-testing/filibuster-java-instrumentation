@@ -77,8 +77,8 @@ public class RedisInterceptor<T> implements MethodInterceptor {
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
-        logger.log(Level.INFO, "RedisInterceptor: invoke() called");
-        logger.log(Level.INFO, logPrefix + "shouldInstrument() is" + shouldInstrument());
+        logger.log(Level.INFO, logPrefix + "RedisInterceptor: invoke() called");
+        logger.log(Level.INFO, logPrefix + "shouldInstrument() is " + shouldInstrument());
 
         // ******************************************************************************************
         // Extract callsite information.

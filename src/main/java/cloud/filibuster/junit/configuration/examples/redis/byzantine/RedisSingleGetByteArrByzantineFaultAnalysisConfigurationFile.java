@@ -24,13 +24,13 @@ public class RedisSingleGetByteArrByzantineFaultAnalysisConfigurationFile implem
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
-                .name("my_byte_arr_get_byzantine_fault")
+                .name("java.lettuce.byzantine.byte_arr")
                 .pattern(REDIS_MODULE_NAME + "/(get)\\b");
 
 
         String[] possibleValues = {"", "ThisIsATestString", "abcd", "1234!!", "-11"};
         for (String value : possibleValues) {
-            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine("my_byte_arr_get_byzantine_fault", createBzyantineFaultMap(value.getBytes(Charset.defaultCharset())), ByzantineDecoder.BYTE_ARRAY);
+            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine("io.lettuce.byzantine.byte_arr", createBzyantineFaultMap(value.getBytes(Charset.defaultCharset())), ByzantineDecoder.BYTE_ARRAY);
         }
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());

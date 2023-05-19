@@ -1,6 +1,6 @@
 package cloud.filibuster.instrumentation.libraries.lettuce;
 
-import brave.internal.Nullable;
+import javax.annotation.Nullable;
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;

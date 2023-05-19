@@ -23,13 +23,13 @@ public class RedisSingleGetBasicStringByzantineFaultAnalysisConfigurationFile im
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
-                .name("my_string_get_byzantine_fault")
+                .name("java.lettuce.byzantine.basic_string")
                 .pattern(REDIS_MODULE_NAME + "/(get)\\b");
 
 
         String[] possibleValues = {null, ""};
         for (String value : possibleValues) {
-            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine("my_string_get_byzantine_fault", createBzyantineFaultMap(value), ByzantineDecoder.STRING);
+            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine("io.lettuce.byzantine.basic_string", createBzyantineFaultMap(value), ByzantineDecoder.STRING);
         }
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());

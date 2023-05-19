@@ -15,6 +15,7 @@ service APIService {
   rpc HelloWithMock (HelloRequest) returns (HelloReply) {};
   rpc RedisHello (RedisRequest) returns (RedisReply) {};
   rpc Purchase (PurchaseRequest) returns (PurchaseResponse) {}
+  rpc RedisHelloRetry (RedisRequest) returns (RedisReply) {};
 }
 
 message GetUserRequest {

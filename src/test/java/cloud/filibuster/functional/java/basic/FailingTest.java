@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterFailingTest extends JUnitAnnotationBaseTest {
+public class FailingTest extends JUnitAnnotationBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     /**

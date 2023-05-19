@@ -169,7 +169,7 @@
     <div class="container" style="margin: 0 auto; padding: 0; height: 100vh;">
         <div id="sidebar" class="sidebar" style="display: inline-block; vertical-align:top; width: 8vw; padding: 0; margin: 0;"></div>
         <div id="results-container" style="display: inline-block; vertical-align:top; width: 90vw; padding: 0; margin: 0;">
-            <span id="report_warning" class="warning" style="font-size: small; font-weight: 400; display: inline-block; text-align: left; vertical-align:top; width: 90vw; padding: 0; margin: 0;"">hi</span>
+            <span id="report_warning" class="warning" style="display: none; font-size: small; font-weight: 400; display: inline-block; text-align: left; vertical-align:top; width: 90vw; padding: 0; margin: 0;"></span>
             <div id="results" class="results" style="display: inline-block; vertical-align:top; width: 90vw; padding: 0; margin: 0;">
             </div>
         </div>
@@ -182,8 +182,8 @@
             $('#sidebar').html(sidebarIFrame);
 
             if (summary.iterations_remaining > 0) {
-                console.log("whoop");
                 $('#report_warning').html("️️⚠️ " + summary.iterations_remaining + " or more iterations remain, perhaps try increasing max iterations and re-running test.");
+                $('#report_warning').show();
             }
 
             for (i in summary.reports) {

@@ -1,5 +1,6 @@
 package cloud.filibuster.instrumentation.libraries.lettuce;
 
+import brave.internal.Nullable;
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
@@ -209,6 +210,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
     }
 
     // Cast the byzantineFaultValue to the correct type.
+    @Nullable
     private static Object castByzantineFaultValue(Object byzantineFaultValue, Object byzantineType) {
         // If a value was assigned to byzantineFaultValue, decode and return it. Otherwise, return null.
         if (byzantineFaultValue != null) {

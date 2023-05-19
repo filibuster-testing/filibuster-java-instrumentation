@@ -1,3 +1,5 @@
+1.7.4:
+   - (MichaelA-ops) Add support for byzantine fault injection.
 1.7.3:
    - (MichaelA-ops) Add support for injecting more Redis exceptions.
 1.7.2:

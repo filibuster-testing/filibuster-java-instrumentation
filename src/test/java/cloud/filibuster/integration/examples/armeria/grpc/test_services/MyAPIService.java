@@ -172,7 +172,7 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
 
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
-        } catch (Exception e) {
+        } catch (@SuppressWarnings("InterruptedExceptionSwallowed") Exception e) {
             //Propagate exception back to the caller
             Status status = Status.INTERNAL.withDescription(e.getMessage())
                     .augmentDescription("MyAPIService could not process the request as an exception was thrown. " +

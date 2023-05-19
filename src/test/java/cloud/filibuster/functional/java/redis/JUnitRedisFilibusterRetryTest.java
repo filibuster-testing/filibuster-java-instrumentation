@@ -10,10 +10,6 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.testcontainers.shaded.com.google.common.base.Stopwatch;
 
 import java.io.IOException;
@@ -29,12 +25,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.testcontainers.shaded.com.google.common.base.Stopwatch.createStarted;
 
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class JUnitRedisFilibusterRetryTest {
     private static final String key = "username";
     private static final String value = "Filibuster";
-    private static int currentRetry;
-    private static final int maxTries = 10;
 
     @BeforeAll
     public static void startAllServices() throws IOException, InterruptedException {
@@ -46,43 +39,28 @@ public class JUnitRedisFilibusterRetryTest {
 
     @DisplayName("Tests reading data from APIService with Redis byzantine fault injection")
     @TestWithFilibuster(analysisConfigurationFile = RedisSingleFaultCommandInterruptedExceptionAnalysisConfigurationFile.class)
-    @Order(1)
-    public void testRedisRetry() throws InterruptedException {
-        currentRetry = 0;  // Reset retry counter
+    public void testRedisRetry() {
         Stopwatch stopwatch = createStarted();  // Start stopwatch
 
         ManagedChannel apiChannel = ManagedChannelBuilder.forAddress(Networking.getHost("api_server"), Networking.getPort("api_server")).usePlaintext().build();
 
-        while (currentRetry < maxTries) {
-            try {
-                APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
-                Hello.RedisRequest readRequest = Hello.RedisRequest.newBuilder().setKey(key).build();
-                Hello.RedisReply reply = blockingStub.redisHelloRetry(readRequest);
-                assertEquals("Hello, " + value + "!!", reply.getValue());
-                break; // Leave the while loop
-            } catch (Throwable t) {
-                if (wasFaultInjected()) {
-                    assertTrue(wasFaultInjectedOnService(REDIS_MODULE_NAME), "Fault was not injected on the Redis module");
-                    assertTrue(wasFaultInjectedOnMethod(REDIS_MODULE_NAME, "await"), "Fault was not injected on the expected Redis method");
-                    String expectedErrorMessage = "Command interrupted";
-                    assertTrue(t.getMessage().contains(expectedErrorMessage), "Unexpected return error message for injected byzantine fault");
-                    Thread.sleep(3000); // Sleep for 3 seconds
-                } else {
-                    throw t;
-                }
+        try {
+            APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
+            Hello.RedisRequest readRequest = Hello.RedisRequest.newBuilder().setKey(key).build();
+            Hello.RedisReply reply = blockingStub.redisHelloRetry(readRequest);
+            assertEquals("Hello, " + value + "!!", reply.getValue());
+        } catch (Throwable t) {
+            if (wasFaultInjected()) {
+                assertTrue(wasFaultInjectedOnService(REDIS_MODULE_NAME), "Fault was not injected on the Redis module");
+                assertTrue(wasFaultInjectedOnMethod(REDIS_MODULE_NAME, "await"), "Fault was not injected on the expected Redis method");
+                String expectedErrorMessage = "Command interrupted";
+                assertTrue(t.getMessage().contains(expectedErrorMessage), "Unexpected return error message for injected byzantine fault");
+            } else {
+                throw t;
             }
-            currentRetry++;
         }
-        long elapsedTime = stopwatch.elapsed(TimeUnit.SECONDS);
-        // 35 seconds covers 10 retries each with 3 seconds of sleep and a 5-second buffer for RPC communication overhead
-        assertTrue(elapsedTime < 35, "Test took more than 35 seconds to complete: " + elapsedTime);
-    }
 
-    @DisplayName("Verify correct number of retries.")
-    @Test
-    @Order(2)
-    public void testNumRetries() {
-        assertEquals(maxTries, currentRetry,
-                "Number of actual retries should be equal to the max number of retries");
+        long elapsedTime = stopwatch.elapsed(TimeUnit.SECONDS);
+        assertTrue(elapsedTime < 3, "Test took more than 1 seconds to complete. It took: " + elapsedTime);
     }
 }

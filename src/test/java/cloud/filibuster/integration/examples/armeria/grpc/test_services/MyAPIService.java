@@ -148,13 +148,31 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         StatefulRedisConnection<String, String> connection = new RedisInterceptorFactory<>(redisClient.redisClient.connect(), redisClient.connectionString).getProxy(StatefulRedisConnection.class);
 
         String retrievedValue = null;
+        int currentTry = 0;
+        int maxTries = 10;
+
+        // Retrieve the value of the given key from Redis, retry up to 10 times in case Redis is overloaded
+        while (currentTry < maxTries) {
+            try {
+                RedisFuture<String> redisFuture = connection.async().get(req.getKey());
+                if (redisFuture.await(3, TimeUnit.SECONDS)) {
+                    retrievedValue = redisFuture.get();
+                    break;  // Break out of the while loop
+                }
+            } catch (@SuppressWarnings("InterruptedExceptionSwallowed") Exception e) {
+                currentTry++;
+                if (currentTry < maxTries) {  // If maxTries has not been reached, try again without throwing an exception
+                    logger.log(Level.INFO, "An exception was thrown in redisHelloRetry: " + e);
+                } else {  // Otherwise, throw an exception
+                    Status status = Status.INTERNAL.withDescription(e.getMessage())
+                            .augmentDescription("An exception occurred in APIService while retrieving a key" +
+                                    "value from Redis - " + e);
+                    responseObserver.onError(status.asRuntimeException());
+                }
+            }
+        }
 
         try {
-            RedisFuture<String> redisFuture = connection.async().get(req.getKey());
-            if (redisFuture.await(1000, TimeUnit.MILLISECONDS)) {
-                retrievedValue = redisFuture.get();
-            }
-
             ManagedChannel helloChannel = ManagedChannelBuilder
                     .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
                     .usePlaintext()
@@ -172,8 +190,8 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
 
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
-        } catch (@SuppressWarnings("InterruptedExceptionSwallowed") Exception e) {
-            //Propagate exception back to the caller
+        } catch (RuntimeException e) {
+            // Propagate exception back to the caller
             Status status = Status.INTERNAL.withDescription(e.getMessage())
                     .augmentDescription("MyAPIService could not process the request as an exception was thrown. " +
                             "The Redis return value is: " + retrievedValue);

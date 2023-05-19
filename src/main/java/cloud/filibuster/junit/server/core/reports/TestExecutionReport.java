@@ -361,8 +361,12 @@ public class TestExecutionReport {
         for (Map.Entry<DistributedExecutionIndex, JSONObject> entry : deiFaultsInjected.entrySet()) {
             JSONObject invocation = deiInvocations.get(entry.getKey());
             JSONObject faultInjected = entry.getValue();
-            faultInjected.put("method", invocation.getString("method"));
-            faultsInjected.add(faultInjected.toString(4));
+
+            if (invocation != null && faultInjected != null && invocation.has("method")) {
+                String method = invocation.getString("method");
+                faultInjected.put("method", method);
+                faultsInjected.add(faultInjected.toString(4));
+            }
         }
 
         return faultsInjected.toString();

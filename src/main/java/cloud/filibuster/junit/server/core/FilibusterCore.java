@@ -640,7 +640,7 @@ public class FilibusterCore {
                 for (Object obj : jsonArray) {
                     JSONObject errorObject = (JSONObject) obj;
 
-                    String byzantineFaultName = errorObject.getString("name");
+                    Object byzantineFaultName = errorObject.get("name");
                     JSONObject byzantineMetadata = errorObject.getJSONObject("metadata");
 
                     HashMap<String, Object> byzantineMetadataMap = new HashMap<>();
@@ -648,7 +648,7 @@ public class FilibusterCore {
                         byzantineMetadataMap.put(metadataObjectKey, byzantineMetadata.get(metadataObjectKey));
                     }
 
-                    filibusterAnalysisConfigurationBuilder.byzantine(byzantineFaultName, byzantineMetadataMap, ByzantineDecoder.valueOf(errorObject.getString("decoder")));
+                    filibusterAnalysisConfigurationBuilder.byzantine(ByzantineDecoder.valueOf(byzantineFaultName.toString()), byzantineMetadataMap);
                     logger.info("[FILIBUSTER-CORE]: analysisFile, found new configuration, byzantineFaultName: " + byzantineFaultName + ", byzantineMetadata: " + byzantineMetadataMap);
                 }
             }

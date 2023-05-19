@@ -30,7 +30,7 @@ public class RedisSingleGetByteArrByzantineFaultAnalysisConfigurationFile implem
 
         String[] possibleValues = {"", "ThisIsATestString", "abcd", "1234!!", "-11"};
         for (String value : possibleValues) {
-            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine("io.lettuce.byzantine.byte_arr", createBzyantineFaultMap(value.getBytes(Charset.defaultCharset())), ByzantineDecoder.BYTE_ARRAY);
+            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(ByzantineDecoder.BYTE_ARRAY, createBzyantineFaultMap(value.getBytes(Charset.defaultCharset())));
         }
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());

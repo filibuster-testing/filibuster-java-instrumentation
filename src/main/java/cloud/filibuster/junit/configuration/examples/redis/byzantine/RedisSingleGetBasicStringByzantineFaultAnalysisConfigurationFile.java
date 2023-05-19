@@ -29,7 +29,7 @@ public class RedisSingleGetBasicStringByzantineFaultAnalysisConfigurationFile im
 
         String[] possibleValues = {null, ""};
         for (String value : possibleValues) {
-            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine("io.lettuce.byzantine.basic_string", createBzyantineFaultMap(value), ByzantineDecoder.STRING);
+            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(ByzantineDecoder.STRING, createBzyantineFaultMap(value));
         }
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());

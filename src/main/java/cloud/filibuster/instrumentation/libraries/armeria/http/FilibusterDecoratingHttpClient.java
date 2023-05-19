@@ -6,6 +6,7 @@ import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.linecorp.armeria.client.*;
 import com.linecorp.armeria.common.*;
 import com.linecorp.armeria.common.logging.RequestLogBuilder;
@@ -345,6 +346,7 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
         return new FilteredHttpResponse(response) {
 
             @Override
+            @CanIgnoreReturnValue
             protected HttpObject filter(HttpObject obj) {
 
                 // We were supposed to perform fault injection, but only after the request succeeds.

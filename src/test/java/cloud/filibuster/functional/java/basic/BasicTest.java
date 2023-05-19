@@ -36,7 +36,7 @@ public class JUnitFilibusterTest extends JUnitAnnotationBaseTest {
      *
      * @throws InterruptedException if teardown of gRPC channel fails.
      */
-    @TestWithFilibuster()
+    @TestWithFilibuster(maxIterations = 2)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder

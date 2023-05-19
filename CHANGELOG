@@ -1,6 +1,8 @@
+1.7.4:
+   - (cmeiklejohn) Add prototype excel reporting.
+   - (cmeiklejohn) Fix UX bug.
 1.7.3:
    - (MichaelA-ops) Add support for injecting more Redis exceptions.
-   - (cmeiklejohn) Add prototype excel reporting.
 1.7.2:
    - (cmeiklejohn) Provide a warning if maxIterations value is less than the under-approximated iterations remaining.
 1.7.1:

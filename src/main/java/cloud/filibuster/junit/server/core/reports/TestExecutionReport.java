@@ -363,8 +363,16 @@ public class TestExecutionReport {
             JSONObject faultInjected = entry.getValue();
 
             if (invocation != null && faultInjected != null && invocation.has("method")) {
-                String method = invocation.getString("method");
-                faultInjected.put("method", method);
+                if (invocation.has("module")) {
+                    String module = invocation.getString("module");
+                    faultInjected.put("module", module);
+                }
+
+                if (invocation.has("method")) {
+                    String method = invocation.getString("method");
+                    faultInjected.put("method", method);
+                }
+
                 faultsInjected.add(faultInjected.toString(4));
             }
         }

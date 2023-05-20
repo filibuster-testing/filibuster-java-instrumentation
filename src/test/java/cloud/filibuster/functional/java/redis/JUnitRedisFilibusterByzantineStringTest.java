@@ -4,7 +4,7 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.RedisSingleGetStringByzantineFaultAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.redis.byzantine.RedisSingleGetStringByzantineFaultAnalysisConfigurationFile;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import org.junit.jupiter.api.BeforeAll;
@@ -34,7 +34,7 @@ public class JUnitRedisFilibusterByzantineStringTest extends JUnitAnnotationBase
     static StatefulRedisConnection<String, String> statefulRedisConnection;
     static String redisConnectionString;
     private static int numberOfTestExecutions = 0;
-    private final List<String> expectedValues = Arrays.asList("123", "", "abcd", "-123ABC", "ThisIsATestString");
+    private final List<String> expectedValues = Arrays.asList(null, "123", "", "abcd", "-123ABC", "ThisIsATestString");
     private static final Set<String> actualValues = new HashSet<>();
 
     @BeforeAll

@@ -1,6 +1,7 @@
 1.7.4:
    - (cmeiklejohn) Add prototype excel reporting.
    - (cmeiklejohn) Fix UX bug.
+   - (MichaelA-ops) Add support and test scenarios for byzantine fault injection.
 1.7.3:
    - (MichaelA-ops) Add support for injecting more Redis exceptions.
 1.7.2:

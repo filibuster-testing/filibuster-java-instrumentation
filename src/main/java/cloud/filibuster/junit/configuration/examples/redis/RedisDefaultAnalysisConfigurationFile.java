@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.configuration.examples;
+package cloud.filibuster.junit.configuration.examples.redis;
 
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
@@ -9,7 +9,7 @@ import java.util.Map;
 
 import static cloud.filibuster.instrumentation.Constants.REDIS_MODULE_NAME;
 
-public class RedisExhaustiveAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
+public class RedisDefaultAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
     private static Map<String, String> createErrorMap(String cause) {
@@ -22,20 +22,14 @@ public class RedisExhaustiveAnalysisConfigurationFile implements FilibusterAnaly
     static {
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
-        String[][] exceptions = new String[][]{
-                {"io.lettuce.core.RedisCommandTimeoutException", "/(get|set|hget|hset|hgetall)\\b", "Command timed out after 100 millisecond(s)"},
-                {"io.lettuce.core.RedisConnectionException", "/(sync|async)\\b", "Connection closed prematurely"},
-                {"io.lettuce.core.RedisBusyException", "/(flushall|flushdb)\\b", "BUSY Redis is busy running a script. You can only call SCRIPT KILL or SHUTDOWN NOSAVE"},
-                {"io.lettuce.core.RedisCommandExecutionException", "/(hget|hgetall|hset)\\b", "WRONGTYPE Operation against a key holding the wrong kind of value"},
-                {"io.lettuce.core.RedisCommandInterruptedException", "/(await)\\b", "Command interrupted"},
-                {"io.lettuce.core.cluster.UnknownPartitionException", "/(getConnection)\\b", "Connection not allowed. This partition is not known in the cluster view"},
-                {"io.lettuce.core.cluster.PartitionSelectorException", "/(getConnection)\\b", "Cannot determine a partition to read for slot"},
-                {"io.lettuce.core.dynamic.batch.BatchException", "/(flush)\\b", "Error during batch command execution"},
-        };
-
-        for (String[] exception : exceptions) {
-            createException(filibusterCustomAnalysisConfigurationFileBuilder, exception[0], exception[1], exception[2]);
-        }
+        createException(filibusterCustomAnalysisConfigurationFileBuilder,
+                "io.lettuce.core.RedisCommandTimeoutException",
+                "/(get|set)\\b",
+                "Command timed out after 100 millisecond(s)");
+        createException(filibusterCustomAnalysisConfigurationFileBuilder,
+                "io.lettuce.core.RedisConnectionException",
+                "/(sync|async)\\b",
+                "Connection closed prematurely");
 
         filibusterCustomAnalysisConfigurationFile = filibusterCustomAnalysisConfigurationFileBuilder.build();
     }

@@ -4,7 +4,7 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.RedisExhaustiveAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.redis.RedisExhaustiveAnalysisConfigurationFile;
 import io.lettuce.core.RedisBusyException;
 import io.lettuce.core.RedisCommandExecutionException;
 import io.lettuce.core.RedisCommandInterruptedException;
@@ -24,6 +24,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import java.util.AbstractMap;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -70,19 +72,19 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
 
     static {
         allowedExceptions.put(RedisCommandTimeoutException.class,
-                new AbstractMap.SimpleEntry<>(List.of("get", "hgetall", "hset"), "Command timed out after 100 millisecond(s)"));
+                new AbstractMap.SimpleEntry<>(Arrays.asList("get", "hgetall", "hset"), "Command timed out after 100 millisecond(s)"));
 
         allowedExceptions.put(RedisConnectionException.class,
-                new AbstractMap.SimpleEntry<>(List.of("sync", "async"), "Connection closed prematurely"));
+                new AbstractMap.SimpleEntry<>(Arrays.asList("sync", "async"), "Connection closed prematurely"));
 
         allowedExceptions.put(RedisBusyException.class,
-                new AbstractMap.SimpleEntry<>(List.of("flushall", "flushdb"), "BUSY Redis is busy running a script. You can only call SCRIPT KILL or SHUTDOWN NOSAVE"));
+                new AbstractMap.SimpleEntry<>(Arrays.asList("flushall", "flushdb"), "BUSY Redis is busy running a script. You can only call SCRIPT KILL or SHUTDOWN NOSAVE"));
 
         allowedExceptions.put(RedisCommandExecutionException.class,
-                new AbstractMap.SimpleEntry<>(List.of("hgetall", "hset"), "WRONGTYPE Operation against a key holding the wrong kind of value"));
+                new AbstractMap.SimpleEntry<>(Arrays.asList("hgetall", "hset"), "WRONGTYPE Operation against a key holding the wrong kind of value"));
 
         allowedExceptions.put(RedisCommandInterruptedException.class,
-                new AbstractMap.SimpleEntry<>(List.of("await"), "Command interrupted"));
+                new AbstractMap.SimpleEntry<>(Collections.singletonList("await"), "Command interrupted"));
 
     }
 
@@ -115,11 +117,11 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
             myRedisAsyncCommands.get(key).await(10, java.util.concurrent.TimeUnit.SECONDS);
 
             assertFalse(wasFaultInjected());
-        } catch (Throwable t) {
+        } catch (@SuppressWarnings("InterruptedExceptionSwallowed") Throwable t) {
             testExceptionsThrown.add(t.getMessage());
 
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
-            assertTrue(wasFaultInjectedOnService(REDIS_MODULE_NAME), "Fault was not injected on the Redis module: " + t);
+            assertTrue(wasFaultInjectedOnService(REDIS_MODULE_NAME), "Fault was not injected on the expected Redis module: " + t);
 
             Entry<List<String>, String> methodsMessagePair = allowedExceptions.get(t.getClass());
             if (methodsMessagePair != null) {

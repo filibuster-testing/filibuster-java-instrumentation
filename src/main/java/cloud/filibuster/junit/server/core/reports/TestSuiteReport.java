@@ -28,6 +28,8 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.lang.Math.min;
+
 
 public class TestSuiteReport {
 
@@ -223,8 +225,11 @@ public class TestSuiteReport {
                 cell.setCellValue(ter.getFailures().get(0).getAssertionFailureMessage());
                 cell.setCellStyle(workbookCellStyle);
 
+                String assertionFailureStackTrace = ter.getFailures().get(0).getAssertionFailureStackTrace();
+                String abridgedAssertionFailureStackTrace = assertionFailureStackTrace.substring(
+                        0, min(1000, assertionFailureStackTrace.length())) + "...";
                 cell = row.createCell(4);
-                cell.setCellValue(ter.getFailures().get(0).getAssertionFailureStackTrace());
+                cell.setCellValue(abridgedAssertionFailureStackTrace);
                 cell.setCellStyle(workbookCellStyle);
             }
         }

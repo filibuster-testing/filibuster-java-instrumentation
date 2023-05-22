@@ -68,6 +68,13 @@ dependencies {
     // Test Containers
     implementation "org.testcontainers:testcontainers:1.17.5"
 
+    // Excel
+    implementation "org.apache.poi:poi:5.2.0"
+    implementation "org.apache.poi:poi-ooxml:5.2.0"
+    implementation "org.jxls:jxls-jexcel:1.0.9"
+    implementation "org.dhatim:fastexcel:0.15.3"
+    implementation "org.dhatim:fastexcel-reader:0.15.3"
+
     // Logging
     runtimeOnly 'ch.qos.logback:logback-classic:1.2.3'
     runtimeOnly 'org.slf4j:log4j-over-slf4j:1.7.30'
@@ -217,7 +224,7 @@ javadoc {
 
 group = "cloud.filibuster"
 archivesBaseName = "instrumentation"
-version = "1.7.3"
+version = "1.7.4"
 
 java {
     withJavadocJar()

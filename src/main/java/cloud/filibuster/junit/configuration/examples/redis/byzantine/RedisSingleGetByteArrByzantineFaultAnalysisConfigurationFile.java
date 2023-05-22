@@ -1,9 +1,9 @@
-package cloud.filibuster.junit.configuration.examples;
+package cloud.filibuster.junit.configuration.examples.redis.byzantine;
 
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
-import cloud.filibuster.junit.configuration.examples.byzantine.decoders.ByzantineDecoder;
+import cloud.filibuster.junit.configuration.examples.redis.byzantine.decoders.ByzantineDecoder;
 
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -24,14 +24,13 @@ public class RedisSingleGetByteArrByzantineFaultAnalysisConfigurationFile implem
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
-                .name("my_byte_arr_get_byzantine_fault")
+                .name("java.lettuce.byzantine.byte_arr")
                 .pattern(REDIS_MODULE_NAME + "/(get)\\b");
 
 
-        // Potentially use junit-quickcheck to generate the possible values -> Would make the tests more "flaky"
         String[] possibleValues = {"", "ThisIsATestString", "abcd", "1234!!", "-11"};
         for (String value : possibleValues) {
-            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine("my_byte_arr_get_byzantine_fault", createBzyantineFaultMap(value.getBytes(Charset.defaultCharset())), ByzantineDecoder.BYTE_ARRAY);
+            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(ByzantineDecoder.BYTE_ARRAY, createBzyantineFaultMap(value.getBytes(Charset.defaultCharset())));
         }
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());

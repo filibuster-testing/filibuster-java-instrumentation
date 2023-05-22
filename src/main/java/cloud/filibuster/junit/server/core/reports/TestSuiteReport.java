@@ -1,10 +1,22 @@
 package cloud.filibuster.junit.server.core.reports;
 
+import brave.internal.Nullable;
 import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterException;
 import cloud.filibuster.instrumentation.helpers.Property;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFFont;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -15,6 +27,8 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.lang.Math.min;
 
 
 public class TestSuiteReport {
@@ -46,6 +60,16 @@ public class TestSuiteReport {
         }
     }
 
+    private static final Workbook workbook = new XSSFWorkbook();
+
+    @Nullable
+    private static Sheet workbookSheet;
+
+    @Nullable
+    private static CellStyle workbookCellStyle;
+
+    private static int workbookRowNumber = 0;
+
     private static TestSuiteReport instance;
 
     private static final Logger logger = Logger.getLogger(TestSuiteReport.class.getName());
@@ -66,6 +90,7 @@ public class TestSuiteReport {
             Thread testSuiteCompleteHook = new Thread(this::testSuiteCompleted);
             Runtime.getRuntime().addShutdownHook(testSuiteCompleteHook);
             startTestSuite();
+            initializeWorkbookAndSheet();
         }
     }
 
@@ -92,6 +117,7 @@ public class TestSuiteReport {
         ServerInvocationAndResponseReport.writeServiceProfile();
 
         writeOutReports();
+        writeExcelFile();
     }
 
     private static JSONObject getTestReportSummaryJSON(FilibusterTestReportSummary testReportSummary) {
@@ -161,8 +187,7 @@ public class TestSuiteReport {
 
     }
 
-
-    public void addTestReport(TestReport testReport) {
+    public synchronized void addTestReport(TestReport testReport) {
         String testName = testReport.getTestName();
         String className = testReport.getClassName();
         File testPath = testReport.getReportPath();
@@ -170,6 +195,120 @@ public class TestSuiteReport {
         boolean hasNoFailures = testExecutionReports.stream().map(TestExecutionReport::isTestExecutionPassed)
                 .reduce(true, (curr, next) -> curr && next);
         testReportSummaries.add(new FilibusterTestReportSummary(testName, testPath, hasNoFailures,className));
+        addToWorkbook(testExecutionReports);
     }
 
+    private static synchronized void addToWorkbook(List<TestExecutionReport> testExecutionReports) {
+        for (TestExecutionReport ter : testExecutionReports) {
+            if (! ter.isTestExecutionPassed()) {
+                workbookRowNumber++;
+
+                if (workbookSheet == null) {
+                    throw new FilibusterTestReportWriterException("workbook sheet is null, this should never happen.");
+                }
+
+                Row row = workbookSheet.createRow(workbookRowNumber);
+
+                Cell cell = row.createCell(0);
+                cell.setCellValue(ter.getClassName());
+                cell.setCellStyle(workbookCellStyle);
+
+                cell = row.createCell(1);
+                cell.setCellValue(ter.getTestName());
+                cell.setCellStyle(workbookCellStyle);
+
+                cell = row.createCell(2);
+                cell.setCellValue(ter.getFaultsInjected());
+                cell.setCellStyle(workbookCellStyle);
+
+                cell = row.createCell(3);
+                cell.setCellValue(ter.getFailures().get(0).getAssertionFailureMessage());
+                cell.setCellStyle(workbookCellStyle);
+
+                String assertionFailureStackTrace = ter.getFailures().get(0).getAssertionFailureStackTrace();
+                String abridgedAssertionFailureStackTrace = assertionFailureStackTrace.substring(
+                        0, min(1000, assertionFailureStackTrace.length())) + "...";
+                cell = row.createCell(4);
+                cell.setCellValue(abridgedAssertionFailureStackTrace);
+                cell.setCellStyle(workbookCellStyle);
+            }
+        }
+    }
+
+    private static synchronized void initializeWorkbookAndSheet() {
+        workbookSheet = workbook.createSheet("Failures");
+
+        if (workbookSheet == null) {
+            throw new FilibusterTestReportWriterException("workbook sheet is null, this should never happen.");
+        }
+
+        workbookSheet.setColumnWidth(0, 20000);
+        workbookSheet.setColumnWidth(1, 20000);
+        workbookSheet.setColumnWidth(2, 20000);
+        workbookSheet.setColumnWidth(3, 20000);
+        workbookSheet.setColumnWidth(4, 40000);
+
+        CellStyle headerStyle = workbook.createCellStyle();
+        headerStyle.setFillForegroundColor(IndexedColors.LIGHT_CORNFLOWER_BLUE.getIndex());
+        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        Row header = workbookSheet.createRow(0);
+
+        XSSFFont font = ((XSSFWorkbook) workbook).createFont();
+        font.setBold(true);
+        headerStyle.setFont(font);
+
+        Cell headerCell = header.createCell(0);
+        headerCell.setCellValue("Class");
+        headerCell.setCellStyle(headerStyle);
+
+        headerCell = header.createCell(1);
+        headerCell.setCellValue("Test");
+        headerCell.setCellStyle(headerStyle);
+
+        headerCell = header.createCell(2);
+        headerCell.setCellValue("Fault Injected");
+        headerCell.setCellStyle(headerStyle);
+
+        headerCell = header.createCell(3);
+        headerCell.setCellValue("Failure Message");
+        headerCell.setCellStyle(headerStyle);
+
+        headerCell = header.createCell(4);
+        headerCell.setCellValue("Failure Stack Trace");
+        headerCell.setCellStyle(headerStyle);
+
+        workbookCellStyle = workbook.createCellStyle();
+
+        if (workbookCellStyle == null) {
+            throw new FilibusterTestReportWriterException("workbook cell style is null, this should never happen.");
+        }
+
+        workbookCellStyle.setWrapText(true);
+    }
+
+    private static synchronized void writeExcelFile() {
+        String fileLocation = "/tmp/filibuster/failures.xlsx";
+        FileOutputStream outputStream = null;
+
+        try {
+            outputStream = new FileOutputStream(fileLocation);
+        } catch (FileNotFoundException e) {
+            throw new FilibusterTestReportWriterException("failed to open excel file for writing", e);
+        }
+
+        if (outputStream != null) {
+            try {
+                workbook.write(outputStream);
+            } catch (IOException e) {
+                throw new FilibusterTestReportWriterException("failed to write excel file", e);
+            }
+        }
+
+        try {
+            workbook.close();
+        } catch (IOException e) {
+            throw new FilibusterTestReportWriterException("failed to close workbook while writing excel file", e);
+        }
+    }
 }

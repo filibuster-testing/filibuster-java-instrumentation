@@ -1,5 +1,6 @@
 package cloud.filibuster.instrumentation.libraries.armeria.http;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.linecorp.armeria.client.ClientRequestContext;
 import com.linecorp.armeria.client.HttpClient;
 import com.linecorp.armeria.client.SimpleDecoratingHttpClient;
@@ -19,6 +20,7 @@ public class FilibusterNullDecoratingHttpClient extends SimpleDecoratingHttpClie
 
         return new FilteredHttpResponse(response) {
             @Override
+            @CanIgnoreReturnValue
             protected HttpObject filter(HttpObject obj) {
                 return obj;
             }

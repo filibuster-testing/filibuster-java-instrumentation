@@ -15,9 +15,7 @@ import java.util.logging.Logger;
 
 public class TestReport {
     private static final Logger logger = Logger.getLogger(TestReport.class.getName());
-
     private final ArrayList<TestExecutionReport> testExecutionReports = new ArrayList<>();
-
     private final UUID testUUID;
     private final String testName;
     private final String className;
@@ -27,7 +25,6 @@ public class TestReport {
         this.testName = testName;
         this.className = className;
     }
-
 
     public String getClassName() {
         return className;
@@ -76,7 +73,6 @@ public class TestReport {
             throw new FilibusterTestReportWriterException("Filibuster failed to write out the test aggregate report: ", e);
         }
     }
-
 
     public void writeTestReport() {
         File directory = getDirectoryPath();
@@ -144,5 +140,4 @@ public class TestReport {
     public ArrayList<TestExecutionReport> getTestExecutionReports() {
         return testExecutionReports;
     }
-
 }

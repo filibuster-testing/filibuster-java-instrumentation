@@ -26,7 +26,7 @@ import static org.testcontainers.shaded.org.hamcrest.MatcherAssert.assertThat;
 import static org.testcontainers.shaded.org.hamcrest.Matchers.containsString;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterUnimplementedTest extends JUnitAnnotationBaseTest {
+public class UnimplementedTest extends JUnitAnnotationBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     @TestWithFilibuster()

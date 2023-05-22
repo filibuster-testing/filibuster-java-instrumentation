@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterTest extends JUnitAnnotationBaseTest {
+public class BasicTest extends JUnitAnnotationBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     /**

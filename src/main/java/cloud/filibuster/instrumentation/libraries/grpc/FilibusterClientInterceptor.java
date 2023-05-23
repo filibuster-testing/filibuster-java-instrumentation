@@ -67,7 +67,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
         return status;
     }
 
-    @SuppressWarnings({"Varifier", "UnsafeReflectiveConstructionCast"})
+    @SuppressWarnings("Varifier")
     public static Status generateExceptionFromForcedException(FilibusterClientInstrumentor filibusterClientInstrumentor) {
         JSONObject forcedException = filibusterClientInstrumentor.getForcedException();
         requireNonNull(forcedException);
@@ -104,7 +104,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                     throwableMessage = causeMessageString;
                 }
 
-                Throwable throwable = (Throwable) Class.forName(causeString).getConstructor(new Class[] { String.class }).newInstance(throwableMessage);
+                Throwable throwable = Class.forName(causeString).asSubclass(Throwable.class).getConstructor(new Class[] { String.class }).newInstance(throwableMessage);
                 status = Status.fromThrowable(throwable);
             } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException | InvocationTargetException e) {
                 throw new FilibusterFaultInjectionException("Unable to generate custom exception from string '" + causeString + "':" + e, e);

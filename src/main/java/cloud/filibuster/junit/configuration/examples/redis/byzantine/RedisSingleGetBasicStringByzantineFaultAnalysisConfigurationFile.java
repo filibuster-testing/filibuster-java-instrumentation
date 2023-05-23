@@ -3,7 +3,7 @@ package cloud.filibuster.junit.configuration.examples.redis.byzantine;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
-import cloud.filibuster.junit.configuration.examples.redis.byzantine.decoders.ByzantineDecoder;
+import cloud.filibuster.junit.configuration.examples.redis.byzantine.decoders.ByzantineStringFault;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +29,7 @@ public class RedisSingleGetBasicStringByzantineFaultAnalysisConfigurationFile im
 
         String[] possibleValues = {null, ""};
         for (String value : possibleValues) {
-            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(ByzantineDecoder.STRING, createBzyantineFaultMap(value));
+            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(new ByzantineStringFault(), createBzyantineFaultMap(value));
         }
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());

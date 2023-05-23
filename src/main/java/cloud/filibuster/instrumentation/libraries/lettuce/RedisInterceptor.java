@@ -9,7 +9,6 @@ import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrument
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
 import cloud.filibuster.junit.configuration.examples.redis.byzantine.decoders.ByzantineDecoder;
-import com.google.common.primitives.Bytes;
 import io.lettuce.core.RedisBusyException;
 import io.lettuce.core.RedisCommandExecutionException;
 import io.lettuce.core.RedisCommandInterruptedException;
@@ -21,7 +20,6 @@ import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.dynamic.batch.BatchException;
 import io.lettuce.core.dynamic.intercept.MethodInterceptor;
 import io.lettuce.core.dynamic.intercept.MethodInvocation;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.lang.reflect.InvocationTargetException;
@@ -29,7 +27,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.net.URI;
@@ -182,7 +179,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
     }
 
     private static Object injectByzantineFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject byzantineFault) {
-        Object byzantineFaultDecoder = byzantineFault.get("name");
+        ByzantineDecoder<?> byzantineFaultDecoder = (ByzantineDecoder<?>) byzantineFault.get("decoder");
         JSONObject byzantineFaultMetadata = byzantineFault.getJSONObject("metadata");
 
         // If a value was assigned, return it. Otherwise, return null.
@@ -208,23 +205,13 @@ public class RedisInterceptor<T> implements MethodInterceptor {
 
     // Cast the byzantineFaultValue to the correct type.
     @Nullable
-    private static Object castByzantineFaultValue(Object byzantineFaultValue, Object byzantineFaultDecoder) {
-        // If a value was assigned to byzantineFaultValue, decode and return it. Otherwise, return null.
-        if (byzantineFaultValue != null) {
-            // Get the decoder enum.
-            ByzantineDecoder decoder = ByzantineDecoder.valueOf(byzantineFaultDecoder.toString());
-            switch (decoder) {
-                case STRING:
-                    return byzantineFaultValue.toString();
-                case BYTE_ARRAY:
-                    List<Byte> byteArray = new ArrayList<>();
-                    // Cast the JSONArray to a byte array.
-                    ((JSONArray) byzantineFaultValue).toList().forEach(item -> byteArray.add(Byte.valueOf(item.toString())));
-                    return Bytes.toArray(byteArray);
-            }
-            throw new FilibusterRuntimeException("castByzantineFaultValue: Unknown ByzantineDecoder: " + decoder);
+    private static Object castByzantineFaultValue(Object byzantineFaultValue, ByzantineDecoder<?> byzantineFaultDecoder) {
+        // If a value was assigned to byzantineFaultValue, decode and return it
+        if (byzantineFaultValue != null && byzantineFaultDecoder != null) {
+            return byzantineFaultDecoder.decode(byzantineFaultValue);
         }
-        return null;
+        // Otherwise, throw an exception
+        throw new FilibusterRuntimeException("castByzantineFaultValue: Unknown ByzantineDecoder: " + byzantineFaultDecoder);
     }
 
     private static void generateAndThrowException(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject forcedException) {

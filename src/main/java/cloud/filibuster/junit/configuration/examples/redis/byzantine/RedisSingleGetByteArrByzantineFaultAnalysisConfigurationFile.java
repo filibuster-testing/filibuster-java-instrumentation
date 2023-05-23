@@ -3,7 +3,7 @@ package cloud.filibuster.junit.configuration.examples.redis.byzantine;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
-import cloud.filibuster.junit.configuration.examples.redis.byzantine.decoders.ByzantineDecoder;
+import cloud.filibuster.junit.configuration.examples.redis.byzantine.decoders.ByzantineByteArrayFault;
 
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -30,7 +30,7 @@ public class RedisSingleGetByteArrByzantineFaultAnalysisConfigurationFile implem
 
         String[] possibleValues = {"", "ThisIsATestString", "abcd", "1234!!", "-11"};
         for (String value : possibleValues) {
-            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(ByzantineDecoder.BYTE_ARRAY, createBzyantineFaultMap(value.getBytes(Charset.defaultCharset())));
+            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(new ByzantineByteArrayFault(), createBzyantineFaultMap(value.getBytes(Charset.defaultCharset())));
         }
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());

@@ -1,5 +1,7 @@
 package cloud.filibuster.junit.configuration.examples.redis.byzantine.decoders;
 
-public enum ByzantineDecoder {
-    BYTE_ARRAY, STRING
+public interface ByzantineDecoder<T> {
+    T decode(Object byzantineFaultValue);
+    // TODO create to string function
+    // TODO lookup how to go back from String to object
 }

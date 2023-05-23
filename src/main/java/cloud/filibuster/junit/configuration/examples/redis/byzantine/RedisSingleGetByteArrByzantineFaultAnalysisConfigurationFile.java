@@ -32,6 +32,7 @@ public class RedisSingleGetByteArrByzantineFaultAnalysisConfigurationFile implem
         for (String value : possibleValues) {
             filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(new ByzantineByteArrayFaultType(), createBzyantineFaultMap(value.getBytes(Charset.defaultCharset())));
         }
+        filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(new ByzantineByteArrayFaultType(), createBzyantineFaultMap(null));
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());
 

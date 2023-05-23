@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.configuration.examples.redis.byzantine.decoders;
+package cloud.filibuster.junit.configuration.examples.redis.byzantine.faultTypes;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 

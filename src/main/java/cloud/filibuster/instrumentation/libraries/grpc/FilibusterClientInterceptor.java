@@ -67,7 +67,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
         return status;
     }
 
-    @SuppressWarnings("Varifier")
+    @SuppressWarnings({"Varifier", "UnsafeReflectiveConstructionCast"})
     public static Status generateExceptionFromForcedException(FilibusterClientInstrumentor filibusterClientInstrumentor) {
         JSONObject forcedException = filibusterClientInstrumentor.getForcedException();
         requireNonNull(forcedException);

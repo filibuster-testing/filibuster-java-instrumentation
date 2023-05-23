@@ -7,7 +7,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.exceptions.filibuster.FilibusterLatencyInjectionException;
 import cloud.filibuster.instrumentation.helpers.Property;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
-import cloud.filibuster.junit.configuration.examples.redis.byzantine.decoders.ByzantineDecoder;
+import cloud.filibuster.junit.configuration.examples.redis.byzantine.decoders.ByzantineFaultCaster;
 import cloud.filibuster.junit.server.core.reports.TestSuiteReport;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration.MatcherType;
@@ -640,7 +640,7 @@ public class FilibusterCore {
                 for (Object obj : jsonArray) {
                     JSONObject errorObject = (JSONObject) obj;
 
-                    ByzantineDecoder<?> byzantineDecoder = (ByzantineDecoder<?>) errorObject.get("decoder");
+                    String byzantineDecoderType = errorObject.getString("faultCaster");
                     JSONObject byzantineMetadata = errorObject.getJSONObject("metadata");
 
                     HashMap<String, Object> byzantineMetadataMap = new HashMap<>();
@@ -648,8 +648,8 @@ public class FilibusterCore {
                         byzantineMetadataMap.put(metadataObjectKey, byzantineMetadata.get(metadataObjectKey));
                     }
 
-                    filibusterAnalysisConfigurationBuilder.byzantine(byzantineDecoder, byzantineMetadataMap);
-                    logger.info("[FILIBUSTER-CORE]: analysisFile, found new configuration, byzantineDecoder: " + byzantineDecoder + ", byzantineMetadata: " + byzantineMetadataMap);
+                    filibusterAnalysisConfigurationBuilder.byzantine(ByzantineFaultCaster.fromFaultType(byzantineDecoderType), byzantineMetadataMap);
+                    logger.info("[FILIBUSTER-CORE]: analysisFile, found new configuration, byzantineDecoderType: " + byzantineDecoderType + ", byzantineMetadata: " + byzantineMetadataMap);
                 }
             }
 

@@ -7,7 +7,7 @@ import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
-import cloud.filibuster.junit.configuration.examples.redis.byzantine.decoders.ByzantineFaultCaster;
+import cloud.filibuster.junit.configuration.examples.redis.byzantine.decoders.ByzantineFaultType;
 import io.lettuce.core.RedisBusyException;
 import io.lettuce.core.RedisCommandExecutionException;
 import io.lettuce.core.RedisCommandInterruptedException;
@@ -178,26 +178,26 @@ public class RedisInterceptor<T> implements MethodInterceptor {
     }
 
     private static Object injectByzantineFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject byzantineFault) {
-        ByzantineFaultCaster<?> byzantineFaultCaster = (ByzantineFaultCaster<?>) byzantineFault.get("faultCaster");
+        ByzantineFaultType<?> byzantineFaultType = (ByzantineFaultType<?>) byzantineFault.get("faultType");
         JSONObject byzantineFaultMetadata = byzantineFault.getJSONObject("metadata");
 
         // If a value was assigned, return it. Otherwise, return null.
         Object byzantineFaultValue = byzantineFaultMetadata.has("value") ? byzantineFaultMetadata.get("value") : null;
 
         // Cast the byzantineFaultValue to the correct type.
-        byzantineFaultValue = byzantineFaultCaster.cast(byzantineFaultValue);
+        byzantineFaultValue = byzantineFaultType.cast(byzantineFaultValue);
 
-        logger.log(Level.INFO, logPrefix + "byzantineDecoder: " + byzantineFaultCaster);
+        logger.log(Level.INFO, logPrefix + "byzantineDecoder: " + byzantineFaultType);
         logger.log(Level.INFO, logPrefix + "byzantineFaultValue: " + byzantineFaultValue);
 
         // Build the additional metadata used to notify Filibuster.
         HashMap<String, String> additionalMetadata = new HashMap<>();
         String byzantineFaultValueString = byzantineFaultValue != null ? byzantineFaultValue.toString() : "null";
-        additionalMetadata.put("name", byzantineFaultCaster.toString());
+        additionalMetadata.put("name", byzantineFaultType.toString());
         additionalMetadata.put("value", byzantineFaultValueString);
 
         // Notify Filibuster.
-        filibusterClientInstrumentor.afterInvocationWithException(byzantineFaultCaster.toString(), byzantineFaultValueString, additionalMetadata);
+        filibusterClientInstrumentor.afterInvocationWithException(byzantineFaultType.toString(), byzantineFaultValueString, additionalMetadata);
 
         return byzantineFaultValue;
     }

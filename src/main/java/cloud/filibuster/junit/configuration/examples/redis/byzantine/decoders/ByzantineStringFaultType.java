@@ -2,7 +2,7 @@ package cloud.filibuster.junit.configuration.examples.redis.byzantine.decoders;
 
 import javax.annotation.Nullable;
 
-public final class ByzantineStringFault extends ByzantineFaultCaster<String> {
+public final class ByzantineStringFaultType extends ByzantineFaultType<String> {
     @Override
     @Nullable
     public String cast(Object byzantineFaultValue) {
@@ -10,7 +10,7 @@ public final class ByzantineStringFault extends ByzantineFaultCaster<String> {
     }
 
     @Override
-    public ByzantineFaultType getFaultType() {
-        return ByzantineFaultType.STRING;
+    public ByzantineFault getFaultType() {
+        return ByzantineFault.STRING;
     }
 }

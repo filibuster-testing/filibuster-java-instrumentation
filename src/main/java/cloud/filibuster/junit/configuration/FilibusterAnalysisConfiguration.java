@@ -1,7 +1,7 @@
 package cloud.filibuster.junit.configuration;
 
 import cloud.filibuster.instrumentation.datatypes.Pair;
-import cloud.filibuster.junit.configuration.examples.redis.byzantine.decoders.ByzantineFaultCaster;
+import cloud.filibuster.junit.configuration.examples.redis.byzantine.decoders.ByzantineFaultType;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import org.json.JSONObject;
 
@@ -144,9 +144,9 @@ public class FilibusterAnalysisConfiguration {
         }
 
         @CanIgnoreReturnValue
-        public <T> Builder byzantine(ByzantineFaultCaster<?> faultCaster, Map<String, T> metadata) {
+        public <T> Builder byzantine(ByzantineFaultType<?> faultType, Map<String, T> metadata) {
             JSONObject byzantine = new JSONObject();
-            byzantine.put("faultCaster", faultCaster);
+            byzantine.put("faultType", faultType);
             byzantine.put("metadata", metadata);
             byzantines.add(byzantine);
             return this;

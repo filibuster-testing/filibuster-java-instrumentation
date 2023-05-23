@@ -6,7 +6,7 @@ import org.json.JSONArray;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class ByzantineByteArrayFault extends ByzantineFaultCaster<byte[]> {
+public final class ByzantineByteArrayFaultType extends ByzantineFaultType<byte[]> {
     @Override
     public byte[] cast(Object byzantineFaultValue) {
         List<Byte> byteArray = new ArrayList<>();
@@ -16,7 +16,7 @@ public final class ByzantineByteArrayFault extends ByzantineFaultCaster<byte[]> 
     }
 
     @Override
-    public ByzantineFaultType getFaultType() {
-        return ByzantineFaultType.BYTE_ARRAY;
+    public ByzantineFault getFaultType() {
+        return ByzantineFault.BYTE_ARRAY;
     }
 }

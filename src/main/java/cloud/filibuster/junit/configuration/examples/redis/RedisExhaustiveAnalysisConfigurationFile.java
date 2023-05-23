@@ -42,8 +42,7 @@ public class RedisExhaustiveAnalysisConfigurationFile implements FilibusterAnaly
 
     private static void createException(FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder, String name, String pattern, String cause) {
 
-        String analysisConfigFileName = "java.lettuce";
-        FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder().name(analysisConfigFileName).pattern(REDIS_MODULE_NAME + pattern);
+        FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder().name(name).pattern(REDIS_MODULE_NAME + pattern);
 
         filibusterAnalysisConfigurationBuilderRedisExceptions.exception(name, createErrorMap(cause));
 

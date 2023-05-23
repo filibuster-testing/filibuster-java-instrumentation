@@ -13,7 +13,7 @@ public abstract class ByzantineFaultType<T> {
             case BYTE_ARRAY:
                 return new ByzantineByteArrayFaultType();
         }
-        throw new FilibusterRuntimeException("Unknown ByzantineDecoder: " + faultType);
+        throw new FilibusterRuntimeException("Unknown ByzantineFaultType: " + faultType);
     }
     @Override
     public String toString() {

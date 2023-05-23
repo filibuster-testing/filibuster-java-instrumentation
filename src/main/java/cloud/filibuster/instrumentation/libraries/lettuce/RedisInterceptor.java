@@ -187,7 +187,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         // Cast the byzantineFaultValue to the correct type.
         byzantineFaultValue = byzantineFaultType.cast(byzantineFaultValue);
 
-        logger.log(Level.INFO, logPrefix + "byzantineDecoder: " + byzantineFaultType);
+        logger.log(Level.INFO, logPrefix + "byzantineFaultType: " + byzantineFaultType);
         logger.log(Level.INFO, logPrefix + "byzantineFaultValue: " + byzantineFaultValue);
 
         // Build the additional metadata used to notify Filibuster.

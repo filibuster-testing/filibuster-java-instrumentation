@@ -23,7 +23,7 @@ public class RedisSingleFaultCommandTimeoutExceptionAnalysisConfigurationFile im
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
-                .name("java.lettuce.RedisCommandTimeoutException")
+                .name("java.lettuce.exceptions.RedisCommandTimeoutException")
                 .pattern(REDIS_MODULE_NAME + "/(get|set)\\b");
 
         filibusterAnalysisConfigurationBuilderRedisExceptions.exception("io.lettuce.core.RedisCommandTimeoutException", createErrorMap());

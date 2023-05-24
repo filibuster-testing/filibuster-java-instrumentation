@@ -146,7 +146,7 @@ public class FilibusterAnalysisConfiguration {
         @CanIgnoreReturnValue
         public <T> Builder byzantine(ByzantineFaultType<?> faultType, Map<String, T> metadata) {
             JSONObject byzantine = new JSONObject();
-            byzantine.put("faultType", faultType);
+            byzantine.put("type", faultType);
             byzantine.put("metadata", metadata);
             byzantines.add(byzantine);
             return this;

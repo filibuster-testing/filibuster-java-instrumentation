@@ -640,7 +640,7 @@ public class FilibusterCore {
                 for (Object obj : jsonArray) {
                     JSONObject errorObject = (JSONObject) obj;
 
-                    String byzantineFaultType = errorObject.getString("faultType");
+                    String byzantineFaultType = errorObject.getString("type");
                     JSONObject byzantineMetadata = errorObject.getJSONObject("metadata");
 
                     HashMap<String, Object> byzantineMetadataMap = new HashMap<>();

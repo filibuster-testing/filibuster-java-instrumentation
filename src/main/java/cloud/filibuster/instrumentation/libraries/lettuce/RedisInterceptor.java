@@ -178,7 +178,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
     }
 
     private static Object injectByzantineFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject byzantineFault) {
-        ByzantineFaultType<?> byzantineFaultType = (ByzantineFaultType<?>) byzantineFault.get("faultType");
+        ByzantineFaultType<?> byzantineFaultType = (ByzantineFaultType<?>) byzantineFault.get("type");
         JSONObject byzantineFaultMetadata = byzantineFault.getJSONObject("metadata");
 
         // If a value was assigned, return it. Otherwise, return null.

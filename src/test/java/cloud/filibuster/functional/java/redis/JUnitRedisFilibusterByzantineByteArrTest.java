@@ -39,7 +39,7 @@ public class JUnitRedisFilibusterByzantineByteArrTest extends JUnitAnnotationBas
     static StatefulRedisConnection<String, byte[]> statefulRedisConnection;
     static String redisConnectionString;
     private static int numberOfTestExecutions = 0;
-    private final List<String> expectedValues = Arrays.asList("", "ThisIsATestString", "abcd", "1234!!", "-11");
+    private final List<String> expectedValues = Arrays.asList("", "ThisIsATestString", "abcd", "1234!!", "-11", null);
     private static final Set<byte[]> actualValues = new LinkedHashSet<>();
 
     @BeforeAll
@@ -63,7 +63,7 @@ public class JUnitRedisFilibusterByzantineByteArrTest extends JUnitAnnotationBas
             assertArrayEquals(value, returnVal, "The value returned from Redis was not the expected value although no byzantine fault was injected.");
         } else {
             actualValues.add(returnVal);
-            String returnValStr = new String(returnVal, Charset.defaultCharset());
+            String returnValStr = returnVal == null ? null : new String(returnVal, Charset.defaultCharset());
             assertTrue(expectedValues.contains(returnValStr), "An unexpected value was returned: " + returnValStr);
             assertTrue(wasFaultInjectedOnService(REDIS_MODULE_NAME), "Fault was not injected on the Redis module");
             assertTrue(wasFaultInjectedOnMethod(REDIS_MODULE_NAME, "io.lettuce.core.api.sync.RedisStringCommands.get"), "Fault was not injected on the expected Redis method");

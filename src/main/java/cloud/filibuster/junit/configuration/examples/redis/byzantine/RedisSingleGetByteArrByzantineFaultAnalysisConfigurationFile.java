@@ -3,7 +3,7 @@ package cloud.filibuster.junit.configuration.examples.redis.byzantine;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
-import cloud.filibuster.junit.configuration.examples.redis.byzantine.faultTypes.ByzantineByteArrayFaultType;
+import cloud.filibuster.junit.configuration.examples.redis.byzantine.types.ByzantineByteArrayFaultType;
 
 import java.nio.charset.Charset;
 import java.util.HashMap;

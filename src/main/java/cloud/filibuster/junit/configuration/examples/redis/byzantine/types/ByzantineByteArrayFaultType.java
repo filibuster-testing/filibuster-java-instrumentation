@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.configuration.examples.redis.byzantine.faultTypes;
+package cloud.filibuster.junit.configuration.examples.redis.byzantine.types;
 
 import com.google.common.primitives.Bytes;
 import org.json.JSONArray;

@@ -1,7 +1,7 @@
 package cloud.filibuster.junit.configuration;
 
 import cloud.filibuster.instrumentation.datatypes.Pair;
-import cloud.filibuster.junit.configuration.examples.redis.byzantine.faultTypes.ByzantineFaultType;
+import cloud.filibuster.junit.configuration.examples.redis.byzantine.types.ByzantineFaultType;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import org.json.JSONObject;
 

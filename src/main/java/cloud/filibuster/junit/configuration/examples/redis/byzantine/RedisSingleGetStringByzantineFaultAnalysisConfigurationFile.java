@@ -3,7 +3,7 @@ package cloud.filibuster.junit.configuration.examples.redis.byzantine;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
-import cloud.filibuster.junit.configuration.examples.redis.byzantine.decoders.ByzantineDecoder;
+import cloud.filibuster.junit.configuration.examples.redis.byzantine.types.ByzantineStringFaultType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,7 +30,7 @@ public class RedisSingleGetStringByzantineFaultAnalysisConfigurationFile impleme
         // Potentially use junit-quickcheck to generate the possible values -> Would make the tests more "flaky"
         String[] possibleValues = {null, "123", "", "abcd", "-123ABC", "ThisIsATestString"};
         for (String value : possibleValues) {
-            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(ByzantineDecoder.STRING, createBzyantineFaultMap(value));
+            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(new ByzantineStringFaultType(), createBzyantineFaultMap(value));
         }
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());

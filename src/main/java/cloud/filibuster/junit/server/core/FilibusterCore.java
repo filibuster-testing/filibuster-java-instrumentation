@@ -7,7 +7,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.exceptions.filibuster.FilibusterLatencyInjectionException;
 import cloud.filibuster.instrumentation.helpers.Property;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
-import cloud.filibuster.junit.configuration.examples.redis.byzantine.decoders.ByzantineDecoder;
+import cloud.filibuster.junit.configuration.examples.redis.byzantine.types.ByzantineFaultType;
 import cloud.filibuster.junit.server.core.reports.TestSuiteReport;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration.MatcherType;
@@ -640,16 +640,21 @@ public class FilibusterCore {
                 for (Object obj : jsonArray) {
                     JSONObject errorObject = (JSONObject) obj;
 
-                    Object byzantineFaultName = errorObject.get("name");
-                    JSONObject byzantineMetadata = errorObject.getJSONObject("metadata");
+                    if (errorObject.has("type") && errorObject.has("metadata")) {
+                        String byzantineFaultType = errorObject.getString("type");
+                        JSONObject byzantineMetadata = errorObject.getJSONObject("metadata");
 
-                    HashMap<String, Object> byzantineMetadataMap = new HashMap<>();
-                    for (String metadataObjectKey : byzantineMetadata.keySet()) {
-                        byzantineMetadataMap.put(metadataObjectKey, byzantineMetadata.get(metadataObjectKey));
+                        HashMap<String, Object> byzantineMetadataMap = new HashMap<>();
+                        for (String metadataObjectKey : byzantineMetadata.keySet()) {
+                            byzantineMetadataMap.put(metadataObjectKey, byzantineMetadata.get(metadataObjectKey));
+                        }
+
+                        filibusterAnalysisConfigurationBuilder.byzantine(ByzantineFaultType.fromFaultType(byzantineFaultType), byzantineMetadataMap);
+                        logger.info("[FILIBUSTER-CORE]: analysisFile, found new configuration, byzantineFaultType: " + byzantineFaultType + ", byzantineMetadata: " + byzantineMetadataMap);
+                    } else {
+                        logger.warning("[FILIBUSTER-CORE]: Either the key 'type' or 'metadata' was not defined for a byzantine" +
+                                "fault object. Skipping...");
                     }
-
-                    filibusterAnalysisConfigurationBuilder.byzantine(ByzantineDecoder.valueOf(byzantineFaultName.toString()), byzantineMetadataMap);
-                    logger.info("[FILIBUSTER-CORE]: analysisFile, found new configuration, byzantineFaultName: " + byzantineFaultName + ", byzantineMetadata: " + byzantineMetadataMap);
                 }
             }
 

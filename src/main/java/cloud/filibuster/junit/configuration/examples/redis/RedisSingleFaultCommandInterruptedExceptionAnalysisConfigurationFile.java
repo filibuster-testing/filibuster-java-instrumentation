@@ -24,7 +24,7 @@ public class RedisSingleFaultCommandInterruptedExceptionAnalysisConfigurationFil
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
                 .name("io.lettuce.core.RedisCommandInterruptedException")
-                .pattern(REDIS_MODULE_NAME + "/(await)\\b");
+                .pattern(REDIS_MODULE_NAME + "/(io.lettuce.core.RedisFuture.await)\\b");
 
         filibusterAnalysisConfigurationBuilderRedisExceptions.exception("io.lettuce.core.RedisCommandInterruptedException", createErrorMap());
 

@@ -47,7 +47,7 @@ public class JUnitRedisFilibusterBuggyFallbackByzantineTest {
         } catch (Throwable t) {
             if (wasFaultInjected()) {
                 assertTrue(wasFaultInjectedOnService(REDIS_MODULE_NAME), "Fault was not injected on the Redis module");
-                assertTrue(wasFaultInjectedOnMethod(REDIS_MODULE_NAME, "get"), "Fault was not injected on the expected Redis method");
+                assertTrue(wasFaultInjectedOnMethod(REDIS_MODULE_NAME, "io.lettuce.core.api.sync.RedisStringCommands.get"), "Fault was not injected on the expected Redis method");
                 String expectedErrorMessage = "INTERNAL: INTERNAL: java.lang.Exception: An exception was thrown at Hello service\n" +
                         "MyAPIService could not process the request as an exception was thrown";
                 assertTrue(t.getMessage().contains(expectedErrorMessage), "Unexpected return error message for injected byzantine fault");

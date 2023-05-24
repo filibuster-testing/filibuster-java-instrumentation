@@ -1,6 +1,7 @@
 package cloud.filibuster.instrumentation.libraries.lettuce;
 
 import javax.annotation.Nullable;
+
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
@@ -85,8 +86,11 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         // Extract callsite information.
         // ******************************************************************************************
 
-        // Possible Redis methods are RedisClient/get, RedisClient/set, RedisClient/sync, RedisClient/async, ...
-        String redisFullMethodName = REDIS_MODULE_NAME + "/" + invocation.getMethod().getName();
+        // Possible values of redisFullMethodName are
+        //  RedisClient/io.lettuce.core.api.sync.RedisStringCommands.get,
+        //  RedisClient/io.lettuce.core.api.async.RedisStringAsyncCommands.get,
+        //  RedisClient/io.lettuce.core.api.StatefulRedisConnection.sync
+        String redisFullMethodName = String.format("%s/%s.%s", REDIS_MODULE_NAME, invocation.getMethod().getDeclaringClass().getName(), invocation.getMethod().getName());
         logger.log(Level.INFO, logPrefix + "redisFullMethodName: " + redisFullMethodName);
 
         // ******************************************************************************************

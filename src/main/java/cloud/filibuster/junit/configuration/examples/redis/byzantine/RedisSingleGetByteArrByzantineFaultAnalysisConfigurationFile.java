@@ -25,7 +25,7 @@ public class RedisSingleGetByteArrByzantineFaultAnalysisConfigurationFile implem
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.lettuce.byzantine.byte_arr")
-                .pattern(REDIS_MODULE_NAME + "/(get)\\b");
+                .pattern(REDIS_MODULE_NAME + "/(io.lettuce.core.api.sync.RedisStringCommands.get)\\b");
 
 
         String[] possibleValues = {"", "ThisIsATestString", "abcd", "1234!!", "-11"};

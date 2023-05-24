@@ -72,19 +72,29 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
 
     static {
         allowedExceptions.put(RedisCommandTimeoutException.class,
-                new AbstractMap.SimpleEntry<>(Arrays.asList("get", "hgetall", "hset"), "Command timed out after 100 millisecond(s)"));
+                new AbstractMap.SimpleEntry<>(Arrays.asList("io.lettuce.core.api.sync.RedisStringCommands.get",
+                        "io.lettuce.core.api.async.RedisStringAsyncCommands.get",
+                        "io.lettuce.core.api.sync.RedisHashCommands.hgetall",
+                        "io.lettuce.core.api.sync.RedisHashCommands.hset"), "Command timed out after 100 millisecond(s)"));
 
         allowedExceptions.put(RedisConnectionException.class,
-                new AbstractMap.SimpleEntry<>(Arrays.asList("sync", "async"), "Connection closed prematurely"));
+                new AbstractMap.SimpleEntry<>(Arrays.asList("io.lettuce.core.api.StatefulRedisConnection.sync",
+                        "io.lettuce.core.api.StatefulRedisConnection.async"),
+                        "Connection closed prematurely"));
 
         allowedExceptions.put(RedisBusyException.class,
-                new AbstractMap.SimpleEntry<>(Arrays.asList("flushall", "flushdb"), "BUSY Redis is busy running a script. You can only call SCRIPT KILL or SHUTDOWN NOSAVE"));
+                new AbstractMap.SimpleEntry<>(Arrays.asList("io.lettuce.core.api.sync.RedisServerCommands.flushall",
+                        "io.lettuce.core.api.sync.RedisServerCommands.flushdb"),
+                        "BUSY Redis is busy running a script. You can only call SCRIPT KILL or SHUTDOWN NOSAVE"));
 
         allowedExceptions.put(RedisCommandExecutionException.class,
-                new AbstractMap.SimpleEntry<>(Arrays.asList("hgetall", "hset"), "WRONGTYPE Operation against a key holding the wrong kind of value"));
+                new AbstractMap.SimpleEntry<>(Arrays.asList("io.lettuce.core.api.sync.RedisHashCommands.hgetall",
+                        "io.lettuce.core.api.sync.RedisHashCommands.hset"),
+                        "WRONGTYPE Operation against a key holding the wrong kind of value"));
 
         allowedExceptions.put(RedisCommandInterruptedException.class,
-                new AbstractMap.SimpleEntry<>(Collections.singletonList("await"), "Command interrupted"));
+                new AbstractMap.SimpleEntry<>(Collections.singletonList("io.lettuce.core.RedisFuture.await"),
+                        "Command interrupted"));
 
     }
 

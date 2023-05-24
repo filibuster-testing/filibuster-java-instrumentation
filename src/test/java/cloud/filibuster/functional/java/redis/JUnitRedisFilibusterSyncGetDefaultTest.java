@@ -71,7 +71,7 @@ public class JUnitRedisFilibusterSyncGetDefaultTest extends JUnitAnnotationBaseT
 
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected." + t);
             assertTrue(wasFaultInjectedOnService(REDIS_MODULE_NAME), "Fault was not injected on the Redis module." + t);
-            assertTrue(wasFaultInjectedOnMethod(REDIS_MODULE_NAME, "sync") || wasFaultInjectedOnMethod(REDIS_MODULE_NAME, "get"), "Fault was not injected on the Redis module." + t);
+            assertTrue(wasFaultInjectedOnMethod(REDIS_MODULE_NAME, "io.lettuce.core.api.StatefulRedisConnection.sync") || wasFaultInjectedOnMethod(REDIS_MODULE_NAME, "io.lettuce.core.api.sync.RedisStringCommands.get"), "Fault was not injected on the Redis module." + t);
             assertTrue(t instanceof RedisCommandTimeoutException || t instanceof RedisConnectionException, "Fault was not of the correct type" + t);
             assertTrue(allowedExceptionMessages.contains(t.getMessage()), "Unexpected fault message" + t);
         }

@@ -24,7 +24,7 @@ public class RedisSingleGetBasicStringByzantineFaultAnalysisConfigurationFile im
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.lettuce.byzantine.basic_string")
-                .pattern(REDIS_MODULE_NAME + "/(get)\\b");
+                .pattern(REDIS_MODULE_NAME + "/(io.lettuce.core.api.sync.RedisStringCommands.get)\\b");
 
 
         String[] possibleValues = {null, ""};

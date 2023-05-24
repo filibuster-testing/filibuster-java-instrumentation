@@ -52,7 +52,7 @@ public class JUnitRedisFilibusterRetryTest {
         } catch (Throwable t) {
             if (wasFaultInjected()) {
                 assertTrue(wasFaultInjectedOnService(REDIS_MODULE_NAME), "Fault was not injected on the Redis module");
-                assertTrue(wasFaultInjectedOnMethod(REDIS_MODULE_NAME, "await"), "Fault was not injected on the expected Redis method");
+                assertTrue(wasFaultInjectedOnMethod(REDIS_MODULE_NAME, "io.lettuce.core.RedisFuture.await"), "Fault was not injected on the expected Redis method");
                 String expectedErrorMessage = "Command interrupted";
                 assertTrue(t.getMessage().contains(expectedErrorMessage), "Unexpected return error message for injected byzantine fault");
             } else {

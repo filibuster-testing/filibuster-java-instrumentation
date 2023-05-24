@@ -24,7 +24,7 @@ public class RedisSingleGetStringByzantineFaultAnalysisConfigurationFile impleme
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.lettuce.byzantine.string")
-                .pattern(REDIS_MODULE_NAME + "/(get)\\b");
+                .pattern(REDIS_MODULE_NAME + "/(io.lettuce.core.api.sync.RedisStringCommands.get)\\b");
 
 
         // Potentially use junit-quickcheck to generate the possible values -> Would make the tests more "flaky"

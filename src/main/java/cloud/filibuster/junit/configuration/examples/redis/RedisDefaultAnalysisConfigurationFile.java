@@ -24,11 +24,11 @@ public class RedisDefaultAnalysisConfigurationFile implements FilibusterAnalysis
 
         createException(filibusterCustomAnalysisConfigurationFileBuilder,
                 "io.lettuce.core.RedisCommandTimeoutException",
-                "/(get|set)\\b",
+                "/(io.lettuce.core.api.sync.RedisStringCommands.get|io.lettuce.core.api.sync.RedisStringCommands.set)\\b",
                 "Command timed out after 100 millisecond(s)");
         createException(filibusterCustomAnalysisConfigurationFileBuilder,
                 "io.lettuce.core.RedisConnectionException",
-                "/(sync|async)\\b",
+                "/(io.lettuce.core.api.StatefulRedisConnection.sync|io.lettuce.core.api.StatefulRedisConnection.async)\\b",
                 "Connection closed prematurely");
 
         filibusterCustomAnalysisConfigurationFile = filibusterCustomAnalysisConfigurationFileBuilder.build();

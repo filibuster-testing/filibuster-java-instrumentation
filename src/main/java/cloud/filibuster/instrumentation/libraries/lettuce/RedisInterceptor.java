@@ -178,28 +178,33 @@ public class RedisInterceptor<T> implements MethodInterceptor {
     }
 
     private static Object injectByzantineFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject byzantineFault) {
-        ByzantineFaultType<?> byzantineFaultType = (ByzantineFaultType<?>) byzantineFault.get("type");
-        JSONObject byzantineFaultMetadata = byzantineFault.getJSONObject("metadata");
+        if (byzantineFault.has("type") && byzantineFault.has("metadata")) {
+            ByzantineFaultType<?> byzantineFaultType = (ByzantineFaultType<?>) byzantineFault.get("type");
+            JSONObject byzantineFaultMetadata = byzantineFault.getJSONObject("metadata");
 
-        // If a value was assigned, return it. Otherwise, return null.
-        Object byzantineFaultValue = byzantineFaultMetadata.has("value") ? byzantineFaultMetadata.get("value") : null;
+            // If a value was assigned, return it. Otherwise, return null.
+            Object byzantineFaultValue = byzantineFaultMetadata.has("value") ? byzantineFaultMetadata.get("value") : null;
 
-        // Cast the byzantineFaultValue to the correct type.
-        byzantineFaultValue = byzantineFaultType.cast(byzantineFaultValue);
+            // Cast the byzantineFaultValue to the correct type.
+            byzantineFaultValue = byzantineFaultType.cast(byzantineFaultValue);
 
-        logger.log(Level.INFO, logPrefix + "byzantineFaultType: " + byzantineFaultType);
-        logger.log(Level.INFO, logPrefix + "byzantineFaultValue: " + byzantineFaultValue);
+            logger.log(Level.INFO, logPrefix + "byzantineFaultType: " + byzantineFaultType);
+            logger.log(Level.INFO, logPrefix + "byzantineFaultValue: " + byzantineFaultValue);
 
-        // Build the additional metadata used to notify Filibuster.
-        HashMap<String, String> additionalMetadata = new HashMap<>();
-        String byzantineFaultValueString = byzantineFaultValue != null ? byzantineFaultValue.toString() : "null";
-        additionalMetadata.put("name", byzantineFaultType.toString());
-        additionalMetadata.put("value", byzantineFaultValueString);
+            // Build the additional metadata used to notify Filibuster.
+            HashMap<String, String> additionalMetadata = new HashMap<>();
+            String byzantineFaultValueString = byzantineFaultValue != null ? byzantineFaultValue.toString() : "null";
+            additionalMetadata.put("name", byzantineFaultType.toString());
+            additionalMetadata.put("value", byzantineFaultValueString);
 
-        // Notify Filibuster.
-        filibusterClientInstrumentor.afterInvocationWithException(byzantineFaultType.toString(), byzantineFaultValueString, additionalMetadata);
+            // Notify Filibuster.
+            filibusterClientInstrumentor.afterInvocationWithException(byzantineFaultType.toString(), byzantineFaultValueString, additionalMetadata);
 
-        return byzantineFaultValue;
+            return byzantineFaultValue;
+        } else {
+            logger.log(Level.WARNING, logPrefix + "The byzantineFault either does not have the required key 'type' or 'metadata'");
+            return null;
+        }
     }
 
     private static void generateAndThrowException(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject forcedException) {

@@ -640,16 +640,21 @@ public class FilibusterCore {
                 for (Object obj : jsonArray) {
                     JSONObject errorObject = (JSONObject) obj;
 
-                    String byzantineFaultType = errorObject.getString("type");
-                    JSONObject byzantineMetadata = errorObject.getJSONObject("metadata");
+                    if (errorObject.has("type") && errorObject.has("metadata")) {
+                        String byzantineFaultType = errorObject.getString("type");
+                        JSONObject byzantineMetadata = errorObject.getJSONObject("metadata");
 
-                    HashMap<String, Object> byzantineMetadataMap = new HashMap<>();
-                    for (String metadataObjectKey : byzantineMetadata.keySet()) {
-                        byzantineMetadataMap.put(metadataObjectKey, byzantineMetadata.get(metadataObjectKey));
+                        HashMap<String, Object> byzantineMetadataMap = new HashMap<>();
+                        for (String metadataObjectKey : byzantineMetadata.keySet()) {
+                            byzantineMetadataMap.put(metadataObjectKey, byzantineMetadata.get(metadataObjectKey));
+                        }
+
+                        filibusterAnalysisConfigurationBuilder.byzantine(ByzantineFaultType.fromFaultType(byzantineFaultType), byzantineMetadataMap);
+                        logger.info("[FILIBUSTER-CORE]: analysisFile, found new configuration, byzantineFaultType: " + byzantineFaultType + ", byzantineMetadata: " + byzantineMetadataMap);
+                    } else {
+                        logger.warning("[FILIBUSTER-CORE]: Either the key 'type' or 'metadata' was not defined for a byzantine" +
+                                "fault object. Skipping...");
                     }
-
-                    filibusterAnalysisConfigurationBuilder.byzantine(ByzantineFaultType.fromFaultType(byzantineFaultType), byzantineMetadataMap);
-                    logger.info("[FILIBUSTER-CORE]: analysisFile, found new configuration, byzantineFaultType: " + byzantineFaultType + ", byzantineMetadata: " + byzantineMetadataMap);
                 }
             }
 

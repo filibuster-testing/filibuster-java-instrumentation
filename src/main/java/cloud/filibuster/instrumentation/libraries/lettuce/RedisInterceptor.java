@@ -178,26 +178,26 @@ public class RedisInterceptor<T> implements MethodInterceptor {
     }
 
     private static Object injectByzantineFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject byzantineFault) {
-        ByzantineFaultType<?> type = (ByzantineFaultType<?>) byzantineFault.get("faultType");
+        ByzantineFaultType<?> byzantineFaultType = (ByzantineFaultType<?>) byzantineFault.get("faultType");
         JSONObject byzantineFaultMetadata = byzantineFault.getJSONObject("metadata");
 
         // If a value was assigned, return it. Otherwise, return null.
         Object byzantineFaultValue = byzantineFaultMetadata.has("value") ? byzantineFaultMetadata.get("value") : null;
 
         // Cast the byzantineFaultValue to the correct type.
-        byzantineFaultValue = type.cast(byzantineFaultValue);
+        byzantineFaultValue = byzantineFaultType.cast(byzantineFaultValue);
 
-        logger.log(Level.INFO, logPrefix + "byzantineFaultType: " + type);
+        logger.log(Level.INFO, logPrefix + "byzantineFaultType: " + byzantineFaultType);
         logger.log(Level.INFO, logPrefix + "byzantineFaultValue: " + byzantineFaultValue);
 
         // Build the additional metadata used to notify Filibuster.
         HashMap<String, String> additionalMetadata = new HashMap<>();
         String byzantineFaultValueString = byzantineFaultValue != null ? byzantineFaultValue.toString() : "null";
-        additionalMetadata.put("name", type.toString());
+        additionalMetadata.put("name", byzantineFaultType.toString());
         additionalMetadata.put("value", byzantineFaultValueString);
 
         // Notify Filibuster.
-        filibusterClientInstrumentor.afterInvocationWithException(type.toString(), byzantineFaultValueString, additionalMetadata);
+        filibusterClientInstrumentor.afterInvocationWithException(byzantineFaultType.toString(), byzantineFaultValueString, additionalMetadata);
 
         return byzantineFaultValue;
     }

@@ -44,7 +44,7 @@ public class JUnitDynamicProxyInterceptorTest extends JUnitAnnotationBaseTest {
         } catch (Exception t) {
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
             assertTrue(wasFaultInjectedOnService(COCKROACH_MODULE_NAME), "Fault was not injected on the cockroach module: " + t);
-            assertTrue(wasFaultInjectedOnMethod(COCKROACH_MODULE_NAME, "java.sql.Connection.getSchema"), "Fault was not injected on the expected Redis method: " + t);
+            assertTrue(wasFaultInjectedOnMethod(COCKROACH_MODULE_NAME, "java.sql.Connection.getSchema"), "Fault was not injected on the expected method: " + t);
             assertTrue(t instanceof PSQLException, "Fault was not of the correct type: " + t);
         }
     }

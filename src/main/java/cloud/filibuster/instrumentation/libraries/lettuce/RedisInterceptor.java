@@ -7,7 +7,7 @@ import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
-import cloud.filibuster.junit.configuration.examples.redis.byzantine.types.ByzantineFaultType;
+import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineFaultType;
 import io.lettuce.core.RedisBusyException;
 import io.lettuce.core.RedisCommandExecutionException;
 import io.lettuce.core.RedisCommandInterruptedException;

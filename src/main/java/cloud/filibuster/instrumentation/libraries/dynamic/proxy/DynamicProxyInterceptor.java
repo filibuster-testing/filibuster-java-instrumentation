@@ -5,10 +5,9 @@ import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
 import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
-import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
-import cloud.filibuster.junit.configuration.examples.redis.byzantine.types.ByzantineFaultType;
+import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineFaultType;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
@@ -36,12 +35,12 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
     public static final Boolean disableServerCommunication = false;
     private final String serviceName;
     private final String connectionString;
-    private static final String logPrefix = "[FILIBUSTER-DB_INTERCEPTOR]: ";
+    private static final String logPrefix = "[FILIBUSTER-PROXY_INTERCEPTOR]: ";
     private final String moduleName;
     private FilibusterClientInstrumentor filibusterClientInstrumentor;
 
     private DynamicProxyInterceptor(T targetObject, String connectionString, String moduleName) {
-        logger.log(Level.INFO, "DynamicProxyInterceptor: Constructor was called");
+        logger.log(Level.INFO, logPrefix + "Constructor was called");
         this.targetObject = targetObject;
         this.contextStorage = new ThreadLocalContextStorage();
         this.connectionString = connectionString;
@@ -84,7 +83,10 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
         // Construct preliminary call site information.
         // ******************************************************************************************
 
-        CallsiteArguments callsiteArguments = new CallsiteArguments(args.getClass(), Arrays.toString(args));
+        Class<?> argsClass = args != null ? args.getClass() : Object[].class;
+        String argsString = args != null ? Arrays.toString(args) : "[]";
+
+        CallsiteArguments callsiteArguments = new CallsiteArguments(argsClass, argsString);
 
         Callsite callsite = new Callsite(serviceName, moduleName, fullMethodName, callsiteArguments);
 
@@ -148,8 +150,7 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
             // the returned RedisCommands object should also be an intercepted proxy)
             if (method.getReturnType().isInterface() &&
                     method.getReturnType().getClassLoader() != null) {
-                invocationResult = new RedisInterceptorFactory<>(invocationResult, connectionString)
-                        .getProxy(method.getReturnType());
+                invocationResult = DynamicProxyInterceptor.createInterceptor(invocationResult, connectionString, moduleName);
             }
         }
 
@@ -237,7 +238,7 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
 
     @SuppressWarnings("unchecked")
     public static <T> T createInterceptor(T target, String connectionString, String moduleName) {
-        logger.log(Level.INFO, "CockroachInterceptor: createInterceptor was called");
+        logger.log(Level.INFO, logPrefix + "createInterceptor was called");
         return (T) Proxy.newProxyInstance(
                 target.getClass().getClassLoader(),
                 target.getClass().getInterfaces(),

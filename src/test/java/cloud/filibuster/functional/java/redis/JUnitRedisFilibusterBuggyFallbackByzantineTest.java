@@ -5,7 +5,7 @@ import cloud.filibuster.examples.Hello;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.redis.byzantine.RedisSingleGetBasicStringByzantineFaultAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.db.byzantine.redis.RedisSingleGetBasicStringByzantineFaultAnalysisConfigurationFile;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.BeforeAll;

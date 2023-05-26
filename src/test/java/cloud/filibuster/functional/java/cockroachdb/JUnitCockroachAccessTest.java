@@ -29,11 +29,11 @@ public class JUnitCockroachAccessTest extends JUnitAnnotationBaseTest {
         BasicDAO dao = CockroachClientService.getInstance().dao;
 
         // Manually insert two accounts
-        Map<String, String> balances = new HashMap<>();
+        Map<String, Integer> balances = new HashMap<>();
         UUID id1 = UUID.randomUUID();
         UUID id2 = UUID.randomUUID();
-        balances.put(id1.toString(), "1000");
-        balances.put(id2.toString(), "250");
+        balances.put(id1.toString(), initBalance1);
+        balances.put(id2.toString(), initBalance2);
         dao.updateAccounts(balances);
 
         // Assert account balances were set correctly

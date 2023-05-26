@@ -198,11 +198,11 @@ public class BasicDAO {
      *
      * @param accounts (Map)
      */
-    public void updateAccounts(Map<String, String> accounts) {
-        for (Map.Entry<String, String> account : accounts.entrySet()) {
+    public void updateAccounts(Map<String, Integer> accounts) {
+        for (Map.Entry<String, Integer> account : accounts.entrySet()) {
 
             String k = account.getKey();
-            String v = account.getValue();
+            String v = account.getValue().toString();
 
             String[] args = {k, v};
             runSQL("INSERT INTO accounts (id, balance) VALUES (?, ?)", args);

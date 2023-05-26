@@ -9,6 +9,8 @@ import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
 import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineFaultType;
 import org.json.JSONObject;
+import org.postgresql.util.PSQLException;
+import org.postgresql.util.ServerErrorMessage;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.InvocationHandler;
@@ -76,7 +78,7 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
         // Extract callsite information.
         // ******************************************************************************************
 
-        String fullMethodName = this.moduleName + "/" + method.getName();
+        String fullMethodName = String.format("%s/%s.%s", this.moduleName, method.getDeclaringClass().getName(), method.getName());
         logger.log(Level.INFO, logPrefix + "fullMethodName: " + fullMethodName);
 
         // ******************************************************************************************
@@ -202,16 +204,16 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
         }
     }
 
-    private static void generateAndThrowException(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject forcedException) {
+    private static void generateAndThrowException(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject forcedException) throws Exception {
         String exceptionNameString = forcedException.getString("name");
         JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
         String causeString = forcedExceptionMetadata.getString("cause");
 
-        RuntimeException exceptionToThrow = null;
+        Exception exceptionToThrow;
 
-        switch (exceptionNameString) {
-            case "abc":  // TODO: Replace with actual exception name.
-                logger.log(Level.INFO, "Do something");
+        switch (exceptionNameString) {  // TODO: Refactor the switch to an interface
+            case "org.postgresql.util.PSQLException":
+                exceptionToThrow = new PSQLException(new ServerErrorMessage(causeString));
                 break;
             default:
                 throw new FilibusterFaultInjectionException("Cannot determine the execution cause to throw: " + causeString);

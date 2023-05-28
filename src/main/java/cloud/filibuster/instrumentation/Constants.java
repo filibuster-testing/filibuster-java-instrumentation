@@ -10,4 +10,5 @@ public class Constants {
     // classOrModuleName for CallSite objects or for pattern recognition in the analysis configuration files.
     final public static String REDIS_MODULE_NAME = "RedisClient";
     final public static String COCKROACH_MODULE_NAME = "CockroachClient";
+    final public static String DYNAMO_MODULE_NAME = "DynamoClient";
 }

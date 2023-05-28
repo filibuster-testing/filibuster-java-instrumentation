@@ -2,51 +2,84 @@ package cloud.filibuster.functional.java.dynamodb;
 
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.DynamoDBClientService;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.cockroachdb.CockroachClientService;
-import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.db.cockroachdb.CockroachSingleFaultPSQLExceptionAnalysisConfigurationFile;
-import org.junit.jupiter.api.*;
-import org.postgresql.ds.PGSimpleDataSource;
-import org.postgresql.util.PSQLException;
-
-import java.sql.Connection;
-import java.sql.SQLException;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
+import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
+import software.amazon.awssdk.services.dynamodb.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 import static cloud.filibuster.instrumentation.Constants.DYNAMO_MODULE_NAME;
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class JUnitDynamoDBTest extends JUnitAnnotationBaseTest {
 
-    private static Connection connection;
+    private static DynamoDbClient dynamoDbClient;
     private static String connectionString;
 
 
     @BeforeAll
-    public static void beforeAll() throws SQLException {
-        PGSimpleDataSource cockroachClient = CockroachClientService.getInstance().cockroachClient;
-        connection = cockroachClient.getConnection();
+    public static void beforeAll() {
+        dynamoDbClient = DynamoDBClientService.getInstance().dynamoDbClient;
         connectionString = CockroachClientService.getInstance().connectionString;
     }
 
-    @DisplayName("Inject basic PSQLException in DynamoDB")
+    @DisplayName("Inject basic exception in DynamoDB")
     @Order(1)
-    @TestWithFilibuster(analysisConfigurationFile = CockroachSingleFaultPSQLExceptionAnalysisConfigurationFile.class)
+    @Test
+    // TODO: Add analysis config file
     public void testInterceptConnection() {
         try {
-            Connection interceptedConnection = DynamicProxyInterceptor.createInterceptor(connection, connectionString, DYNAMO_MODULE_NAME);
-            interceptedConnection.getSchema();
+            DynamoDbClient interceptedClient = DynamicProxyInterceptor.createInterceptor(dynamoDbClient, connectionString, DYNAMO_MODULE_NAME);
+            int initTableSize = interceptedClient.listTables().tableNames().size();
+            createNewTable(interceptedClient, "testTable1", "attr1");
+            createNewTable(interceptedClient, "testTable2", "attr2");
+            assertEquals(initTableSize + 2, interceptedClient.listTables().tableNames().size());
             assertFalse(wasFaultInjected());
         } catch (Exception t) {
-            assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
-            assertTrue(wasFaultInjectedOnService(DYNAMO_MODULE_NAME), "Fault was not injected on the cockroach module: " + t);
-            assertTrue(wasFaultInjectedOnMethod(DYNAMO_MODULE_NAME, "java.sql.Connection.getSchema"), "Fault was not injected on the expected method: " + t);
-            assertTrue(t instanceof PSQLException, "Fault was not of the correct type: " + t);
+            throw t;
+            // TODO: Do some stuff
         }
+    }
+
+    private void createNewTable(DynamoDbClient dynamoDbClient, String tableName, String attr) {
+        dynamoDbClient.createTable(
+                CreateTableRequest
+                        .builder()
+                        .keySchema(
+                                KeySchemaElement.builder()
+                                        .keyType(KeyType.HASH)
+                                        .attributeName(attr)
+                                        .build()
+                        )
+                        .attributeDefinitions(
+                                AttributeDefinition.builder()
+                                        .attributeName(attr)
+                                        .attributeType(ScalarAttributeType.S)
+                                        .build()
+                        )
+                        .provisionedThroughput(
+                                ProvisionedThroughput
+                                        .builder()
+                                        .readCapacityUnits(100L)
+                                        .writeCapacityUnits(100L)
+                                        .build()
+                        )
+                        .tableName(tableName)
+                        .build()
+        );
     }
 
 }

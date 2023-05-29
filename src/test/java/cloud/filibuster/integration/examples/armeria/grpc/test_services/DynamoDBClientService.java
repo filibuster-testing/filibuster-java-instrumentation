@@ -27,7 +27,7 @@ public class DynamoDBClientService {
         dynamoDbClient = getDynamoClient(connectionString);
     }
 
-    private DynamoDbClient getDynamoClient(String connectionString) {
+    private static DynamoDbClient getDynamoClient(String connectionString) {
         return DynamoDbClient.builder()
                 .region(Region.US_EAST_1)
                 .endpointOverride(URI.create(connectionString))

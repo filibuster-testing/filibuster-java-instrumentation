@@ -54,7 +54,7 @@ public class JUnitDynamoDBTest extends JUnitAnnotationBaseTest {
         }
     }
 
-    private void createNewTable(DynamoDbClient dynamoDbClient, String tableName, String attr) {
+    private static void createNewTable(DynamoDbClient dynamoDbClient, String tableName, String attr) {
         dynamoDbClient.createTable(
                 CreateTableRequest
                         .builder()

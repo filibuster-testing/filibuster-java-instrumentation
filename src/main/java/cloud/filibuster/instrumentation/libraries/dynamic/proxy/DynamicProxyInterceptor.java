@@ -77,6 +77,7 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
         // Extract callsite information.
         // ******************************************************************************************
 
+        // E.g., PGSimpleDataSource/java.sql.Connection.getSchema or PGSimpleDataSource/java.sql.Connection.createStatement
         String fullMethodName = String.format("%s/%s.%s", this.moduleName, method.getDeclaringClass().getName(), method.getName());
         logger.log(Level.INFO, logPrefix + "fullMethodName: " + fullMethodName);
 
@@ -84,7 +85,10 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
         // Construct preliminary call site information.
         // ******************************************************************************************
 
+        // If the invocation has args, pass their class to CallsiteArguments. Otherwise, pass Object[].class.
         Class<?> argsClass = args != null ? args.getClass() : Object[].class;
+
+        // If the invocation has args, pass them as a stringified array to CallsiteArguments. Otherwise, pass "[]".
         String argsString = args != null ? Arrays.toString(args) : "[]";
 
         CallsiteArguments callsiteArguments = new CallsiteArguments(argsClass, argsString);

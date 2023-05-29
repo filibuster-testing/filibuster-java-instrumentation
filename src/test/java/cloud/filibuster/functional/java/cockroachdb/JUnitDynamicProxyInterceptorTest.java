@@ -11,11 +11,14 @@ import org.postgresql.util.PSQLException;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashSet;
+import java.util.Set;
 
 import static cloud.filibuster.instrumentation.Constants.COCKROACH_MODULE_NAME;
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -24,6 +27,9 @@ public class JUnitDynamicProxyInterceptorTest extends JUnitAnnotationBaseTest {
 
     private static Connection connection;
     private static String connectionString;
+    private static int numberOfTestExecutions = 0;
+    private final static Set<String> testExceptionsThrown = new HashSet<>();
+
 
 
     @BeforeAll
@@ -38,10 +44,14 @@ public class JUnitDynamicProxyInterceptorTest extends JUnitAnnotationBaseTest {
     @TestWithFilibuster(analysisConfigurationFile = CockroachSingleFaultPSQLExceptionAnalysisConfigurationFile.class)
     public void testInterceptConnection() {
         try {
+            numberOfTestExecutions++;
+
             Connection interceptedConnection = DynamicProxyInterceptor.createInterceptor(connection, connectionString, COCKROACH_MODULE_NAME);
             interceptedConnection.getSchema();
             assertFalse(wasFaultInjected());
         } catch (Exception t) {
+            testExceptionsThrown.add(t.getMessage());
+
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
             assertTrue(wasFaultInjectedOnService(COCKROACH_MODULE_NAME), "Fault was not injected on the cockroach module: " + t);
             assertTrue(wasFaultInjectedOnMethod(COCKROACH_MODULE_NAME, "java.sql.Connection.getSchema"), "Fault was not injected on the expected method: " + t);
@@ -49,4 +59,18 @@ public class JUnitDynamicProxyInterceptorTest extends JUnitAnnotationBaseTest {
         }
     }
 
+    @DisplayName("Verify correct number of test executions.")
+    @Test
+    @Order(2)
+    public void testNumExecutions() {
+        // 1 fault free execution + 1 fault injected execution
+        assertEquals(2, numberOfTestExecutions);
+    }
+
+    @DisplayName("Verify correct number of generated Filibuster tests.")
+    @Test
+    @Order(3)
+    public void testNumExceptions() {
+        assertEquals(1, testExceptionsThrown.size());
+    }
 }

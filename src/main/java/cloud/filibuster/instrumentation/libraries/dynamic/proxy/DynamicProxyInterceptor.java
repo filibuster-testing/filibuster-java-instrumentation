@@ -23,7 +23,10 @@ import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static cloud.filibuster.instrumentation.helpers.Property.*;
+import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationEnabledProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationServerCommunicationEnabledProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.getRedisTestPortNondeterminismProperty;
+
 
 public class DynamicProxyInterceptor<T> implements InvocationHandler {
 

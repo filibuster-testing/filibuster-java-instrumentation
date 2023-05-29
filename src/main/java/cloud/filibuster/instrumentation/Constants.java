@@ -8,6 +8,6 @@ public class Constants {
 
     // Module names are used in the DB interceptors and analysis configuration files. They are used as
     // classOrModuleName for CallSite objects or for pattern recognition in the analysis configuration files.
-    final public static String REDIS_MODULE_NAME = "RedisClient";
-    final public static String COCKROACH_MODULE_NAME = "CockroachClient";
+    final public static String REDIS_MODULE_NAME = "Lettuce";
+    final public static String COCKROACH_MODULE_NAME = "PGSimpleDataSource";
 }

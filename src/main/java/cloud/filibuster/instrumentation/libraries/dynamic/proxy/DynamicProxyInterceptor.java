@@ -49,15 +49,11 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
         this.targetObject = targetObject;
         this.contextStorage = new ThreadLocalContextStorage();
         this.connectionString = connectionString;
-        this.serviceName = getServiceName(connectionString);
+        this.serviceName = extractServiceFromConnection(connectionString);
         this.moduleName = moduleName;
     }
 
-    public String getServiceName() {
-        return this.serviceName;
-    }
-
-    private static String getServiceName(String connectionString) {
+    private static String extractServiceFromConnection(String connectionString) {
         // If PortNondeterminism is set, extract the host name from the complete connection string. Otherwise, leave
         // the connection string unchanged.
         if (getRedisTestPortNondeterminismProperty()) {

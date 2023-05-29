@@ -1,3 +1,6 @@
+1.7.5:
+   - (MichaelA-ops) Create generic dynamic proxy interceptor
+   - (MichaelA-ops) Add prototype support for CockroachDB fault injection
 1.7.4:
    - (cmeiklejohn) Add prototype excel reporting.
    - (cmeiklejohn) Fix UX bug.

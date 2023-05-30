@@ -6,9 +6,6 @@ import cloud.filibuster.integration.examples.armeria.grpc.test_services.DynamoDB
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.cockroachdb.CockroachClientService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
@@ -19,12 +16,9 @@ import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 import static cloud.filibuster.instrumentation.Constants.DYNAMO_MODULE_NAME;
-import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitDynamoDBTest extends JUnitAnnotationBaseTest {
+public class JUnitDynamoDBAccessTest extends JUnitAnnotationBaseTest {
 
     private static DynamoDbClient dynamoDbClient;
     private static String connectionString;
@@ -36,22 +30,14 @@ public class JUnitDynamoDBTest extends JUnitAnnotationBaseTest {
         connectionString = CockroachClientService.getInstance().connectionString;
     }
 
-    @DisplayName("Inject basic exception in DynamoDB")
-    @Order(1)
+    @DisplayName("Basic test for DynamoDB access")
     @Test
-    // TODO: Add analysis config file
-    public void testInterceptConnection() {
-        try {
-            DynamoDbClient interceptedClient = DynamicProxyInterceptor.createInterceptor(dynamoDbClient, connectionString, DYNAMO_MODULE_NAME);
-            int initTableSize = interceptedClient.listTables().tableNames().size();
-            createNewTable(interceptedClient, "testTable1", "attr1");
-            createNewTable(interceptedClient, "testTable2", "attr2");
-            assertEquals(initTableSize + 2, interceptedClient.listTables().tableNames().size());
-            assertFalse(wasFaultInjected());
-        } catch (Exception t) {
-            throw t;
-            // TODO: Do some stuff
-        }
+    public void testBasicDynamoDBAccess() {
+        DynamoDbClient interceptedClient = DynamicProxyInterceptor.createInterceptor(dynamoDbClient, connectionString, DYNAMO_MODULE_NAME);
+        int initTableSize = interceptedClient.listTables().tableNames().size();
+        createNewTable(interceptedClient, "testTable1", "attr1");
+        createNewTable(interceptedClient, "testTable2", "attr2");
+        assertEquals(initTableSize + 2, interceptedClient.listTables().tableNames().size());
     }
 
     private static void createNewTable(DynamoDbClient dynamoDbClient, String tableName, String attr) {

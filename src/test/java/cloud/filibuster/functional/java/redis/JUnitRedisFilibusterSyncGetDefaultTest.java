@@ -6,7 +6,6 @@ import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisCli
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.redis.RedisDefaultAnalysisConfigurationFile;
 import io.lettuce.core.RedisCommandTimeoutException;
-import io.lettuce.core.RedisConnectionException;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import org.junit.jupiter.api.BeforeAll;
@@ -51,7 +50,6 @@ public class JUnitRedisFilibusterSyncGetDefaultTest extends JUnitAnnotationBaseT
 
     static {
         allowedExceptionMessages.add("Command timed out after 100 millisecond(s)");
-        allowedExceptionMessages.add("Connection closed prematurely");
     }
 
     @DisplayName("Tests whether Redis sync interceptor can read from existing key - Multiple fault injections")
@@ -71,8 +69,8 @@ public class JUnitRedisFilibusterSyncGetDefaultTest extends JUnitAnnotationBaseT
 
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected." + t);
             assertTrue(wasFaultInjectedOnService(REDIS_MODULE_NAME), "Fault was not injected on the Redis module: " + t);
-            assertTrue(wasFaultInjectedOnMethod(REDIS_MODULE_NAME, "io.lettuce.core.api.StatefulRedisConnection.sync") || wasFaultInjectedOnMethod(REDIS_MODULE_NAME, "io.lettuce.core.api.sync.RedisStringCommands.get"), "Fault was not injected on the Redis module." + t);
-            assertTrue(t instanceof RedisCommandTimeoutException || t instanceof RedisConnectionException, "Fault was not of the correct type: " + t);
+            assertTrue(wasFaultInjectedOnMethod(REDIS_MODULE_NAME, "io.lettuce.core.api.sync.RedisStringCommands.get"), "Fault was not injected on the Redis module." + t);
+            assertTrue(t instanceof RedisCommandTimeoutException, "Fault was not of the correct type: " + t);
             assertTrue(allowedExceptionMessages.contains(t.getMessage()), "Unexpected fault message: " + t);
         }
     }
@@ -81,14 +79,14 @@ public class JUnitRedisFilibusterSyncGetDefaultTest extends JUnitAnnotationBaseT
     @Test
     @Order(2)
     public void testNumExecutions() {
-        assertEquals(3, numberOfTestExecutions);
+        assertEquals(2, numberOfTestExecutions);
     }
 
     @DisplayName("Verify correct number of generated Filibuster tests.")
     @Test
     @Order(3)
     public void testNumExceptions() {
-        assertEquals(2, testExceptionsThrown.size());
+        assertEquals(1, testExceptionsThrown.size());
     }
 
 }

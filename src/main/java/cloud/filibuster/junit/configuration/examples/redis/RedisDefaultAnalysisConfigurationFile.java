@@ -22,22 +22,18 @@ public class RedisDefaultAnalysisConfigurationFile implements FilibusterAnalysis
     static {
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
-        createException(filibusterCustomAnalysisConfigurationFileBuilder,
-                "io.lettuce.core.RedisCommandTimeoutException",
-                "/(io.lettuce.core.api.sync.RedisStringCommands.get|io.lettuce.core.api.sync.RedisStringCommands.set)\\b",
-                "Command timed out after 100 millisecond(s)");
-        createException(filibusterCustomAnalysisConfigurationFileBuilder,
-                "io.lettuce.core.RedisConnectionException",
-                "/(io.lettuce.core.api.StatefulRedisConnection.sync|io.lettuce.core.api.StatefulRedisConnection.async)\\b",
-                "Connection closed prematurely");
+        createException(filibusterCustomAnalysisConfigurationFileBuilder
+        );
 
         filibusterCustomAnalysisConfigurationFile = filibusterCustomAnalysisConfigurationFileBuilder.build();
     }
 
-    private static void createException(FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder, String name, String pattern, String cause) {
-        FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder().name(name).pattern(REDIS_MODULE_NAME + pattern);
+    private static void createException(FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder) {
+        FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder().name("io.lettuce.core.RedisCommandTimeoutException").
+                pattern(REDIS_MODULE_NAME + "/(io.lettuce.core.api.sync.RedisStringCommands.get|io.lettuce.core.api.sync.RedisStringCommands.set)\\b");
 
-        filibusterAnalysisConfigurationBuilderRedisExceptions.exception(name, createErrorMap(cause));
+        filibusterAnalysisConfigurationBuilderRedisExceptions.exception("io.lettuce.core.RedisCommandTimeoutException",
+                createErrorMap("Command timed out after 100 millisecond(s)"));
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());
     }

@@ -31,10 +31,6 @@ public class RedisExhaustiveAnalysisConfigurationFile implements FilibusterAnaly
                                 "io.lettuce.core.api.sync.RedisHashCommands.hset|" +
                                 "io.lettuce.core.api.sync.RedisHashCommands.hgetall)\\b",
                         "Command timed out after 100 millisecond(s)"},
-                {"io.lettuce.core.RedisConnectionException",
-                        "/(io.lettuce.core.api.StatefulRedisConnection.sync|" +
-                                "io.lettuce.core.api.StatefulRedisConnection.async)\\b",
-                        "Connection closed prematurely"},
                 {"io.lettuce.core.RedisBusyException",
                         "/(io.lettuce.core.api.sync.RedisServerCommands.flushall|" +
                                 "io.lettuce.core.api.sync.RedisServerCommands.flushdb)\\b",

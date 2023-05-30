@@ -9,7 +9,6 @@ import io.lettuce.core.RedisBusyException;
 import io.lettuce.core.RedisCommandExecutionException;
 import io.lettuce.core.RedisCommandInterruptedException;
 import io.lettuce.core.RedisCommandTimeoutException;
-import io.lettuce.core.RedisConnectionException;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.sync.RedisCommands;
@@ -77,11 +76,6 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
                         "io.lettuce.core.api.sync.RedisHashCommands.hgetall",
                         "io.lettuce.core.api.sync.RedisHashCommands.hset"), "Command timed out after 100 millisecond(s)"));
 
-        allowedExceptions.put(RedisConnectionException.class,
-                new AbstractMap.SimpleEntry<>(Arrays.asList("io.lettuce.core.api.StatefulRedisConnection.sync",
-                        "io.lettuce.core.api.StatefulRedisConnection.async"),
-                        "Connection closed prematurely"));
-
         allowedExceptions.put(RedisBusyException.class,
                 new AbstractMap.SimpleEntry<>(Arrays.asList("io.lettuce.core.api.sync.RedisServerCommands.flushall",
                         "io.lettuce.core.api.sync.RedisServerCommands.flushdb"),
@@ -107,7 +101,6 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
 
             StatefulRedisConnection<String, String> myStatefulRedisConnection = new RedisInterceptorFactory<>(statefulRedisConnection, redisConnectionString).getProxy(StatefulRedisConnection.class);
 
-            // Test RedisConnectionException
             RedisCommands<String, String> myRedisCommands = myStatefulRedisConnection.sync();
 
             // Test RedisCommandTimeoutException
@@ -149,7 +142,7 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
     @Test
     @Order(2)
     public void testNumExecutions() {
-        assertEquals(13, numberOfTestExecutions);
+        assertEquals(11, numberOfTestExecutions);
     }
 
     @DisplayName("Verify correct number of Filibuster exceptions.")

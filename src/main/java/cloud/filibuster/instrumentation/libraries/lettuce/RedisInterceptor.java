@@ -12,7 +12,6 @@ import io.lettuce.core.RedisBusyException;
 import io.lettuce.core.RedisCommandExecutionException;
 import io.lettuce.core.RedisCommandInterruptedException;
 import io.lettuce.core.RedisCommandTimeoutException;
-import io.lettuce.core.RedisConnectionException;
 import io.lettuce.core.cluster.PartitionSelectorException;
 import io.lettuce.core.cluster.UnknownPartitionException;
 import io.lettuce.core.cluster.models.partitions.Partitions;
@@ -86,7 +85,6 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         //  RedisClient/io.lettuce.core.api.sync.RedisStringCommands.get,
         //  RedisClient/io.lettuce.core.api.async.RedisStringAsyncCommands.get,
         //  RedisClient/io.lettuce.core.api.sync.RedisStringCommands.set,
-        //  RedisClient/io.lettuce.core.api.StatefulRedisConnection.sync
         String redisFullMethodName = String.format("%s/%s.%s", REDIS_MODULE_NAME, invocation.getMethod().getDeclaringClass().getName(), invocation.getMethod().getName());
         logger.log(Level.INFO, logPrefix + "redisFullMethodName: " + redisFullMethodName);
 
@@ -223,9 +221,6 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         switch (exceptionNameString) {
             case "io.lettuce.core.RedisCommandTimeoutException":
                 exceptionToThrow = new RedisCommandTimeoutException(causeString);
-                break;
-            case "io.lettuce.core.RedisConnectionException":
-                exceptionToThrow = new RedisConnectionException(causeString);
                 break;
             case "io.lettuce.core.RedisBusyException":
                 exceptionToThrow = new RedisBusyException(causeString);

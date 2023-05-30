@@ -85,6 +85,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         // Possible values of redisFullMethodName are
         //  RedisClient/io.lettuce.core.api.sync.RedisStringCommands.get,
         //  RedisClient/io.lettuce.core.api.async.RedisStringAsyncCommands.get,
+        //  RedisClient/io.lettuce.core.api.sync.RedisStringCommands.set,
         //  RedisClient/io.lettuce.core.api.StatefulRedisConnection.sync
         String redisFullMethodName = String.format("%s/%s.%s", REDIS_MODULE_NAME, invocation.getMethod().getDeclaringClass().getName(), invocation.getMethod().getName());
         logger.log(Level.INFO, logPrefix + "redisFullMethodName: " + redisFullMethodName);

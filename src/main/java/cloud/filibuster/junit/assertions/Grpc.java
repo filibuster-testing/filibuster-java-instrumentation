@@ -7,6 +7,8 @@ import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.function.ThrowingConsumer;
 
+import java.util.Locale;
+
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendCanInvokeDirectlyProperty;
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 
@@ -118,7 +120,8 @@ public class Grpc {
      * @return was fault injected
      */
     public static boolean wasFaultInjectedOnService(String serviceName) {
-        if (serviceName != null) {  // TODO check serviceName format is actual grpc
+        if (serviceName != null && serviceName.contains("cloud.filibuster.examples.")
+                && serviceName.toLowerCase(Locale.ROOT).contains("service")) {
             if (getServerBackendCanInvokeDirectlyProperty()) {
                 if (FilibusterCore.hasCurrentInstance()) {
                     return FilibusterCore.getCurrentInstance().wasFaultInjectedOnService(serviceName);

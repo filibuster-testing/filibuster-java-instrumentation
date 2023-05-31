@@ -120,8 +120,7 @@ public class Grpc {
      * @return was fault injected
      */
     public static boolean wasFaultInjectedOnService(String serviceName) {
-        if (serviceName != null && serviceName.contains("cloud.filibuster.examples.")
-                && serviceName.toLowerCase(Locale.ROOT).contains("service")) {
+        if (serviceName != null && serviceName.toLowerCase(Locale.ROOT).contains("service")) {
             if (getServerBackendCanInvokeDirectlyProperty()) {
                 if (FilibusterCore.hasCurrentInstance()) {
                     return FilibusterCore.getCurrentInstance().wasFaultInjectedOnService(serviceName);

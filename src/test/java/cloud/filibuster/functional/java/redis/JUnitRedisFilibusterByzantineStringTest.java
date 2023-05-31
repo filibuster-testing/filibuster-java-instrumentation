@@ -57,7 +57,7 @@ public class JUnitRedisFilibusterByzantineStringTest extends JUnitAnnotationBase
         } else {
             actualValues.add(returnVal);
             assertTrue(expectedValues.contains(returnVal), "An unexpected value was returned: " + returnVal);
-            assertTrue(wasFaultInjectedOnMethod("io.lettuce.core.api.sync.RedisStringCommands", "get"), "Fault was not injected on the expected Redis method");
+            assertTrue(wasFaultInjectedOnMethod("io.lettuce.core.api.sync.RedisStringCommands/get"), "Fault was not injected on the expected Redis method");
         }
     }
 

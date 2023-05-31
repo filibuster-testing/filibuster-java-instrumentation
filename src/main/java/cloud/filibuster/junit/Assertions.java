@@ -210,7 +210,7 @@ public class Assertions {
      */
     public static boolean wasFaultInjectedOnService(String serviceName) {
         if (getServerBackendCanInvokeDirectlyProperty()) {
-            throw new FilibusterUnsupportedAPIException("This API is currently not supported. If applicable, please use the GRPC variant instead.");
+            throw new FilibusterUnsupportedAPIException("This API is currently not supported. If applicable, please import the GRPC variant of this method instead.");
         } else {
             return wasFaultInjected("/filibuster/fault-injected/service/" + serviceName);
         }

@@ -138,7 +138,7 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
                     String className = mapEntry.getKey();
                     List<String> methodNames = mapEntry.getValue();
 
-                    if(methodNames.stream().anyMatch(method -> wasFaultInjectedOnMethod(className, method))) {
+                    if(methodNames.stream().anyMatch(method -> wasFaultInjectedOnMethod(className + "/" + method))) {
                         injectedMethodFound = true;
                         break;
                     }

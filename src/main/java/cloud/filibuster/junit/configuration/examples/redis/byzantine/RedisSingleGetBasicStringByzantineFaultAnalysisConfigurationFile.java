@@ -8,8 +8,6 @@ import cloud.filibuster.junit.configuration.examples.redis.byzantine.types.Byzan
 import java.util.HashMap;
 import java.util.Map;
 
-import static cloud.filibuster.instrumentation.Constants.REDIS_MODULE_NAME;
-
 public class RedisSingleGetBasicStringByzantineFaultAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
@@ -24,7 +22,7 @@ public class RedisSingleGetBasicStringByzantineFaultAnalysisConfigurationFile im
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.lettuce.byzantine.basic_string")
-                .pattern(REDIS_MODULE_NAME + "/(get)\\b");
+                .pattern("io.lettuce.core.api.sync.RedisStringCommands/get\\b");
 
 
         String[] possibleValues = {null, ""};

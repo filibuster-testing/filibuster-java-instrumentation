@@ -20,7 +20,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static cloud.filibuster.instrumentation.Constants.REDIS_MODULE_NAME;
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
@@ -69,8 +68,8 @@ public class JUnitRedisFilibusterSyncGetNonExistingKeyTest extends JUnitAnnotati
             testExceptionsThrown.add(t.getMessage());
 
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
-            assertTrue(wasFaultInjectedOnService(REDIS_MODULE_NAME), "Fault was not injected on the Redis module: " + t);
-            assertTrue(wasFaultInjectedOnMethod(REDIS_MODULE_NAME, "get"), "Fault was not injected on the expected Redis method: " + t);
+            assertTrue(wasFaultInjectedOnService("io.lettuce.core.api.sync.RedisStringCommands"), "Fault was not injected on the Redis module: " + t);
+            assertTrue(wasFaultInjectedOnMethod("io.lettuce.core.api.sync.RedisStringCommands", "get"), "Fault was not injected on the expected Redis method: " + t);
             assertTrue(t instanceof RedisCommandTimeoutException, "Fault was not of the correct type: " + t);
             assertTrue(allowedExceptionMessages.contains(t.getMessage()), "Unexpected fault message: " + t);
         }

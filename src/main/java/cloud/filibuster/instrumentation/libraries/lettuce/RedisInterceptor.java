@@ -12,7 +12,6 @@ import io.lettuce.core.RedisBusyException;
 import io.lettuce.core.RedisCommandExecutionException;
 import io.lettuce.core.RedisCommandInterruptedException;
 import io.lettuce.core.RedisCommandTimeoutException;
-import io.lettuce.core.RedisConnectionException;
 import io.lettuce.core.cluster.PartitionSelectorException;
 import io.lettuce.core.cluster.UnknownPartitionException;
 import io.lettuce.core.cluster.models.partitions.Partitions;
@@ -21,6 +20,7 @@ import io.lettuce.core.dynamic.intercept.MethodInterceptor;
 import io.lettuce.core.dynamic.intercept.MethodInvocation;
 import org.json.JSONObject;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -30,7 +30,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.net.URI;
 
-import static cloud.filibuster.instrumentation.Constants.REDIS_MODULE_NAME;
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationServerCommunicationEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getRedisTestPortNondeterminismProperty;
@@ -81,8 +80,15 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         // Extract callsite information.
         // ******************************************************************************************
 
-        // Possible Redis methods are RedisClient/get, RedisClient/set, RedisClient/sync, RedisClient/async, ...
-        String redisFullMethodName = REDIS_MODULE_NAME + "/" + invocation.getMethod().getName();
+
+        String classNameOfInvokedMethod = invocation.getMethod().getDeclaringClass().getName();  // e.g., io.lettuce.core.api.sync.RedisStringCommands
+        String simpleMethodName = invocation.getMethod().getName();  // e.g., get
+
+        // Possible values of redisFullMethodName are
+        //  io.lettuce.core.api.sync.RedisStringCommands/get,
+        //  io.lettuce.core.api.async.RedisStringAsyncCommands/get,
+        //  io.lettuce.core.api.sync.RedisStringCommands/set
+        String redisFullMethodName = String.format("%s/%s", classNameOfInvokedMethod, simpleMethodName);
         logger.log(Level.INFO, logPrefix + "redisFullMethodName: " + redisFullMethodName);
 
         // ******************************************************************************************
@@ -91,7 +97,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
 
         CallsiteArguments callsiteArguments = new CallsiteArguments(invocation.getArguments().getClass(), Arrays.toString(invocation.getArguments()));
 
-        Callsite callsite = new Callsite(redisServiceName, REDIS_MODULE_NAME, redisFullMethodName, callsiteArguments);
+        Callsite callsite = new Callsite(redisServiceName, classNameOfInvokedMethod, redisFullMethodName, callsiteArguments);
 
         filibusterClientInstrumentor = new FilibusterClientInstrumentor(redisServiceName, shouldCommunicateWithServer(), contextStorage, callsite);
 
@@ -177,6 +183,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         }
     }
 
+    @Nullable
     private static Object injectByzantineFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject byzantineFault) {
         if (byzantineFault.has("type") && byzantineFault.has("metadata")) {
             ByzantineFaultType<?> byzantineFaultType = (ByzantineFaultType<?>) byzantineFault.get("type");
@@ -217,9 +224,6 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         switch (exceptionNameString) {
             case "io.lettuce.core.RedisCommandTimeoutException":
                 exceptionToThrow = new RedisCommandTimeoutException(causeString);
-                break;
-            case "io.lettuce.core.RedisConnectionException":
-                exceptionToThrow = new RedisConnectionException(causeString);
                 break;
             case "io.lettuce.core.RedisBusyException":
                 exceptionToThrow = new RedisBusyException(causeString);

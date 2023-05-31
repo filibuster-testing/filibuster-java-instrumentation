@@ -7,8 +7,6 @@ import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfiguratio
 import java.util.HashMap;
 import java.util.Map;
 
-import static cloud.filibuster.instrumentation.Constants.REDIS_MODULE_NAME;
-
 public class RedisSingleFaultCommandTimeoutExceptionAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
@@ -23,8 +21,8 @@ public class RedisSingleFaultCommandTimeoutExceptionAnalysisConfigurationFile im
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
-                .name("java.lettuce.exceptions.RedisCommandTimeoutException")
-                .pattern(REDIS_MODULE_NAME + "/(get|set)\\b");
+                .name("io.lettuce.core.RedisCommandTimeoutException")
+                .pattern("io.lettuce.core.api.sync.RedisStringCommands/(get|set)\\b");
 
         filibusterAnalysisConfigurationBuilderRedisExceptions.exception("io.lettuce.core.RedisCommandTimeoutException", createErrorMap());
 

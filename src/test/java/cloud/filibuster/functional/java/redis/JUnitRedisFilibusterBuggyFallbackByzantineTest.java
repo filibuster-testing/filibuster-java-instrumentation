@@ -17,7 +17,6 @@ import static cloud.filibuster.integration.instrumentation.TestHelper.startAPISe
 import static cloud.filibuster.integration.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -45,7 +44,6 @@ public class JUnitRedisFilibusterBuggyFallbackByzantineTest {
             assertEquals(value, reply.getValue());
         } catch (Throwable t) {
             if (wasFaultInjected()) {
-                assertTrue(wasFaultInjectedOnService("io.lettuce.core.api.sync.RedisStringCommands"), "Fault was not injected on the Redis module");
                 assertTrue(wasFaultInjectedOnMethod("io.lettuce.core.api.sync.RedisStringCommands", "get"), "Fault was not injected on the expected Redis method");
                 String expectedErrorMessage = "INTERNAL: INTERNAL: java.lang.Exception: An exception was thrown at Hello service\n" +
                         "MyAPIService could not process the request as an exception was thrown";

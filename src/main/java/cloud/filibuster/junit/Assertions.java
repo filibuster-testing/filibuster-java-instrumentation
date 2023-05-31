@@ -1,6 +1,7 @@
 package cloud.filibuster.junit;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterAllowedTimeExceededException;
+import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedAPIException;
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedByHTTPServerException;
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.helpers.Networking;
@@ -172,7 +173,7 @@ public class Assertions {
         return wasFaultInjected("/filibuster/fault-injected");
     }
 
-    private static boolean wasFaultInjected(String uri) {
+    public static boolean wasFaultInjected(String uri) {
         String filibusterBaseUri = getFilibusterBaseUri();
         WebClient webClient = FilibusterExecutor.getWebClient(filibusterBaseUri);
         RequestHeaders getHeaders = RequestHeaders.of(HttpMethod.GET, uri, HttpHeaderNames.ACCEPT, "application/json");
@@ -209,11 +210,7 @@ public class Assertions {
      */
     public static boolean wasFaultInjectedOnService(String serviceName) {
         if (getServerBackendCanInvokeDirectlyProperty()) {
-            if (FilibusterCore.hasCurrentInstance()) {
-                return FilibusterCore.getCurrentInstance().wasFaultInjectedOnService(serviceName);
-            } else {
-                return false;
-            }
+            throw new FilibusterUnsupportedAPIException("This API is currently not supported. If applicable, please use the GRPC variant instead.");
         } else {
             return wasFaultInjected("/filibuster/fault-injected/service/" + serviceName);
         }

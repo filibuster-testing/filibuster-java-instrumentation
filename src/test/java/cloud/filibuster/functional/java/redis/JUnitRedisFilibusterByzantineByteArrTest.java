@@ -25,7 +25,6 @@ import java.util.Set;
 
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -64,7 +63,6 @@ public class JUnitRedisFilibusterByzantineByteArrTest extends JUnitAnnotationBas
             actualValues.add(returnVal);
             String returnValStr = returnVal == null ? null : new String(returnVal, Charset.defaultCharset());
             assertTrue(expectedValues.contains(returnValStr), "An unexpected value was returned: " + returnValStr);
-            assertTrue(wasFaultInjectedOnService("io.lettuce.core.api.sync.RedisStringCommands"), "Fault was not injected on the Redis module");
             assertTrue(wasFaultInjectedOnMethod("io.lettuce.core.api.sync.RedisStringCommands", "get"), "Fault was not injected on the expected Redis method");
         }
     }

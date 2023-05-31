@@ -3,6 +3,7 @@ package cloud.filibuster.functional.java.redis;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
+import cloud.filibuster.junit.Assertions;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.redis.RedisExhaustiveAnalysisConfigurationFile;
 import io.lettuce.core.RedisBusyException;
@@ -21,9 +22,10 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
+import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 
 import java.util.AbstractMap;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,7 +34,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import static cloud.filibuster.instrumentation.Constants.REDIS_MODULE_NAME;
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
@@ -51,7 +52,9 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
     static String redisConnectionString;
     private final static Set<String> testExceptionsThrown = new HashSet<>();
     private static int numberOfTestExecutions = 0;
-    private static final Map<Class<?>, Entry<List<String>, String>> allowedExceptions = new HashMap<>();
+    // Map in the format <ExceptionClass -> (<ClassNameOfMethod -> List(MethodName)>, ExceptionMessage)>.
+    // The ClassNameOfMethod and MethodName are used to check if the fault was injected in the correct method and service.
+    private static final Map<Class<?>, Entry<Map<String, List<String>>, String>> allowedExceptions = new HashMap<>();
 
     @BeforeAll
     public static void primeCacheBeforeAll() {
@@ -71,23 +74,20 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
 
     static {
         allowedExceptions.put(RedisCommandTimeoutException.class,
-                new AbstractMap.SimpleEntry<>(Arrays.asList("io.lettuce.core.api.sync.RedisStringCommands.get",
-                        "io.lettuce.core.api.async.RedisStringAsyncCommands.get",
-                        "io.lettuce.core.api.sync.RedisHashCommands.hgetall",
-                        "io.lettuce.core.api.sync.RedisHashCommands.hset"), "Command timed out after 100 millisecond(s)"));
+                new AbstractMap.SimpleEntry<>(ImmutableMap.of("io.lettuce.core.api.sync.RedisStringCommands", Collections.singletonList("get"),
+                        "io.lettuce.core.api.async.RedisStringAsyncCommands", Collections.singletonList("get"),
+                        "io.lettuce.core.api.sync.RedisHashCommands", ImmutableList.of("hgetall", "hset")), "Command timed out after 100 millisecond(s)"));
 
         allowedExceptions.put(RedisBusyException.class,
-                new AbstractMap.SimpleEntry<>(Arrays.asList("io.lettuce.core.api.sync.RedisServerCommands.flushall",
-                        "io.lettuce.core.api.sync.RedisServerCommands.flushdb"),
+                new AbstractMap.SimpleEntry<>(ImmutableMap.of("io.lettuce.core.api.sync.RedisServerCommands", ImmutableList.of("flushall", "flushdb")),
                         "BUSY Redis is busy running a script. You can only call SCRIPT KILL or SHUTDOWN NOSAVE"));
 
         allowedExceptions.put(RedisCommandExecutionException.class,
-                new AbstractMap.SimpleEntry<>(Arrays.asList("io.lettuce.core.api.sync.RedisHashCommands.hgetall",
-                        "io.lettuce.core.api.sync.RedisHashCommands.hset"),
+                new AbstractMap.SimpleEntry<>(ImmutableMap.of("io.lettuce.core.api.sync.RedisHashCommands", ImmutableList.of("hgetall", "hset")),
                         "WRONGTYPE Operation against a key holding the wrong kind of value"));
 
         allowedExceptions.put(RedisCommandInterruptedException.class,
-                new AbstractMap.SimpleEntry<>(Collections.singletonList("io.lettuce.core.RedisFuture.await"),
+                new AbstractMap.SimpleEntry<>(ImmutableMap.of("io.lettuce.core.RedisFuture", Collections.singletonList("await")),
                         "Command interrupted"));
 
     }
@@ -123,15 +123,31 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
         } catch (@SuppressWarnings("InterruptedExceptionSwallowed") Throwable t) {
             testExceptionsThrown.add(t.getMessage());
 
+            // Assert that a fault was injected
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
-            assertTrue(wasFaultInjectedOnService(REDIS_MODULE_NAME), "Fault was not injected on the expected Redis module: " + t);
 
-            Entry<List<String>, String> methodsMessagePair = allowedExceptions.get(t.getClass());
-            if (methodsMessagePair != null) {
-                assertEquals(methodsMessagePair.getValue(), t.getMessage(), "Unexpected fault message: " + t);
-                assertTrue(methodsMessagePair.getKey().stream().anyMatch(method ->
-                                wasFaultInjectedOnMethod(REDIS_MODULE_NAME, method)),
-                        "Fault was not injected on any of the expected methods (" + methodsMessagePair.getKey() + "): " + t);
+            Entry<Map<String, List<String>>, String> classMethodsMessageTuple = allowedExceptions.get(t.getClass());
+
+            if (classMethodsMessageTuple != null) {
+                String expectedExceptionMessage = classMethodsMessageTuple.getValue();
+                // Assert that the exception message matches the expected one
+                assertEquals(expectedExceptionMessage, t.getMessage(), "Unexpected fault message: " + t);
+
+                Map<String, List<String>> classMethodsMap = classMethodsMessageTuple.getKey();
+                // Assert that the fault was injected on one of the expected classes
+                assertTrue(classMethodsMap.keySet().stream().anyMatch(Assertions::wasFaultInjectedOnService),
+                        "Fault was not injected on any of the expected classes (" + classMethodsMap.keySet() + "): " + t);
+
+                for (Entry<String, List<String>> mapEntry : classMethodsMap.entrySet()) {
+                    String className = mapEntry.getKey();
+                    List<String> methodNames = mapEntry.getValue();
+                    if (wasFaultInjectedOnService(className)) {
+                        // Assert that the fault was injected on one of the expected methods of the given class
+                        assertTrue(methodNames.stream().anyMatch(method ->
+                                        wasFaultInjectedOnMethod(className, method)),
+                                "Fault was not injected on any of the expected methods (" + methodNames + "): " + t);
+                    }
+                }
             } else {
                 throw new AssertionFailedError("Injected fault was not defined for this test: " + t);
             }

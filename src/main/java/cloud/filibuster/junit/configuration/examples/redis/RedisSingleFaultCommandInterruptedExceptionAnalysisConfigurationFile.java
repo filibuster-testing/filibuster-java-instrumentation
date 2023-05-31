@@ -7,8 +7,6 @@ import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfiguratio
 import java.util.HashMap;
 import java.util.Map;
 
-import static cloud.filibuster.instrumentation.Constants.REDIS_MODULE_NAME;
-
 public class RedisSingleFaultCommandInterruptedExceptionAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
@@ -24,7 +22,7 @@ public class RedisSingleFaultCommandInterruptedExceptionAnalysisConfigurationFil
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
                 .name("io.lettuce.core.RedisCommandInterruptedException")
-                .pattern(REDIS_MODULE_NAME + "/(io.lettuce.core.RedisFuture.await)\\b");
+                .pattern("io.lettuce.core.RedisFuture/await\\b");
 
         filibusterAnalysisConfigurationBuilderRedisExceptions.exception("io.lettuce.core.RedisCommandInterruptedException", createErrorMap());
 

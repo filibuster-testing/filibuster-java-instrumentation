@@ -30,7 +30,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.net.URI;
 
-import static cloud.filibuster.instrumentation.Constants.REDIS_MODULE_NAME;
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationServerCommunicationEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getRedisTestPortNondeterminismProperty;
@@ -81,11 +80,15 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         // Extract callsite information.
         // ******************************************************************************************
 
+
+        String classNameOfInvokedMethod = invocation.getMethod().getDeclaringClass().getName();  // e.g., io.lettuce.core.api.sync.RedisStringCommands
+        String simpleMethodName = invocation.getMethod().getName();  // e.g., get
+
         // Possible values of redisFullMethodName are
-        //  RedisClient/io.lettuce.core.api.sync.RedisStringCommands.get,
-        //  RedisClient/io.lettuce.core.api.async.RedisStringAsyncCommands.get,
-        //  RedisClient/io.lettuce.core.api.sync.RedisStringCommands.set,
-        String redisFullMethodName = String.format("%s/%s.%s", REDIS_MODULE_NAME, invocation.getMethod().getDeclaringClass().getName(), invocation.getMethod().getName());
+        //  io.lettuce.core.api.sync.RedisStringCommands/get,
+        //  io.lettuce.core.api.async.RedisStringAsyncCommands/get,
+        //  io.lettuce.core.api.sync.RedisStringCommands/set
+        String redisFullMethodName = String.format("%s/%s", classNameOfInvokedMethod, simpleMethodName);
         logger.log(Level.INFO, logPrefix + "redisFullMethodName: " + redisFullMethodName);
 
         // ******************************************************************************************
@@ -94,7 +97,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
 
         CallsiteArguments callsiteArguments = new CallsiteArguments(invocation.getArguments().getClass(), Arrays.toString(invocation.getArguments()));
 
-        Callsite callsite = new Callsite(redisServiceName, REDIS_MODULE_NAME, redisFullMethodName, callsiteArguments);
+        Callsite callsite = new Callsite(redisServiceName, classNameOfInvokedMethod, redisFullMethodName, callsiteArguments);
 
         filibusterClientInstrumentor = new FilibusterClientInstrumentor(redisServiceName, shouldCommunicateWithServer(), contextStorage, callsite);
 

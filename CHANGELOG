@@ -1,3 +1,5 @@
+1.7.5:
+   - (cmeiklejohn) Add conditional assertion snippets.
 1.7.4:
    - (cmeiklejohn) Add prototype excel reporting.
    - (cmeiklejohn) Fix UX bug.

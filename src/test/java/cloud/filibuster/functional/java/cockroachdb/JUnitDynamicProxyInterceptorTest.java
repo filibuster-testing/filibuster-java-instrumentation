@@ -1,5 +1,6 @@
 package cloud.filibuster.functional.java.cockroachdb;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedAPIException;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.cockroachdb.CockroachClientService;
@@ -14,12 +15,12 @@ import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
 
-import static cloud.filibuster.instrumentation.Constants.COCKROACH_MODULE_NAME;
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -46,15 +47,15 @@ public class JUnitDynamicProxyInterceptorTest extends JUnitAnnotationBaseTest {
         try {
             numberOfTestExecutions++;
 
-            Connection interceptedConnection = DynamicProxyInterceptor.createInterceptor(connection, connectionString, COCKROACH_MODULE_NAME);
+            Connection interceptedConnection = DynamicProxyInterceptor.createInterceptor(connection, connectionString);
             interceptedConnection.getSchema();
             assertFalse(wasFaultInjected());
         } catch (Exception t) {
             testExceptionsThrown.add(t.getMessage());
 
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
-            assertTrue(wasFaultInjectedOnService(COCKROACH_MODULE_NAME), "Fault was not injected on the cockroach module: " + t);
-            assertTrue(wasFaultInjectedOnMethod(COCKROACH_MODULE_NAME, "java.sql.Connection.getSchema"), "Fault was not injected on the expected method: " + t);
+            assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService("java.sql.Connection"), "Expected FilibusterUnsupportedAPIException to be thrown: " + t);
+            assertTrue(wasFaultInjectedOnMethod("java.sql.Connection/getSchema"), "Fault was not injected on the expected method: " + t);
             assertTrue(t instanceof PSQLException, "Fault was not of the correct type: " + t);
         }
     }

@@ -75,9 +75,10 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
         // Extract callsite information.
         // ******************************************************************************************
 
-        // E.g., java.sql.Connection/getSchema or java.sql.Connection/createStatement
         String classNameOfInvokedMethod = method.getDeclaringClass().getName();
         String simpleMethodName = method.getName();
+
+        // E.g., java.sql.Connection/getSchema or java.sql.Connection/createStatement
         String fullMethodName = String.format("%s/%s", classNameOfInvokedMethod, simpleMethodName);
         logger.log(Level.INFO, logPrefix + "fullMethodName: " + fullMethodName);
 

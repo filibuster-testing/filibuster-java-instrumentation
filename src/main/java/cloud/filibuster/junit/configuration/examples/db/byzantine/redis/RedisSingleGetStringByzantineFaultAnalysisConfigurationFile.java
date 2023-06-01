@@ -8,8 +8,6 @@ import cloud.filibuster.junit.configuration.examples.db.byzantine.types.Byzantin
 import java.util.HashMap;
 import java.util.Map;
 
-import static cloud.filibuster.instrumentation.Constants.REDIS_MODULE_NAME;
-
 public class RedisSingleGetStringByzantineFaultAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
@@ -24,7 +22,7 @@ public class RedisSingleGetStringByzantineFaultAnalysisConfigurationFile impleme
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.lettuce.byzantine.string")
-                .pattern(REDIS_MODULE_NAME + "/(get)\\b");
+                .pattern("io.lettuce.core.api.sync.RedisStringCommands/get\\b");
 
 
         // Potentially use junit-quickcheck to generate the possible values -> Would make the tests more "flaky"

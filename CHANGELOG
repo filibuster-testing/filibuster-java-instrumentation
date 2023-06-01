@@ -1,6 +1,8 @@
+1.7.6:
+   - (MichaelA-ops) Use fully qualified method names for callsite in RedisInterceptor
+   - (MichaelA-ops) Implement temporary fix for wasFaultInjectedOnService method
 1.7.5:
-   - (MichaelA-ops) Create generic dynamic proxy interceptor
-   - (MichaelA-ops) Add prototype support for CockroachDB fault injection
+   - (cmeiklejohn) Add conditional assertion snippets.
 1.7.4:
    - (cmeiklejohn) Add prototype excel reporting.
    - (cmeiklejohn) Fix UX bug.

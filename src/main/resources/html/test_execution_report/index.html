@@ -188,6 +188,24 @@
         <script>
             var numWarnings = 0;
 
+            function copyIfBlock() {
+                copyToClipboard("ifBlock");
+            }
+
+            function copyTryCatchBlock() {
+                copyToClipboard("tryCatchBlock");
+            }
+
+            function copyToClipboard(id) {
+                var copyText = document.getElementById(id);
+                console.log(copyText);
+                copyText.select();
+                copyText.setSelectionRange(0, 99999); // For mobile devices
+
+                // Copy the text inside the text field
+                navigator.clipboard.writeText(copyText.value);
+            }
+
             function toggleDebug() {
                 $(".debug").toggle();
             }
@@ -375,13 +393,57 @@
                             row += 'milliseconds = ' + rpc.fault.latency.milliseconds;
                             row += '</textarea>';
                             row += '</td>';
-
                         }
-
                     }
 
                     row += '</tr>';
                     $('#rpcs').append(row);
+
+                    if (isFaulted && 'forced_exception' in rpc.fault && analysis.status === false) {
+                        var row = '';
+                        row += '<tr>';
+                        row += '<td class="right">❌</td>';
+                        row += '<td colspan="3" style="text-align: left">';
+                        row += '<span>Test assertions may be contingent on this RPC succeeding.  Use one of the following to adjust your code conditionally for failure.</span>';
+
+                        var rpcFullMethodName = substringNamespace(rpc.request.method);
+                        var rpcService = rpcFullMethodName.substring(0, rpcFullMethodName.indexOf("/"));
+                        var rpcMethod = rpcFullMethodName.substring(rpcFullMethodName.lastIndexOf("/") + 1);
+
+                        name.substring(name.lastIndexOf(".") + 1)
+
+                        var ifBlock = `
+if (wasFaultInjectedOnMethod(${rpcService}Grpc.get${rpcMethod}Method())) {
+    // assertions.
+}
+`;
+
+                        var tryCatchBlock = `
+tryGrpcAndCatchGrpcExceptions(() -> {
+    // test throwing io.grpc.StatusRuntimeException with assertions on success.
+}, (e) -> {
+    if (wasFaultInjectedOnMethod(${rpcService}Grpc.get${rpcMethod}Method())) {
+       // assertions on failure.
+       return;
+    }
+
+    throw e;
+});
+                        `;
+
+                        row += '<textarea id="ifBlock" style="height: 60px; margin-top: 5px; margin-bottom: 5px; ">';
+                        row += ifBlock;
+                        row += '</textarea>';
+
+                        row += '<textarea id="tryCatchBlock" style="height: 150px;">';
+                        row += tryCatchBlock;
+                        row += '</textarea>';
+
+                        row += '</td>';
+                        row += '</tr>';
+
+                        $('#rpcs').append(row);
+                    }
 
                     for (i in rpc.warnings) {
                         numWarnings++;

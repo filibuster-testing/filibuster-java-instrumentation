@@ -1,13 +1,10 @@
 package cloud.filibuster.junit.assertions;
 
-import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedAPIException;
 import cloud.filibuster.junit.server.core.FilibusterCore;
 import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.function.ThrowingConsumer;
-
-import java.util.Locale;
 
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendCanInvokeDirectlyProperty;
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
@@ -120,18 +117,14 @@ public class Grpc {
      * @return was fault injected
      */
     public static boolean wasFaultInjectedOnService(String serviceName) {
-        if (serviceName != null && serviceName.toLowerCase(Locale.ROOT).contains("service")) {
-            if (getServerBackendCanInvokeDirectlyProperty()) {
-                if (FilibusterCore.hasCurrentInstance()) {
-                    return FilibusterCore.getCurrentInstance().wasFaultInjectedOnService(serviceName);
-                } else {
-                    return false;
-                }
+        if (getServerBackendCanInvokeDirectlyProperty()) {
+            if (FilibusterCore.hasCurrentInstance()) {
+                return FilibusterCore.getCurrentInstance().wasFaultInjectedOnService(serviceName);
             } else {
-                return wasFaultInjected("/filibuster/fault-injected/service/" + serviceName);
+                return false;
             }
         } else {
-            throw new FilibusterRuntimeException("Service name does not indicate a GRPC service.");
+            return wasFaultInjected("/filibuster/fault-injected/service/" + serviceName);
         }
     }
 }

@@ -1,9 +1,9 @@
 package cloud.filibuster.functional.java.redis;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedAPIException;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
-import cloud.filibuster.junit.Assertions;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.redis.RedisExhaustiveAnalysisConfigurationFile;
 import io.lettuce.core.RedisBusyException;
@@ -40,6 +40,7 @@ import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -134,19 +135,22 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
                 assertEquals(expectedExceptionMessage, t.getMessage(), "Unexpected fault message: " + t);
 
                 Map<String, List<String>> classMethodsMap = classMethodsMessageTuple.getKey();
-                // Assert that the fault was injected on one of the expected classes
-                assertTrue(classMethodsMap.keySet().stream().anyMatch(Assertions::wasFaultInjectedOnService),
-                        "Fault was not injected on any of the expected classes (" + classMethodsMap.keySet() + "): " + t);
+                boolean injectedMethodFound = false;
 
                 for (Entry<String, List<String>> mapEntry : classMethodsMap.entrySet()) {
                     String className = mapEntry.getKey();
                     List<String> methodNames = mapEntry.getValue();
-                    if (wasFaultInjectedOnService(className)) {
-                        // Assert that the fault was injected on one of the expected methods of the given class
-                        assertTrue(methodNames.stream().anyMatch(method ->
-                                        wasFaultInjectedOnMethod(className, method)),
-                                "Fault was not injected on any of the expected methods (" + methodNames + "): " + t);
+
+                    if(methodNames.stream().anyMatch(method -> wasFaultInjectedOnMethod(className + "/" + method))) {
+                        assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService(className), "Expected FilibusterUnsupportedAPIException to be thrown");
+                        injectedMethodFound = true;
+                        break;
                     }
+                }
+
+                // Assert that the fault was injected on one of the expected methods of the given class
+                if(!injectedMethodFound) {
+                    throw new AssertionFailedError("Fault was not injected on any of the expected methods: " + t);
                 }
             } else {
                 throw new AssertionFailedError("Injected fault was not defined for this test: " + t);

@@ -27,7 +27,7 @@ import static cloud.filibuster.instrumentation.helpers.Property.DATA_NONDETERMIN
 import static cloud.filibuster.instrumentation.helpers.Property.setTestDataNondeterminismProperty;
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
+import static cloud.filibuster.junit.assertions.Grpc.wasFaultInjectedOnService;
 import static cloud.filibuster.junit.assertions.Grpc.tryGrpcAndCatchGrpcExceptions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;

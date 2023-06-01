@@ -107,4 +107,24 @@ public class Grpc {
             throw new FilibusterUnsupportedAPIException("Unable to execute test; Filibuster must be enabled using @TestWithFilibuster and a supported backend must be supplied.");
         }
     }
+
+    /**
+     * Determine if a fault was injected during the current test execution.
+     *
+     * Only works if the target service is instrumented using a server instrumentor and reports its name.
+     *
+     * @param serviceName service name, as reported by a server instrumentor.
+     * @return was fault injected
+     */
+    public static boolean wasFaultInjectedOnService(String serviceName) {
+        if (getServerBackendCanInvokeDirectlyProperty()) {
+            if (FilibusterCore.hasCurrentInstance()) {
+                return FilibusterCore.getCurrentInstance().wasFaultInjectedOnService(serviceName);
+            } else {
+                return false;
+            }
+        } else {
+            return wasFaultInjected("/filibuster/fault-injected/service/" + serviceName);
+        }
+    }
 }

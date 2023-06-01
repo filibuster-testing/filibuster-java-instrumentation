@@ -399,12 +399,24 @@
                     row += '</tr>';
                     $('#rpcs').append(row);
 
+                    var row = '';
+                    row += '<tr class="debug">';
+                    row += '<td class="right">⚠️</td>';
+                    row += '<td colspan="3" class="warning" style="vertical-align: middle; text-align: left">';
+                    row += '<span>Distributed Execution Index:</span>';
+                    row += '<textarea style="height: 60px; margin-top:10px;">';
+                    row += rpc.dei;
+                    row += '</textarea>';
+                    row += '</td>';
+                    row += '</tr>';
+                    $('#rpcs').append(row);
+
                     if (isFaulted && 'forced_exception' in rpc.fault && analysis.status === false) {
                         var row = '';
-                        row += '<tr>';
+                        row += '<tr class="debug">';
                         row += '<td class="right">❌</td>';
                         row += '<td colspan="3" style="text-align: left">';
-                        row += '<span>Test assertions may be contingent on this RPC succeeding.  Use one of the following to adjust your code conditionally for failure.</span>';
+                        row += '<span>Test assertions may be contingent on this RPC succeeding.  If so, use one of the following to adjust your test conditionally for failure.</span>';
 
                         var rpcFullMethodName = substringNamespace(rpc.request.method);
                         var rpcService = rpcFullMethodName.substring(0, rpcFullMethodName.indexOf("/"));
@@ -461,17 +473,6 @@ tryGrpcAndCatchGrpcExceptions(() -> {
                         row += '</tr>';
                         $('#rpcs').append(row);
                     }
-
-                    var row = '';
-                    row += '<tr class="debug">';
-                    row += '<td colspan="4" class="warning" style="vertical-align: middle; text-align: left">';
-                    row += '<textarea>';
-                    row += rpc.dei;
-                    row += '</textarea>';
-                    row += '</td>';
-                    row += '</tr>';
-
-                    $('#rpcs').append(row);
                 }
 
                 if (numWarnings > 0) {

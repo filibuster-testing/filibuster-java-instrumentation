@@ -65,7 +65,7 @@ public class FilibusterCore {
 
     private int numBypassedExecutions = 0;
 
-    public int getNumBypassedExecutions() {
+    public synchronized int getNumBypassedExecutions() {
         return numBypassedExecutions;
     }
 

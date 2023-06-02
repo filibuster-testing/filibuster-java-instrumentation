@@ -1,19 +1,19 @@
-package cloud.filibuster.junit.configuration.examples.redis.byzantine;
+package cloud.filibuster.junit.configuration.examples.db.redis;
 
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
-import cloud.filibuster.junit.configuration.examples.redis.byzantine.types.ByzantineStringFaultType;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class RedisSingleGetStringByzantineFaultAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
+public class RedisSingleFaultCommandTimeoutExceptionAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
-    private static <T> Map<String, T> createBzyantineFaultMap(T value) {
-        Map<String, T> myMap = new HashMap<>();
-        myMap.put("value", value);
+    private static Map<String, String> createErrorMap() {
+        Map<String, String> myMap = new HashMap<>();
+        myMap.put("cause", "Command timed out after 100 millisecond(s)");
+        myMap.put("code", "");
         return myMap;
     }
 
@@ -21,15 +21,10 @@ public class RedisSingleGetStringByzantineFaultAnalysisConfigurationFile impleme
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
-                .name("java.lettuce.byzantine.string")
-                .pattern("io.lettuce.core.api.sync.RedisStringCommands/get\\b");
+                .name("io.lettuce.core.RedisCommandTimeoutException")
+                .pattern("io.lettuce.core.api.sync.RedisStringCommands/(get|set)\\b");
 
-
-        // Potentially use junit-quickcheck to generate the possible values -> Would make the tests more "flaky"
-        String[] possibleValues = {null, "123", "", "abcd", "-123ABC", "ThisIsATestString"};
-        for (String value : possibleValues) {
-            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(new ByzantineStringFaultType(), createBzyantineFaultMap(value));
-        }
+        filibusterAnalysisConfigurationBuilderRedisExceptions.exception("io.lettuce.core.RedisCommandTimeoutException", createErrorMap());
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());
 

@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.configuration.examples.redis.byzantine.types;
+package cloud.filibuster.junit.configuration.examples.db.byzantine.types;
 
 import javax.annotation.Nullable;
 

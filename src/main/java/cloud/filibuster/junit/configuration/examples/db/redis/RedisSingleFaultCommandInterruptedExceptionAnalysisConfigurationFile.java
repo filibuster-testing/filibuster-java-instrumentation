@@ -1,20 +1,19 @@
-package cloud.filibuster.junit.configuration.examples.redis.byzantine;
+package cloud.filibuster.junit.configuration.examples.db.redis;
 
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
-import cloud.filibuster.junit.configuration.examples.redis.byzantine.types.ByzantineByteArrayFaultType;
 
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
-public class RedisSingleGetByteArrByzantineFaultAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
+public class RedisSingleFaultCommandInterruptedExceptionAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
-    private static <T> Map<String, T> createBzyantineFaultMap(T value) {
-        Map<String, T> myMap = new HashMap<>();
-        myMap.put("value", value);
+    private static Map<String, String> createErrorMap() {
+        Map<String, String> myMap = new HashMap<>();
+        myMap.put("cause", "Command interrupted");
+        myMap.put("code", "");
         return myMap;
     }
 
@@ -22,16 +21,10 @@ public class RedisSingleGetByteArrByzantineFaultAnalysisConfigurationFile implem
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
-                .name("java.lettuce.byzantine.byte_arr")
-                .pattern("io.lettuce.core.api.sync.RedisStringCommands/get\\b");
+                .name("io.lettuce.core.RedisCommandInterruptedException")
+                .pattern("io.lettuce.core.RedisFuture/await\\b");
 
-
-        String[] possibleValues = {"", "ThisIsATestString", "abcd", "1234!!", "-11"};
-        for (String value : possibleValues) {
-            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(new ByzantineByteArrayFaultType(), createBzyantineFaultMap(value.getBytes(Charset.defaultCharset())));
-        }
-        // Inject null fault
-        filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(new ByzantineByteArrayFaultType(), createBzyantineFaultMap(null));
+        filibusterAnalysisConfigurationBuilderRedisExceptions.exception("io.lettuce.core.RedisCommandInterruptedException", createErrorMap());
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());
 

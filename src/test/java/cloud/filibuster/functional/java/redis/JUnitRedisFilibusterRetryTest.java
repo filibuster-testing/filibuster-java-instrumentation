@@ -6,7 +6,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedAPIException;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.redis.RedisSingleFaultCommandInterruptedExceptionAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.db.redis.RedisSingleFaultCommandInterruptedExceptionAnalysisConfigurationFile;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.BeforeAll;

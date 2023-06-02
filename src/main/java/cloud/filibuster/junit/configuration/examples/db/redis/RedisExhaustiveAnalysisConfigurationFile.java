@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.configuration.examples.redis;
+package cloud.filibuster.junit.configuration.examples.db.redis;
 
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;

@@ -38,6 +38,12 @@ public class TestReport {
         return testName;
     }
 
+    private int numBypassedExecutions = 0;
+
+    public void setNumBypassedExecutions(int numBypassedExecutions) {
+        this.numBypassedExecutions = numBypassedExecutions;
+    }
+
     private int iterationsRemaining = 0;
 
     public void setIterationsRemaining(int iterationsRemaining) {
@@ -129,6 +135,7 @@ public class TestReport {
 
         result.put("reports", materializedReportMetadatas);
         result.put("iterations_remaining", iterationsRemaining);
+        result.put("num_bypassed_executions", numBypassedExecutions);
         return result;
     }
 

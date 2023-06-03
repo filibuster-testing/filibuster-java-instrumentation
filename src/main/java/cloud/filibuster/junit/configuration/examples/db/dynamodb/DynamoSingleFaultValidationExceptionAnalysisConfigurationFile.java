@@ -7,8 +7,6 @@ import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfiguratio
 import java.util.HashMap;
 import java.util.Map;
 
-import static cloud.filibuster.instrumentation.Constants.DYNAMO_MODULE_NAME;
-
 public class DynamoSingleFaultValidationExceptionAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
@@ -24,7 +22,7 @@ public class DynamoSingleFaultValidationExceptionAnalysisConfigurationFile imple
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.dynamo.exceptions.RequestLimitExceededException")
-                .pattern(DYNAMO_MODULE_NAME + "/(software.amazon.awssdk.services.dynamodb.DynamoDbClient.listTables)\\b");
+                .pattern("software.amazon.awssdk.services.dynamodb.DynamoDbClient/listTables\\b");
 
         filibusterAnalysisConfigurationBuilderRedisExceptions.exception("software.amazon.awssdk.services.dynamodb.model.RequestLimitExceededException", createErrorMap());
 

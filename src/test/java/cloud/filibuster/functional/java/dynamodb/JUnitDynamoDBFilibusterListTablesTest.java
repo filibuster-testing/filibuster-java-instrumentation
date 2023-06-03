@@ -1,5 +1,6 @@
 package cloud.filibuster.functional.java.dynamodb;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedAPIException;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.DynamoDBClientService;
@@ -21,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 
-import static cloud.filibuster.instrumentation.Constants.DYNAMO_MODULE_NAME;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class JUnitDynamoDBFilibusterListTablesTest extends JUnitAnnotationBaseTest {
@@ -40,11 +41,11 @@ public class JUnitDynamoDBFilibusterListTablesTest extends JUnitAnnotationBaseTe
 
     @DisplayName("Test basic fault injection for DynamoDB")
     @TestWithFilibuster(analysisConfigurationFile = DynamoSingleFaultValidationExceptionAnalysisConfigurationFile.class)
-    public void testBasicDynamoDBFaultInjectionf() {
+    public void testBasicDynamoDBFaultInjection() {
         try {
             numberOfTestExecutions++;
 
-            DynamoDbClient interceptedClient = DynamicProxyInterceptor.createInterceptor(dynamoDbClient, connectionString, DYNAMO_MODULE_NAME);
+            DynamoDbClient interceptedClient = DynamicProxyInterceptor.createInterceptor(dynamoDbClient, connectionString);
             int initTableSize = interceptedClient.listTables().tableNames().size();
             assertEquals(0, initTableSize);
             assertFalse(wasFaultInjected());
@@ -52,8 +53,8 @@ public class JUnitDynamoDBFilibusterListTablesTest extends JUnitAnnotationBaseTe
             if (wasFaultInjected()) {
                 testExceptionsThrown.add(t.getMessage());
 
-                assertTrue(wasFaultInjectedOnService(DYNAMO_MODULE_NAME), "Fault was not injected on the DynamoDB module");
-                assertTrue(wasFaultInjectedOnMethod(DYNAMO_MODULE_NAME, "software.amazon.awssdk.services.dynamodb.DynamoDbClient.listTables"), "Fault was not injected on the expected DynamoDB method");
+                assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService("software.amazon.awssdk.services.dynamodb.DynamoDbClient"), "Expected FilibusterUnsupportedAPIException to be thrown: " + t);
+                assertTrue(wasFaultInjectedOnMethod("software.amazon.awssdk.services.dynamodb.DynamoDbClient/listTables"), "Fault was not injected on the expected DynamoDB method");
                 String expectedErrorMessage = "Throughput exceeds the current throughput limit";
                 assertTrue(t.getMessage().contains(expectedErrorMessage), "Unexpected return error message for injected byzantine fault");
             } else {

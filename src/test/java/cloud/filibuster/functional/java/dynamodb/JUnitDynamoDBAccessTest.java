@@ -1,9 +1,7 @@
 package cloud.filibuster.functional.java.dynamodb;
 
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
-import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.DynamoDBClientService;
-import cloud.filibuster.integration.examples.armeria.grpc.test_services.cockroachdb.CockroachClientService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,29 +13,25 @@ import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
-import static cloud.filibuster.instrumentation.Constants.DYNAMO_MODULE_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class JUnitDynamoDBAccessTest extends JUnitAnnotationBaseTest {
 
     private static DynamoDbClient dynamoDbClient;
-    private static String connectionString;
 
 
     @BeforeAll
     public static void beforeAll() {
         dynamoDbClient = DynamoDBClientService.getInstance().dynamoDbClient;
-        connectionString = CockroachClientService.getInstance().connectionString;
     }
 
     @DisplayName("Basic test for DynamoDB access")
     @Test
     public void testBasicDynamoDBAccess() {
-        DynamoDbClient interceptedClient = DynamicProxyInterceptor.createInterceptor(dynamoDbClient, connectionString, DYNAMO_MODULE_NAME);
-        int initTableSize = interceptedClient.listTables().tableNames().size();
-        createNewTable(interceptedClient, "testTable1", "attr1");
-        createNewTable(interceptedClient, "testTable2", "attr2");
-        assertEquals(initTableSize + 2, interceptedClient.listTables().tableNames().size());
+        int initTableSize = dynamoDbClient.listTables().tableNames().size();
+        createNewTable(dynamoDbClient, "testTable1", "attr1");
+        createNewTable(dynamoDbClient, "testTable2", "attr2");
+        assertEquals(initTableSize + 2, dynamoDbClient.listTables().tableNames().size());
     }
 
     private static void createNewTable(DynamoDbClient dynamoDbClient, String tableName, String attr) {

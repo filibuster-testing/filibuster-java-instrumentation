@@ -11,8 +11,6 @@ import cloud.filibuster.junit.configuration.examples.db.byzantine.types.Byzantin
 import org.json.JSONObject;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.ServerErrorMessage;
-import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
-import software.amazon.awssdk.services.dynamodb.model.RequestLimitExceededException;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.InvocationHandler;
@@ -43,16 +41,14 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
     private final String serviceName;
     private final String connectionString;
     private static final String logPrefix = "[FILIBUSTER-PROXY_INTERCEPTOR]: ";
-    private final String moduleName;
     private FilibusterClientInstrumentor filibusterClientInstrumentor;
 
-    private DynamicProxyInterceptor(T targetObject, String connectionString, String moduleName) {
+    private DynamicProxyInterceptor(T targetObject, String connectionString) {
         logger.log(Level.INFO, logPrefix + "Constructor was called");
         this.targetObject = targetObject;
         this.contextStorage = new ThreadLocalContextStorage();
         this.connectionString = connectionString;
         this.serviceName = extractServiceFromConnection(connectionString);
-        this.moduleName = moduleName;
     }
 
     private static String extractServiceFromConnection(String connectionString) {
@@ -79,8 +75,11 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
         // Extract callsite information.
         // ******************************************************************************************
 
-        // E.g., PGSimpleDataSource/java.sql.Connection.getSchema or PGSimpleDataSource/java.sql.Connection.createStatement
-        String fullMethodName = String.format("%s/%s.%s", this.moduleName, method.getDeclaringClass().getName(), method.getName());
+        String classNameOfInvokedMethod = method.getDeclaringClass().getName();
+        String simpleMethodName = method.getName();
+
+        // E.g., java.sql.Connection/getSchema or java.sql.Connection/createStatement
+        String fullMethodName = String.format("%s/%s", classNameOfInvokedMethod, simpleMethodName);
         logger.log(Level.INFO, logPrefix + "fullMethodName: " + fullMethodName);
 
         // ******************************************************************************************
@@ -95,7 +94,7 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
 
         CallsiteArguments callsiteArguments = new CallsiteArguments(argsClass, argsString);
 
-        Callsite callsite = new Callsite(serviceName, moduleName, fullMethodName, callsiteArguments);
+        Callsite callsite = new Callsite(serviceName, classNameOfInvokedMethod, fullMethodName, callsiteArguments);
 
         filibusterClientInstrumentor = new FilibusterClientInstrumentor(serviceName, shouldCommunicateWithServer(), contextStorage, callsite);
 
@@ -157,7 +156,7 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
             // the returned RedisCommands object should also be an intercepted proxy)
             if (method.getReturnType().isInterface() &&
                     method.getReturnType().getClassLoader() != null) {
-                invocationResult = DynamicProxyInterceptor.createInterceptor(invocationResult, connectionString, moduleName);
+                invocationResult = DynamicProxyInterceptor.createInterceptor(invocationResult, connectionString);
             }
         }
 
@@ -220,13 +219,6 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
             case "org.postgresql.util.PSQLException":
                 exceptionToThrow = new PSQLException(new ServerErrorMessage(causeString));
                 break;
-            case "software.amazon.awssdk.services.dynamodb.model.RequestLimitExceededException":
-                exceptionToThrow = RequestLimitExceededException.builder().message("Throughput exceeds the " +
-                        "current throughput limit for your account. Please contact AWS Support at " +
-                        "https://aws.amazon.com/support request a limit increase").statusCode(400)
-                        .requestId(RandomStringUtils.randomAlphanumeric(30).toUpperCase()
-                        ).build();
-                break;
             default:
                 throw new FilibusterFaultInjectionException("Cannot determine the execution cause to throw: " + causeString);
         }
@@ -251,12 +243,12 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T createInterceptor(T target, String connectionString, String moduleName) {
+    public static <T> T createInterceptor(T target, String connectionString) {
         logger.log(Level.INFO, logPrefix + "createInterceptor was called");
         return (T) Proxy.newProxyInstance(
                 target.getClass().getClassLoader(),
                 target.getClass().getInterfaces(),
-                new DynamicProxyInterceptor<>(target, connectionString, moduleName)
+                new DynamicProxyInterceptor<>(target, connectionString)
         );
     }
 

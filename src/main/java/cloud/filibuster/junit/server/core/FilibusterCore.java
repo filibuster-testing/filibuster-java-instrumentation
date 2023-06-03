@@ -63,6 +63,12 @@ public class FilibusterCore {
      */
     private final UUID testUUID = UUID.randomUUID();
 
+    private int numBypassedExecutions = 0;
+
+    public synchronized int getNumBypassedExecutions() {
+        return numBypassedExecutions;
+    }
+
     private boolean faultInjectionEnabled = true;
 
     public FilibusterCore(FilibusterConfiguration filibusterConfiguration) {
@@ -453,6 +459,7 @@ public class FilibusterCore {
 
                     // If we should bypass, then set back to null.
                     if (filibusterConfiguration.getAvoidInjectionsOnOrganicFailures() && nextAbstractTestExecution.shoulBypassForOrganicFailure()) {
+                        numBypassedExecutions++;
                         nextAbstractTestExecution = null;
                     }
 
@@ -551,6 +558,7 @@ public class FilibusterCore {
 
         if (testReport != null) {
             testReport.setIterationsRemaining(iterationsRemaining());
+            testReport.setNumBypassedExecutions(getNumBypassedExecutions());
             testReport.writeTestReport();
             if (Property.getReportsTestSuiteReportEnabledProperty()) {
                 TestSuiteReport.getInstance().addTestReport(testReport);

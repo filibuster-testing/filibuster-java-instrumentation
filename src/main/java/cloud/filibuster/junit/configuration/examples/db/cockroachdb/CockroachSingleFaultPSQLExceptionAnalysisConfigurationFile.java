@@ -7,8 +7,6 @@ import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfiguratio
 import java.util.HashMap;
 import java.util.Map;
 
-import static cloud.filibuster.instrumentation.Constants.COCKROACH_MODULE_NAME;
-
 public class CockroachSingleFaultPSQLExceptionAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
@@ -24,7 +22,7 @@ public class CockroachSingleFaultPSQLExceptionAnalysisConfigurationFile implemen
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.cockroach.exceptions.PSQLException")
-                .pattern(COCKROACH_MODULE_NAME + "/(java.sql.Connection.getSchema)\\b");
+                .pattern("java.sql.Connection/getSchema\\b");
 
         filibusterAnalysisConfigurationBuilderRedisExceptions.exception("org.postgresql.util.PSQLException", createErrorMap());
 

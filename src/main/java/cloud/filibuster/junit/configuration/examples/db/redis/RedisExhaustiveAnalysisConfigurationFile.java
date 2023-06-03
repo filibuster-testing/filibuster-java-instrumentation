@@ -7,8 +7,6 @@ import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfiguratio
 import java.util.HashMap;
 import java.util.Map;
 
-import static cloud.filibuster.instrumentation.Constants.REDIS_MODULE_NAME;
-
 public class RedisExhaustiveAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
@@ -23,14 +21,37 @@ public class RedisExhaustiveAnalysisConfigurationFile implements FilibusterAnaly
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
         String[][] exceptions = new String[][]{
-                {"io.lettuce.core.RedisCommandTimeoutException", "/(get|set|hget|hset|hgetall)\\b", "Command timed out after 100 millisecond(s)"},
-                {"io.lettuce.core.RedisConnectionException", "/(sync|async)\\b", "Connection closed prematurely"},
-                {"io.lettuce.core.RedisBusyException", "/(flushall|flushdb)\\b", "BUSY Redis is busy running a script. You can only call SCRIPT KILL or SHUTDOWN NOSAVE"},
-                {"io.lettuce.core.RedisCommandExecutionException", "/(hget|hgetall|hset)\\b", "WRONGTYPE Operation against a key holding the wrong kind of value"},
-                {"io.lettuce.core.RedisCommandInterruptedException", "/(await)\\b", "Command interrupted"},
-                {"io.lettuce.core.cluster.UnknownPartitionException", "/(getConnection)\\b", "Connection not allowed. This partition is not known in the cluster view"},
-                {"io.lettuce.core.cluster.PartitionSelectorException", "/(getConnection)\\b", "Cannot determine a partition to read for slot"},
-                {"io.lettuce.core.dynamic.batch.BatchException", "/(flush)\\b", "Error during batch command execution"},
+                {"io.lettuce.core.RedisCommandTimeoutException",
+                        "(io.lettuce.core.api.async.RedisStringAsyncCommands/get|" +
+                                "io.lettuce.core.api.sync.RedisStringCommands/get|" +
+                                "io.lettuce.core.api.sync.RedisStringCommands/set|" +
+                                "io.lettuce.core.api.sync.RedisHashCommands/hget|" +
+                                "io.lettuce.core.api.sync.RedisHashCommands/hset|" +
+                                "io.lettuce.core.api.sync.RedisHashCommands/hgetall)\\b",
+                        "Command timed out after 100 millisecond(s)"},
+                {"io.lettuce.core.RedisBusyException",
+                        "(io.lettuce.core.api.sync.RedisServerCommands/flushall|" +
+                                "io.lettuce.core.api.sync.RedisServerCommands/flushdb)\\b",
+                        "BUSY Redis is busy running a script. You can only call SCRIPT KILL or SHUTDOWN NOSAVE"},
+                {"io.lettuce.core.RedisCommandExecutionException",
+                        "(io.lettuce.core.api.sync.RedisHashCommands/hget|" +
+                                "io.lettuce.core.api.sync.RedisHashCommands/hset|" +
+                                "io.lettuce.core.api.sync.RedisHashCommands/hgetall)\\b",
+                        "WRONGTYPE Operation against a key holding the wrong kind of value"},
+                {"io.lettuce.core.RedisCommandInterruptedException",
+                        "(io.lettuce.core.RedisFuture/await)\\b",
+                        "Command interrupted"},
+                {"io.lettuce.core.cluster.UnknownPartitionException",
+                        "(io.lettuce.core.cluster.RedisClusterClient/getConnection|" +
+                                "io.lettuce.core.cluster.PooledClusterConnectionProvider/getConnection)\\b",
+                        "Connection not allowed. This partition is not known in the cluster view"},
+                {"io.lettuce.core.cluster.PartitionSelectorException",
+                        "(io.lettuce.core.cluster.RedisClusterClient/getConnection|" +
+                                "io.lettuce.core.cluster.PooledClusterConnectionProvider/getConnection)\\b",
+                        "Cannot determine a partition to read for slot"},
+                {"io.lettuce.core.dynamic.batch.BatchException",
+                        "(io.lettuce.core.dynamic.SimpleBatcher/flush)\\b",
+                        "Error during batch command execution"},
         };
 
         for (String[] exception : exceptions) {
@@ -42,7 +63,7 @@ public class RedisExhaustiveAnalysisConfigurationFile implements FilibusterAnaly
 
     private static void createException(FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder, String name, String pattern, String cause) {
 
-        FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder().name(name).pattern(REDIS_MODULE_NAME + pattern);
+        FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder().name(name).pattern(pattern);
 
         filibusterAnalysisConfigurationBuilderRedisExceptions.exception(name, createErrorMap(cause));
 

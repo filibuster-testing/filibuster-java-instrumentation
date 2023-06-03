@@ -1,5 +1,6 @@
 package cloud.filibuster.functional.java.redis;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedAPIException;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
@@ -19,11 +20,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static cloud.filibuster.instrumentation.Constants.REDIS_MODULE_NAME;
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -59,8 +60,8 @@ public class JUnitRedisFilibusterByzantineStringTest extends JUnitAnnotationBase
         } else {
             actualValues.add(returnVal);
             assertTrue(expectedValues.contains(returnVal), "An unexpected value was returned: " + returnVal);
-            assertTrue(wasFaultInjectedOnService(REDIS_MODULE_NAME), "Fault was not injected on the Redis module");
-            assertTrue(wasFaultInjectedOnMethod(REDIS_MODULE_NAME, "get"), "Fault was not injected on the expected Redis method");
+            assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService("io.lettuce.core.api.sync.RedisStringCommands"), "Expected FilibusterUnsupportedAPIException to be thrown");
+            assertTrue(wasFaultInjectedOnMethod("io.lettuce.core.api.sync.RedisStringCommands/get"), "Fault was not injected on the expected Redis method");
         }
     }
 

@@ -9,15 +9,12 @@ import java.net.InetSocketAddress;
 
 public class CassandraClientService {
     public static final Integer CQL_PORT = 9042;
-
     private static final String DEFAULT_LOCAL_DATACENTER = "datacenter1";
-
     public CqlSession cassandraClient;
     public String connectionString;
 
     @Nullable
     private static CassandraClientService single_instance = null;
-
     @SuppressWarnings("resource")
     private CassandraClientService() {
         GenericContainer<?> cassandraContainer = new GenericContainer<>(DockerImageName.parse("cassandra:4.1.2"))

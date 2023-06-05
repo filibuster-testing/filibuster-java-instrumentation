@@ -206,9 +206,11 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
 
         JSONObject forcedException = filibusterClientInstrumentor.getForcedException();
         JSONObject failureMetadata = filibusterClientInstrumentor.getFailureMetadata();
+        JSONObject byzantineFault = filibusterClientInstrumentor.getByzantineFault();
 
         logger.log(Level.INFO, logPrefix +"forcedException: " + forcedException);
         logger.log(Level.INFO, logPrefix +"failureMetadata: " + failureMetadata);
+        logger.log(Level.INFO, logPrefix +"byzantineFault: " + byzantineFault);
 
         // ******************************************************************************************
         // Attach metadata to outgoing request.
@@ -305,6 +307,14 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
             } else {
                 generateAndThrowException(filibusterClientInstrumentor, forcedException, hostname, hostnameForExceptionBody, port);
             }
+        }
+
+        // ******************************************************************************************
+        // Inject byzantine fault, if necessary.
+        // ******************************************************************************************
+
+        if (byzantineFault != null) {
+            // TODO: Inject byzantine faults.
         }
 
         // ******************************************************************************************

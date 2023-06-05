@@ -321,9 +321,11 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
 
                     JSONObject forcedException = filibusterClientInstrumentor.getForcedException();
                     JSONObject failureMetadata = filibusterClientInstrumentor.getFailureMetadata();
+                    JSONObject byzantineFault = filibusterClientInstrumentor.getByzantineFault();
 
                     logger.log(Level.INFO, logPrefix + "forcedException: " + forcedException);
                     logger.log(Level.INFO, logPrefix + "failureMetadata: " + failureMetadata);
+                    logger.log(Level.INFO, logPrefix + "byzantineFault: " + byzantineFault);
 
                     // ******************************************************************************************
                     // Setup additional failure headers, if necessary.
@@ -366,6 +368,14 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                         Status status = generateExceptionFromForcedException(filibusterClientInstrumentor);
                         responseListener.onClose(status, new Metadata());
                         return;
+                    }
+
+                    // ******************************************************************************************
+                    // Inject byzantine fault, if necessary.
+                    // ******************************************************************************************
+
+                    if (byzantineFault != null) {
+                        // TODO: Inject byzantine faults.
                     }
 
                     delegate = next.newCall(method, callOptions);

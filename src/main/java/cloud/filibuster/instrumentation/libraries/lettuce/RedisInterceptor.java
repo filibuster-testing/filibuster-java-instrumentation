@@ -26,6 +26,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.net.URI;
@@ -122,10 +123,12 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         JSONObject forcedException = filibusterClientInstrumentor.getForcedException();
         JSONObject failureMetadata = filibusterClientInstrumentor.getFailureMetadata();
         JSONObject byzantineFault = filibusterClientInstrumentor.getByzantineFault();
+        JSONObject hoByzantineFault = filibusterClientInstrumentor.getHOByzantineFault();
 
         logger.log(Level.INFO, logPrefix + "forcedException: " + forcedException);
         logger.log(Level.INFO, logPrefix + "failureMetadata: " + failureMetadata);
         logger.log(Level.INFO, logPrefix + "byzantineFault: " + byzantineFault);
+        logger.log(Level.INFO, logPrefix + "hoByzantineFault: " + hoByzantineFault);
 
         // ******************************************************************************************
         // If we need to throw, this is where we throw.
@@ -141,6 +144,12 @@ public class RedisInterceptor<T> implements MethodInterceptor {
 
         if (byzantineFault != null && filibusterClientInstrumentor.shouldAbort()) {
             return injectByzantineFault(filibusterClientInstrumentor, byzantineFault);
+        }
+
+        if (hoByzantineFault != null && filibusterClientInstrumentor.shouldAbort()) {
+            // TODO: implement higher-order byzantine faults
+            logger.log(Level.INFO, logPrefix + "Higher-order byzantine faults are not yet implemented. Ignoring.");
+            Function<?, ?> hofnc = (Function<?, ?>) hoByzantineFault.get("function");
         }
 
         // ******************************************************************************************

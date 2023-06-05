@@ -31,6 +31,7 @@ import org.json.JSONObject;
 import javax.annotation.Nullable;
 import java.util.*;
 
+import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -239,6 +240,10 @@ public class FilibusterCore {
                 JSONObject byzantineFaultObject = faultObject.getJSONObject("byzantine_fault");
                 logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using byzantine_fault: " + byzantineFaultObject.toString(4));
                 response.put("byzantine_fault", byzantineFaultObject);
+            } else if (faultObject.has("higher_order_byzantine_fault")) {
+                JSONObject hoByzantineFaultObject = faultObject.getJSONObject("higher_order_byzantine_fault");
+                logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using higher_order_byzantine_fault: " + hoByzantineFaultObject.toString(4));
+                response.put("higher_order_byzantine_fault", hoByzantineFaultObject);
             } else if (faultObject.has("latency")) {
                 JSONObject latencyObject = faultObject.getJSONObject("latency");
                 logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using latency: " + latencyObject.toString(4));
@@ -658,6 +663,24 @@ public class FilibusterCore {
                 }
             }
 
+            if (nameObject.has("higherOrderByzantines")) {
+                JSONArray jsonArray = nameObject.getJSONArray("higherOrderByzantines");
+
+                for (Object obj : jsonArray) {
+                    JSONObject errorObject = (JSONObject) obj;
+
+                    if (errorObject.has("id")) {
+                        int fncId = errorObject.getInt("id");
+                        Function<Void, Integer> fncWrapper = (n) -> fncId;
+
+                        filibusterAnalysisConfigurationBuilder.higherOrderByzantine(fncWrapper);
+                        logger.info("[FILIBUSTER-CORE]: analysisFile, found new configuration, HOByzantineFaultType: " + fncId);
+                    } else {
+                        logger.warning("[FILIBUSTER-CORE]: HigherOrderByzantines: Function does not have an ID. Skipping...");
+                    }
+                }
+            }
+
             FilibusterAnalysisConfiguration filibusterAnalysisConfiguration = filibusterAnalysisConfigurationBuilder.build();
             filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfiguration);
         }
@@ -742,6 +765,13 @@ public class FilibusterCore {
 
                     for (JSONObject faultObject : byzantineFaultObjects) {
                         createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject);
+                    }
+
+                    // Higher order Byzantine faults
+                    List<JSONObject> higherOrderByzantineFaults = filibusterAnalysisConfiguration.getHOByzantineFaultObjects();
+
+                    for (JSONObject hoFaultObject : higherOrderByzantineFaults) {
+                        createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, hoFaultObject);
                     }
                 }
             }

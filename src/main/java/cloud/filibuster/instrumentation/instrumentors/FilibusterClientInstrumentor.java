@@ -207,6 +207,9 @@ final public class FilibusterClientInstrumentor {
     @Nullable
     private JSONObject byzantineFault;
 
+    @Nullable
+    private JSONObject hoByzantineFault;
+
     private String requestId;
     public static String overrideRequestId;
     private final ContextStorage contextStorage;
@@ -445,6 +448,16 @@ final public class FilibusterClientInstrumentor {
     }
 
     /**
+     * Return byzantine fault that needs to be injected.
+     * This value will be null until the Filibuster server has been contacted for this request.
+     *
+     * @return JSON object containing failure to inject.
+     */
+    public JSONObject getHOByzantineFault() {
+        return this.hoByzantineFault;
+    }
+
+    /**
      * Should this request be allowed to reach the remote service or should it be skipped?
      *
      * @return whether it should be aborted or not.
@@ -656,6 +669,10 @@ final public class FilibusterClientInstrumentor {
             if (jsonObject.has("byzantine_fault")) {
                 byzantineFault = jsonObject.getJSONObject("byzantine_fault");
             }
+
+            if (jsonObject.has("higher_order_byzantine_fault")) {
+                hoByzantineFault = jsonObject.getJSONObject("higher_order_byzantine_fault");
+            }
         }
         else if (shouldCommunicateWithServer && counterexampleNotProvided()) {
             if (getServerBackendCanInvokeDirectlyProperty()) {
@@ -673,6 +690,10 @@ final public class FilibusterClientInstrumentor {
 
                     if (jsonObject.has("byzantine_fault")) {
                         byzantineFault = jsonObject.getJSONObject("byzantine_fault");
+                    }
+
+                    if (jsonObject.has("higher_order_byzantine_fault")) {
+                        hoByzantineFault = jsonObject.getJSONObject("higher_order_byzantine_fault");
                     }
                 } else {
                     throw new FilibusterRuntimeException("No current filibuster core instance, this could indicate a problem.");
@@ -717,6 +738,10 @@ final public class FilibusterClientInstrumentor {
 
                         if (jsonObject.has("byzantine_fault")) {
                             byzantineFault = jsonObject.getJSONObject("byzantine_fault");
+                        }
+
+                        if (jsonObject.has("higher_order_byzantine_fault")) {
+                            hoByzantineFault = jsonObject.getJSONObject("higher_order_byzantine_fault");
                         }
                     } catch (RuntimeException e) {
                         logger.log(Level.SEVERE, "cannot connect to the Filibuster server: " + e);

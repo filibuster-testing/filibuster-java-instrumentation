@@ -8,6 +8,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,6 +21,7 @@ public class FilibusterAnalysisConfiguration {
     private final List<JSONObject> errorFaultObjects = new ArrayList<>();
     private final List<JSONObject> latencyFaultObjects = new ArrayList<>();
     private final List<JSONObject> byzantineFaultObjects = new ArrayList<>();
+    private final List<JSONObject> hoByzantineFaultObjects = new ArrayList<>();
     private final String name;
     private final String pattern;
 
@@ -71,6 +73,16 @@ public class FilibusterAnalysisConfiguration {
             }
         }
 
+        if (builder.higherOrderByzantines.size() > 0) {
+            configurationObject.put("higherOrderByzantines", builder.higherOrderByzantines);
+
+            for (JSONObject byzantineObject : builder.higherOrderByzantines) {
+                JSONObject byzantine = new JSONObject();
+                byzantine.put("higher_order_byzantine_fault", byzantineObject);
+                hoByzantineFaultObjects.add(byzantine);
+            }
+        }
+
         analysisConfiguration.put(builder.name, configurationObject);
     }
 
@@ -80,6 +92,10 @@ public class FilibusterAnalysisConfiguration {
 
     public List<JSONObject> getByzantineFaultObjects() {
         return this.byzantineFaultObjects;
+    }
+
+    public List<JSONObject> getHOByzantineFaultObjects() {
+        return this.hoByzantineFaultObjects;
     }
 
     public List<JSONObject> getErrorFaultObjects() {
@@ -112,6 +128,7 @@ public class FilibusterAnalysisConfiguration {
         private final List<JSONObject> errors = new ArrayList<>();
         private final List<JSONObject> latencies = new ArrayList<>();
         private final List<JSONObject> byzantines = new ArrayList<>();
+        private final List<JSONObject> higherOrderByzantines = new ArrayList<>();
 
         @CanIgnoreReturnValue
         public Builder name(String name) {
@@ -149,6 +166,15 @@ public class FilibusterAnalysisConfiguration {
             byzantine.put("type", faultType);
             byzantine.put("metadata", metadata);
             byzantines.add(byzantine);
+            return this;
+        }
+
+        @CanIgnoreReturnValue
+        public Builder higherOrderByzantine(Function<?, ?> fnc) {
+            JSONObject higherOrderByzantine = new JSONObject();
+            higherOrderByzantine.put("function", fnc);
+            higherOrderByzantine.put("id", higherOrderByzantines.size());
+            higherOrderByzantines.add(higherOrderByzantine);
             return this;
         }
 

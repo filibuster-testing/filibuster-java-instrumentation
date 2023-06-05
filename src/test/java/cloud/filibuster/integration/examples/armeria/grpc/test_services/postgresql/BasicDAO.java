@@ -1,4 +1,4 @@
-package cloud.filibuster.integration.examples.armeria.grpc.test_services.cockroachdb;
+package cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -53,7 +53,7 @@ public class BasicDAO {
      * @param args    String Varargs to fill in the SQL code's
      *                placeholders.
      */
-    public void runSQL(String sqlCode, String... args) {
+    public void runSQL(String sqlCode, Object... args) {
 
         // This block is only used to emit class and method names in
         // the program output.  It is not necessary in production
@@ -91,16 +91,15 @@ public class BasicDAO {
                     // prepared statement based on their types.  In
                     // this simple example we classify the argument
                     // types as "integers" and "everything else"
-                    // (a.k.a. strings).
+                    // (a.k.a. strings or uuid).
                     for (int i = 0; i < args.length; i++) {
                         int place = i + 1;
-                        String arg = args[i];
 
                         try {
-                            int val = Integer.parseInt(arg);
+                            int val = Integer.parseInt(args[i].toString());
                             pstmt.setInt(place, val);
                         } catch (NumberFormatException e) {
-                            pstmt.setString(place, arg);
+                            pstmt.setObject(place, args[i]);
                         }
                     }
 
@@ -198,13 +197,13 @@ public class BasicDAO {
      *
      * @param accounts (Map)
      */
-    public void updateAccounts(Map<String, Integer> accounts) {
-        for (Map.Entry<String, Integer> account : accounts.entrySet()) {
+    public void updateAccounts(Map<UUID, Integer> accounts) {
+        for (Map.Entry<UUID, Integer> account : accounts.entrySet()) {
 
-            String k = account.getKey();
+            UUID k = account.getKey();
             String v = account.getValue().toString();
 
-            String[] args = {k, v};
+            Object[] args = {k, v};
             runSQL("INSERT INTO accounts (id, balance) VALUES (?, ?)", args);
         }
     }
@@ -219,20 +218,18 @@ public class BasicDAO {
      * @param amount (int)
      */
     public void transferFunds(UUID fromId, UUID toId, int amount) {
-        String sFromId = fromId.toString();
-        String sToId = toId.toString();
-        String sAmount = String.valueOf(amount);
 
         // We have omitted explicit BEGIN/COMMIT statements for
         // brevity.  Individual statements are treated as implicit
         // transactions by CockroachDB (see
         // https://www.cockroachlabs.com/docs/stable/transactions.html#individual-statements).
 
-        String sqlCode = "UPSERT INTO accounts (id, balance) VALUES" +
+        String sqlCode = "INSERT INTO accounts (id, balance) VALUES" +
                 "(?, ((SELECT balance FROM accounts WHERE id = ?) - ?))," +
-                "(?, ((SELECT balance FROM accounts WHERE id = ?) + ?))";
+                "(?, ((SELECT balance FROM accounts WHERE id = ?) + ?))" +
+                "ON CONFLICT (id) DO UPDATE SET balance = excluded.balance";
 
-        runSQL(sqlCode, sFromId, sFromId, sAmount, sToId, sToId, sAmount);
+        runSQL(sqlCode, fromId, fromId, amount, toId, toId, amount);
     }
 
     /**

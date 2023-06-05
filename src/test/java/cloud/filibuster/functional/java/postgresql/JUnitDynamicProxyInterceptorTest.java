@@ -1,9 +1,9 @@
-package cloud.filibuster.functional.java.cockroachdb;
+package cloud.filibuster.functional.java.postgresql;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedAPIException;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
-import cloud.filibuster.integration.examples.armeria.grpc.test_services.cockroachdb.CockroachClientService;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.CockroachClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.db.cockroachdb.CockroachSingleFaultPSQLExceptionAnalysisConfigurationFile;
 import org.junit.jupiter.api.*;

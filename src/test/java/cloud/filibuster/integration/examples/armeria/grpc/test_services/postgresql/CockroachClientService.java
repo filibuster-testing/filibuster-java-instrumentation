@@ -1,4 +1,4 @@
-package cloud.filibuster.integration.examples.armeria.grpc.test_services.cockroachdb;
+package cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql;
 
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.DockerImageName;

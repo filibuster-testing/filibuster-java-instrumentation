@@ -5,15 +5,24 @@ import cloud.filibuster.junit.configuration.examples.redis.byzantine.types.Byzan
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.json.simple.Jsoner.deserialize;
+import static org.json.simple.Jsoner.serialize;
+
 public class FilibusterAnalysisConfiguration {
-    public enum MatcherType { SERVICE, METHOD }
+    public enum MatcherType {SERVICE, METHOD}
 
     private final JSONObject analysisConfiguration = new JSONObject();
     private final JSONObject configurationObject = new JSONObject();
@@ -172,10 +181,23 @@ public class FilibusterAnalysisConfiguration {
         @CanIgnoreReturnValue
         public Builder higherOrderByzantine(Function<?, ?> fnc) {
             JSONObject higherOrderByzantine = new JSONObject();
-            higherOrderByzantine.put("function", fnc);
+            higherOrderByzantine.put("function", toString((Serializable) fnc));
             higherOrderByzantine.put("id", higherOrderByzantines.size());
             higherOrderByzantines.add(higherOrderByzantine);
             return this;
+        }
+
+        private String toString(Serializable o) {
+            try {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                ObjectOutputStream oos = new ObjectOutputStream(baos);
+                oos.writeObject(o);
+                oos.close();
+                return Base64.getEncoder().encodeToString(baos.toByteArray());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
         }
 
         @CanIgnoreReturnValue

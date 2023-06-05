@@ -29,6 +29,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.*;
 
 import java.util.function.Function;
@@ -669,14 +672,14 @@ public class FilibusterCore {
                 for (Object obj : jsonArray) {
                     JSONObject errorObject = (JSONObject) obj;
 
-                    if (errorObject.has("id")) {
+                    if (errorObject.has("id") && errorObject.has("function")) {
                         int fncId = errorObject.getInt("id");
-                        Function<Void, Integer> fncWrapper = (n) -> fncId;
+                        Function<?, ?> hoFnc = (Function<?, ?>) fromString(errorObject.getString("function"));
 
-                        filibusterAnalysisConfigurationBuilder.higherOrderByzantine(fncWrapper);
+                        filibusterAnalysisConfigurationBuilder.higherOrderByzantine(hoFnc);
                         logger.info("[FILIBUSTER-CORE]: analysisFile, found new configuration, HOByzantineFaultType: " + fncId);
                     } else {
-                        logger.warning("[FILIBUSTER-CORE]: HigherOrderByzantines: Function does not have an ID. Skipping...");
+                        logger.warning("[FILIBUSTER-CORE]: HigherOrderByzantines: Either the key 'id' or 'function' does not exist. Skipping...");
                     }
                 }
             }
@@ -688,6 +691,19 @@ public class FilibusterCore {
         filibusterCustomAnalysisConfigurationFile = filibusterCustomAnalysisConfigurationFileBuilder.build();
 
         logger.info("[FILIBUSTER-CORE]: analysisFile, set instance variable, returning.");
+    }
+
+    private static Object fromString(String s) {
+        try {
+            byte[] data = Base64.getDecoder().decode(s);
+            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(data));
+            Object o = ois.readObject();
+            ois.close();
+            return o;
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     // Private functions.
@@ -771,7 +787,13 @@ public class FilibusterCore {
                     List<JSONObject> higherOrderByzantineFaults = filibusterAnalysisConfiguration.getHOByzantineFaultObjects();
 
                     for (JSONObject hoFaultObject : higherOrderByzantineFaults) {
-                        createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, hoFaultObject);
+                        if (hoFaultObject.has("higher_order_byzantine_fault")
+                                && hoFaultObject.getJSONObject("higher_order_byzantine_fault").has("id")
+                                && hoFaultObject.getJSONObject("higher_order_byzantine_fault").has("function")) {
+
+                            hoFaultObject.getJSONObject("higher_order_byzantine_fault").put("function", fromString(hoFaultObject.getJSONObject("higher_order_byzantine_fault").getString("function")));
+                            createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, hoFaultObject);
+                        }
                     }
                 }
             }

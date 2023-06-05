@@ -150,6 +150,8 @@ public class RedisInterceptor<T> implements MethodInterceptor {
             // TODO: implement higher-order byzantine faults
             logger.log(Level.INFO, logPrefix + "Higher-order byzantine faults are not yet implemented. Ignoring.");
             Function<?, ?> hofnc = (Function<?, ?>) hoByzantineFault.get("function");
+            Object value = hofnc.apply(null);
+            logger.log(Level.INFO, logPrefix + "hofnc.apply(null) returned: " + value);
         }
 
         // ******************************************************************************************

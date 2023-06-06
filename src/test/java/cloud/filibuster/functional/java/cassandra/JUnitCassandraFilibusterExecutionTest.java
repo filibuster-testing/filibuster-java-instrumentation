@@ -56,7 +56,6 @@ public class JUnitCassandraFilibusterExecutionTest extends JUnitAnnotationBaseTe
 
             assertNotNull(keyspace, "Keyspace was not created");
             assertFalse(wasFaultInjected());
-
         } catch (Exception t) {
             testExceptionsThrown.add(t.getMessage());
 

@@ -19,7 +19,7 @@ public class JUnitCassandraAccessTest extends JUnitAnnotationBaseTest {
     @Test
     @DisplayName("Tests whether CockroachDB/PostgreSQL connection can read and write")
     @Order(1)
-    public void testPostgresAndCockroachAccess() {
+    public void testCassandraAccess() {
         CqlSession cassandraSession = CassandraClientService.getInstance().cassandraClient;
 
         cassandraSession.execute(

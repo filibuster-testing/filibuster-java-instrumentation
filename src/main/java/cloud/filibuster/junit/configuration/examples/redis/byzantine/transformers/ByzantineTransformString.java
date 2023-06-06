@@ -28,7 +28,7 @@ public class ByzantineTransformString implements ByzantineTransformer<String> {
         List<String> transStrings = new ArrayList<>();
         // Traverse the string
         for (int i = 0; i < refString.length(); i++) {
-            transStrings.add(transform(refString, "", i));
+            transStrings.add(transformAtIdx(refString, i));
         }
         return transStrings;
     }

@@ -7,6 +7,8 @@ import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.exceptions.filibuster.FilibusterLatencyInjectionException;
 import cloud.filibuster.instrumentation.helpers.Property;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
+import cloud.filibuster.junit.configuration.examples.redis.byzantine.transformers.ByzantineTransformer;
+import cloud.filibuster.junit.configuration.examples.redis.byzantine.types.ByzantineFault;
 import cloud.filibuster.junit.configuration.examples.redis.byzantine.types.ByzantineFaultType;
 import cloud.filibuster.junit.server.core.reports.TestSuiteReport;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
@@ -29,12 +31,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.*;
 
-import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -243,10 +241,10 @@ public class FilibusterCore {
                 JSONObject byzantineFaultObject = faultObject.getJSONObject("byzantine_fault");
                 logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using byzantine_fault: " + byzantineFaultObject.toString(4));
                 response.put("byzantine_fault", byzantineFaultObject);
-            } else if (faultObject.has("higher_order_byzantine_fault")) {
-                JSONObject hoByzantineFaultObject = faultObject.getJSONObject("higher_order_byzantine_fault");
-                logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using higher_order_byzantine_fault: " + hoByzantineFaultObject.toString(4));
-                response.put("higher_order_byzantine_fault", hoByzantineFaultObject);
+            } else if (faultObject.has("transformer_byzantine_fault")) {
+                JSONObject transformerByzantineFaultObject = faultObject.getJSONObject("transformer_byzantine_fault");
+                logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using transformer_byzantine_fault: " + transformerByzantineFaultObject.toString(4));
+                response.put("transformer_byzantine_fault", transformerByzantineFaultObject);
             } else if (faultObject.has("latency")) {
                 JSONObject latencyObject = faultObject.getJSONObject("latency");
                 logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using latency: " + latencyObject.toString(4));
@@ -574,6 +572,7 @@ public class FilibusterCore {
 
     // Configuration.
 
+    @SuppressWarnings("unchecked")
     public synchronized void analysisFile(JSONObject analysisFile) {
         logger.info("[FILIBUSTER-CORE]: analysisFile called, payload: " + analysisFile.toString(4));
 
@@ -666,20 +665,28 @@ public class FilibusterCore {
                 }
             }
 
-            if (nameObject.has("higherOrderByzantines")) {
-                JSONArray jsonArray = nameObject.getJSONArray("higherOrderByzantines");
+            if (nameObject.has("transformerByzantines")) {
+                JSONArray jsonArray = nameObject.getJSONArray("transformerByzantines");
 
                 for (Object obj : jsonArray) {
                     JSONObject errorObject = (JSONObject) obj;
 
-                    if (errorObject.has("id") && errorObject.has("function")) {
-                        int fncId = errorObject.getInt("id");
-                        Function<?, ?> hoFnc = (Function<?, ?>) fromString(errorObject.getString("function"));
+                    if (errorObject.has("transformer") && errorObject.has("type")) {
+                        ByzantineFault type = ByzantineFault.valueOf(errorObject.getString("type"));
+                        String transformer = errorObject.getString("transformer");
+                        Class<? extends ByzantineTransformer<?, ?>> transformerClass;
 
-                        filibusterAnalysisConfigurationBuilder.higherOrderByzantine(hoFnc);
-                        logger.info("[FILIBUSTER-CORE]: analysisFile, found new configuration, HOByzantineFaultType: " + fncId);
+                        try {
+                            transformerClass =  (Class<? extends ByzantineTransformer<?, ?>>) Class.forName(transformer);
+                        } catch (ClassNotFoundException e) {
+                            logger.warning("[FILIBUSTER-CORE]: transformerByzantines: Could not find class for transformer: " + transformer+ ". Skipping...");
+                            continue;
+                        }
+
+                        filibusterAnalysisConfigurationBuilder.byzantineTransformer(transformerClass, type);
+                        logger.info("[FILIBUSTER-CORE]: analysisFile, found new configuration, transformedByzantines: " + transformer + ", type: " + type);
                     } else {
-                        logger.warning("[FILIBUSTER-CORE]: HigherOrderByzantines: Either the key 'id' or 'function' does not exist. Skipping...");
+                        logger.warning("[FILIBUSTER-CORE]: transformerByzantines: Either the key 'transformer' or 'type' does not exist. Skipping...");
                     }
                 }
             }
@@ -691,19 +698,6 @@ public class FilibusterCore {
         filibusterCustomAnalysisConfigurationFile = filibusterCustomAnalysisConfigurationFileBuilder.build();
 
         logger.info("[FILIBUSTER-CORE]: analysisFile, set instance variable, returning.");
-    }
-
-    private static Object fromString(String s) {
-        try {
-            byte[] data = Base64.getDecoder().decode(s);
-            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(data));
-            Object o = ois.readObject();
-            ois.close();
-            return o;
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     // Private functions.
@@ -783,17 +777,11 @@ public class FilibusterCore {
                         createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject);
                     }
 
-                    // Higher order Byzantine faults
-                    List<JSONObject> higherOrderByzantineFaults = filibusterAnalysisConfiguration.getHOByzantineFaultObjects();
+                    // Transformer Byzantine faults
+                    List<JSONObject> transformerByzantineFaults = filibusterAnalysisConfiguration.getTransformerByzantineFaultObjects();
 
-                    for (JSONObject hoFaultObject : higherOrderByzantineFaults) {
-                        if (hoFaultObject.has("higher_order_byzantine_fault")
-                                && hoFaultObject.getJSONObject("higher_order_byzantine_fault").has("id")
-                                && hoFaultObject.getJSONObject("higher_order_byzantine_fault").has("function")) {
-
-                            hoFaultObject.getJSONObject("higher_order_byzantine_fault").put("function", fromString(hoFaultObject.getJSONObject("higher_order_byzantine_fault").getString("function")));
-                            createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, hoFaultObject);
-                        }
+                    for (JSONObject transformerBF : transformerByzantineFaults) {
+                        createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, transformerBF);
                     }
                 }
             }

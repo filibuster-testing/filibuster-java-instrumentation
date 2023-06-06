@@ -26,7 +26,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.net.URI;
@@ -123,12 +122,12 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         JSONObject forcedException = filibusterClientInstrumentor.getForcedException();
         JSONObject failureMetadata = filibusterClientInstrumentor.getFailureMetadata();
         JSONObject byzantineFault = filibusterClientInstrumentor.getByzantineFault();
-        JSONObject hoByzantineFault = filibusterClientInstrumentor.getHOByzantineFault();
+        JSONObject transformerByzantineFault = filibusterClientInstrumentor.getTransformerByzantineFault();
 
         logger.log(Level.INFO, logPrefix + "forcedException: " + forcedException);
         logger.log(Level.INFO, logPrefix + "failureMetadata: " + failureMetadata);
         logger.log(Level.INFO, logPrefix + "byzantineFault: " + byzantineFault);
-        logger.log(Level.INFO, logPrefix + "hoByzantineFault: " + hoByzantineFault);
+        logger.log(Level.INFO, logPrefix + "transformerByzantineFault: " + transformerByzantineFault);
 
         // ******************************************************************************************
         // If we need to throw, this is where we throw.
@@ -146,12 +145,9 @@ public class RedisInterceptor<T> implements MethodInterceptor {
             return injectByzantineFault(filibusterClientInstrumentor, byzantineFault);
         }
 
-        if (hoByzantineFault != null && filibusterClientInstrumentor.shouldAbort()) {
-            // TODO: implement higher-order byzantine faults
-            logger.log(Level.INFO, logPrefix + "Higher-order byzantine faults are not yet implemented. Ignoring.");
-            Function<?, ?> hofnc = (Function<?, ?>) hoByzantineFault.get("function");
-            Object value = hofnc.apply(null);
-            logger.log(Level.INFO, logPrefix + "hofnc.apply(null) returned: " + value);
+        if (transformerByzantineFault != null && filibusterClientInstrumentor.shouldAbort()) {
+            // TODO: implement transformerByzantineFault byzantine faults
+            logger.log(Level.INFO, logPrefix + "Transformer byzantine faults are not yet implemented. Ignoring.");
         }
 
         // ******************************************************************************************

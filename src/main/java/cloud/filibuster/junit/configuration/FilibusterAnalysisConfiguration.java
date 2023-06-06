@@ -1,25 +1,17 @@
 package cloud.filibuster.junit.configuration;
 
 import cloud.filibuster.instrumentation.datatypes.Pair;
+import cloud.filibuster.junit.configuration.examples.redis.byzantine.transformers.ByzantineTransformer;
+import cloud.filibuster.junit.configuration.examples.redis.byzantine.types.ByzantineFault;
 import cloud.filibuster.junit.configuration.examples.redis.byzantine.types.ByzantineFaultType;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static org.json.simple.Jsoner.deserialize;
-import static org.json.simple.Jsoner.serialize;
 
 public class FilibusterAnalysisConfiguration {
     public enum MatcherType {SERVICE, METHOD}
@@ -30,7 +22,7 @@ public class FilibusterAnalysisConfiguration {
     private final List<JSONObject> errorFaultObjects = new ArrayList<>();
     private final List<JSONObject> latencyFaultObjects = new ArrayList<>();
     private final List<JSONObject> byzantineFaultObjects = new ArrayList<>();
-    private final List<JSONObject> hoByzantineFaultObjects = new ArrayList<>();
+    private final List<JSONObject> transformerByzantineFaultObjects = new ArrayList<>();
     private final String name;
     private final String pattern;
 
@@ -82,13 +74,13 @@ public class FilibusterAnalysisConfiguration {
             }
         }
 
-        if (builder.higherOrderByzantines.size() > 0) {
-            configurationObject.put("higherOrderByzantines", builder.higherOrderByzantines);
+        if (builder.transformerByzantines.size() > 0) {
+            configurationObject.put("transformerByzantines", builder.transformerByzantines);
 
-            for (JSONObject byzantineObject : builder.higherOrderByzantines) {
+            for (JSONObject byzantineObject : builder.transformerByzantines) {
                 JSONObject byzantine = new JSONObject();
-                byzantine.put("higher_order_byzantine_fault", byzantineObject);
-                hoByzantineFaultObjects.add(byzantine);
+                byzantine.put("transformer_byzantine_fault", byzantineObject);
+                transformerByzantineFaultObjects.add(byzantine);
             }
         }
 
@@ -103,8 +95,8 @@ public class FilibusterAnalysisConfiguration {
         return this.byzantineFaultObjects;
     }
 
-    public List<JSONObject> getHOByzantineFaultObjects() {
-        return this.hoByzantineFaultObjects;
+    public List<JSONObject> getTransformerByzantineFaultObjects() {
+        return this.transformerByzantineFaultObjects;
     }
 
     public List<JSONObject> getErrorFaultObjects() {
@@ -137,7 +129,7 @@ public class FilibusterAnalysisConfiguration {
         private final List<JSONObject> errors = new ArrayList<>();
         private final List<JSONObject> latencies = new ArrayList<>();
         private final List<JSONObject> byzantines = new ArrayList<>();
-        private final List<JSONObject> higherOrderByzantines = new ArrayList<>();
+        private final List<JSONObject> transformerByzantines = new ArrayList<>();
 
         @CanIgnoreReturnValue
         public Builder name(String name) {
@@ -179,25 +171,12 @@ public class FilibusterAnalysisConfiguration {
         }
 
         @CanIgnoreReturnValue
-        public Builder higherOrderByzantine(Function<?, ?> fnc) {
-            JSONObject higherOrderByzantine = new JSONObject();
-            higherOrderByzantine.put("function", toString((Serializable) fnc));
-            higherOrderByzantine.put("id", higherOrderByzantines.size());
-            higherOrderByzantines.add(higherOrderByzantine);
+        public Builder byzantineTransformer(Class<? extends ByzantineTransformer<?, ?>> transformer, ByzantineFault type) {
+            JSONObject byzantineTransformer = new JSONObject();
+            byzantineTransformer.put("transformer", transformer.getName());
+            byzantineTransformer.put("type", type.name());
+            transformerByzantines.add(byzantineTransformer);
             return this;
-        }
-
-        private String toString(Serializable o) {
-            try {
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                ObjectOutputStream oos = new ObjectOutputStream(baos);
-                oos.writeObject(o);
-                oos.close();
-                return Base64.getEncoder().encodeToString(baos.toByteArray());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
         }
 
         @CanIgnoreReturnValue

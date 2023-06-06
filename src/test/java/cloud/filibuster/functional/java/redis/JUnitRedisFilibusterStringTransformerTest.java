@@ -5,7 +5,7 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.redis.byzantine.RedisBitFlipAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.redis.byzantine.RedisTransformStringAnalysisConfigurationFile;
 import io.lettuce.core.RedisCommandTimeoutException;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("unchecked")
-public class JUnitRedisFilibusterBitFlipTest extends JUnitAnnotationBaseTest {
+public class JUnitRedisFilibusterStringTransformerTest extends JUnitAnnotationBaseTest {
     static final String key = "test";
     static final String value = "example";
     static StatefulRedisConnection<String, String> statefulRedisConnection;
@@ -53,9 +53,9 @@ public class JUnitRedisFilibusterBitFlipTest extends JUnitAnnotationBaseTest {
         allowedExceptionMessages.add("Command timed out after 100 millisecond(s)");
     }
 
-    @DisplayName("Tests whether Redis sync interceptor can read from existing key - Bit Flip BFI")
+    @DisplayName("Tests whether Redis sync interceptor can read from existing key - String transformer BFI.")
     @Order(1)
-    @TestWithFilibuster(analysisConfigurationFile = RedisBitFlipAnalysisConfigurationFile.class)
+    @TestWithFilibuster(analysisConfigurationFile = RedisTransformStringAnalysisConfigurationFile.class)
     public void testRedisBitFlip() {
         try {
             numberOfTestExecutions++;

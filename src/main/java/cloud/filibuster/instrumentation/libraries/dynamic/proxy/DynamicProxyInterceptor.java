@@ -231,6 +231,9 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
                 exceptionToThrow = RequestLimitExceededException.builder().message(causeString).statusCode(Integer.parseInt(codeString))
                         .requestId(UUID.randomUUID().toString().replace("-","").toUpperCase(Locale.ROOT)).build();
                 break;
+            case "com.datastax.oss.driver.api.core.servererrors.OverloadedException":
+                exceptionToThrow = new OverloadedException(null);
+                break;
             default:
                 throw new FilibusterFaultInjectionException("Cannot determine the execution cause to throw: " + causeString);
         }

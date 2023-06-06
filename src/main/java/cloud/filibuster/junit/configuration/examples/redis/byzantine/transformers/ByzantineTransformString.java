@@ -1,11 +1,8 @@
 package cloud.filibuster.junit.configuration.examples.redis.byzantine.transformers;
 
-import org.apache.kafka.common.protocol.types.Field;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.function.Function;
 
 public class ByzantineTransformString implements ByzantineTransformer<String> {
     private static final long FIXED_SEED = 0;  // Seed is fixed to ensure consistent results

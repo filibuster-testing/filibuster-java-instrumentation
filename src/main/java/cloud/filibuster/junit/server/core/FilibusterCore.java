@@ -807,7 +807,7 @@ public class FilibusterCore {
     }
 
     @SuppressWarnings("unchecked")
-    private List<Object> getTransformerByzantineValues(@NotNull JSONObject transformerBF) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    private static List<Object> getTransformerByzantineValues(@NotNull JSONObject transformerBF) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         List<Object> transformedVals;
 
         // Get transformer class from JSONObject.

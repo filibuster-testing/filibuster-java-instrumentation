@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class JUnitCassandraAccessTest extends JUnitAnnotationBaseTest {
 
     @Test
-    @DisplayName("Tests whether CockroachDB/PostgreSQL connection can read and write")
+    @DisplayName("Tests whether Cassandra connection can create keyspace")
     @Order(1)
     public void testCassandraAccess() {
         CqlSession cassandraSession = CassandraClientService.getInstance().cassandraClient;

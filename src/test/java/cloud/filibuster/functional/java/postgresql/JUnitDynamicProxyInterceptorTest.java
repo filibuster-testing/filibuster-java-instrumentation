@@ -54,7 +54,7 @@ public class JUnitDynamicProxyInterceptorTest extends JUnitAnnotationBaseTest {
         executeTest(cockroachConnection, cockroachString);
     }
 
-    private void executeTest(Connection connection, String connectionString) {
+    private static void executeTest(Connection connection, String connectionString) {
         try {
             numberOfTestExecutions++;
 

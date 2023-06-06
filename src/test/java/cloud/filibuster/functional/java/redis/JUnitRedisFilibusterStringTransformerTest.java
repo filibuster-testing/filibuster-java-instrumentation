@@ -56,7 +56,7 @@ public class JUnitRedisFilibusterStringTransformerTest extends JUnitAnnotationBa
     @DisplayName("Tests whether Redis sync interceptor can read from existing key - String transformer BFI.")
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = RedisTransformStringAnalysisConfigurationFile.class)
-    public void testRedisBitFlip() {
+    public void testRedisStringTransformation() {
         try {
             numberOfTestExecutions++;
 

@@ -2,7 +2,6 @@ package cloud.filibuster.junit.configuration;
 
 import cloud.filibuster.instrumentation.datatypes.Pair;
 import cloud.filibuster.junit.configuration.examples.redis.byzantine.transformers.ByzantineTransformer;
-import cloud.filibuster.junit.configuration.examples.redis.byzantine.types.ByzantineFault;
 import cloud.filibuster.junit.configuration.examples.redis.byzantine.types.ByzantineFaultType;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import org.json.JSONObject;
@@ -78,9 +77,9 @@ public class FilibusterAnalysisConfiguration {
             configurationObject.put("transformerByzantines", builder.transformerByzantines);
 
             for (JSONObject byzantineObject : builder.transformerByzantines) {
-                JSONObject byzantine = new JSONObject();
-                byzantine.put("transformer_byzantine_fault", byzantineObject);
-                transformerByzantineFaultObjects.add(byzantine);
+                JSONObject transformerByzantine = new JSONObject();
+                transformerByzantine.put("transformer_byzantine_fault", byzantineObject);
+                transformerByzantineFaultObjects.add(transformerByzantine);
             }
         }
 
@@ -171,10 +170,10 @@ public class FilibusterAnalysisConfiguration {
         }
 
         @CanIgnoreReturnValue
-        public Builder byzantineTransformer(Class<? extends ByzantineTransformer<?, ?>> transformer, ByzantineFault type) {
+        public Builder byzantineTransformer(Class<? extends ByzantineTransformer<?>> transformer) {
             JSONObject byzantineTransformer = new JSONObject();
-            byzantineTransformer.put("transformer", transformer.getName());
-            byzantineTransformer.put("type", type.name());
+            byzantineTransformer.put("transformer", transformer);
+            byzantineTransformer.put("transformerClassName", transformer.getName());
             transformerByzantines.add(byzantineTransformer);
             return this;
         }

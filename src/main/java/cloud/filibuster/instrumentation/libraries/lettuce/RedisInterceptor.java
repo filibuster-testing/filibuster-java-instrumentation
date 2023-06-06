@@ -146,8 +146,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         }
 
         if (transformerByzantineFault != null && filibusterClientInstrumentor.shouldAbort()) {
-            // TODO: implement transformerByzantineFault byzantine faults
-            logger.log(Level.INFO, logPrefix + "Transformer byzantine faults are not yet implemented. Ignoring.");
+            return injectTransformerByzantineFault(filibusterClientInstrumentor, transformerByzantineFault);
         }
 
         // ******************************************************************************************
@@ -187,6 +186,27 @@ public class RedisInterceptor<T> implements MethodInterceptor {
             // the filibusterClientInstrumentor, and then throw the exception
             filibusterClientInstrumentor.afterInvocationWithException(t);
             throw t;
+        }
+    }
+
+    @Nullable
+    private static Object injectTransformerByzantineFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject byzantineFault) {
+        if (byzantineFault.has("value")) {
+            Object byzantineFaultValue = byzantineFault.get("value");
+            logger.log(Level.INFO, logPrefix + "Injecting the transformed byzantine fault value: " + byzantineFaultValue);
+
+            // Build the additional metadata used to notify Filibuster.
+            HashMap<String, String> additionalMetadata = new HashMap<>();
+            String sByzantineFaultValueString = byzantineFaultValue.toString();
+            additionalMetadata.put("value", sByzantineFaultValueString);
+
+            // Notify Filibuster.
+            filibusterClientInstrumentor.afterInvocationWithException(sByzantineFaultValueString, sByzantineFaultValueString, additionalMetadata);
+
+            return byzantineFaultValue;
+        } else {
+            logger.log(Level.WARNING, logPrefix + "The byzantineFault either does not have the required key 'value'");
+            return null;
         }
     }
 

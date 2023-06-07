@@ -11,7 +11,6 @@ import cloud.filibuster.junit.configuration.examples.db.byzantine.types.Byzantin
 import org.json.JSONObject;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.ServerErrorMessage;
-import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 import software.amazon.awssdk.services.dynamodb.model.RequestLimitExceededException;
 
 import javax.annotation.Nullable;
@@ -23,6 +22,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -215,6 +215,7 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
         String exceptionNameString = forcedException.getString("name");
         JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
         String causeString = forcedExceptionMetadata.getString("cause");
+        String codeString = forcedExceptionMetadata.getString("code");
 
         Exception exceptionToThrow;
 
@@ -223,10 +224,8 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
                 exceptionToThrow = new PSQLException(new ServerErrorMessage(causeString));
                 break;
             case "software.amazon.awssdk.services.dynamodb.model.RequestLimitExceededException":
-                exceptionToThrow = RequestLimitExceededException.builder().message("Throughput exceeds the " +
-                        "current throughput limit for your account. Please contact AWS Support at " +
-                        "https://aws.amazon.com/support request a limit increase").statusCode(400).requestId(RandomStringUtils.randomAlphanumeric(30).toUpperCase(Locale.ROOT)
-                ).build();
+                exceptionToThrow = RequestLimitExceededException.builder().message(causeString).statusCode(Integer.parseInt(codeString))
+                        .requestId(UUID.randomUUID().toString().replace("-","").toUpperCase(Locale.ROOT)).build();
                 break;
             default:
                 throw new FilibusterFaultInjectionException("Cannot determine the execution cause to throw: " + causeString);

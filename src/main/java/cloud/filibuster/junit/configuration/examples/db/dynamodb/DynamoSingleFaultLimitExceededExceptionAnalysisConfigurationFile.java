@@ -7,13 +7,14 @@ import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfiguratio
 import java.util.HashMap;
 import java.util.Map;
 
-public class DynamoSingleFaultValidationExceptionAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
+public class DynamoSingleFaultLimitExceededExceptionAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
     private static Map<String, String> createErrorMap() {
         Map<String, String> myMap = new HashMap<>();
-        myMap.put("cause", "");
-        myMap.put("code", "");
+        myMap.put("cause", "Throughput exceeds the current throughput limit for your account. Please contact AWS Support at " +
+                "https://aws.amazon.com/support request a limit increase");
+        myMap.put("code", "400");
         return myMap;
     }
 
@@ -22,7 +23,7 @@ public class DynamoSingleFaultValidationExceptionAnalysisConfigurationFile imple
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.dynamo.exceptions.RequestLimitExceededException")
-                .pattern("software.amazon.awssdk.services.dynamodb.DynamoDbClient/listTables\\b");
+                .pattern("software.amazon.awssdk.services.dynamodb.DynamoDbClient/*\\b");
 
         filibusterAnalysisConfigurationBuilderRedisExceptions.exception("software.amazon.awssdk.services.dynamodb.model.RequestLimitExceededException", createErrorMap());
 

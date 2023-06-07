@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.dynamodb;
+package cloud.filibuster.unit.databases;
 
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.DynamoDBClientService;
@@ -15,7 +15,7 @@ import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class JUnitDynamoDBAccessTest extends JUnitAnnotationBaseTest {
+public class DynamoDBAccessTest extends JUnitAnnotationBaseTest {
 
     private static DynamoDbClient dynamoDbClient;
 

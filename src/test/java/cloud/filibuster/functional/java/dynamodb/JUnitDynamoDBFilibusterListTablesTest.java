@@ -5,7 +5,7 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.DynamoDBClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.db.dynamodb.DynamoSingleFaultValidationExceptionAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.db.dynamodb.DynamoSingleFaultLimitExceededExceptionAnalysisConfigurationFile;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
@@ -40,7 +40,7 @@ public class JUnitDynamoDBFilibusterListTablesTest extends JUnitAnnotationBaseTe
     }
 
     @DisplayName("Test basic fault injection for DynamoDB")
-    @TestWithFilibuster(analysisConfigurationFile = DynamoSingleFaultValidationExceptionAnalysisConfigurationFile.class)
+    @TestWithFilibuster(analysisConfigurationFile = DynamoSingleFaultLimitExceededExceptionAnalysisConfigurationFile.class)
     public void testBasicDynamoDBFaultInjection() {
         try {
             numberOfTestExecutions++;

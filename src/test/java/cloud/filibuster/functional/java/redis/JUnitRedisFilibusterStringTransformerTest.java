@@ -77,7 +77,7 @@ public class JUnitRedisFilibusterStringTransformerTest extends JUnitAnnotationBa
     @Test
     @Order(3)
     public void testNumExceptions() {
-        assertEquals(1, testExceptionsThrown.size());
+        assertEquals(value.length(), testExceptionsThrown.size());
     }
 
 }

@@ -684,7 +684,7 @@ public class FilibusterCore {
                         Class<? extends ByzantineTransformer<?>> transformerClass;
 
                         try {
-                            transformerClass =  (Class<? extends ByzantineTransformer<?>>) Class.forName(transformerClassName);
+                            transformerClass = (Class<? extends ByzantineTransformer<?>>) Class.forName(transformerClassName);
                         } catch (ClassNotFoundException e) {
                             logger.warning("[FILIBUSTER-CORE]: transformerByzantines: Could not find class for transformer: " + transformerClassName + ". Skipping...");
                             continue;
@@ -796,6 +796,7 @@ public class FilibusterCore {
 
         logger.info("[FILIBUSTER-CORE]: generateFaultsUsingSpecificAnalysisConfiguration returning.");
     }
+
     @SuppressWarnings("unchecked")
     private <T> ByzantineTransformationResult<T> getByzantineTransformationResult(@NotNull JSONObject transformerBF, DistributedExecutionIndex distributedExecutionIndex) {
         try {
@@ -806,29 +807,34 @@ public class FilibusterCore {
                 JSONObject refResponse = currentAbstractTestExecution.getCompletedSourceConcreteTestExecution().getTestExecutionReport().getResponseObject(distributedExecutionIndex);
                 // Get response value from refResponse object.
                 String refResponseValue = null;
-                if (refResponse.has("return_value")) {
-                    refResponseValue = refResponse.getJSONObject("return_value").getString("toString");
-                } else if (refResponse.has("exception")) {
-                    JSONObject metaData = refResponse.getJSONObject("exception").getJSONObject("metadata");
-                    refResponseValue = metaData.getString("value");
-                    transformationResult.idx = Integer.parseInt(metaData.getString("idx")) + 1;  // Proceed to next idx after last iteration
-                }
-                // Get transformer class from transformerBF JSONObject.
-                Class<? extends ByzantineTransformer<?>> transformerClass = (Class<? extends ByzantineTransformer<?>>) Class.forName(transformerBF.getString("transformerClassName"));
-                // Get constructor of transformer class.
-                Constructor<?> ctr = transformerClass.getConstructor();
 
-                if (transformerClass == ByzantineTransformString.class) {
-                    // Create transformer object.
-                    ByzantineTransformString transformerObject = (ByzantineTransformString) ctr.newInstance();
-                    // Get byzantine values from transformer.
-                    transformationResult.value = (T) transformerObject.transform(refResponseValue, refResponseValue,
-                            transformationResult.idx);
-                    transformationResult.hasNext = transformerObject.hasNext();
+                if (refResponse != null) {
+                    if (refResponse.has("return_value")) {
+                        refResponseValue = refResponse.getJSONObject("return_value").getString("toString");
+                    } else if (refResponse.has("exception")) {
+                        JSONObject metaData = refResponse.getJSONObject("exception").getJSONObject("metadata");
+                        refResponseValue = metaData.getString("value");
+                        transformationResult.idx = Integer.parseInt(metaData.getString("idx")) + 1;  // Proceed to next idx after last iteration
+                    }
+
+                    // Get transformer class from transformerBF JSONObject.
+                    Class<? extends ByzantineTransformer<?>> transformerClass = (Class<? extends ByzantineTransformer<?>>) Class.forName(transformerBF.getString("transformerClassName"));
+                    // Get constructor of transformer class.
+                    Constructor<?> ctr = transformerClass.getConstructor();
+
+                    if (transformerClass == ByzantineTransformString.class) {
+                        // Create transformer object.
+                        ByzantineTransformString transformerObject = (ByzantineTransformString) ctr.newInstance();
+                        // Get byzantine values from transformer.
+                        transformationResult.value = (T) transformerObject.transform(refResponseValue, refResponseValue, transformationResult.idx);
+                        transformationResult.hasNext = transformerObject.hasNext();
+                    } else {
+                        throw new FilibusterFaultInjectionException("Unknown transformer class name: " + transformerClass.getName());
+                    }
+                    return transformationResult;
                 } else {
-                    throw new FilibusterFaultInjectionException("Unknown transformer class name: " + transformerClass.getName());
+                    throw new FilibusterFaultInjectionException("refResponse is null.");
                 }
-                return transformationResult;
             } else {
                 throw new FilibusterFaultInjectionException("currentAbstractTestExecution or currentAbstractTestExecution.getCompletedSourceConcreteTestExecution() is null.");
             }
@@ -843,6 +849,7 @@ public class FilibusterCore {
         public int idx = 0;
         public boolean hasNext = false;
     }
+
     private void generateFaultsUsingAnalysisConfiguration(
             FilibusterConfiguration filibusterConfiguration,
             DistributedExecutionIndex distributedExecutionIndex,

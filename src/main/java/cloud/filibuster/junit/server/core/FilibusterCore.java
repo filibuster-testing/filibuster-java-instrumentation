@@ -817,6 +817,10 @@ public class FilibusterCore {
                         transformationResult.idx = Integer.parseInt(metaData.getString("idx")) + 1;  // Proceed to next idx after last iteration
                     }
 
+                    if (refResponseValue == null) {
+                        throw new FilibusterFaultInjectionException("refResponseValue is null.");
+                    }
+
                     // Get transformer class from transformerBF JSONObject.
                     Class<? extends ByzantineTransformer<?>> transformerClass = (Class<? extends ByzantineTransformer<?>>) Class.forName(transformerBF.getString("transformerClassName"));
                     // Get constructor of transformer class.

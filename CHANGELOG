@@ -1,4 +1,4 @@
-1.7.7:
+1.8.0:
    - (cmeiklejohn) Fix bug in getAvoidInjectionsOnOrganicFailures.
    - (cmeiklejohn) Fix UX rendering issues.
    - (cmeiklejohn) Warn on bypassed executions.

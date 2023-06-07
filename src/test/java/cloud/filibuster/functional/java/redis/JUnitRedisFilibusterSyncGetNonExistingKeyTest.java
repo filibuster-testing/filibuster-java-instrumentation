@@ -5,7 +5,7 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.redis.RedisSingleFaultCommandTimeoutExceptionAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.db.redis.RedisSingleFaultCommandTimeoutExceptionAnalysisConfigurationFile;
 import io.lettuce.core.RedisCommandTimeoutException;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;

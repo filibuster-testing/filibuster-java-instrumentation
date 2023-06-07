@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.redundant;
+package cloud.filibuster.functional.java.basic;
 
 import cloud.filibuster.examples.APIServiceGrpc;
 import cloud.filibuster.examples.CartServiceGrpc;
@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+import static cloud.filibuster.instrumentation.helpers.Property.setTestAvoidInjectionsOnOrganicFailuresProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.setTestAvoidRedundantInjectionsProperty;
 import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopAPIServerAndWaitUntilUnavailable;
@@ -38,7 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class RedundantByPropertyNegativeTest {
+public class AvoidOrganicByPropertyTest {
     @RegisterExtension
     static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
             .withPort(Networking.getPort("mock"))
@@ -56,7 +57,12 @@ public class RedundantByPropertyNegativeTest {
 
     @BeforeAll
     public static void setProperties() {
-        setTestAvoidRedundantInjectionsProperty(false);
+        setTestAvoidInjectionsOnOrganicFailuresProperty(true);
+    }
+
+    @AfterAll
+    public static void resetProperties() {
+        setTestAvoidInjectionsOnOrganicFailuresProperty(false);
     }
 
     public static int testInvocationCount = 0;
@@ -96,13 +102,13 @@ public class RedundantByPropertyNegativeTest {
     @Test
     @Order(2)
     public void testInvocationCount() {
-        assertEquals(8, testInvocationCount);
+        assertEquals(6, testInvocationCount);
     }
 
     @Test
     @Order(2)
     public void testFailures() {
-        assertEquals(6, testFailures);
+        assertEquals(5, testFailures);
     }
 
     @Order(2)
@@ -124,9 +130,6 @@ public class RedundantByPropertyNegativeTest {
             }
         }
 
-        // 4 warnings:
-        // - 3 redundant, only removable through use of the property and not annotation.
-        // - 1 unimplemented, for the set discount RPC.
         assertEquals(4, warnings.size());
     }
 }

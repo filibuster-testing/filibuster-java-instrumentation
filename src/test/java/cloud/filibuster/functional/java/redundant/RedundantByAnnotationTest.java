@@ -126,9 +126,9 @@ public class RedundantByAnnotationTest {
             }
         }
 
-        // 3 warnings:
-        // - 2 redundant, only removable through use of the property and not annotation.
+        // 4 warnings:
+        // - 3 redundant, only removable through use of the property and not annotation.
         // - 1 unimplemented, for the set discount RPC.
-        assertEquals(3, warnings.size());
+        assertEquals(4, warnings.size());
     }
 }

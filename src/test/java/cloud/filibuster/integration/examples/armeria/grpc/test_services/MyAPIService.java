@@ -228,6 +228,9 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
             // Nothing, ignore discount failure.
         }
 
+        // Make call to get the user, again.
+        getUserFromSession(channel, req.getSessionId());
+
         // Assemble response.
         Hello.PurchaseResponse purchaseResponse = Hello.PurchaseResponse.newBuilder().setSuccess(true).build();
         responseObserver.onNext(purchaseResponse);

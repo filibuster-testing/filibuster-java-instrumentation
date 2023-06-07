@@ -8,6 +8,7 @@ import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrument
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
 import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineFaultType;
+import com.datastax.oss.driver.api.core.servererrors.OverloadedException;
 import org.json.JSONObject;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.ServerErrorMessage;
@@ -222,6 +223,9 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
         switch (exceptionNameString) {  // TODO: Refactor the switch to an interface
             case "org.postgresql.util.PSQLException":
                 exceptionToThrow = new PSQLException(new ServerErrorMessage(causeString));
+                break;
+            case "com.datastax.oss.driver.api.core.servererrors.OverloadedException":
+                exceptionToThrow = new OverloadedException(null);
                 break;
             case "software.amazon.awssdk.services.dynamodb.model.RequestLimitExceededException":
                 exceptionToThrow = RequestLimitExceededException.builder().message(causeString).statusCode(Integer.parseInt(codeString))

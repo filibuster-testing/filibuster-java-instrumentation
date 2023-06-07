@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.configuration.examples.db.cockroachdb;
+package cloud.filibuster.junit.configuration.examples.db.postgresql;
 
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
@@ -7,7 +7,7 @@ import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfiguratio
 import java.util.HashMap;
 import java.util.Map;
 
-public class CockroachSingleFaultPSQLExceptionAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
+public class PostgreSQLSingleFaultPSQLExceptionAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
     private static Map<String, String> createErrorMap() {
@@ -21,7 +21,7 @@ public class CockroachSingleFaultPSQLExceptionAnalysisConfigurationFile implemen
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
-                .name("java.cockroach.exceptions.PSQLException")
+                .name("java.postgresql.exceptions.PSQLException")
                 .pattern("java.sql.Connection/getSchema\\b");
 
         filibusterAnalysisConfigurationBuilderRedisExceptions.exception("org.postgresql.util.PSQLException", createErrorMap());

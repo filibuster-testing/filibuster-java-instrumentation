@@ -191,7 +191,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
 
     @Nullable
     private static Object injectTransformerByzantineFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject byzantineFault) {
-        if (byzantineFault.has("value")) {
+        if (byzantineFault.has("value") && byzantineFault.has("idx")) {
             Object byzantineFaultValue = byzantineFault.get("value");
             logger.log(Level.INFO, logPrefix + "Injecting the transformed byzantine fault value: " + byzantineFaultValue);
 
@@ -199,13 +199,14 @@ public class RedisInterceptor<T> implements MethodInterceptor {
             HashMap<String, String> additionalMetadata = new HashMap<>();
             String sByzantineFaultValueString = byzantineFaultValue.toString();
             additionalMetadata.put("value", sByzantineFaultValueString);
+            additionalMetadata.put("idx", byzantineFault.get("idx").toString());
 
             // Notify Filibuster.
             filibusterClientInstrumentor.afterInvocationWithException(sByzantineFaultValueString, sByzantineFaultValueString, additionalMetadata);
 
             return byzantineFaultValue;
         } else {
-            logger.log(Level.WARNING, logPrefix + "The byzantineFault either does not have the required key 'value'");
+            logger.log(Level.WARNING, logPrefix + "The byzantineFault either does not have the required key 'value' or 'idx'");
             return null;
         }
     }

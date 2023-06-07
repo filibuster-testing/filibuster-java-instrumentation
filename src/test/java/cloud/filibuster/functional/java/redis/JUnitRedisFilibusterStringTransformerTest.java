@@ -6,7 +6,6 @@ import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactor
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.redis.byzantine.RedisTransformStringAnalysisConfigurationFile;
-import io.lettuce.core.RedisCommandTimeoutException;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import org.junit.jupiter.api.BeforeAll;
@@ -16,9 +15,7 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
@@ -40,17 +37,11 @@ public class JUnitRedisFilibusterStringTransformerTest extends JUnitAnnotationBa
 
     private static int numberOfTestExecutions = 0;
 
-    private static final List<String> allowedExceptionMessages = new ArrayList<>();
-
     @BeforeAll
     public static void primeCache() {
         statefulRedisConnection = RedisClientService.getInstance().redisClient.connect();
         redisConnectionString = RedisClientService.getInstance().connectionString;
         statefulRedisConnection.sync().set(key, value);
-    }
-
-    static {
-        allowedExceptionMessages.add("Command timed out after 100 millisecond(s)");
     }
 
     @DisplayName("Tests whether Redis sync interceptor can read from existing key - String transformer BFI.")
@@ -71,16 +62,15 @@ public class JUnitRedisFilibusterStringTransformerTest extends JUnitAnnotationBa
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
             assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService("io.lettuce.core.api.sync.RedisStringCommands"), "Expected FilibusterUnsupportedAPIException to be thrown: " + t);
             assertTrue(wasFaultInjectedOnMethod("io.lettuce.core.api.sync.RedisStringCommands/get"), "Fault was not injected on the expected Redis method: " + t);
-            assertTrue(t instanceof RedisCommandTimeoutException, "Fault was not of the correct type: " + t);
-            assertTrue(allowedExceptionMessages.contains(t.getMessage()), "Unexpected fault message: " + t);
         }
     }
 
     @DisplayName("Verify correct number of test executions.")
     @Test
     @Order(2)
+    // 1 for the original test and +1 for each character manipulation in the string
     public void testNumExecutions() {
-        assertEquals(2, numberOfTestExecutions);
+        assertEquals(value.length() + 1, numberOfTestExecutions);
     }
 
     @DisplayName("Verify correct number of generated Filibuster tests.")

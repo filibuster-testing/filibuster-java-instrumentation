@@ -99,4 +99,8 @@ public class AbstractTestExecution extends TestExecution {
     public int getFaultsToInjectSize() {
         return this.faultsToInject.size();
     }
+
+    public ConcreteTestExecution getCompletedSourceConcreteTestExecution() {
+        return completedSourceConcreteTestExecution;
+    }
 }

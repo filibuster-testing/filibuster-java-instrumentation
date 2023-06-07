@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static cloud.filibuster.instrumentation.helpers.Property.setTestAvoidInjectionsOnOrganicFailuresProperty;
-import static cloud.filibuster.instrumentation.helpers.Property.setTestAvoidRedundantInjectionsProperty;
 import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopAPIServerAndWaitUntilUnavailable;
 import static org.grpcmock.GrpcMock.stubFor;

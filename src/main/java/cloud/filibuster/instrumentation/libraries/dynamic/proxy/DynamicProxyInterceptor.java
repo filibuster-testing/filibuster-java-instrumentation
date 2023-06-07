@@ -11,6 +11,7 @@ import cloud.filibuster.junit.configuration.examples.db.byzantine.types.Byzantin
 import org.json.JSONObject;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.ServerErrorMessage;
+import software.amazon.awssdk.services.dynamodb.model.RequestLimitExceededException;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.InvocationHandler;
@@ -20,6 +21,8 @@ import java.lang.reflect.Proxy;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Locale;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -212,12 +215,17 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
         String exceptionNameString = forcedException.getString("name");
         JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
         String causeString = forcedExceptionMetadata.getString("cause");
+        String codeString = forcedExceptionMetadata.getString("code");
 
         Exception exceptionToThrow;
 
         switch (exceptionNameString) {  // TODO: Refactor the switch to an interface
             case "org.postgresql.util.PSQLException":
                 exceptionToThrow = new PSQLException(new ServerErrorMessage(causeString));
+                break;
+            case "software.amazon.awssdk.services.dynamodb.model.RequestLimitExceededException":
+                exceptionToThrow = RequestLimitExceededException.builder().message(causeString).statusCode(Integer.parseInt(codeString))
+                        .requestId(UUID.randomUUID().toString().replace("-","").toUpperCase(Locale.ROOT)).build();
                 break;
             default:
                 throw new FilibusterFaultInjectionException("Cannot determine the execution cause to throw: " + causeString);

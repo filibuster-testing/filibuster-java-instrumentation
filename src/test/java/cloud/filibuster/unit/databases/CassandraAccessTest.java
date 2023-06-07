@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.cassandra;
+package cloud.filibuster.unit.databases;
 
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.CassandraClientService;
@@ -14,7 +14,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitCassandraAccessTest extends JUnitAnnotationBaseTest {
+public class CassandraAccessTest extends JUnitAnnotationBaseTest {
 
     @Test
     @DisplayName("Tests whether Cassandra connection can create keyspace")

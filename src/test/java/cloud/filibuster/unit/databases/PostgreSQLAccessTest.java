@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.postgresql;
+package cloud.filibuster.unit.databases;
 
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.BasicDAO;
@@ -18,7 +18,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitPostgreSQLAccessTest extends JUnitAnnotationBaseTest {
+public class PostgreSQLAccessTest extends JUnitAnnotationBaseTest {
 
     final int initBalance1 = 1000;
     final int initBalance2 = 250;

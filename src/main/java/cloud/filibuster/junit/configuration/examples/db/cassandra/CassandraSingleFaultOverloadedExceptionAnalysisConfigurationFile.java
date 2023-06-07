@@ -12,7 +12,7 @@ public class CassandraSingleFaultOverloadedExceptionAnalysisConfigurationFile im
 
     private static Map<String, String> createErrorMap() {
         Map<String, String> myMap = new HashMap<>();
-        myMap.put("cause", "");
+        myMap.put("cause", "Queried host was overloaded: I'm busy");
         myMap.put("code", "");
         return myMap;
     }

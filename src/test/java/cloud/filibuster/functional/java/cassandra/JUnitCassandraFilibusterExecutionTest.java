@@ -63,6 +63,7 @@ public class JUnitCassandraFilibusterExecutionTest extends JUnitAnnotationBaseTe
             assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService("com.datastax.oss.driver.api.core.CqlSession"), "Expected FilibusterUnsupportedAPIException to be thrown: " + t);
             assertTrue(wasFaultInjectedOnMethod("com.datastax.oss.driver.api.core.CqlSession/execute"), "Fault was not injected on the expected method: " + t);
             assertTrue(t instanceof OverloadedException, "Fault was not of the correct type: " + t);
+            assertTrue(t.getMessage().contains("Queried host was overloaded: I'm busy"), "Fault message was not as expected: " + t);
         }
     }
 

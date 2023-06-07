@@ -5,7 +5,8 @@ import java.util.List;
 import java.util.Random;
 
 public class ByzantineTransformString implements ByzantineTransformer<String> {
-    private static final long FIXED_SEED = 0;  // Seed is fixed to ensure consistent results
+    private static final long FIXED_SEED = 0;
+    private static final Random rand = new Random(FIXED_SEED); // Seed is fixed to ensure consistent results
     public boolean hasNext = true;
 
     @Override
@@ -34,7 +35,6 @@ public class ByzantineTransformString implements ByzantineTransformer<String> {
     }
 
     private static char generateRandomChar() {
-        Random rand = new Random(FIXED_SEED);
         // ASCII printable characters range from 33 to 126. Upper bound in nextInt is exclusive, hence 127.
         return (char) (rand.nextInt(127) + 33);
     }

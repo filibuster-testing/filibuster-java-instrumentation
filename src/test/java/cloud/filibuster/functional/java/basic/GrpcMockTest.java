@@ -26,6 +26,7 @@ import static cloud.filibuster.instrumentation.helpers.Property.setTestAvoidRedu
 import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopAPIServerAndWaitUntilUnavailable;
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
+import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static org.grpcmock.GrpcMock.stubFor;
 import static org.grpcmock.GrpcMock.times;
 import static org.grpcmock.GrpcMock.never;
@@ -91,22 +92,20 @@ public class GrpcMockTest {
             testFailures++;
         }
 
-        if (wasFaultInjected()) {
+        if (wasFaultInjectedOnMethod(CartServiceGrpc.getSetDiscountOnCartMethod())) {
             verifyThat(CartServiceGrpc.getSetDiscountOnCartMethod(), never());
-        } else {
-            verifyThat(CartServiceGrpc.getSetDiscountOnCartMethod(), times(1));
         }
     }
 
     @Test
     @Order(2)
     public void testInvocationCount() {
-        assertEquals(6, testInvocationCount);
+        assertEquals(8, testInvocationCount);
     }
 
     @Test
     @Order(2)
     public void testFailures() {
-        assertEquals(4, testFailures);
+        assertEquals(6, testFailures);
     }
 }

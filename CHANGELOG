@@ -1,3 +1,10 @@
+1.8.0:
+   - (cmeiklejohn) Fix bug in getAvoidInjectionsOnOrganicFailures.
+   - (cmeiklejohn) Fix UX rendering issues.
+   - (cmeiklejohn) Warn on bypassed executions.
+   - (MichaelA-ops) Implement generic dynamic proxy interceptor
+   - (MichaelA-ops) Add test service for CockroachDB
+   - (cmeiklejohn) Clean up snippets.
 1.7.6:
    - (MichaelA-ops) Use fully qualified method names for callsite in RedisInterceptor
    - (MichaelA-ops) Implement temporary fix for wasFaultInjectedOnService method

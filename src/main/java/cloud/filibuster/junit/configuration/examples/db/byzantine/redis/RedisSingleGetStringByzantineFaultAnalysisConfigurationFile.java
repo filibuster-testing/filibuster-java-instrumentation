@@ -1,15 +1,14 @@
-package cloud.filibuster.junit.configuration.examples.redis.byzantine;
+package cloud.filibuster.junit.configuration.examples.db.byzantine.redis;
 
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
-import cloud.filibuster.junit.configuration.examples.redis.byzantine.types.ByzantineByteArrayFaultType;
+import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineStringFaultType;
 
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
-public class RedisSingleGetByteArrByzantineFaultAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
+public class RedisSingleGetStringByzantineFaultAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
     private static <T> Map<String, T> createBzyantineFaultMap(T value) {
@@ -22,16 +21,15 @@ public class RedisSingleGetByteArrByzantineFaultAnalysisConfigurationFile implem
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
-                .name("java.lettuce.byzantine.byte_arr")
+                .name("java.lettuce.byzantine.string")
                 .pattern("io.lettuce.core.api.sync.RedisStringCommands/get\\b");
 
 
-        String[] possibleValues = {"", "ThisIsATestString", "abcd", "1234!!", "-11"};
+        // Potentially use junit-quickcheck to generate the possible values -> Would make the tests more "flaky"
+        String[] possibleValues = {null, "123", "", "abcd", "-123ABC", "ThisIsATestString"};
         for (String value : possibleValues) {
-            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(new ByzantineByteArrayFaultType(), createBzyantineFaultMap(value.getBytes(Charset.defaultCharset())));
+            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(new ByzantineStringFaultType(), createBzyantineFaultMap(value));
         }
-        // Inject null fault
-        filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(new ByzantineByteArrayFaultType(), createBzyantineFaultMap(null));
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());
 

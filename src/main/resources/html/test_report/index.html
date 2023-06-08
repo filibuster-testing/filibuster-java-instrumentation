@@ -157,9 +157,18 @@
         }
 
         .warning {
-            font-size: small;
             background-color: lightyellow;
+        }
+
+        span.warning {
+            width: 80vw;
+            font-size: 11px;
             font-weight: 400;
+            display: inline-block;
+            margin-top: 5px;
+            margin-left: 10px;
+            vertical-align: middle;
+            margin-bottom: 5px;
         }
 	</style>
 </head>
@@ -169,7 +178,7 @@
     <div class="container" style="margin: 0 auto; padding: 0; height: 100vh;">
         <div id="sidebar" class="sidebar" style="display: inline-block; vertical-align:top; width: 8vw; padding: 0; margin: 0;"></div>
         <div id="results-container" style="display: inline-block; vertical-align:top; width: 90vw; padding: 0; margin: 0;">
-            <span id="report_warning" class="warning" style="display: none; font-size: small; font-weight: 400; display: inline-block; text-align: left; vertical-align:top; width: 90vw; padding: 0; margin: 0;"></span>
+            <div id="report_warning" class="warning" style="display: none; text-align: left; vertical-align:top; width: 90vw; padding: 0; margin: 0;"></div>
             <div id="results" class="results" style="display: inline-block; vertical-align:top; width: 90vw; padding: 0; margin: 0;">
             </div>
         </div>
@@ -181,8 +190,15 @@
             var sidebarIFrame = '<iframe frameborder="0" marginwidth="0" marginheight="0" scrolling="auto" src="./sidebar.html" class="sidebar" name="test_sidebar_frame"></iframe>';
             $('#sidebar').html(sidebarIFrame);
 
-            if (summary.iterations_remaining > 0) {
-                $('#report_warning').html("️️⚠️ " + summary.iterations_remaining + " or more iterations remain, perhaps try increasing max iterations and re-running test.");
+            if (summary.iterations_remaining > 0 || summary.num_bypassed_executions > 0) {
+                if (summary.iterations_remaining > 0) {
+                    $('#report_warning').append('️<span class="warning">️⚠️ ' + summary.iterations_remaining + ' or more iterations remain, perhaps try increasing max iterations and re-running test.</span>');
+                }
+
+                if (summary.num_bypassed_executions > 0) {
+                    $('#report_warning').append('️<span class="warning">️⚠️ ' + summary.num_bypassed_executions + ' generated test executions were bypassed due to Filibuster configuration.</span>');
+                }
+
                 $('#report_warning').show();
             }
 

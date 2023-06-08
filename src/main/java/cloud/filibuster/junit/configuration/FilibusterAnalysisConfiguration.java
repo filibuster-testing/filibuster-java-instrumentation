@@ -3,6 +3,7 @@ package cloud.filibuster.junit.configuration;
 import cloud.filibuster.instrumentation.datatypes.Pair;
 import cloud.filibuster.junit.configuration.examples.redis.byzantine.transformers.ByzantineTransformer;
 import cloud.filibuster.junit.configuration.examples.redis.byzantine.types.ByzantineFaultType;
+import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineFaultType;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import org.json.JSONObject;
 
@@ -13,7 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class FilibusterAnalysisConfiguration {
-    public enum MatcherType {SERVICE, METHOD}
+    public enum MatcherType { SERVICE, METHOD }
 
     private final JSONObject analysisConfiguration = new JSONObject();
     private final JSONObject configurationObject = new JSONObject();

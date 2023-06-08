@@ -96,16 +96,13 @@ public class RedundantByPropertyNegativeTest {
     @Test
     @Order(2)
     public void testInvocationCount() {
-        // 5 RPCs, no duplicates removed.
-        // 6 tests, 1 golden path with UNIMPLEMENTED and 1 execution for each failed RPC.
-        assertEquals(6, testInvocationCount);
+        assertEquals(8, testInvocationCount);
     }
 
     @Test
     @Order(2)
     public void testFailures() {
-        // 5 RPCs, all but 1 is a fatal error.
-        assertEquals(4, testFailures);
+        assertEquals(6, testFailures);
     }
 
     @Order(2)
@@ -127,9 +124,9 @@ public class RedundantByPropertyNegativeTest {
             }
         }
 
-        // 3 warnings:
-        // - 2 redundant, only removable through use of the property and not annotation.
+        // 4 warnings:
+        // - 3 redundant, only removable through use of the property and not annotation.
         // - 1 unimplemented, for the set discount RPC.
-        assertEquals(3, warnings.size());
+        assertEquals(4, warnings.size());
     }
 }

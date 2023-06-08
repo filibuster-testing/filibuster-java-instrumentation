@@ -5,7 +5,7 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.redis.RedisExhaustiveAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.db.redis.RedisExhaustiveAnalysisConfigurationFile;
 import io.lettuce.core.RedisBusyException;
 import io.lettuce.core.RedisCommandExecutionException;
 import io.lettuce.core.RedisCommandInterruptedException;
@@ -25,7 +25,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 
-import java.util.AbstractMap;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -75,20 +75,20 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
 
     static {
         allowedExceptions.put(RedisCommandTimeoutException.class,
-                new AbstractMap.SimpleEntry<>(ImmutableMap.of("io.lettuce.core.api.sync.RedisStringCommands", Collections.singletonList("get"),
+                new SimpleEntry<>(ImmutableMap.of("io.lettuce.core.api.sync.RedisStringCommands", Collections.singletonList("get"),
                         "io.lettuce.core.api.async.RedisStringAsyncCommands", Collections.singletonList("get"),
                         "io.lettuce.core.api.sync.RedisHashCommands", ImmutableList.of("hgetall", "hset")), "Command timed out after 100 millisecond(s)"));
 
         allowedExceptions.put(RedisBusyException.class,
-                new AbstractMap.SimpleEntry<>(ImmutableMap.of("io.lettuce.core.api.sync.RedisServerCommands", ImmutableList.of("flushall", "flushdb")),
+                new SimpleEntry<>(ImmutableMap.of("io.lettuce.core.api.sync.RedisServerCommands", ImmutableList.of("flushall", "flushdb")),
                         "BUSY Redis is busy running a script. You can only call SCRIPT KILL or SHUTDOWN NOSAVE"));
 
         allowedExceptions.put(RedisCommandExecutionException.class,
-                new AbstractMap.SimpleEntry<>(ImmutableMap.of("io.lettuce.core.api.sync.RedisHashCommands", ImmutableList.of("hgetall", "hset")),
+                new SimpleEntry<>(ImmutableMap.of("io.lettuce.core.api.sync.RedisHashCommands", ImmutableList.of("hgetall", "hset")),
                         "WRONGTYPE Operation against a key holding the wrong kind of value"));
 
         allowedExceptions.put(RedisCommandInterruptedException.class,
-                new AbstractMap.SimpleEntry<>(ImmutableMap.of("io.lettuce.core.RedisFuture", Collections.singletonList("await")),
+                new SimpleEntry<>(ImmutableMap.of("io.lettuce.core.RedisFuture", Collections.singletonList("await")),
                         "Command interrupted"));
 
     }

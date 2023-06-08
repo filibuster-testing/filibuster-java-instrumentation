@@ -7,7 +7,11 @@ import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.FilibusterSingleFaultUnavailableAnalysisConfigurationFile;
-
+import cloud.filibuster.junit.server.core.FilibusterCore;
+import cloud.filibuster.junit.server.core.lint.analyzers.warnings.FilibusterAnalyzerWarning;
+import cloud.filibuster.junit.server.core.lint.analyzers.warnings.RedundantRPCWarning;
+import cloud.filibuster.junit.server.core.lint.analyzers.warnings.UnimplementedFailuresWarning;
+import cloud.filibuster.junit.server.core.reports.TestExecutionReport;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.grpcmock.junit5.GrpcMockExtension;
@@ -20,21 +24,21 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
-import static cloud.filibuster.instrumentation.helpers.Property.setTestAvoidRedundantInjectionsProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.setTestAvoidInjectionsOnOrganicFailuresProperty;
 import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopAPIServerAndWaitUntilUnavailable;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static org.grpcmock.GrpcMock.stubFor;
-import static org.grpcmock.GrpcMock.never;
 import static org.grpcmock.GrpcMock.unaryMethod;
-import static org.grpcmock.GrpcMock.verifyThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class GrpcMockTest {
+public class AvoidOrganicByPropertyTest {
     @RegisterExtension
     static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
             .withPort(Networking.getPort("mock"))
@@ -52,7 +56,12 @@ public class GrpcMockTest {
 
     @BeforeAll
     public static void setProperties() {
-        setTestAvoidRedundantInjectionsProperty(false);
+        setTestAvoidInjectionsOnOrganicFailuresProperty(true);
+    }
+
+    @AfterAll
+    public static void resetProperties() {
+        setTestAvoidInjectionsOnOrganicFailuresProperty(false);
     }
 
     public static int testInvocationCount = 0;
@@ -71,8 +80,6 @@ public class GrpcMockTest {
                 .willReturn(Hello.GetUserResponse.newBuilder().setUserId("1").build()));
         stubFor(unaryMethod(CartServiceGrpc.getGetCartForSessionMethod())
                 .willReturn(Hello.GetCartResponse.newBuilder().setCartId("1").build()));
-        stubFor(unaryMethod(CartServiceGrpc.getSetDiscountOnCartMethod())
-                .willReturn(Hello.SetDiscountResponse.newBuilder().build()));
 
         String sessionId = UUID.randomUUID().toString();
 
@@ -89,21 +96,39 @@ public class GrpcMockTest {
         } catch (RuntimeException e) {
             testFailures++;
         }
-
-        if (wasFaultInjectedOnMethod(CartServiceGrpc.getSetDiscountOnCartMethod())) {
-            verifyThat(CartServiceGrpc.getSetDiscountOnCartMethod(), never());
-        }
     }
 
     @Test
     @Order(2)
     public void testInvocationCount() {
-        assertEquals(8, testInvocationCount);
+        assertEquals(6, testInvocationCount);
     }
 
     @Test
     @Order(2)
     public void testFailures() {
-        assertEquals(6, testFailures);
+        assertEquals(5, testFailures);
+    }
+
+    @Order(2)
+    @Test
+    public void testWarnings() {
+        TestExecutionReport testExecutionReport = FilibusterCore.getMostRecentInitialTestExecutionReport();
+        List<FilibusterAnalyzerWarning> warnings = testExecutionReport.getWarnings();
+        for (FilibusterAnalyzerWarning warning : warnings) {
+            String warningDetails = warning.getDetails();
+            switch (warningDetails) {
+                case "cloud.filibuster.examples.UserService/GetUserFromSession":
+                    assertTrue(warning instanceof RedundantRPCWarning);
+                    break;
+                case "cloud.filibuster.examples.CartService/SetDiscountOnCart":
+                    assertTrue(warning instanceof UnimplementedFailuresWarning);
+                    break;
+                default:
+                    fail();
+            }
+        }
+
+        assertEquals(4, warnings.size());
     }
 }

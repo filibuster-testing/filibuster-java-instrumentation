@@ -121,7 +121,7 @@ public class FilibusterConfiguration {
     }
 
     /**
-     * Do we avoid  injections on failing RPCs?
+     * Do we avoid injections on failing RPCs?
      *
      * @return boolean
      */

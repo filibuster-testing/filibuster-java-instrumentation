@@ -9,7 +9,7 @@ import cloud.filibuster.instrumentation.helpers.Property;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.configuration.examples.redis.byzantine.transformers.ByzantineTransformString;
 import cloud.filibuster.junit.configuration.examples.redis.byzantine.transformers.ByzantineTransformer;
-import cloud.filibuster.junit.configuration.examples.redis.byzantine.types.ByzantineFaultType;
+import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineFaultType;
 import cloud.filibuster.junit.server.core.reports.TestSuiteReport;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration.MatcherType;
@@ -66,6 +66,12 @@ public class FilibusterCore {
      * in other word, each time the Filibuster server is started, a new test UUID will be issued.
      */
     private final UUID testUUID = UUID.randomUUID();
+
+    private int numBypassedExecutions = 0;
+
+    public synchronized int getNumBypassedExecutions() {
+        return numBypassedExecutions;
+    }
 
     private boolean faultInjectionEnabled = true;
 
@@ -467,6 +473,7 @@ public class FilibusterCore {
 
                     // If we should bypass, then set back to null.
                     if (filibusterConfiguration.getAvoidInjectionsOnOrganicFailures() && nextAbstractTestExecution.shoulBypassForOrganicFailure()) {
+                        numBypassedExecutions++;
                         nextAbstractTestExecution = null;
                     }
 
@@ -565,6 +572,7 @@ public class FilibusterCore {
 
         if (testReport != null) {
             testReport.setIterationsRemaining(iterationsRemaining());
+            testReport.setNumBypassedExecutions(getNumBypassedExecutions());
             testReport.writeTestReport();
             if (Property.getReportsTestSuiteReportEnabledProperty()) {
                 TestSuiteReport.getInstance().addTestReport(testReport);

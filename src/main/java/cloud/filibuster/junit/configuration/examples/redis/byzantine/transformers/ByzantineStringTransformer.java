@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class ByzantineTransformString implements ByzantineTransformer<String> {
+public class ByzantineStringTransformer implements ByzantineTransformer<String, Integer> {
     private static final long FIXED_SEED = 0;
     private static final Random rand = new Random(FIXED_SEED); // Seed is fixed to ensure consistent results
     private boolean hasNext = true;
 
     @Override
-    public String transform(String payload, String accumulator, int idx) {
+    public String transform(String payload, Integer idx) {
         StringBuilder newString = new StringBuilder(payload);
         newString.setCharAt(idx, generateRandomChar());
 
@@ -25,7 +25,7 @@ public class ByzantineTransformString implements ByzantineTransformer<String> {
         List<String> transStrings = new ArrayList<>();
         // Traverse the string
         for (int i = 0; i < refString.length(); i++) {
-            transStrings.add(transform(refString, refString, i));
+            transStrings.add(transform(refString, i));
         }
         return transStrings;
     }
@@ -35,6 +35,7 @@ public class ByzantineTransformString implements ByzantineTransformer<String> {
         return (char) (rand.nextInt(127) + 33);
     }
 
+    @Override
     public boolean hasNext() {
         return hasNext;
     }

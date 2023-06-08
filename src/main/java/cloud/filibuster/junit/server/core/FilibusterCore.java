@@ -7,7 +7,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.exceptions.filibuster.FilibusterLatencyInjectionException;
 import cloud.filibuster.instrumentation.helpers.Property;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
-import cloud.filibuster.junit.configuration.examples.redis.byzantine.transformers.ByzantineTransformString;
+import cloud.filibuster.junit.configuration.examples.redis.byzantine.transformers.ByzantineStringTransformer;
 import cloud.filibuster.junit.configuration.examples.redis.byzantine.transformers.ByzantineTransformer;
 import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineFaultType;
 import cloud.filibuster.junit.server.core.reports.TestSuiteReport;
@@ -689,10 +689,10 @@ public class FilibusterCore {
 
                     if (errorObject.has("transformer") && errorObject.has("transformerClassName")) {
                         String transformerClassName = errorObject.getString("transformerClassName");
-                        Class<? extends ByzantineTransformer<?>> transformerClass;
+                        Class<? extends ByzantineTransformer<?, ?>> transformerClass;
 
                         try {
-                            transformerClass = (Class<? extends ByzantineTransformer<?>>) Class.forName(transformerClassName);
+                            transformerClass = (Class<? extends ByzantineTransformer<?, ?>>) Class.forName(transformerClassName);
                         } catch (ClassNotFoundException e) {
                             logger.warning("[FILIBUSTER-CORE]: transformerByzantines: Could not find class for transformer: " + transformerClassName + ". Skipping...");
                             continue;
@@ -830,15 +830,15 @@ public class FilibusterCore {
                     }
 
                     // Get transformer class from transformerBF JSONObject.
-                    Class<? extends ByzantineTransformer<?>> transformerClass = (Class<? extends ByzantineTransformer<?>>) Class.forName(transformerBF.getString("transformerClassName"));
+                    Class<? extends ByzantineTransformer<?, ?>> transformerClass = (Class<? extends ByzantineTransformer<?, ?>>) Class.forName(transformerBF.getString("transformerClassName"));
                     // Get constructor of transformer class.
                     Constructor<?> ctr = transformerClass.getConstructor();
 
-                    if (transformerClass == ByzantineTransformString.class) {
+                    if (transformerClass == ByzantineStringTransformer.class) {
                         // Create transformer object.
-                        ByzantineTransformString transformerObject = (ByzantineTransformString) ctr.newInstance();
+                        ByzantineStringTransformer transformerObject = (ByzantineStringTransformer) ctr.newInstance();
                         // Get byzantine values from transformer.
-                        transformationResult.value = (T) transformerObject.transform(refResponseValue, refResponseValue, transformationResult.idx);
+                        transformationResult.value = (T) transformerObject.transform(refResponseValue, transformationResult.idx);
                         transformationResult.hasNext = transformerObject.hasNext();
                     } else {
                         throw new FilibusterFaultInjectionException("Unknown transformer class name: " + transformerClass.getName());

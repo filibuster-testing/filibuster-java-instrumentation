@@ -1,12 +1,17 @@
-package cloud.filibuster.functional.java.cockroachdb;
+package cloud.filibuster.functional.java.postgresql;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedAPIException;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
-import cloud.filibuster.integration.examples.armeria.grpc.test_services.cockroachdb.CockroachClientService;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.PostgreSQLClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.db.cockroachdb.CockroachSingleFaultPSQLExceptionAnalysisConfigurationFile;
-import org.junit.jupiter.api.*;
+import cloud.filibuster.junit.configuration.examples.db.postgresql.PostgreSQLSingleFaultPSQLExceptionAnalysisConfigurationFile;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.postgresql.ds.PGSimpleDataSource;
 import org.postgresql.util.PSQLException;
 
@@ -16,38 +21,36 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
+import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitDynamicProxyInterceptorTest extends JUnitAnnotationBaseTest {
+public class JUnitPostgreSQLInterceptorTest extends JUnitAnnotationBaseTest {
 
-    private static Connection connection;
-    private static String connectionString;
     private static int numberOfTestExecutions = 0;
     private final static Set<String> testExceptionsThrown = new HashSet<>();
-
-
+    private static Connection pgConnection;
+    private static String pgString;
 
     @BeforeAll
-    public static void beforeAll() throws SQLException {
-        PGSimpleDataSource cockroachClient = CockroachClientService.getInstance().cockroachClient;
-        connection = cockroachClient.getConnection();
-        connectionString = CockroachClientService.getInstance().connectionString;
+    public static void getPGConnection() throws SQLException {
+        PGSimpleDataSource postgresqlClient = PostgreSQLClientService.getInstance().postgresqlClient;
+        pgConnection = postgresqlClient.getConnection();
+        pgString = PostgreSQLClientService.getInstance().connectionString;
     }
 
-    @DisplayName("Inject basic PSQLException in CockroachDB")
+    @DisplayName("Inject basic PSQLException in native PostgreSQL.")
     @Order(1)
-    @TestWithFilibuster(analysisConfigurationFile = CockroachSingleFaultPSQLExceptionAnalysisConfigurationFile.class)
-    public void testInterceptConnection() {
+    @TestWithFilibuster(analysisConfigurationFile = PostgreSQLSingleFaultPSQLExceptionAnalysisConfigurationFile.class)
+    public void testPostgresConnection() {
         try {
             numberOfTestExecutions++;
 
-            Connection interceptedConnection = DynamicProxyInterceptor.createInterceptor(connection, connectionString);
+            Connection interceptedConnection = DynamicProxyInterceptor.createInterceptor(pgConnection, pgString);
             interceptedConnection.getSchema();
             assertFalse(wasFaultInjected());
         } catch (Exception t) {

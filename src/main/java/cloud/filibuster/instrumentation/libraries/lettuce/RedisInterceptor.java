@@ -191,22 +191,23 @@ public class RedisInterceptor<T> implements MethodInterceptor {
 
     @Nullable
     private static Object injectTransformerByzantineFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject byzantineFault) {
-        if (byzantineFault.has("value") && byzantineFault.has("idx")) {
+        if (byzantineFault.has("value") && byzantineFault.has("accumulator")) {
+
+            // Extract the byzantine fault value from the byzantineFault JSONObject.
             Object byzantineFaultValue = byzantineFault.get("value");
+            String sByzantineFaultValueString = byzantineFaultValue.toString();
             logger.log(Level.INFO, logPrefix + "Injecting the transformed byzantine fault value: " + byzantineFaultValue);
 
-            // Build the additional metadata used to notify Filibuster.
-            HashMap<String, String> additionalMetadata = new HashMap<>();
-            String sByzantineFaultValueString = byzantineFaultValue.toString();
-            additionalMetadata.put("value", sByzantineFaultValueString);
-            additionalMetadata.put("idx", byzantineFault.get("idx").toString());
+            // Extract the accumulator from the byzantineFault JSONObject.
+            JSONObject accumulator = byzantineFault.getJSONObject("accumulator");
 
             // Notify Filibuster.
-            filibusterClientInstrumentor.afterInvocationWithException(sByzantineFaultValueString, sByzantineFaultValueString, additionalMetadata);
+            filibusterClientInstrumentor.afterInvocationWithByzantineFault(sByzantineFaultValueString, sByzantineFaultValueString, accumulator);
 
+            // Return the byzantine fault value.
             return byzantineFaultValue;
         } else {
-            logger.log(Level.WARNING, logPrefix + "The byzantineFault either does not have the required key 'value' or 'idx'");
+            logger.log(Level.WARNING, logPrefix + "The byzantineFault either does not have the required key 'value' or 'accumulator'");
             return null;
         }
     }

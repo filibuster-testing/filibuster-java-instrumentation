@@ -253,7 +253,7 @@ public class FilibusterCore {
                 JSONObject transformerByzantineFaultObject = faultObject.getJSONObject("transformer_byzantine_fault");
                 ByzantineTransformationResult<?> transformationResult = getByzantineTransformationResult(transformerByzantineFaultObject, distributedExecutionIndex);
                 transformerByzantineFaultObject.put("value", transformationResult.value);
-                transformerByzantineFaultObject.put("idx", transformationResult.idx);
+                transformerByzantineFaultObject.put("accumulator", transformationResult.accumulator);
                 if (transformationResult.hasNext) {
                     createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, new JSONObject(faultObject.toString()), /* isTransformedByzantineFault= */true);
                 }
@@ -817,12 +817,11 @@ public class FilibusterCore {
                 String refResponseValue = null;
 
                 if (refResponse != null) {
-                    if (refResponse.has("return_value")) {
+                    if (refResponse.has("return_value")) {  // This is the first byzantine execution after the reference run
                         refResponseValue = refResponse.getJSONObject("return_value").getString("toString");
-                    } else if (refResponse.has("exception")) {
-                        JSONObject metaData = refResponse.getJSONObject("exception").getJSONObject("metadata");
-                        refResponseValue = metaData.getString("value");
-                        transformationResult.idx = Integer.parseInt(metaData.getString("idx")) + 1;  // Proceed to next idx after last iteration
+                    } else if (refResponse.has("byzantine_fault") && refResponse.has("originalValue")) {  // This is a subsequent byzantine execution
+                        refResponseValue = refResponse.getString("originalValue");
+                        transformationResult.accumulator = refResponse.getJSONObject("accumulator");  // Get the accumulator from the previous byzantine execution
                     }
 
                     if (refResponseValue == null) {
@@ -838,7 +837,7 @@ public class FilibusterCore {
                         // Create transformer object.
                         ByzantineStringTransformer transformerObject = (ByzantineStringTransformer) ctr.newInstance();
                         // Get byzantine values from transformer.
-                        transformationResult.value = (T) transformerObject.transform(refResponseValue, transformationResult.idx);
+                        transformationResult.value = (T) transformerObject.transform(refResponseValue, transformationResult.accumulator);
                         transformationResult.hasNext = transformerObject.hasNext();
                     } else {
                         throw new FilibusterFaultInjectionException("Unknown transformer class name: " + transformerClass.getName());
@@ -858,7 +857,7 @@ public class FilibusterCore {
 
     private static class ByzantineTransformationResult<T> {
         public T value;
-        public int idx = 0;
+        public JSONObject accumulator;
         public boolean hasNext = false;
     }
 

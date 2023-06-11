@@ -664,17 +664,12 @@ public class FilibusterCore {
                 for (Object obj : jsonArray) {
                     JSONObject errorObject = (JSONObject) obj;
 
-                    if (errorObject.has("type") && errorObject.has("metadata")) {
+                    if (errorObject.has("type") && errorObject.has("value")) {
                         String byzantineFaultType = errorObject.getString("type");
-                        JSONObject byzantineMetadata = errorObject.getJSONObject("metadata");
+                        Object value = errorObject.get("value");
 
-                        HashMap<String, Object> byzantineMetadataMap = new HashMap<>();
-                        for (String metadataObjectKey : byzantineMetadata.keySet()) {
-                            byzantineMetadataMap.put(metadataObjectKey, byzantineMetadata.get(metadataObjectKey));
-                        }
-
-                        filibusterAnalysisConfigurationBuilder.byzantine(ByzantineFaultType.fromFaultType(byzantineFaultType), byzantineMetadataMap);
-                        logger.info("[FILIBUSTER-CORE]: analysisFile, found new configuration, byzantineFaultType: " + byzantineFaultType + ", byzantineMetadata: " + byzantineMetadataMap);
+                        filibusterAnalysisConfigurationBuilder.byzantine(ByzantineFaultType.fromFaultType(byzantineFaultType), value);
+                        logger.info("[FILIBUSTER-CORE]: analysisFile, found new configuration, byzantineFaultType: " + byzantineFaultType + ", byzantineValue: " + value);
                     } else {
                         logger.warning("[FILIBUSTER-CORE]: Either the key 'type' or 'metadata' was not defined for a byzantine" +
                                 "fault object. Skipping...");

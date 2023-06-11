@@ -6,6 +6,7 @@ import cloud.filibuster.junit.configuration.examples.db.byzantine.types.Byzantin
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import org.json.JSONObject;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -161,10 +162,12 @@ public class FilibusterAnalysisConfiguration {
         }
 
         @CanIgnoreReturnValue
-        public <T> Builder byzantine(ByzantineFaultType<?> faultType, Map<String, T> metadata) {
+        public <T> Builder byzantine(ByzantineFaultType<?> faultType, @Nullable T value) {
             JSONObject byzantine = new JSONObject();
             byzantine.put("type", faultType);
-            byzantine.put("metadata", metadata);
+            // JSONObject does not accept keys with null values
+            // Instead, we use JSONObject.NULL (https://developer.android.com/reference/org/json/JSONObject.html#NULL)
+            byzantine.put("value", value != null ? value : JSONObject.NULL);
             byzantines.add(byzantine);
             return this;
         }

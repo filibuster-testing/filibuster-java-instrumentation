@@ -230,6 +230,10 @@
                 return "byzantine_fault" in obj || "transformer_byzantine_fault" in obj;
             }
 
+            function containsAccumulator(obj) {
+                return "accumulator" in obj;
+            }
+
             function toggleWarnings() {
                 $('tr.warning').toggle();
             }
@@ -327,8 +331,7 @@
                         row += '<div class="class_name">' + substringNamespace(rpc.response.byzantine_fault.type) + '</div>';
                         row += '<textarea>';
 
-                        row += '\ninjected byzantine value = ' + rpc.response.byzantine_fault.value.toString();
-                        row += '\naccumulator = ' + JSON.stringify(rpc.response.byzantine_fault.accumulator);
+                        row += '\nbyzantine value = ' + rpc.response.byzantine_fault.value.toString();
 
                         row += '</textarea></td>';
                     } else if (isExceptionResponse) {
@@ -398,6 +401,15 @@
                             row += '<div class="class_name">&nbsp;</div>';
                             row += '<textarea>';
                             row += 'milliseconds = ' + rpc.fault.latency.milliseconds;
+                            row += '</textarea>';
+                            row += '</td>';
+                        }
+
+                        if(containsByzantineFaultKey(rpc.response) && containsAccumulator(rpc.response.byzantine_fault)) {
+                            row += '<td>';
+                            row += '<div class="class_name">' + substringNamespace(rpc.response.byzantine_fault.type) + '</div>';
+                            row += '<textarea>';
+                            row += '\naccumulator = ' + JSON.stringify(rpc.response.byzantine_fault.accumulator);
                             row += '</textarea>';
                             row += '</td>';
                         }

@@ -183,29 +183,22 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
 
     @Nullable
     private static Object injectByzantineFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject byzantineFault) {
-        if (byzantineFault.has("type") && byzantineFault.has("metadata")) {
+        if (byzantineFault.has("type") && byzantineFault.has("value")) {
             ByzantineFaultType<?> byzantineFaultType = (ByzantineFaultType<?>) byzantineFault.get("type");
-            JSONObject byzantineFaultMetadata = byzantineFault.getJSONObject("metadata");
-
-            // If a value was assigned, return it. Otherwise, return null.
-            Object byzantineFaultValue = byzantineFaultMetadata.has("value") ? byzantineFaultMetadata.get("value") : null;
+            Object value = byzantineFault.get("value");
 
             // Cast the byzantineFaultValue to the correct type.
-            byzantineFaultValue = byzantineFaultType.cast(byzantineFaultValue);
+            value = byzantineFaultType.cast(value);
 
             logger.log(Level.INFO, logPrefix + "byzantineFaultType: " + byzantineFaultType);
-            logger.log(Level.INFO, logPrefix + "byzantineFaultValue: " + byzantineFaultValue);
+            logger.log(Level.INFO, logPrefix + "byzantineFaultValue: " + value);
 
-            // Build the additional metadata used to notify Filibuster.
-            HashMap<String, String> additionalMetadata = new HashMap<>();
-            String byzantineFaultValueString = byzantineFaultValue != null ? byzantineFaultValue.toString() : "null";
-            additionalMetadata.put("name", byzantineFaultType.toString());
-            additionalMetadata.put("value", byzantineFaultValueString);
+            String sByzantineFaultValue = value != null ? value.toString() : "null";
 
             // Notify Filibuster.
-            filibusterClientInstrumentor.afterInvocationWithException(byzantineFaultType.toString(), byzantineFaultValueString, additionalMetadata);
+            filibusterClientInstrumentor.afterInvocationWithByzantineFault(sByzantineFaultValue, byzantineFaultType.toString(), null);
 
-            return byzantineFaultValue;
+            return value;
         } else {
             logger.log(Level.WARNING, logPrefix + "The byzantineFault either does not have the required key 'type' or 'metadata'");
             return null;

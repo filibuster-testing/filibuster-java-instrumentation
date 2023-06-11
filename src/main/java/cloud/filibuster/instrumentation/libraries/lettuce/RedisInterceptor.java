@@ -202,7 +202,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
             JSONObject accumulator = byzantineFault.getJSONObject("accumulator");
 
             // Notify Filibuster.
-            filibusterClientInstrumentor.afterInvocationWithByzantineFault(sByzantineFaultValueString, sByzantineFaultValueString, accumulator);
+            filibusterClientInstrumentor.afterInvocationWithByzantineFault(sByzantineFaultValueString, accumulator);
 
             // Return the byzantine fault value.
             return byzantineFaultValue;

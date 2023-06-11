@@ -845,20 +845,18 @@ final public class FilibusterClientInstrumentor {
      * Invoked after a remote call has been completed if the remote call injects a byzantine byzantineValue.
      *
      * @param byzantineValue the byzantine value that was injected.
-     * @param originalValue the original value from the reference test execution.
-     * @param accumulator containing any additional information that should be communicated to the server (e.g., idx of
-     *                    mutated char in case of a byzantine string transformation).
+     * @param accumulator containing any additional information that should be communicated to the server and used in
+     *                    subsequent byzantine faults (e.g., original value before mutation and idx of mutated char in
+     *                    case of a byzantine string transformation).
      */
     public void afterInvocationWithByzantineFault(
             String byzantineValue,
-            String originalValue,
             JSONObject accumulator
     ) {
         if (generatedId > -1 && shouldCommunicateWithServer && counterexampleNotProvided()) {
 
             JSONObject byzantineFault = new JSONObject();
             byzantineFault.put("byzantineValue", byzantineValue);
-            byzantineFault.put("originalValue", originalValue);
             byzantineFault.put("accumulator", accumulator);
 
             JSONObject invocationCompletePayload = new JSONObject();

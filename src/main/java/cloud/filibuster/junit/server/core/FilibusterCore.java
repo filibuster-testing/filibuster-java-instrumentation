@@ -8,6 +8,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterLatencyInjectionExceptio
 import cloud.filibuster.instrumentation.helpers.Property;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.configuration.examples.redis.byzantine.transformers.ByzantineStringTransformer;
+import cloud.filibuster.junit.configuration.examples.redis.byzantine.transformers.ByzantineTransformationResult;
 import cloud.filibuster.junit.configuration.examples.redis.byzantine.transformers.ByzantineTransformer;
 import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineFaultType;
 import cloud.filibuster.junit.server.core.reports.TestSuiteReport;
@@ -819,9 +820,13 @@ public class FilibusterCore {
                 if (refResponse != null) {
                     if (refResponse.has("return_value")) {  // This is the first byzantine execution after the reference run
                         refResponseValue = refResponse.getJSONObject("return_value").getString("toString");
-                    } else if (refResponse.has("byzantine_fault") && refResponse.has("originalValue")) {  // This is a subsequent byzantine execution
-                        refResponseValue = refResponse.getString("originalValue");
-                        transformationResult.accumulator = refResponse.getJSONObject("accumulator");  // Get the accumulator from the previous byzantine execution
+                        transformationResult.accumulator = new JSONObject();
+                    } else if (refResponse.has("byzantine_fault") // This is a subsequent byzantine execution
+                            && refResponse.getJSONObject("byzantine_fault").has("accumulator")) {
+                        JSONObject lastBF = refResponse.getJSONObject("byzantine_fault");
+                        // Get the accumulator and the original value from the previous byzantine execution
+                        transformationResult.accumulator = lastBF.getJSONObject("accumulator");
+                        refResponseValue = transformationResult.accumulator.getString("originalValue");
                     }
 
                     if (refResponseValue == null) {
@@ -832,16 +837,20 @@ public class FilibusterCore {
                     Class<? extends ByzantineTransformer<?, ?>> transformerClass = (Class<? extends ByzantineTransformer<?, ?>>) Class.forName(transformerBF.getString("transformerClassName"));
                     // Get constructor of transformer class.
                     Constructor<?> ctr = transformerClass.getConstructor();
+                    // Create transformer object.
+                    ByzantineStringTransformer transformerObject;
 
                     if (transformerClass == ByzantineStringTransformer.class) {
-                        // Create transformer object.
-                        ByzantineStringTransformer transformerObject = (ByzantineStringTransformer) ctr.newInstance();
-                        // Get byzantine values from transformer.
-                        transformationResult.value = (T) transformerObject.transform(refResponseValue, transformationResult.accumulator);
-                        transformationResult.hasNext = transformerObject.hasNext();
+                        transformerObject = (ByzantineStringTransformer) ctr.newInstance();
                     } else {
                         throw new FilibusterFaultInjectionException("Unknown transformer class name: " + transformerClass.getName());
                     }
+
+                    // Get byzantine values from transformerObject.
+                    transformationResult.value = (T) transformerObject.transform(refResponseValue, transformationResult.accumulator);
+                    transformationResult.hasNext = transformerObject.hasNext();
+                    transformationResult.accumulator = transformerObject.getNewAccumulator();
+
                     return transformationResult;
                 } else {
                     throw new FilibusterFaultInjectionException("refResponse is null.");
@@ -853,12 +862,6 @@ public class FilibusterCore {
             logger.warning("[FILIBUSTER-CORE]: An exception occurred in getTransformerByzantineValue: " + e);
             throw new FilibusterFaultInjectionException("An exception occurred in getTransformerByzantineValue: " + e);
         }
-    }
-
-    private static class ByzantineTransformationResult<T> {
-        public T value;
-        public JSONObject accumulator;
-        public boolean hasNext = false;
     }
 
     private void generateFaultsUsingAnalysisConfiguration(

@@ -88,6 +88,10 @@
             background-color: lightyellow;
         }
 
+        tr.byzantine {
+            background-color: coral;
+        }
+
         tr.fault {
             background-color: lightcoral;
         }
@@ -302,6 +306,8 @@
                                 row += '<tr class="success">';
                             }
                         }
+                    } else if (isByzantineFault) {
+                        row += '<tr class="byzantine">';
                     } else {
                         row += '<tr class="fault">';
                     }

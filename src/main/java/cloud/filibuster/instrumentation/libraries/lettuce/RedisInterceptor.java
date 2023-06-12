@@ -142,11 +142,11 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         }
 
         if (byzantineFault != null && filibusterClientInstrumentor.shouldAbort()) {
-            return injectByzantineFault(filibusterClientInstrumentor, byzantineFault);
+            return injectByzantineFault(filibusterClientInstrumentor, byzantineFault, invocation.getMethod().getReturnType());
         }
 
         if (transformerByzantineFault != null && filibusterClientInstrumentor.shouldAbort()) {
-            return injectTransformerByzantineFault(filibusterClientInstrumentor, transformerByzantineFault);
+            return injectTransformerByzantineFault(filibusterClientInstrumentor, transformerByzantineFault, invocation.getMethod().getReturnType());
         }
 
         // ******************************************************************************************
@@ -190,7 +190,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
     }
 
     @Nullable
-    private static Object injectTransformerByzantineFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject byzantineFault) {
+    private static Object injectTransformerByzantineFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject byzantineFault, Class<?> returnType) {
         if (byzantineFault.has("value") && byzantineFault.has("accumulator")) {
 
             // Extract the byzantine fault value from the byzantineFault JSONObject.
@@ -203,7 +203,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
 
             // Notify Filibuster.
             filibusterClientInstrumentor.afterInvocationWithByzantineFault(sByzantineFaultValueString,
-                    byzantineFaultValue.getClass().getSimpleName(),accumulator);
+                    returnType.toString(), accumulator);
 
             // Return the byzantine fault value.
             return byzantineFaultValue;
@@ -214,7 +214,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
     }
 
     @Nullable
-    private static Object injectByzantineFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject byzantineFault) {
+    private static Object injectByzantineFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject byzantineFault, Class<?> returnType) {
         if (byzantineFault.has("type") && byzantineFault.has("value")) {
             ByzantineFaultType<?> byzantineFaultType = (ByzantineFaultType<?>) byzantineFault.get("type");
             Object value = byzantineFault.get("value");
@@ -228,7 +228,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
             String sByzantineFaultValue = value != null ? value.toString() : "null";
 
             // Notify Filibuster.
-            filibusterClientInstrumentor.afterInvocationWithByzantineFault(sByzantineFaultValue, byzantineFaultType.toString(), null);
+            filibusterClientInstrumentor.afterInvocationWithByzantineFault(sByzantineFaultValue, returnType.toString(), null);
 
             return value;
         } else {

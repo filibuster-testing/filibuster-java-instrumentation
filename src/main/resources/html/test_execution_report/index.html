@@ -330,9 +330,7 @@
                         row += '<td>';
                         row += '<div class="class_name">' + substringNamespace(rpc.response.byzantine_fault.type) + '</div>';
                         row += '<textarea>';
-
-                        row += '\nbyzantine value = ' + rpc.response.byzantine_fault.value.toString();
-
+                        row += rpc.response.byzantine_fault.value.toString();
                         row += '</textarea></td>';
                     } else if (isExceptionResponse) {
                         row += '<td>';

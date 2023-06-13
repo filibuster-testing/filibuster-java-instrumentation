@@ -625,6 +625,9 @@ final public class FilibusterClientInstrumentor {
     public void beforeInvocation() {
         logger.log(Level.INFO, "beforeInvocation: about to make call.");
 
+        JSONObject invocationMetadata = new JSONObject();
+        invocationMetadata.put("rpc_type", rpcType);
+
         JSONObject invocationPayload = new JSONObject();
         invocationPayload.put("instrumentation_type", "invocation");
         invocationPayload.put("source_service_name", serviceName);
@@ -637,7 +640,7 @@ final public class FilibusterClientInstrumentor {
         invocationPayload.put("callsite_file", callsite.getFileName());
         invocationPayload.put("callsite_line", callsite.getLineNumber());
         invocationPayload.put("full_traceback", callsite.getSerializedStackTrace());
-        invocationPayload.put("metadata", new JSONObject());
+        invocationPayload.put("metadata", invocationMetadata);
         invocationPayload.put("vclock", vectorClock.toJSONObject());
         invocationPayload.put("origin_vclock", originVectorClock.toJSONObject());
         invocationPayload.put("execution_index", distributedExecutionIndex.toString());

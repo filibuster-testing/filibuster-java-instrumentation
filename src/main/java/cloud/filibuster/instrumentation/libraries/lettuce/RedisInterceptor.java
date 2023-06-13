@@ -216,7 +216,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
                 }
                 throw new FilibusterFaultInjectionException("injectTransformerByzantineFault: The byzantineFault does not have the required key " + missingKey);
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw new FilibusterFaultInjectionException("Could not inject byzantine fault. The cast was probably not successful:", e);
         }
     }
@@ -249,7 +249,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
                 }
                 throw new FilibusterFaultInjectionException("injectByzantineFault: The byzantineFault does not have the required key " + missingKey);
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw new FilibusterFaultInjectionException("Could not inject byzantine fault. The cast was probably not successful:", e);
         }
     }

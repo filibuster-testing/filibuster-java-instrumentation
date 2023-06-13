@@ -251,15 +251,20 @@ public class FilibusterCore {
                 logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using byzantine_fault: " + byzantineFaultObject.toString(4));
                 response.put("byzantine_fault", byzantineFaultObject);
             } else if (faultObject.has("transformer_byzantine_fault")) {
-                JSONObject transformerByzantineFaultObject = faultObject.getJSONObject("transformer_byzantine_fault");
-                ByzantineTransformationResult<?> transformationResult = getByzantineTransformationResult(transformerByzantineFaultObject, distributedExecutionIndex);
-                transformerByzantineFaultObject.put("value", transformationResult.value);
-                transformerByzantineFaultObject.put("accumulator", transformationResult.accumulator);
-                if (transformationResult.hasNext) {
-                    createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, new JSONObject(faultObject.toString()), /* isTransformedByzantineFault= */true);
+                try {
+                    JSONObject transformerByzantineFaultObject = faultObject.getJSONObject("transformer_byzantine_fault");
+                    ByzantineTransformationResult<?> transformationResult = getByzantineTransformationResult(transformerByzantineFaultObject, distributedExecutionIndex);
+                    transformerByzantineFaultObject.put("value", transformationResult.getValue());
+                    transformerByzantineFaultObject.put("accumulator", transformationResult.getAccumulator());
+                    if (transformationResult.hasNext()) {
+                        createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, new JSONObject(faultObject.toString()), /* isTransformedByzantineFault= */true);
+                    }
+                    logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using transformer_byzantine_fault: " + transformerByzantineFaultObject.toString(4));
+                    response.put("transformer_byzantine_fault", transformerByzantineFaultObject);
+                } catch (RuntimeException e) {
+                    logger.info("[FILIBUSTER-CORE]: beginInvocation, failed to inject transformer_byzantine_fault:" + e);
+                    throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: beginInvocation, failed to inject transformer_byzantine_fault for call: ", e);
                 }
-                logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using transformer_byzantine_fault: " + transformerByzantineFaultObject.toString(4));
-                response.put("transformer_byzantine_fault", transformerByzantineFaultObject);
             } else if (faultObject.has("latency")) {
                 JSONObject latencyObject = faultObject.getJSONObject("latency");
                 logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using latency: " + latencyObject.toString(4));
@@ -589,7 +594,6 @@ public class FilibusterCore {
 
     // Configuration.
 
-    @SuppressWarnings("unchecked")
     public synchronized void analysisFile(JSONObject analysisFile) {
         logger.info("[FILIBUSTER-CORE]: analysisFile called, payload: " + analysisFile.toString(4));
 
@@ -659,46 +663,57 @@ public class FilibusterCore {
             }
 
             if (nameObject.has("byzantines")) {
-                JSONArray jsonArray = nameObject.getJSONArray("byzantines");
+                try {
+                    JSONArray jsonArray = nameObject.getJSONArray("byzantines");
 
-                for (Object obj : jsonArray) {
-                    JSONObject errorObject = (JSONObject) obj;
+                    for (Object obj : jsonArray) {
+                        JSONObject errorObject = (JSONObject) obj;
 
-                    if (errorObject.has("type") && errorObject.has("value")) {
-                        String byzantineFaultType = errorObject.getString("type");
-                        Object value = errorObject.get("value");
+                        if (errorObject.has("type") && errorObject.has("value")) {
+                            String byzantineFaultType = errorObject.getString("type");
+                            Object value = errorObject.get("value");
 
-                        filibusterAnalysisConfigurationBuilder.byzantine(ByzantineFaultType.fromFaultType(byzantineFaultType), value);
-                        logger.info("[FILIBUSTER-CORE]: analysisFile, found new configuration, byzantineFaultType: " + byzantineFaultType + ", byzantineValue: " + value);
-                    } else {
-                        logger.warning("[FILIBUSTER-CORE]: Either the key 'type' or 'metadata' was not defined for a byzantine" +
-                                "fault object. Skipping...");
+                            filibusterAnalysisConfigurationBuilder.byzantine(ByzantineFaultType.fromFaultType(byzantineFaultType), value);
+                            logger.info("[FILIBUSTER-CORE]: analysisFile, found new configuration, byzantineFaultType: " + byzantineFaultType + ", byzantineValue: " + value);
+                        } else {
+                            logger.warning("[FILIBUSTER-CORE]: Either the key 'type' or 'value' was not defined for a byzantine" +
+                                    "fault object.");
+                            throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: analysisFile, either the key 'type' or 'value' was not defined for a byzantine" +
+                                    "fault object.");
+                        }
                     }
+                } catch (RuntimeException e) {
+                    throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: analysisFile, could not process byzantine fault object.", e);
                 }
             }
 
             if (nameObject.has("transformerByzantines")) {
                 JSONArray jsonArray = nameObject.getJSONArray("transformerByzantines");
 
-                for (Object obj : jsonArray) {
-                    JSONObject errorObject = (JSONObject) obj;
+                try {
+                    for (Object obj : jsonArray) {
+                        JSONObject errorObject = (JSONObject) obj;
 
-                    if (errorObject.has("transformer") && errorObject.has("transformerClassName")) {
-                        String transformerClassName = errorObject.getString("transformerClassName");
-                        Class<? extends ByzantineTransformer<?>> transformerClass;
+                        if (errorObject.has("transformer") && errorObject.has("transformerClassName")) {
+                            String transformerClassName = errorObject.getString("transformerClassName");
 
-                        try {
-                            transformerClass = (Class<? extends ByzantineTransformer<?>>) Class.forName(transformerClassName);
-                        } catch (ClassNotFoundException e) {
-                            logger.warning("[FILIBUSTER-CORE]: transformerByzantines: Could not find class for transformer: " + transformerClassName + ". Skipping...");
-                            continue;
+                            try {
+                                @SuppressWarnings("unchecked")
+                                Class<? extends ByzantineTransformer<?>> transformerClass = (Class<? extends ByzantineTransformer<?>>) Class.forName(transformerClassName);
+                                filibusterAnalysisConfigurationBuilder.byzantineTransformer(transformerClass);
+                            } catch (ClassNotFoundException e) {
+                                logger.warning("[FILIBUSTER-CORE]: analysisFile/transformerByzantines: Could not find transformer class: " + transformerClassName);
+                                throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: analysisFile/transformerByzantines, could not find transformer class: " + transformerClassName, e);
+                            }
+
+                            logger.info("[FILIBUSTER-CORE]: analysisFile/transformerByzantines, found new configuration, transformedByzantines: " + transformerClassName);
+                        } else {
+                            logger.warning("[FILIBUSTER-CORE]: analysisFile/transformerByzantines: Either the key 'transformer', 'transformerClassName' does not exist.");
+                            throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: analysisFile, either the key 'transformer', 'transformerClassName' does not exist.");
                         }
-
-                        filibusterAnalysisConfigurationBuilder.byzantineTransformer(transformerClass);
-                        logger.info("[FILIBUSTER-CORE]: analysisFile, found new configuration, transformedByzantines: " + transformerClassName);
-                    } else {
-                        logger.warning("[FILIBUSTER-CORE]: transformerByzantines: Either the key 'transformer', 'transformerClassName' or 'type' does not exist. Skipping...");
                     }
+                } catch (RuntimeException e) {
+                    throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: analysisFile, could not process transformer byzantine fault object.", e);
                 }
             }
 
@@ -801,7 +816,6 @@ public class FilibusterCore {
         logger.info("[FILIBUSTER-CORE]: generateFaultsUsingSpecificAnalysisConfiguration returning.");
     }
 
-    @SuppressWarnings("unchecked")
     private <T> ByzantineTransformationResult<T> getByzantineTransformationResult(@Nonnull JSONObject transformerBF, DistributedExecutionIndex distributedExecutionIndex) {
         try {
             ByzantineTransformationResult<T> transformationResult = new ByzantineTransformationResult<>();
@@ -815,13 +829,13 @@ public class FilibusterCore {
                 if (refResponse != null) {
                     if (refResponse.has("return_value")) {  // This is the first byzantine execution after the reference run
                         refResponseValue = refResponse.getJSONObject("return_value").getString("toString");
-                        transformationResult.accumulator = new JSONObject();
+                        transformationResult.setAccumulator(new JSONObject());
                     } else if (refResponse.has("byzantine_fault") // This is a subsequent byzantine execution
                             && refResponse.getJSONObject("byzantine_fault").has("accumulator")) {
                         JSONObject lastBF = refResponse.getJSONObject("byzantine_fault");
                         // Get the accumulator and the original value from the previous byzantine execution
-                        transformationResult.accumulator = lastBF.getJSONObject("accumulator");
-                        refResponseValue = transformationResult.accumulator.getString("originalValue");
+                        transformationResult.setAccumulator(lastBF.getJSONObject("accumulator"));
+                        refResponseValue = transformationResult.getAccumulator().getString("originalValue");
                     }
 
                     if (refResponseValue == null) {
@@ -829,6 +843,7 @@ public class FilibusterCore {
                     }
 
                     // Get transformer class from transformerBF JSONObject.
+                    @SuppressWarnings("unchecked")
                     Class<? extends ByzantineTransformer<?>> transformerClass = (Class<? extends ByzantineTransformer<?>>) Class.forName(transformerBF.getString("transformerClassName"));
                     // Get constructor of transformer class.
                     Constructor<?> ctr = transformerClass.getConstructor();
@@ -836,11 +851,13 @@ public class FilibusterCore {
                     ByzantineTransformer<?> transformerObject = (ByzantineTransformer<?>) ctr.newInstance();
                     // Get transform method of transformer object.
                     Method transformMethod = transformerObject.getClass().getMethod("transform", transformerObject.getType(), JSONObject.class);
+                    @SuppressWarnings("unchecked")
+                    T transformerByzantineValue = (T) transformMethod.invoke(transformerObject, transformerObject.getType().cast(refResponseValue), transformationResult.getAccumulator());
 
                     // Get byzantine values from transformerObject.
-                    transformationResult.value = (T) transformMethod.invoke(transformerObject, transformerObject.getType().cast(refResponseValue), transformationResult.accumulator);
-                    transformationResult.hasNext = transformerObject.hasNext();
-                    transformationResult.accumulator = transformerObject.getNewAccumulator();
+                    transformationResult.setValue(transformerByzantineValue);
+                    transformationResult.setHasNext(transformerObject.hasNext());
+                    transformationResult.setAccumulator(transformerObject.getNewAccumulator());
 
                     return transformationResult;
                 } else {

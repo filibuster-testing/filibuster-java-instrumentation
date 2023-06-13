@@ -84,7 +84,7 @@ public class GrpcMockTest {
         try {
             APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
             Hello.PurchaseRequest request = Hello.PurchaseRequest.newBuilder().setSessionId(sessionId).build();
-            Hello.PurchaseResponse response = blockingStub.purchase(request);
+            Hello.PurchaseResponse response = blockingStub.simulatePurchase(request);
             assertNotNull(response);
         } catch (RuntimeException e) {
             testFailures++;

@@ -215,9 +215,11 @@ public class BasicDAO {
      */
     public void updateAccounts(Map<UUID, Integer> accounts) {
         for (Map.Entry<UUID, Integer> account : accounts.entrySet()) {
-
             UUID k = account.getKey();
             String v = account.getValue().toString();
+
+            Object[] removeArgs = {k};
+            runSQL("DELETE FROM accounts WHERE id = ?", removeArgs);
 
             Object[] args = {k, v};
             runSQL("INSERT INTO accounts (id, balance) VALUES (?, ?)", args);

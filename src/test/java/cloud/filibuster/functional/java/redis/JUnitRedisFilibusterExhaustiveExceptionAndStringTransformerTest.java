@@ -46,7 +46,7 @@ public class JUnitRedisFilibusterExhaustiveExceptionAndStringTransformerTest ext
     @DisplayName("Tests whether Redis sync interceptor can read from existing key - Exhaustive Exception and String transformer BFI.")
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = RedisExhaustiveExceptionAndTransformerAnalysisConfigurationFile.class)
-    public void testRedisStringTransformation() {
+    public void testRedisStringBFIAndExceptionInjection() {
         try {
             numberOfTestExecutions++;
 
@@ -82,7 +82,7 @@ public class JUnitRedisFilibusterExhaustiveExceptionAndStringTransformerTest ext
         assertEquals(16, numberOfTestExecutions);
     }
 
-    @DisplayName("Verify correct number of generated Filibuster tests.")
+    @DisplayName("Verify correct number of unique injected faults.")
     @Test
     @Order(3)
     public void testNumExceptions() {

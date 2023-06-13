@@ -8,6 +8,7 @@ message PurchaseRequest {
 
 message PurchaseResponse {
   bool success = 1;
+  string total = 2;
 }
 
 service APIService {
@@ -36,6 +37,7 @@ message GetCartRequest {
 
 message GetCartResponse {
   string cart_id = 1;
+  string total = 2;
 }
 
 message SetDiscountRequest {
@@ -43,7 +45,7 @@ message SetDiscountRequest {
 }
 
 message SetDiscountResponse {
-
+  string percent = 1;
 }
 
 service CartService {

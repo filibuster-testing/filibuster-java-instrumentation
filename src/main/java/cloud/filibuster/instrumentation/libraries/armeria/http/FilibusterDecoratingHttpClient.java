@@ -211,7 +211,9 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
         // Record invocation.
         // ******************************************************************************************
 
-        filibusterClientInstrumentor.setRpcType("grpc"); // TODO, enum?
+        if (grpcRpcType) {
+            filibusterClientInstrumentor.setRpcType("grpc"); // TODO, enum?
+        }
         filibusterClientInstrumentor.beforeInvocation();
 
         JSONObject forcedException = filibusterClientInstrumentor.getForcedException();

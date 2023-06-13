@@ -79,7 +79,7 @@ public class RedundantByPropertyTest {
         stubFor(unaryMethod(UserServiceGrpc.getGetUserFromSessionMethod())
                 .willReturn(Hello.GetUserResponse.newBuilder().setUserId("1").build()));
         stubFor(unaryMethod(CartServiceGrpc.getGetCartForSessionMethod())
-                .willReturn(Hello.GetCartResponse.newBuilder().setCartId("1").setTotal("100.00").build()));
+                .willReturn(Hello.GetCartResponse.newBuilder().setCartId("1").build()));
 
         String sessionId = UUID.randomUUID().toString();
 

@@ -41,17 +41,17 @@ message GetCartResponse {
   string total = 2;
 }
 
-message SetDiscountRequest {
+message GetDiscountRequest {
   string cart_id = 1;
 }
 
-message SetDiscountResponse {
+message GetDiscountResponse {
   string percent = 1;
 }
 
 service CartService {
   rpc GetCartForSession (GetCartRequest) returns (GetCartResponse) {}
-  rpc SetDiscountOnCart (SetDiscountRequest) returns (SetDiscountResponse) {}
+  rpc GetDiscountOnCart (GetDiscountRequest) returns (GetDiscountResponse) {}
 }
 
 service HelloService {

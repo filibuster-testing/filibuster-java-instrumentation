@@ -79,7 +79,7 @@ public class RedundantByPropertyTest {
         stubFor(unaryMethod(UserServiceGrpc.getGetUserFromSessionMethod())
                 .willReturn(Hello.GetUserResponse.newBuilder().setUserId("1").build()));
         stubFor(unaryMethod(CartServiceGrpc.getGetCartForSessionMethod())
-                .willReturn(Hello.GetCartResponse.newBuilder().setCartId("1").build()));
+                .willReturn(Hello.GetCartResponse.newBuilder().setCartId("1").setTotal("100.00").build()));
 
         String sessionId = UUID.randomUUID().toString();
 
@@ -128,7 +128,7 @@ public class RedundantByPropertyTest {
                 case "cloud.filibuster.examples.UserService/GetUserFromSession":
                     assertTrue(warning instanceof RedundantRPCWarning);
                     break;
-                case "cloud.filibuster.examples.CartService/SetDiscountOnCart":
+                case "cloud.filibuster.examples.CartService/GetDiscountOnCart":
                     assertTrue(warning instanceof UnimplementedFailuresWarning);
                     break;
                 default:

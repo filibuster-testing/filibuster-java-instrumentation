@@ -71,8 +71,8 @@ public class GrpcMockTest {
                 .willReturn(Hello.GetUserResponse.newBuilder().setUserId("1").build()));
         stubFor(unaryMethod(CartServiceGrpc.getGetCartForSessionMethod())
                 .willReturn(Hello.GetCartResponse.newBuilder().setCartId("1").build()));
-        stubFor(unaryMethod(CartServiceGrpc.getSetDiscountOnCartMethod())
-                .willReturn(Hello.SetDiscountResponse.newBuilder().build()));
+        stubFor(unaryMethod(CartServiceGrpc.getGetDiscountOnCartMethod())
+                .willReturn(Hello.GetDiscountResponse.newBuilder().build()));
 
         String sessionId = UUID.randomUUID().toString();
 
@@ -90,8 +90,8 @@ public class GrpcMockTest {
             testFailures++;
         }
 
-        if (wasFaultInjectedOnMethod(CartServiceGrpc.getSetDiscountOnCartMethod())) {
-            verifyThat(CartServiceGrpc.getSetDiscountOnCartMethod(), never());
+        if (wasFaultInjectedOnMethod(CartServiceGrpc.getGetDiscountOnCartMethod())) {
+            verifyThat(CartServiceGrpc.getGetDiscountOnCartMethod(), never());
         }
     }
 

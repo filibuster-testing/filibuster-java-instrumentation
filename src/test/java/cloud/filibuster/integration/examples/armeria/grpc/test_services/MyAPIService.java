@@ -228,8 +228,8 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
 
         // Set discount.
         try {
-            Hello.SetDiscountResponse setDiscountResponse = setDiscountOnCart(channel, cartId);
-            float discountPercentage = Float.parseFloat(setDiscountResponse.getPercent());
+            Hello.GetDiscountResponse getDiscountResponse = getDiscountOnCart(channel, cartId);
+            float discountPercentage = Float.parseFloat(getDiscountResponse.getPercent());
             cartTotal = cartTotal - (cartTotal * discountPercentage);
         } catch (StatusRuntimeException e) {
             // Nothing, ignore discount failure.
@@ -290,8 +290,8 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
 
         // Set discount.
         try {
-            Hello.SetDiscountResponse setDiscountResponse = setDiscountOnCart(channel, cartId);
-            float discountPercentage = Float.parseFloat(setDiscountResponse.getPercent());
+            Hello.GetDiscountResponse getDiscountResponse = getDiscountOnCart(channel, cartId);
+            float discountPercentage = Float.parseFloat(getDiscountResponse.getPercent());
             cartTotal = cartTotal - (cartTotal * discountPercentage);
         } catch (StatusRuntimeException e) {
             // Nothing, ignore discount failure.
@@ -317,6 +317,9 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
             Status status = Status.ABORTED.withDescription(e.toString());
             responseObserver.onError(status.asRuntimeException());
         }
+
+        // Write record to CRDB.
+        // TODO
 
         // Assemble response.
         Hello.PurchaseResponse purchaseResponse = Hello.PurchaseResponse.newBuilder().setSuccess(true).setTotal(sCartTotal).build();
@@ -347,10 +350,10 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         return cartServiceBlockingStub.getCartForSession(request);
     }
 
-    private static Hello.SetDiscountResponse setDiscountOnCart(Channel channel, String cartId) {
+    private static Hello.GetDiscountResponse getDiscountOnCart(Channel channel, String cartId) {
         CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
-        Hello.SetDiscountRequest request = Hello.SetDiscountRequest.newBuilder().setCartId(cartId).build();
-        return cartServiceBlockingStub.setDiscountOnCart(request);
+        Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder().setCartId(cartId).build();
+        return cartServiceBlockingStub.getDiscountOnCart(request);
     }
 
 }

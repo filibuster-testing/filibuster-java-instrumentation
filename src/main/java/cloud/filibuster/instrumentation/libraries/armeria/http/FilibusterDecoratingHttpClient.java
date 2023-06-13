@@ -93,6 +93,15 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
         this.contextStorage = new ThreadLocalContextStorage();
     }
 
+    public FilibusterDecoratingHttpClient(HttpClient delegate, String serviceName, boolean grpcRpcType) {
+        super(delegate);
+        this.serviceName = serviceName;
+        this.contextStorage = new ThreadLocalContextStorage();
+        this.grpcRpcType = true;
+    }
+
+    private boolean grpcRpcType = false;
+
     // ******************************************************************************************
     // Overloads for custom clients.
     // ******************************************************************************************
@@ -202,6 +211,7 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
         // Record invocation.
         // ******************************************************************************************
 
+        filibusterClientInstrumentor.setRpcType("grpc"); // TODO, enum?
         filibusterClientInstrumentor.beforeInvocation();
 
         JSONObject forcedException = filibusterClientInstrumentor.getForcedException();

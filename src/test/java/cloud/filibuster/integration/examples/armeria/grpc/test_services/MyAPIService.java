@@ -7,10 +7,12 @@ import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.exceptions.CircuitBreakerException;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
 import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.BasicDAO;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.CockroachClientService;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.PostgreSQLClientService;
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
 import io.grpc.ClientInterceptors;
@@ -22,7 +24,10 @@ import io.grpc.stub.StreamObserver;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.StatefulRedisConnection;
 import org.json.JSONObject;
+import org.postgresql.ds.PGSimpleDataSource;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -268,9 +273,22 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         RedisClientService redisClient = RedisClientService.getInstance();
         StatefulRedisConnection<String, String> connection = (StatefulRedisConnection<String, String>) new RedisInterceptorFactory<>(redisClient.redisClient.connect(), redisClient.connectionString).getProxy(StatefulRedisConnection.class);
 
-        // Open CRDB channel.
-        // TODO: interceptor
+        // CRDB interceptors.
+        PGSimpleDataSource cockroachClient = CockroachClientService.getInstance().cockroachClient;
+        Connection cockroachConnection = null;
+
+        try {
+            cockroachConnection = cockroachClient.getConnection();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        String cockroachString = CockroachClientService.getInstance().connectionString;
+        Connection interceptedConnection = DynamicProxyInterceptor.createInterceptor(cockroachConnection, cockroachString);
+
+        // Setup DAO.
         BasicDAO cockroachDAO = CockroachClientService.getInstance().dao;
+        cockroachDAO.setConnection(interceptedConnection);
 
         // Make call to get the user.
         getUserFromSession(channel, req.getSessionId());

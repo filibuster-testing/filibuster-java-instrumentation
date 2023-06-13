@@ -9,6 +9,8 @@ import cloud.filibuster.exceptions.CircuitBreakerException;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
 import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.BasicDAO;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.CockroachClientService;
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
 import io.grpc.ClientInterceptors;
@@ -22,6 +24,7 @@ import io.lettuce.core.api.StatefulRedisConnection;
 import org.json.JSONObject;
 
 import java.text.DecimalFormat;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -202,7 +205,6 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     }
 
     @Override
-    @SuppressWarnings("unchecked") // TODO: How can we avoid this?
     public void simulatePurchase(Hello.PurchaseRequest req, StreamObserver<Hello.PurchaseResponse> responseObserver) {
         // Open channel to the user service.
         ManagedChannel originalChannel = ManagedChannelBuilder
@@ -216,35 +218,27 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         getUserFromSession(channel, req.getSessionId());
 
         // Make call to get the user, again.
-        String userId = getUserFromSession(channel, req.getSessionId());
+        getUserFromSession(channel, req.getSessionId());
 
         // Get cart
         Hello.GetCartResponse getCartResponse = getCartFromSession(channel, req.getSessionId());
         String cartId = getCartResponse.getCartId();
-        float cartTotal = Float.parseFloat(getCartResponse.getTotal());
 
         // Make call to get the user, again.
         getUserFromSession(channel, req.getSessionId());
 
         // Set discount.
         try {
-            Hello.GetDiscountResponse getDiscountResponse = getDiscountOnCart(channel, cartId);
-            float discountPercentage = Float.parseFloat(getDiscountResponse.getPercent());
-            cartTotal = cartTotal - (cartTotal * discountPercentage);
+            getDiscountOnCart(channel, cartId);
         } catch (StatusRuntimeException e) {
             // Nothing, ignore discount failure.
         }
-
-        DecimalFormat df = new DecimalFormat();
-        df.setMaximumFractionDigits(2);
-        df.setMinimumFractionDigits(2);
-        String sCartTotal = df.format(cartTotal);
 
         // Make call to get the user, again.
         getUserFromSession(channel, req.getSessionId());
 
         // Assemble response.
-        Hello.PurchaseResponse purchaseResponse = Hello.PurchaseResponse.newBuilder().setSuccess(true).setTotal(sCartTotal).build();
+        Hello.PurchaseResponse purchaseResponse = Hello.PurchaseResponse.newBuilder().setSuccess(true).build();
         responseObserver.onNext(purchaseResponse);
         responseObserver.onCompleted();
 
@@ -274,6 +268,10 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         RedisClientService redisClient = RedisClientService.getInstance();
         StatefulRedisConnection<String, String> connection = (StatefulRedisConnection<String, String>) new RedisInterceptorFactory<>(redisClient.redisClient.connect(), redisClient.connectionString).getProxy(StatefulRedisConnection.class);
 
+        // Open CRDB channel.
+        // TODO: interceptor
+        BasicDAO cockroachDAO = CockroachClientService.getInstance().dao;
+
         // Make call to get the user.
         getUserFromSession(channel, req.getSessionId());
 
@@ -283,7 +281,8 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         // Get cart
         Hello.GetCartResponse getCartResponse = getCartFromSession(channel, req.getSessionId());
         String cartId = getCartResponse.getCartId();
-        float cartTotal = Float.parseFloat(getCartResponse.getTotal());
+        String merchantId = getCartResponse.getMerchantId();
+        int cartTotal = Integer.parseInt(getCartResponse.getTotal());
 
         // Make call to get the user, again.
         getUserFromSession(channel, req.getSessionId());
@@ -291,38 +290,30 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         // Set discount.
         try {
             Hello.GetDiscountResponse getDiscountResponse = getDiscountOnCart(channel, cartId);
-            float discountPercentage = Float.parseFloat(getDiscountResponse.getPercent());
-            cartTotal = cartTotal - (cartTotal * discountPercentage);
+            int discountPercentage = Integer.parseInt(getDiscountResponse.getPercent());
+            float discountPct = discountPercentage / 100.00F;
+            float discountAmount = cartTotal * discountPct;
+            cartTotal = cartTotal - (int) discountAmount;
         } catch (StatusRuntimeException e) {
             // Nothing, ignore discount failure.
         }
 
-        DecimalFormat df = new DecimalFormat();
-        df.setMaximumFractionDigits(2);
-        df.setMinimumFractionDigits(2);
-        String sCartTotal = df.format(cartTotal);
-
         // Make call to get the user, again.
         getUserFromSession(channel, req.getSessionId());
 
-        // Write record to Redis.
-        try {
-            JSONObject redisRecord = new JSONObject();
-            redisRecord.put("purchased", true);
-            redisRecord.put("user_id", userId);
-            redisRecord.put("cart_id", cartId);
-            redisRecord.put("total", sCartTotal);
-            connection.sync().set("purchased", redisRecord.toString(4));
-        } catch (StatusRuntimeException e) {
-            Status status = Status.ABORTED.withDescription(e.toString());
-            responseObserver.onError(status.asRuntimeException());
-        }
+        // Write cache record to Redis with information on last purchase.
+        JSONObject redisRecord = new JSONObject();
+        redisRecord.put("purchased", true);
+        redisRecord.put("user_id", userId);
+        redisRecord.put("cart_id", cartId);
+        redisRecord.put("total", String.valueOf(cartTotal));
+        connection.sync().set("last_purchase_user_" + userId, redisRecord.toString(4));
 
         // Write record to CRDB.
-        // TODO
+        cockroachDAO.transferFunds(UUID.fromString(userId), UUID.fromString(merchantId), cartTotal);
 
         // Assemble response.
-        Hello.PurchaseResponse purchaseResponse = Hello.PurchaseResponse.newBuilder().setSuccess(true).setTotal(sCartTotal).build();
+        Hello.PurchaseResponse purchaseResponse = Hello.PurchaseResponse.newBuilder().setSuccess(true).setTotal(String.valueOf(cartTotal)).build();
         responseObserver.onNext(purchaseResponse);
         responseObserver.onCompleted();
 

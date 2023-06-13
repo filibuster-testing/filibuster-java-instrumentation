@@ -828,7 +828,8 @@ public class FilibusterCore {
                     if (serviceProfile.sawMethod(methodName)) {
                         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilder = new FilibusterAnalysisConfiguration.Builder()
                                 .name("java.grpc." + methodName)
-                                .pattern("(" + methodName + ")");
+                                .pattern("(" + methodName + ")")
+                                .type("grpc");
 
                         List<ServiceRequestAndResponse> serviceRequestAndResponseList = serviceProfile.getServiceRequestAndResponsesForMethod(methodName);
 

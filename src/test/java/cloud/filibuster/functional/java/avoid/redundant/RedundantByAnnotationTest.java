@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.redundant;
+package cloud.filibuster.functional.java.avoid.redundant;
 
 import cloud.filibuster.examples.APIServiceGrpc;
 import cloud.filibuster.examples.CartServiceGrpc;
@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
-import static cloud.filibuster.instrumentation.helpers.Property.setTestAvoidRedundantInjectionsProperty;
 import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopAPIServerAndWaitUntilUnavailable;
 import static org.grpcmock.GrpcMock.stubFor;
@@ -38,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class RedundantByPropertyTest {
+public class RedundantByAnnotationTest {
     @RegisterExtension
     static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
             .withPort(Networking.getPort("mock"))
@@ -54,23 +53,14 @@ public class RedundantByPropertyTest {
         stopAPIServerAndWaitUntilUnavailable();
     }
 
-    @BeforeAll
-    public static void setProperties() {
-        setTestAvoidRedundantInjectionsProperty(true);
-    }
-
-    @AfterAll
-    public static void resetProperties() {
-        setTestAvoidRedundantInjectionsProperty(false);
-    }
-
     public static int testInvocationCount = 0;
 
     public static int testFailures = 0;
 
     @TestWithFilibuster(
             dataNondeterminism = true,
-            analysisConfigurationFile = FilibusterSingleFaultUnavailableAnalysisConfigurationFile.class
+            analysisConfigurationFile = FilibusterSingleFaultUnavailableAnalysisConfigurationFile.class,
+            avoidRedundantInjections = true
     )
     @Order(1)
     public void testPurchase() {
@@ -136,8 +126,9 @@ public class RedundantByPropertyTest {
             }
         }
 
-        // 1 warning:
+        // 4 warnings:
+        // - 3 redundant, only removable through use of the property and not annotation.
         // - 1 unimplemented, for the set discount RPC.
-        assertEquals(1, warnings.size());
+        assertEquals(4, warnings.size());
     }
 }

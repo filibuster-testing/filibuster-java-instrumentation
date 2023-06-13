@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.redundant;
+package cloud.filibuster.functional.java.avoid.redundant;
 
 import cloud.filibuster.examples.APIServiceGrpc;
 import cloud.filibuster.examples.CartServiceGrpc;
@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
-import static cloud.filibuster.instrumentation.helpers.Property.setTestAvoidInjectionsOnOrganicFailuresProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.setTestAvoidRedundantInjectionsProperty;
 import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopAPIServerAndWaitUntilUnavailable;
@@ -39,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class RedundantByPropertyAvoidOrganicByPropertyTest {
+public class RedundantByPropertyNegativeTest {
     @RegisterExtension
     static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
             .withPort(Networking.getPort("mock"))
@@ -57,14 +56,7 @@ public class RedundantByPropertyAvoidOrganicByPropertyTest {
 
     @BeforeAll
     public static void setProperties() {
-        setTestAvoidRedundantInjectionsProperty(true);
-        setTestAvoidInjectionsOnOrganicFailuresProperty(true);
-    }
-
-    @AfterAll
-    public static void resetProperties() {
         setTestAvoidRedundantInjectionsProperty(false);
-        setTestAvoidInjectionsOnOrganicFailuresProperty(false);
     }
 
     public static int testInvocationCount = 0;
@@ -104,21 +96,13 @@ public class RedundantByPropertyAvoidOrganicByPropertyTest {
     @Test
     @Order(2)
     public void testInvocationCount() {
-        // 5 RPCs, 3 duplicates removed.
-        // 2 tests failing each RPC once + 1 golden path (with UNIMPLEMENTED for final call.)
-        // NO FI on UNIMPLEMENTED.
-        // 3 total.
-        assertEquals(3, testInvocationCount);
+        assertEquals(8, testInvocationCount);
     }
 
     @Test
     @Order(2)
     public void testFailures() {
-        // 5 RPCs, 3 duplicates removed.
-        // 4 executions.
-        // 1 non-fatal, 2 fatal.
-        // 2 total.
-        assertEquals(2, testFailures);
+        assertEquals(6, testFailures);
     }
 
     @Order(2)
@@ -140,8 +124,9 @@ public class RedundantByPropertyAvoidOrganicByPropertyTest {
             }
         }
 
-        // 1 warning:
+        // 4 warnings:
+        // - 3 redundant, only removable through use of the property and not annotation.
         // - 1 unimplemented, for the set discount RPC.
-        assertEquals(1, warnings.size());
+        assertEquals(4, warnings.size());
     }
 }

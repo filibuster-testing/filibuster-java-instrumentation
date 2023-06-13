@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.redundant;
+package cloud.filibuster.functional.java.avoid.redundant;
 
 import cloud.filibuster.examples.APIServiceGrpc;
 import cloud.filibuster.examples.CartServiceGrpc;
@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class RedundantByPropertyAvoidOrganicByAnnotationTest {
+public class RedundantByPropertyTest {
     @RegisterExtension
     static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
             .withPort(Networking.getPort("mock"))
@@ -70,8 +70,7 @@ public class RedundantByPropertyAvoidOrganicByAnnotationTest {
 
     @TestWithFilibuster(
             dataNondeterminism = true,
-            analysisConfigurationFile = FilibusterSingleFaultUnavailableAnalysisConfigurationFile.class,
-            avoidInjectionsOnOrganicFailures = true
+            analysisConfigurationFile = FilibusterSingleFaultUnavailableAnalysisConfigurationFile.class
     )
     @Order(1)
     public void testPurchase() {
@@ -104,9 +103,8 @@ public class RedundantByPropertyAvoidOrganicByAnnotationTest {
     public void testInvocationCount() {
         // 5 RPCs, 3 duplicates removed.
         // 3 tests failing each RPC once + 1 golden path (with UNIMPLEMENTED for final call.)
-        // NO FI on UNIMPLEMENTED.
-        // 3 total.
-        assertEquals(3, testInvocationCount);
+        // 4 total.
+        assertEquals(4, testInvocationCount);
     }
 
     @Test

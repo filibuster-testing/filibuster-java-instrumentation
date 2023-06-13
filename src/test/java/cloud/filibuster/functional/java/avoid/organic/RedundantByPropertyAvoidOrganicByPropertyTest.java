@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.redundant;
+package cloud.filibuster.functional.java.avoid.organic;
 
 import cloud.filibuster.examples.APIServiceGrpc;
 import cloud.filibuster.examples.CartServiceGrpc;
@@ -27,6 +27,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+import static cloud.filibuster.instrumentation.helpers.Property.setTestAvoidInjectionsOnOrganicFailuresProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.setTestAvoidRedundantInjectionsProperty;
 import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopAPIServerAndWaitUntilUnavailable;
 import static org.grpcmock.GrpcMock.stubFor;
@@ -37,7 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class RedundantByAnnotationTest {
+public class RedundantByPropertyAvoidOrganicByPropertyTest {
     @RegisterExtension
     static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
             .withPort(Networking.getPort("mock"))
@@ -53,14 +55,25 @@ public class RedundantByAnnotationTest {
         stopAPIServerAndWaitUntilUnavailable();
     }
 
+    @BeforeAll
+    public static void setProperties() {
+        setTestAvoidRedundantInjectionsProperty(true);
+        setTestAvoidInjectionsOnOrganicFailuresProperty(true);
+    }
+
+    @AfterAll
+    public static void resetProperties() {
+        setTestAvoidRedundantInjectionsProperty(false);
+        setTestAvoidInjectionsOnOrganicFailuresProperty(false);
+    }
+
     public static int testInvocationCount = 0;
 
     public static int testFailures = 0;
 
     @TestWithFilibuster(
             dataNondeterminism = true,
-            analysisConfigurationFile = FilibusterSingleFaultUnavailableAnalysisConfigurationFile.class,
-            avoidRedundantInjections = true
+            analysisConfigurationFile = FilibusterSingleFaultUnavailableAnalysisConfigurationFile.class
     )
     @Order(1)
     public void testPurchase() {
@@ -92,9 +105,10 @@ public class RedundantByAnnotationTest {
     @Order(2)
     public void testInvocationCount() {
         // 5 RPCs, 3 duplicates removed.
-        // 3 tests failing each RPC once + 1 golden path (with UNIMPLEMENTED for final call.)
-        // 4 total.
-        assertEquals(4, testInvocationCount);
+        // 2 tests failing each RPC once + 1 golden path (with UNIMPLEMENTED for final call.)
+        // NO FI on UNIMPLEMENTED.
+        // 3 total.
+        assertEquals(3, testInvocationCount);
     }
 
     @Test
@@ -126,9 +140,8 @@ public class RedundantByAnnotationTest {
             }
         }
 
-        // 4 warnings:
-        // - 3 redundant, only removable through use of the property and not annotation.
+        // 1 warning:
         // - 1 unimplemented, for the set discount RPC.
-        assertEquals(4, warnings.size());
+        assertEquals(1, warnings.size());
     }
 }

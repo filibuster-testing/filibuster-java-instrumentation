@@ -39,6 +39,7 @@ message GetCartRequest {
 message GetCartResponse {
   string cart_id = 1;
   string total = 2;
+  string merchant_id = 3;
 }
 
 message GetDiscountRequest {

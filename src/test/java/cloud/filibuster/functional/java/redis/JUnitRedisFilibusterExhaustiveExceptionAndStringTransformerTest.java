@@ -76,16 +76,19 @@ public class JUnitRedisFilibusterExhaustiveExceptionAndStringTransformerTest ext
     @DisplayName("Verify correct number of test executions.")
     @Test
     @Order(2)
-    // 1 for the original test and +1 for each character manipulation in the string
     public void testNumExecutions() {
-        assertEquals(value.length() + 1, numberOfTestExecutions);
+        // Reference execution + 2 RedisCommandTimeoutExceptions injected on set + 2 RedisCommandTimeoutExceptions injected on get
+        // + transformer BFI on "example" (7 chars) + transformer BFI on "test" (4 chars)
+        assertEquals(16, numberOfTestExecutions);
     }
 
     @DisplayName("Verify correct number of generated Filibuster tests.")
     @Test
     @Order(3)
     public void testNumExceptions() {
-        assertEquals(value.length(), testExceptionsThrown.size());
+        // RedisCommandTimeoutException injected on set/get
+        // + transformer BFI on "example" (7 chars) + transformer BFI on "test" (4 chars)
+        assertEquals(12, testExceptionsThrown.size());
     }
 
 }

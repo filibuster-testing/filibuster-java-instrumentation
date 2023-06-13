@@ -121,7 +121,7 @@ public class AvoidOrganicByPropertyTest {
                 case "cloud.filibuster.examples.UserService/GetUserFromSession":
                     assertTrue(warning instanceof RedundantRPCWarning);
                     break;
-                case "cloud.filibuster.examples.CartService/SetDiscountOnCart":
+                case "cloud.filibuster.examples.CartService/GetDiscountOnCart":
                     assertTrue(warning instanceof UnimplementedFailuresWarning);
                     break;
                 default:

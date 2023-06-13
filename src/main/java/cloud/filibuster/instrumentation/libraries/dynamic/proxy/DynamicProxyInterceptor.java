@@ -183,25 +183,34 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
 
     @Nullable
     private static Object injectByzantineFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject byzantineFault) {
-        if (byzantineFault.has("type") && byzantineFault.has("value")) {
-            ByzantineFaultType<?> byzantineFaultType = (ByzantineFaultType<?>) byzantineFault.get("type");
-            Object value = byzantineFault.get("value");
+        try {
+            if (byzantineFault.has("type") && byzantineFault.has("value")) {
+                ByzantineFaultType<?> byzantineFaultType = (ByzantineFaultType<?>) byzantineFault.get("type");
+                Object value = byzantineFault.get("value");
 
-            // Cast the byzantineFaultValue to the correct type.
-            value = byzantineFaultType.cast(value);
+                // Cast the byzantineFaultValue to the correct type.
+                value = byzantineFaultType.cast(value);
 
-            logger.log(Level.INFO, logPrefix + "byzantineFaultType: " + byzantineFaultType);
-            logger.log(Level.INFO, logPrefix + "byzantineFaultValue: " + value);
+                logger.log(Level.INFO, logPrefix + "byzantineFaultType: " + byzantineFaultType);
+                logger.log(Level.INFO, logPrefix + "byzantineFaultValue: " + value);
 
-            String sByzantineFaultValue = value != null ? value.toString() : "null";
+                String sByzantineFaultValue = value != null ? value.toString() : "null";
 
-            // Notify Filibuster.
-            filibusterClientInstrumentor.afterInvocationWithByzantineFault(sByzantineFaultValue, byzantineFaultType.toString(), null);
+                // Notify Filibuster.
+                filibusterClientInstrumentor.afterInvocationWithByzantineFault(sByzantineFaultValue, byzantineFaultType.toString(), null);
 
-            return value;
-        } else {
-            logger.log(Level.WARNING, logPrefix + "The byzantineFault either does not have the required key 'type' or 'metadata'");
-            return null;
+                return value;
+            } else {
+                String missingKey;
+                if (byzantineFault.has("type")) {
+                    missingKey = "value";
+                } else {
+                    missingKey = "type";
+                }
+                throw new FilibusterFaultInjectionException("injectByzantineFault: The byzantineFault does not have the required key " + missingKey);
+            }
+        } catch (Exception e) {
+            throw new FilibusterFaultInjectionException("Could not inject byzantine fault. The cast was probably not successful:", e);
         }
     }
 
@@ -222,7 +231,7 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
                 break;
             case "software.amazon.awssdk.services.dynamodb.model.RequestLimitExceededException":
                 exceptionToThrow = RequestLimitExceededException.builder().message(causeString).statusCode(Integer.parseInt(codeString))
-                        .requestId(UUID.randomUUID().toString().replace("-","").toUpperCase(Locale.ROOT)).build();
+                        .requestId(UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT)).build();
                 break;
             default:
                 throw new FilibusterFaultInjectionException("Cannot determine the execution cause to throw: " + causeString);

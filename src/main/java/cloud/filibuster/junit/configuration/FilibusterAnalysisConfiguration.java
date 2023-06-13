@@ -1,7 +1,7 @@
 package cloud.filibuster.junit.configuration;
 
 import cloud.filibuster.instrumentation.datatypes.Pair;
-import cloud.filibuster.junit.configuration.examples.redis.byzantine.transformers.ByzantineTransformer;
+import cloud.filibuster.junit.server.core.transformers.ByzantineTransformer;
 import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineFaultType;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import org.json.JSONObject;
@@ -173,7 +173,7 @@ public class FilibusterAnalysisConfiguration {
         }
 
         @CanIgnoreReturnValue
-        public Builder byzantineTransformer(Class<? extends ByzantineTransformer<?, ?>> transformer) {
+        public Builder byzantineTransformer(Class<? extends ByzantineTransformer<?>> transformer) {
             JSONObject byzantineTransformer = new JSONObject();
             byzantineTransformer.put("transformer", transformer);
             byzantineTransformer.put("transformerClassName", transformer.getName());

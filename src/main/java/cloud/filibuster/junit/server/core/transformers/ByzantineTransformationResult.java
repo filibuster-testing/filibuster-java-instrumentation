@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.configuration.examples.redis.byzantine.transformers;
+package cloud.filibuster.junit.server.core.transformers;
 
 import org.json.JSONObject;
 

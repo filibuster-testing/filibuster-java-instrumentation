@@ -18,6 +18,7 @@ public class RedisSingleGetBasicStringByzantineFaultAnalysisConfigurationFile im
 
         String[] possibleValues = {null, ""};
         for (String value : possibleValues) {
+            // Communicate the byzantine fault type and value to the analysis configuration builder
             filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(new ByzantineStringFaultType(), value);
         }
 

@@ -16,7 +16,6 @@ public class RedisSingleGetStringByzantineFaultAnalysisConfigurationFile impleme
                 .pattern("io.lettuce.core.api.sync.RedisStringCommands/get\\b");
 
 
-        // Potentially use junit-quickcheck to generate the possible values -> Would make the tests more "flaky"
         String[] possibleValues = {null, "123", "", "abcd", "-123ABC", "ThisIsATestString"};
         for (String value : possibleValues) {
             filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(new ByzantineStringFaultType(), value);

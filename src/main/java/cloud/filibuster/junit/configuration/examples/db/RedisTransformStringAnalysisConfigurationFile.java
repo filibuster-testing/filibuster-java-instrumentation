@@ -1,9 +1,9 @@
-package cloud.filibuster.junit.configuration.examples.redis.byzantine;
+package cloud.filibuster.junit.configuration.examples.db;
 
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
-import cloud.filibuster.junit.configuration.examples.redis.byzantine.transformers.ByzantineStringTransformer;
+import cloud.filibuster.junit.server.core.transformers.ByzantineStringTransformer;
 
 public class RedisTransformStringAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
@@ -12,7 +12,7 @@ public class RedisTransformStringAnalysisConfigurationFile implements Filibuster
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
-                .name("java.byzantine.transform_string")
+                .name("java.byzantine.transform_string.redis")
                 .pattern("io.lettuce.core.api.sync.RedisStringCommands/get\\b");
 
         filibusterAnalysisConfigurationBuilderRedisExceptions.byzantineTransformer(ByzantineStringTransformer.class);

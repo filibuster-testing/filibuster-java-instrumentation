@@ -222,6 +222,8 @@ final public class FilibusterClientInstrumentor {
     @Nullable
     private DistributedExecutionIndex preliminaryDistributedExecutionIndex;
 
+    @Nullable String rpcType;
+
     final private static String filibusterServiceName = "filibuster-instrumentation";
 
     /**
@@ -312,6 +314,10 @@ final public class FilibusterClientInstrumentor {
 
             FilibusterClientInstrumentor.setDistributedExecutionIndexForRequestId(serviceName, getRequestId(), incrementedDistributedExecutionIndex);
         }
+    }
+
+    public void setRpcType(@Nullable String rpcType) {
+        this.rpcType = rpcType;
     }
 
     /**

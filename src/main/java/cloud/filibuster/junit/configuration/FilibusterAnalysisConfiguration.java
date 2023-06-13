@@ -91,6 +91,10 @@ public class FilibusterAnalysisConfiguration {
         return this.latencyFaultObjects;
     }
 
+    public boolean hasType() {
+        return this.type != null;
+    }
+
     public boolean isPatternMatch(String matchString) {
         Pattern pattern = Pattern.compile(this.pattern, Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(matchString);
@@ -98,7 +102,7 @@ public class FilibusterAnalysisConfiguration {
     }
 
     public boolean isTypeMatch(String typeMatch) {
-        return typeMatch.equals(type);
+        return typeMatch.equals(this.type);
     }
 
     public Map.Entry<String, JSONObject> toJSONPair() {

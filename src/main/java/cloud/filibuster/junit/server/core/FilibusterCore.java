@@ -683,6 +683,7 @@ public class FilibusterCore {
                         }
                     }
                 } catch (RuntimeException e) {
+                    logger.warning("[FILIBUSTER-CORE]: analysisFile, could not process byzantine fault object.");
                     throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: analysisFile, could not process byzantine fault object.", e);
                 }
             }
@@ -713,6 +714,7 @@ public class FilibusterCore {
                         }
                     }
                 } catch (RuntimeException e) {
+                    logger.warning("[FILIBUSTER-CORE]: analysisFile, could not process transformer byzantine fault object.");
                     throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: analysisFile, could not process transformer byzantine fault object.", e);
                 }
             }
@@ -839,7 +841,8 @@ public class FilibusterCore {
                     }
 
                     if (refResponseValue == null) {
-                        throw new FilibusterFaultInjectionException("refResponseValue is null.");
+                        logger.warning("[FILIBUSTER-CORE]: getByzantineTransformationResult, refResponseValue is null.");
+                        throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: getByzantineTransformationResult, refResponseValue is null.");
                     }
 
                     // Get transformer class from transformerBF JSONObject.
@@ -861,14 +864,16 @@ public class FilibusterCore {
 
                     return transformationResult;
                 } else {
-                    throw new FilibusterFaultInjectionException("refResponse is null.");
+                    logger.warning("[FILIBUSTER-CORE]: getByzantineTransformationResult, refResponse is null.");
+                    throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: getByzantineTransformationResult, refResponse is null.");
                 }
             } else {
-                throw new FilibusterFaultInjectionException("currentAbstractTestExecution or currentAbstractTestExecution.getCompletedSourceConcreteTestExecution() is null.");
+                logger.warning("[FILIBUSTER-CORE]: getByzantineTransformationResult, currentAbstractTestExecution or currentAbstractTestExecution.getCompletedSourceConcreteTestExecution() is null.");
+                throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: getByzantineTransformationResult, currentAbstractTestExecution or currentAbstractTestExecution.getCompletedSourceConcreteTestExecution() is null.");
             }
         } catch (Exception e) {
-            logger.warning("[FILIBUSTER-CORE]: An exception occurred in getTransformerByzantineValue: " + e);
-            throw new FilibusterFaultInjectionException("An exception occurred in getTransformerByzantineValue: " + e);
+            logger.warning("[FILIBUSTER-CORE]: getByzantineTransformationResult, an exception occurred in getTransformerByzantineValue: " + e);
+            throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: getByzantineTransformationResult, an exception occurred in getTransformerByzantineValue: " + e);
         }
     }
 

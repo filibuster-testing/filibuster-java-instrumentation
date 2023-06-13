@@ -214,9 +214,11 @@ public class RedisInterceptor<T> implements MethodInterceptor {
                 } else {
                     missingKey = "value";
                 }
+                logger.log(Level.WARNING, logPrefix + "injectTransformerByzantineFault: The byzantineFault does not have the required key " + missingKey);
                 throw new FilibusterFaultInjectionException("injectTransformerByzantineFault: The byzantineFault does not have the required key " + missingKey);
             }
         } catch (RuntimeException e) {
+            logger.log(Level.WARNING, logPrefix + "Could not inject byzantine fault. The cast was probably not successful:", e);
             throw new FilibusterFaultInjectionException("Could not inject byzantine fault. The cast was probably not successful:", e);
         }
     }
@@ -247,9 +249,11 @@ public class RedisInterceptor<T> implements MethodInterceptor {
                 } else {
                     missingKey = "type";
                 }
+                logger.log(Level.WARNING, logPrefix + "The byzantineFault does not have the required key " + missingKey);
                 throw new FilibusterFaultInjectionException("injectByzantineFault: The byzantineFault does not have the required key " + missingKey);
             }
         } catch (RuntimeException e) {
+            logger.log(Level.WARNING, logPrefix + "Could not inject byzantine fault. The cast was probably not successful:", e);
             throw new FilibusterFaultInjectionException("Could not inject byzantine fault. The cast was probably not successful:", e);
         }
     }

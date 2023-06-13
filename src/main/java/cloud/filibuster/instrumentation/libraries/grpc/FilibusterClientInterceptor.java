@@ -278,6 +278,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                     // Record invocation.
                     // ******************************************************************************************
 
+                    filibusterClientInstrumentor.setRpcType("grpc"); // TODO: enum?
                     filibusterClientInstrumentor.beforeInvocation();
 
                     // ******************************************************************************************

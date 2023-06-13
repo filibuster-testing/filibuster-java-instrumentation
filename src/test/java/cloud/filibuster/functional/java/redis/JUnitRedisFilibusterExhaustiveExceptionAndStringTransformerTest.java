@@ -5,7 +5,7 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.db.redis.RedisTransformStringAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.db.redis.RedisExhaustiveExceptionAndTransformerAnalysisConfigurationFile;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import org.junit.jupiter.api.BeforeAll;
@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("unchecked")
-public class JUnitRedisFilibusterStringTransformerTest extends JUnitAnnotationBaseTest {
+public class JUnitRedisFilibusterExhaustiveExceptionAndStringTransformerTest extends JUnitAnnotationBaseTest {
     static final String key = "test";
     static final String value = "example";
     static StatefulRedisConnection<String, String> statefulRedisConnection;
@@ -38,30 +38,38 @@ public class JUnitRedisFilibusterStringTransformerTest extends JUnitAnnotationBa
     private static int numberOfTestExecutions = 0;
 
     @BeforeAll
-    public static void primeCache() {
+    public static void beforeAll() {
         statefulRedisConnection = RedisClientService.getInstance().redisClient.connect();
         redisConnectionString = RedisClientService.getInstance().connectionString;
-        statefulRedisConnection.sync().set(key, value);
     }
 
-    @DisplayName("Tests whether Redis sync interceptor can read from existing key - String transformer BFI.")
+    @DisplayName("Tests whether Redis sync interceptor can read from existing key - Exhaustive Exception and String transformer BFI.")
     @Order(1)
-    @TestWithFilibuster(analysisConfigurationFile = RedisTransformStringAnalysisConfigurationFile.class)
+    @TestWithFilibuster(analysisConfigurationFile = RedisExhaustiveExceptionAndTransformerAnalysisConfigurationFile.class)
     public void testRedisStringTransformation() {
         try {
             numberOfTestExecutions++;
 
             StatefulRedisConnection<String, String> myStatefulRedisConnection = new RedisInterceptorFactory<>(statefulRedisConnection, redisConnectionString).getProxy(StatefulRedisConnection.class);
             RedisCommands<String, String> myRedisCommands = myStatefulRedisConnection.sync();
+
+            myRedisCommands.set(key, value);
             String returnVal = myRedisCommands.get(key);
             assertEquals(value, returnVal);
+
+            myRedisCommands.set(value, key);
+            returnVal = myRedisCommands.get(value);
+            assertEquals(key, returnVal);
+
             assertFalse(wasFaultInjected());
         } catch (Throwable t) {
             testExceptionsThrown.add(t.getMessage());
 
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
             assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService("io.lettuce.core.api.sync.RedisStringCommands"), "Expected FilibusterUnsupportedAPIException to be thrown: " + t);
-            assertTrue(wasFaultInjectedOnMethod("io.lettuce.core.api.sync.RedisStringCommands/get"), "Fault was not injected on the expected Redis method: " + t);
+            assertTrue(wasFaultInjectedOnMethod("io.lettuce.core.api.sync.RedisStringCommands/get") ||
+                    wasFaultInjectedOnMethod("io.lettuce.core.api.sync.RedisStringCommands/set"),
+                    "Fault was not injected on the expected Redis method: " + t);
         }
     }
 

@@ -1,5 +1,6 @@
 {"java.grpc": {
     "pattern": "(.*/.*)",
+    "type": "grpc",
     "exceptions": [
         {
             "metadata": {

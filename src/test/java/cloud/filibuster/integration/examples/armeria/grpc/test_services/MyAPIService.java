@@ -19,7 +19,9 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.StatefulRedisConnection;
+import org.json.JSONObject;
 
+import java.text.DecimalFormat;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -200,7 +202,8 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     }
 
     @Override
-    public void purchase(Hello.PurchaseRequest req, StreamObserver<Hello.PurchaseResponse> responseObserver) {
+    @SuppressWarnings("unchecked") // TODO: How can we avoid this?
+    public void simulatePurchase(Hello.PurchaseRequest req, StreamObserver<Hello.PurchaseResponse> responseObserver) {
         // Open channel to the user service.
         ManagedChannel originalChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("mock"), Networking.getPort("mock"))
@@ -213,26 +216,110 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         getUserFromSession(channel, req.getSessionId());
 
         // Make call to get the user, again.
-        getUserFromSession(channel, req.getSessionId());
+        String userId = getUserFromSession(channel, req.getSessionId());
 
         // Get cart
-        String cartId = getCartFromSession(channel, req.getSessionId());
+        Hello.GetCartResponse getCartResponse = getCartFromSession(channel, req.getSessionId());
+        String cartId = getCartResponse.getCartId();
+        float cartTotal = Float.parseFloat(getCartResponse.getTotal());
 
         // Make call to get the user, again.
         getUserFromSession(channel, req.getSessionId());
 
         // Set discount.
         try {
-            setDiscountOnCart(channel, cartId);
+            Hello.SetDiscountResponse setDiscountResponse = setDiscountOnCart(channel, cartId);
+            float discountPercentage = Float.parseFloat(setDiscountResponse.getPercent());
+            cartTotal = cartTotal - (cartTotal * discountPercentage);
         } catch (StatusRuntimeException e) {
             // Nothing, ignore discount failure.
         }
+
+        DecimalFormat df = new DecimalFormat();
+        df.setMaximumFractionDigits(2);
+        df.setMinimumFractionDigits(2);
+        String sCartTotal = df.format(cartTotal);
 
         // Make call to get the user, again.
         getUserFromSession(channel, req.getSessionId());
 
         // Assemble response.
-        Hello.PurchaseResponse purchaseResponse = Hello.PurchaseResponse.newBuilder().setSuccess(true).build();
+        Hello.PurchaseResponse purchaseResponse = Hello.PurchaseResponse.newBuilder().setSuccess(true).setTotal(sCartTotal).build();
+        responseObserver.onNext(purchaseResponse);
+        responseObserver.onCompleted();
+
+        // Teardown the channel.
+        originalChannel.shutdownNow();
+        try {
+            while (!originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+                Thread.sleep(4000);
+            }
+        } catch (InterruptedException ie) {
+            logger.log(Level.SEVERE, "Failed to terminate channel: " + ie);
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked") // TODO: How can we avoid this?
+    public void purchase(Hello.PurchaseRequest req, StreamObserver<Hello.PurchaseResponse> responseObserver) {
+        // Open channel to the user service.
+        ManagedChannel originalChannel = ManagedChannelBuilder
+                .forAddress(Networking.getHost("mock"), Networking.getPort("mock"))
+                .usePlaintext()
+                .build();
+        ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("api_server");
+        Channel channel = ClientInterceptors.intercept(originalChannel, clientInterceptor);
+
+        // Open Redis channel.
+        RedisClientService redisClient = RedisClientService.getInstance();
+        StatefulRedisConnection<String, String> connection = (StatefulRedisConnection<String, String>) new RedisInterceptorFactory<>(redisClient.redisClient.connect(), redisClient.connectionString).getProxy(StatefulRedisConnection.class);
+
+        // Make call to get the user.
+        getUserFromSession(channel, req.getSessionId());
+
+        // Make call to get the user, again.
+        String userId = getUserFromSession(channel, req.getSessionId());
+
+        // Get cart
+        Hello.GetCartResponse getCartResponse = getCartFromSession(channel, req.getSessionId());
+        String cartId = getCartResponse.getCartId();
+        float cartTotal = Float.parseFloat(getCartResponse.getTotal());
+
+        // Make call to get the user, again.
+        getUserFromSession(channel, req.getSessionId());
+
+        // Set discount.
+        try {
+            Hello.SetDiscountResponse setDiscountResponse = setDiscountOnCart(channel, cartId);
+            float discountPercentage = Float.parseFloat(setDiscountResponse.getPercent());
+            cartTotal = cartTotal - (cartTotal * discountPercentage);
+        } catch (StatusRuntimeException e) {
+            // Nothing, ignore discount failure.
+        }
+
+        DecimalFormat df = new DecimalFormat();
+        df.setMaximumFractionDigits(2);
+        df.setMinimumFractionDigits(2);
+        String sCartTotal = df.format(cartTotal);
+
+        // Make call to get the user, again.
+        getUserFromSession(channel, req.getSessionId());
+
+        // Write record to Redis.
+        try {
+            JSONObject redisRecord = new JSONObject();
+            redisRecord.put("purchased", true);
+            redisRecord.put("user_id", userId);
+            redisRecord.put("cart_id", cartId);
+            redisRecord.put("total", sCartTotal);
+            connection.sync().set("purchased", redisRecord.toString(4));
+        } catch (StatusRuntimeException e) {
+            Status status = Status.ABORTED.withDescription(e.toString());
+            responseObserver.onError(status.asRuntimeException());
+        }
+
+        // Assemble response.
+        Hello.PurchaseResponse purchaseResponse = Hello.PurchaseResponse.newBuilder().setSuccess(true).setTotal(sCartTotal).build();
         responseObserver.onNext(purchaseResponse);
         responseObserver.onCompleted();
 
@@ -254,18 +341,16 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         return response.getUserId();
     }
 
-    private static String getCartFromSession(Channel channel, String sessionId) {
+    private static Hello.GetCartResponse getCartFromSession(Channel channel, String sessionId) {
         CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
         Hello.GetCartRequest request = Hello.GetCartRequest.newBuilder().setSessionId(sessionId).build();
-        Hello.GetCartResponse response = cartServiceBlockingStub.getCartForSession(request);
-        return response.getCartId();
+        return cartServiceBlockingStub.getCartForSession(request);
     }
 
-    private static void setDiscountOnCart(Channel channel, String cartId) {
+    private static Hello.SetDiscountResponse setDiscountOnCart(Channel channel, String cartId) {
         CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
         Hello.SetDiscountRequest request = Hello.SetDiscountRequest.newBuilder().setCartId(cartId).build();
-        Hello.SetDiscountResponse response = cartServiceBlockingStub.setDiscountOnCart(request);
-        return;
+        return cartServiceBlockingStub.setDiscountOnCart(request);
     }
 
 }

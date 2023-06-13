@@ -827,7 +827,9 @@ public class FilibusterCore {
             ByzantineTransformationResult<T> transformationResult = new ByzantineTransformationResult<>();
 
             if (currentAbstractTestExecution != null && currentAbstractTestExecution.getCompletedSourceConcreteTestExecution() != null) {
-                // Get response object from reference execution in currentAbstractTestExecution.
+                // Get response object from last execution in currentAbstractTestExecution.
+                // Last execution is either the reference run or the last byzantine execution.
+                // In case it was the last byzantine execution, its accumulator would contain the original value from the reference run.
                 JSONObject refResponse = currentAbstractTestExecution.getCompletedSourceConcreteTestExecution().getTestExecutionReport().getResponseObject(distributedExecutionIndex);
                 // Get response value from refResponse object.
                 String refResponseValue = null;

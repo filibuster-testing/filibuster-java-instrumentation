@@ -276,13 +276,43 @@
                     if (rpc.group !== group) {
                         group = rpc.group;
 
-                        var row = "";
-                        row += "<tr>";
-                        row += "<td colspan=4>";
-                        row += "<span>Assertion Block: " + rpc.group.replace("TestScope+", "").replace("[", "").replace("]", "");
-                        row += "</td>";
-                        row += "</tr>";
-                        $('#rpcs').append(row);
+                        if (group.includes("TestScope")) {
+                            var groupWithoutPrefix = group.replace("TestScope+", "").replace("[", "").replace("]", "");
+                            var groupArray = groupWithoutPrefix.split("+");
+                            var groupNumber = groupArray[0];
+                            var groupType = groupArray[1].toLowerCase();
+                            var normalizedGroupType = groupType.charAt(0).toUpperCase() + groupType.slice(1);
+
+                            var row = "";
+                            row += "<tr>";
+                            row += "<td colspan=4>";
+                            row += "<span>";
+                            row += normalizedGroupType + " Block";
+                            row += "</span>";
+                            row += "</td>";
+                            row += "</tr>";
+                            $('#rpcs').append(row);
+
+                            var row = "";
+                            row += '<tr class="debug">';
+                            row += '<td class="right">🐞</td>';
+                            row += '<td colspan="3" class="warning" style="vertical-align: middle; text-align: left">';
+                            row += '<span style="font-weight: bold">Assertion Block ' + groupNumber + '</span>';
+                            row += '</td>';
+                            row += '</tr>';
+                            $('#rpcs').append(row);
+                        } else {
+                            var row = "";
+                            row += "<tr>";
+                            row += "<td colspan=4>";
+                            row += "<span>";
+                            row += '<span>Test Block: ' + rpc.group + '</span>';
+                            row += "</span>";
+                            row += "</td>";
+                            row += "</tr>";
+                            $('#rpcs').append(row);
+                        }
+                    }
 
                     if (rpc.cached) {
                         numCached++;

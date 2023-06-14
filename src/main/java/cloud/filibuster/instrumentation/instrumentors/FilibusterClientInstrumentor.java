@@ -831,6 +831,8 @@ final public class FilibusterClientInstrumentor {
             invocationCompletePayload.put("execution_index", distributedExecutionIndex.toString());
             invocationCompletePayload.put("vclock", vectorClock.toJSONObject());
             invocationCompletePayload.put("exception", exception);
+            invocationCompletePayload.put("module", callsite.getClassOrModuleName());
+            invocationCompletePayload.put("method", callsite.getMethodOrFunctionName());
 
             if (preliminaryDistributedExecutionIndex != null) {
                 invocationCompletePayload.put("preliminary_execution_index", preliminaryDistributedExecutionIndex.toString());
@@ -868,6 +870,8 @@ final public class FilibusterClientInstrumentor {
             invocationCompletePayload.put("execution_index", distributedExecutionIndex.toString());
             invocationCompletePayload.put("vclock", vectorClock.toJSONObject());
             invocationCompletePayload.put("byzantine_fault", byzantineFault);
+            invocationCompletePayload.put("module", callsite.getClassOrModuleName());
+            invocationCompletePayload.put("method", callsite.getMethodOrFunctionName());
 
             if (preliminaryDistributedExecutionIndex != null) {
                 invocationCompletePayload.put("preliminary_execution_index", preliminaryDistributedExecutionIndex.toString());

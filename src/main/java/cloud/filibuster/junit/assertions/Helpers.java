@@ -56,7 +56,7 @@ public class Helpers {
 
         if (getServerBackendCanInvokeDirectlyProperty()) {
             if (FilibusterCore.hasCurrentInstance()) {
-                FilibusterCore.getCurrentInstance().incrementTestScopeCounter();
+                FilibusterCore.getCurrentInstance().incrementTestScopeCounter(blockType);
             } else {
                 throw new FilibusterUnsupportedAPIException("Unable to execute test; @TestWithFilibuster was used but no instance of Core could be found.");
             }

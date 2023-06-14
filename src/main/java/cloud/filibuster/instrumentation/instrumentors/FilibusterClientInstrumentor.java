@@ -898,6 +898,8 @@ final public class FilibusterClientInstrumentor {
             returnValue.put("__class__", className);
 
             for (Map.Entry<String, String> entry : returnValueProperties.entrySet()) {
+                // JSONObject does not allow null values.
+                // If the value in the HashMap is null, we need to put in JSONObject.NULL instead of null.
                 returnValue.put(entry.getKey(), entry.getValue() == null ? JSONObject.NULL : entry.getValue());
             }
 

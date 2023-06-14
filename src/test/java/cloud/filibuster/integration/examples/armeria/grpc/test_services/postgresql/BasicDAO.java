@@ -227,6 +227,16 @@ public class BasicDAO {
     }
 
     /**
+     * Delete account by UUID.
+     *
+     * @param account (UUID)
+     */
+    public void deleteAccount(UUID account) {
+        Object[] removeArgs = {account};
+        runSQL("DELETE FROM accounts WHERE id = ?", removeArgs);
+    }
+
+    /**
      * Transfer funds between one account and another.  Handles
      * transaction retries in case of conflict automatically on the
      * backend.

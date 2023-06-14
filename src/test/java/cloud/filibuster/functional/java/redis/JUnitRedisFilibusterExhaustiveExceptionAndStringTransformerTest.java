@@ -23,6 +23,7 @@ import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -61,6 +62,12 @@ public class JUnitRedisFilibusterExhaustiveExceptionAndStringTransformerTest ext
             returnVal = myRedisCommands.get(value);
             assertEquals(key, returnVal);
 
+            assertNull(myRedisCommands.get("NonexistentKey"));
+
+            myRedisCommands.set(key, "");
+            returnVal = myRedisCommands.get(key);
+            assertEquals("", returnVal);
+
             assertFalse(wasFaultInjected());
         } catch (Throwable t) {
             testExceptionsThrown.add(t.getMessage());
@@ -77,9 +84,9 @@ public class JUnitRedisFilibusterExhaustiveExceptionAndStringTransformerTest ext
     @Test
     @Order(2)
     public void testNumExecutions() {
-        // Reference execution + 2 RedisCommandTimeoutExceptions injected on set + 2 RedisCommandTimeoutExceptions injected on get
+        // Reference execution + 3 RedisCommandTimeoutExceptions injected on set + 4 RedisCommandTimeoutExceptions injected on get
         // + transformer BFI on "example" (7 chars) + transformer BFI on "test" (4 chars)
-        assertEquals(16, numberOfTestExecutions);
+        assertEquals(19, numberOfTestExecutions);
     }
 
     @DisplayName("Verify correct number of unique injected faults.")

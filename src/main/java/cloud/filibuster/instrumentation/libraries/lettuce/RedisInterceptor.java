@@ -168,6 +168,8 @@ public class RedisInterceptor<T> implements MethodInterceptor {
                 invocationResult = new RedisInterceptorFactory<>(invocationResult, redisConnectionString)
                         .getProxy(invocation.getMethod().getReturnType());
             }
+        } else {
+            returnValueProperties.put("toString", null);
         }
 
         filibusterClientInstrumentor.afterInvocationComplete(invocation.getMethod().getReturnType().getName(), returnValueProperties);

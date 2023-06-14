@@ -339,12 +339,70 @@ public class FilibusterCore {
 
         currentConcreteTestExecution.addDistributedExecutionIndexWithResponsePayload(distributedExecutionIndex, payload);
 
+        // Transformer byzantine faults are injected in the endInvocation since we need to know the response value.
+        checkForTransformerByzantineFaults(payload, distributedExecutionIndex);
+
         JSONObject response = new JSONObject();
         response.put("execution_index", payload.getString("execution_index"));
 
         logger.info("[FILIBUSTER-CORE]: endInvocation returning: " + response.toString(4));
 
         return response;
+    }
+
+    private void checkForTransformerByzantineFaults(JSONObject payload, DistributedExecutionIndex distributedExecutionIndex) {
+        boolean shouldGenerateNewAbstractExecutions;
+
+        if (currentAbstractTestExecution == null) {
+            // Initial execution.
+            shouldGenerateNewAbstractExecutions = true;
+        } else {
+            // ...or, we already scheduled the faults, so don't.
+            shouldGenerateNewAbstractExecutions = !currentAbstractTestExecution.sawInConcreteTestExecution(distributedExecutionIndex);
+        }
+
+        if (currentConcreteTestExecution == null) {
+            throw new FilibusterCoreLogicException("currentConcreteTestExecution should not be null at this point, something fatal occurred.");
+        }
+
+        boolean hasSeenRpcUnderSameOrDifferentDistributedExecutionIndex = currentConcreteTestExecution.hasSeenRpcUnderSameOrDifferentDistributedExecutionIndex(payload);
+
+        if (shouldGenerateNewAbstractExecutions && faultInjectionEnabled) {
+            if (filibusterConfiguration.getAvoidRedundantInjections()) {
+                if (!hasSeenRpcUnderSameOrDifferentDistributedExecutionIndex) {
+                    scheduleTransformerByzantineFault(payload, distributedExecutionIndex);
+                }
+            } else {
+                scheduleTransformerByzantineFault(payload, distributedExecutionIndex);
+            }
+        }
+    }
+
+    private void scheduleTransformerByzantineFault(JSONObject payload, DistributedExecutionIndex distributedExecutionIndex) {
+        String moduleName = payload.getString("module");
+        String methodName = payload.getString("method");
+
+        if (filibusterCustomAnalysisConfigurationFile != null) {
+            for (FilibusterAnalysisConfiguration filibusterAnalysisConfiguration : filibusterCustomAnalysisConfigurationFile.getFilibusterAnalysisConfigurations()) {
+                // Second check here (concat) is a legacy check for the old Python server compatibility.
+                if (filibusterAnalysisConfiguration.isPatternMatch(methodName) || filibusterAnalysisConfiguration.isPatternMatch(moduleName + "." + methodName)) {
+                    // Transformer Byzantine faults
+                    List<JSONObject> transformerByzantineFaults = filibusterAnalysisConfiguration.getTransformerByzantineFaultObjects();
+
+                    for (JSONObject transformerBF : transformerByzantineFaults) {
+                        // Only schedule a byzantine transformer fault if the return value has a string representation
+                        // with length > 0.
+                        // Conversely, if the return value is null or an empty string, we should not schedule a byzantine transformer fault.
+                        if (payload.has("return_value")
+                                && payload.getJSONObject("return_value").has("toString")
+                                && !payload.getJSONObject("return_value").get("toString").toString().isEmpty()
+                                && !payload.getJSONObject("return_value").get("toString").equals(JSONObject.NULL)) {
+                            createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, transformerBF, /* isTransformedByzantineFault= */true);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // Is this the first time that we are seeing an RPC from this service?
@@ -809,12 +867,6 @@ public class FilibusterCore {
                         createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject, /* isTransformedByzantineFault= */false);
                     }
 
-                    // Transformer Byzantine faults
-                    List<JSONObject> transformerByzantineFaults = filibusterAnalysisConfiguration.getTransformerByzantineFaultObjects();
-
-                    for (JSONObject transformerBF : transformerByzantineFaults) {
-                        createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, transformerBF, /* isTransformedByzantineFault= */false);
-                    }
                 }
             }
         }

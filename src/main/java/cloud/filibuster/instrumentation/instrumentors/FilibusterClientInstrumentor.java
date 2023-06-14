@@ -897,8 +897,8 @@ final public class FilibusterClientInstrumentor {
 
             returnValue.put("__class__", className);
 
-            for (Map.Entry<String,String> entry : returnValueProperties.entrySet()) {
-                returnValue.put(entry.getKey(), entry.getValue());
+            for (Map.Entry<String, String> entry : returnValueProperties.entrySet()) {
+                returnValue.put(entry.getKey(), entry.getValue() == null ? JSONObject.NULL : entry.getValue());
             }
 
             JSONObject invocationCompletePayload = new JSONObject();
@@ -907,6 +907,8 @@ final public class FilibusterClientInstrumentor {
             invocationCompletePayload.put("execution_index", distributedExecutionIndex.toString());
             invocationCompletePayload.put("vclock", getVectorClock().toJSONObject());
             invocationCompletePayload.put("return_value", returnValue);
+            invocationCompletePayload.put("module", callsite.getClassOrModuleName());
+            invocationCompletePayload.put("method", callsite.getMethodOrFunctionName());
 
             if (preliminaryDistributedExecutionIndex != null) {
                 invocationCompletePayload.put("preliminary_execution_index", preliminaryDistributedExecutionIndex.toString());

@@ -7,6 +7,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.exceptions.filibuster.FilibusterLatencyInjectionException;
 import cloud.filibuster.instrumentation.helpers.Property;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
+import cloud.filibuster.junit.assertions.BlockType;
 import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineFaultType;
 import cloud.filibuster.junit.server.core.reports.TestSuiteReport;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
@@ -168,12 +169,27 @@ public class FilibusterCore {
         }
     }
 
+    public synchronized void incrementTestScopeCounter(BlockType blockType) {
+        if (currentConcreteTestExecution != null) {
+            currentConcreteTestExecution.incrementTestScopeCounter(blockType);
+        }
+    }
+
+
     public synchronized int getTestScopeCounter() {
         if (currentConcreteTestExecution != null) {
             return currentConcreteTestExecution.getTestScopeCounter();
         }
 
         return 0;
+    }
+
+    public synchronized BlockType getLastTestScopeBlockType() {
+        if (currentConcreteTestExecution != null) {
+            return currentConcreteTestExecution.getLastTestScopeBlockType();
+        }
+
+        return BlockType.DEFAULT;
     }
 
     // RPC hooks.

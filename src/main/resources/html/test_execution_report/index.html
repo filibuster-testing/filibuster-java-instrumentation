@@ -407,7 +407,7 @@
                             row += '<td>';
                             row += '<div class="class_name">' + substringNamespace(rpc.response.byzantine_fault.type) + '</div>';
                             row += '<textarea>';
-                            row += '\naccumulator = ' + JSON.stringify(rpc.response.byzantine_fault.accumulator);
+                            row += '\naccumulator = ' + JSON.stringify(JSON.parse(rpc.response.byzantine_fault.accumulator));
                             row += '</textarea>';
                             row += '</td>';
                         }

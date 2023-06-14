@@ -401,8 +401,8 @@ public class FilibusterCore {
                     List<JSONObject> transformerByzantineFaults = filibusterAnalysisConfiguration.getTransformerByzantineFaultObjects();
 
                     for (JSONObject transformerBF : transformerByzantineFaults) {
-                        if (transformerBF.has("transformer_byzantine_fault") &&
-                                payload.has("return_value")
+                        if (transformerBF.has("transformer_byzantine_fault")
+                                && payload.has("return_value")
                                 && payload.getJSONObject("return_value").has("toString")
                                 && !payload.getJSONObject("return_value").get("toString").toString().isEmpty()
                                 && !payload.getJSONObject("return_value").get("toString").equals(JSONObject.NULL)) {
@@ -412,7 +412,7 @@ public class FilibusterCore {
                                             payload.getJSONObject("return_value").get("toString").toString()
                                     )
                             );
-                            createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, transformerBF, /* isTransformedByzantineFault= */true);
+                            createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, new JSONObject(transformerBF.toMap()), /* isTransformedByzantineFault= */true);
                         }
                     }
 

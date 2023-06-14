@@ -190,21 +190,13 @@
             var sidebarIFrame = '<iframe frameborder="0" marginwidth="0" marginheight="0" scrolling="auto" src="./sidebar.html" class="sidebar" name="test_sidebar_frame"></iframe>';
             $('#sidebar').html(sidebarIFrame);
 
-            if (summary.iterations_remaining > 0 || summary.num_bypassed_executions > 0) {
-                if (summary.iterations_remaining > 0) {
-                    $('#report_warning').append('️<span class="warning">️⚠️ ' + summary.iterations_remaining + ' or more iterations remain, perhaps try increasing max iterations and re-running test.</span>');
-                }
-
-                if (summary.num_bypassed_executions > 0) {
-                    $('#report_warning').append('️<span class="warning">️⚠️ ' + summary.num_bypassed_executions + ' generated test executions were bypassed due to Filibuster configuration.</span>');
-                }
-
+            if (summary.num_bypassed_executions > 0) {
+                $('#report_warning').append('️<span class="warning">️⚠️ ' + summary.num_bypassed_executions + ' generated test executions were bypassed due to Filibuster configuration.</span>');
                 $('#report_warning').show();
             }
 
             for (i in summary.reports) {
                 var report = summary.reports[i];
-                var row = '';
 
                 if (report.iteration === 1) {
                     var resultsIFrame = '<iframe frameborder="0" marginwidth="0" marginheight="0" scrolling="auto" src="' + report.path + '" class="results" name="test_execution_frame"></iframe>';

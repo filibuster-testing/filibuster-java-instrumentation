@@ -339,8 +339,8 @@ public class FilibusterCore {
 
         currentConcreteTestExecution.addDistributedExecutionIndexWithResponsePayload(distributedExecutionIndex, payload);
 
-        // Transformer byzantine faults are injected in the endInvocation since we need to know the response value.
-        checkForTransformerByzantineFaults(payload, distributedExecutionIndex);
+        // Byzantine faults are injected in the endInvocation since we need to know the response value.
+        checkForByzantineFaults(payload, distributedExecutionIndex);
 
         JSONObject response = new JSONObject();
         response.put("execution_index", payload.getString("execution_index"));
@@ -350,7 +350,7 @@ public class FilibusterCore {
         return response;
     }
 
-    private void checkForTransformerByzantineFaults(JSONObject payload, DistributedExecutionIndex distributedExecutionIndex) {
+    private void checkForByzantineFaults(JSONObject payload, DistributedExecutionIndex distributedExecutionIndex) {
         boolean shouldGenerateNewAbstractExecutions;
 
         if (currentAbstractTestExecution == null) {
@@ -370,15 +370,15 @@ public class FilibusterCore {
         if (shouldGenerateNewAbstractExecutions && faultInjectionEnabled) {
             if (filibusterConfiguration.getAvoidRedundantInjections()) {
                 if (!hasSeenRpcUnderSameOrDifferentDistributedExecutionIndex) {
-                    scheduleTransformerByzantineFault(payload, distributedExecutionIndex);
+                    scheduleByzantineFault(payload, distributedExecutionIndex);
                 }
             } else {
-                scheduleTransformerByzantineFault(payload, distributedExecutionIndex);
+                scheduleByzantineFault(payload, distributedExecutionIndex);
             }
         }
     }
 
-    private void scheduleTransformerByzantineFault(JSONObject payload, DistributedExecutionIndex distributedExecutionIndex) {
+    private void scheduleByzantineFault(JSONObject payload, DistributedExecutionIndex distributedExecutionIndex) {
         String moduleName = payload.getString("module");
         String methodName = payload.getString("method");
 
@@ -399,6 +399,13 @@ public class FilibusterCore {
                                 && !payload.getJSONObject("return_value").get("toString").equals(JSONObject.NULL)) {
                             createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, transformerBF, /* isTransformedByzantineFault= */true);
                         }
+                    }
+
+                    // Byzantine faults
+                    List<JSONObject> byzantineFaultObjects = filibusterAnalysisConfiguration.getByzantineFaultObjects();
+
+                    for (JSONObject faultObject : byzantineFaultObjects) {
+                        createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject, /* isTransformedByzantineFault= */false);
                     }
                 }
             }
@@ -858,13 +865,6 @@ public class FilibusterCore {
                                 createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultTypeObject, /* isTransformedByzantineFault= */false);
                             }
                         }
-                    }
-
-                    // Byzantine faults
-                    List<JSONObject> byzantineFaultObjects = filibusterAnalysisConfiguration.getByzantineFaultObjects();
-
-                    for (JSONObject faultObject : byzantineFaultObjects) {
-                        createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject, /* isTransformedByzantineFault= */false);
                     }
 
                 }

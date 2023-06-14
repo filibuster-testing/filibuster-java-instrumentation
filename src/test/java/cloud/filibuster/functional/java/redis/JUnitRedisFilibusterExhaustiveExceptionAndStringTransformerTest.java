@@ -9,7 +9,6 @@ import cloud.filibuster.junit.configuration.examples.db.redis.RedisExhaustiveExc
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -30,7 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("unchecked")
-@Disabled
 public class JUnitRedisFilibusterExhaustiveExceptionAndStringTransformerTest extends JUnitAnnotationBaseTest {
     static final String key = "test";
     static final String value = "example";

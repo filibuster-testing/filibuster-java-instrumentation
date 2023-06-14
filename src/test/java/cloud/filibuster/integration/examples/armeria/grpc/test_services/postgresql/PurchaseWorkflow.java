@@ -35,6 +35,11 @@ public class PurchaseWorkflow {
         return dao.getAccountBalance(account);
     }
 
+    public static void deleteAccount(UUID account) {
+        BasicDAO dao = getCockroachDAO();
+        dao.deleteAccount(account);
+    }
+
     public static JSONObject getCacheObjectForUser(UUID consumer) {
         StatefulRedisConnection<String, String> connection = getRedisConnection();
         String redisValue = connection.sync().get(cacheKeyForConsumer(consumer.toString()));

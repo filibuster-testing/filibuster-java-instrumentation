@@ -327,7 +327,7 @@ public class TestHelper {
         return GrpcClients.builder(baseURI)
                 .serializationFormat(GrpcSerializationFormats.PROTO)
                 .responseTimeoutMillis(10000)
-                .decorator(delegate -> new FilibusterDecoratingHttpClient(delegate, serviceName, true));
+                .decorator(delegate -> new FilibusterDecoratingHttpClient(delegate, serviceName, /* grpcRpcType= */true));
     }
 
     public static void startAPIServerAndWaitUntilAvailable() throws InterruptedException, IOException {

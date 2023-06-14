@@ -157,8 +157,9 @@
 
 <body>
 <section style="margin: 0; padding: 0;">
-    <span style="float: right; display: inline; text-align: right; text-decoration: none; margin-bottom: 10px; margin-left: 10px;"><a style="text-decoration: none;" href="#" onClick="toggleCached();">💵</a></span>
-    <span style="float: right; display: inline; text-align: right; text-decoration: none; margin-bottom: 10px; margin-left: 10px;"><a style="text-decoration: none;" href="#" onClick="toggleDebug();">🐞</a></span>
+    <span style="float: right; display: inline; text-align: right; text-decoration: none; margin-bottom: 10px; margin-left: 10px; vertical-align: middle;"><a style="vertical-align: middle; text-decoration: none; color: black;" href="#" onClick="toggleWarnings();">⚠️ (<span style="font-size: 10px; color: black;" id="numWarnings">0</span>)</a></span>
+    <span style="float: right; display: inline; text-align: right; text-decoration: none; margin-bottom: 10px; margin-left: 10px; vertical-align: middle;"><a style="vertical-align: middle; text-decoration: none; color: black;" href="#" onClick="toggleCached();">💵 (<span style="font-size: 10px; color: black;" id="numCached">0</span>)</a></span>
+    <span style="float: right; display: inline; text-align: right; text-decoration: none; margin-bottom: 10px; margin-left: 10px; vertical-align: middle;"><a style="vertical-align: middle; text-decoration: none; color: black;" href="#" onClick="toggleDebug();">🐞</a></span>
 
     <!-- Assertion failure goes here. -->
     <div id="failure" style="display: none; margin: 0; padding: 0; width: 100%; font-size: 11px;">

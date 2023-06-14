@@ -1,12 +1,16 @@
 package cloud.filibuster.junit.server.core.transformers;
 
-import org.json.JSONObject;
+import javax.annotation.Nullable;
 
-import javax.annotation.Nonnull;
+public interface ByzantineTransformer<PAYLOAD, CONTEXT> {
+    ByzantineTransformer<PAYLOAD, CONTEXT> transform(PAYLOAD payload, @Nullable Accumulator<PAYLOAD, CONTEXT> accumulator);
 
-public interface ByzantineTransformer<PAYLOAD>  {
-    PAYLOAD transform(PAYLOAD payload, @Nonnull JSONObject accumulator);
-    JSONObject getNewAccumulator();
     boolean hasNext();
-    Class<PAYLOAD> getType();
+
+    Class<PAYLOAD> getPayloadType();
+    Class<CONTEXT> getCounterType();
+    PAYLOAD getResult();
+    Accumulator<PAYLOAD, CONTEXT> getAccumulator();
+    Accumulator<PAYLOAD, CONTEXT> getInitialAccumulator();
+    Accumulator<PAYLOAD, CONTEXT> getNextAccumulator();
 }

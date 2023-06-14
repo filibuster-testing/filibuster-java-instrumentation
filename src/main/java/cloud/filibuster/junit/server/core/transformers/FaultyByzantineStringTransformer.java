@@ -1,35 +1,37 @@
 package cloud.filibuster.junit.server.core.transformers;
 
-import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
-import org.json.JSONObject;
+import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-public class FaultyByzantineStringTransformer implements ByzantineTransformer<String> {
+public class FaultyByzantineStringTransformer implements ByzantineTransformer<String, Integer> {
     private boolean hasNext = true;
-    private JSONObject accumulator;
+    private String payload;
+    private Accumulator<String, Integer> accumulator;
 
     @Override
-    public String transform(String payload, @Nonnull JSONObject accumulator) {
-        int idx = extractIdxAndBuildAccumulator(payload, accumulator);
+    public FaultyByzantineStringTransformer transform(String payload, @Nullable Accumulator<String, Integer> accumulator) {
+        if (accumulator == null) {
+            accumulator = getInitialAccumulator();
+        }
+
+        int idx = accumulator.getContext();
 
         StringBuilder newString = new StringBuilder(payload);
-        newString.setCharAt(idx, 'X'); // Fault: Always insert the same char
+        newString.setCharAt(idx, generateRandomChar());
 
         if (idx == payload.length() - 1) {
             this.hasNext = false;
         }
 
-        return newString.toString();
+        this.payload = newString.toString();
+        this.accumulator = accumulator;
+
+        return this;
     }
 
-    @Override
-    public JSONObject getNewAccumulator() {
-        if (accumulator == null) {
-            throw new FilibusterRuntimeException("Accumulator is null. " +
-                    "Please call the transform method first.");
-        }
-        return accumulator;
+    private static char generateRandomChar() {
+        return 'X';  // Fault: always return 'X'
     }
 
     @Override
@@ -38,23 +40,45 @@ public class FaultyByzantineStringTransformer implements ByzantineTransformer<St
     }
 
     @Override
-    public Class<String> getType() {
+    public String getResult() {
+        if (this.payload == null) {
+            throw new FilibusterFaultInjectionException("getResult() called before transform()!");
+        }
+        return this.payload;
+    }
+
+    @Override
+    public Accumulator<String, Integer> getAccumulator() {
+        if (this.accumulator == null) {
+            return getInitialAccumulator();
+        }
+        return this.accumulator;
+    }
+
+    @Override
+    public Accumulator<String, Integer> getInitialAccumulator() {
+        Accumulator<String, Integer> accumulator = new Accumulator<>();
+        accumulator.setContext(0);
+        return accumulator;
+    }
+
+    @Override
+    public Accumulator<String, Integer> getNextAccumulator() {
+        if (accumulator == null) {
+            return getInitialAccumulator();
+        } else {
+            accumulator.setContext(accumulator.getContext()); // Fault: Do not increment counter
+            return accumulator;
+        }
+    }
+
+    @Override
+    public Class<String> getPayloadType() {
         return String.class;
     }
 
-    private int extractIdxAndBuildAccumulator(String payload, JSONObject accumulator) {
-        this.accumulator = accumulator;
-        int idx;
-        if (!accumulator.has("idx")) {
-            // If accumulator does not have an idx, it indicates that this is the first time the transform method is called.
-            // Hence, we set idx to 0. Payload is the original value from the reference execution.
-            idx = 0;
-            this.accumulator.put("originalValue", payload);
-        } else {
-            idx = accumulator.getInt("idx");  // Fault: Do not increment idx
-        }
-        this.accumulator.put("idx", idx);
-        return idx;
+    @Override
+    public Class<Integer> getCounterType() {
+        return Integer.class;
     }
-
 }

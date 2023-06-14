@@ -34,7 +34,6 @@ public class JUnitRedisFilibusterFaultyExhaustiveExceptionAndStringTransformerTe
     static StatefulRedisConnection<String, String> statefulRedisConnection;
     static String redisConnectionString;
     private final static Set<String> testExceptionsThrown = new HashSet<>();
-
     private static int numberOfTestExecutions = 0;
 
     @BeforeAll
@@ -52,8 +51,8 @@ public class JUnitRedisFilibusterFaultyExhaustiveExceptionAndStringTransformerTe
 
             StatefulRedisConnection<String, String> myStatefulRedisConnection = new RedisInterceptorFactory<>(statefulRedisConnection, redisConnectionString).getProxy(StatefulRedisConnection.class);
             RedisCommands<String, String> myRedisCommands = myStatefulRedisConnection.sync();
-
             myRedisCommands.set(key, value);
+
             String returnVal = myRedisCommands.get(key);
             assertEquals(value, returnVal);
 
@@ -64,7 +63,7 @@ public class JUnitRedisFilibusterFaultyExhaustiveExceptionAndStringTransformerTe
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
             assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService("io.lettuce.core.api.sync.RedisStringCommands"), "Expected FilibusterUnsupportedAPIException to be thrown: " + t);
             assertTrue(wasFaultInjectedOnMethod("io.lettuce.core.api.sync.RedisStringCommands/get") ||
-                    wasFaultInjectedOnMethod("io.lettuce.core.api.sync.RedisStringCommands/set"),
+                            wasFaultInjectedOnMethod("io.lettuce.core.api.sync.RedisStringCommands/set"),
                     "Fault was not injected on the expected Redis method: " + t);
         }
     }
@@ -73,21 +72,15 @@ public class JUnitRedisFilibusterFaultyExhaustiveExceptionAndStringTransformerTe
     @Test
     @Order(2)
     public void testNumExecutions() {
-        // The reference execution (test #1) determines that the get-method was called. The get-method returns a valid value
-        // (i.e., not null or the empty string). Test #1 schedules BFI Test #2. No accumulator has been created till this point.
-        // When test #2 is executed, an accumulator is created for the first time with idx = 0. Test #2 schedules test #3.
-        // Now the fault object contains an accumulator with idx = 0.
-        // When test #3 is executed, it creates a new faulty accumulator which also has idx = 0.
-        // Test #3 tries to schedule test #4 with an accumulator also having idx = 0.
-        // Since the fault object is now repeated, abstractIsExploredExecution is set to true and test #4 is not scheduled.
-        assertEquals(3, numberOfTestExecutions);
+        // 1 reference execution + 1 fault injection
+        assertEquals(2, numberOfTestExecutions);
     }
 
     @DisplayName("Verify correct number of unique injected faults.")
     @Test
     @Order(3)
     public void testNumExceptions() {
-        // Only 1 exception from mutating char 0 of "example" to "X"
+        // Only 1 exception from mutating char 0 of string "example" to "X"
         assertEquals(1, testExceptionsThrown.size());
     }
 

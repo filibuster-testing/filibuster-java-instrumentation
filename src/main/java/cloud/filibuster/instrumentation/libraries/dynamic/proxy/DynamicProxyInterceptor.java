@@ -196,7 +196,7 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
                 logger.log(Level.INFO, logPrefix + "byzantineFaultType: " + byzantineFaultType);
                 logger.log(Level.INFO, logPrefix + "byzantineFaultValue: " + value);
 
-                String sByzantineFaultValue = value != null ? value.toString() : "null";
+                String sByzantineFaultValue = String.valueOf(value);
 
                 // Notify Filibuster.
                 filibusterClientInstrumentor.afterInvocationWithByzantineFault(sByzantineFaultValue, byzantineFaultType.toString(), null);

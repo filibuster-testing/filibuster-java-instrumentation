@@ -14,6 +14,8 @@ import cloud.filibuster.instrumentation.helpers.Response;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.exceptions.filibuster.FilibusterServerBadResponseException;
 import cloud.filibuster.junit.server.core.FilibusterCore;
+import cloud.filibuster.junit.server.core.transformers.Accumulator;
+import com.google.gson.Gson;
 import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.HttpMethod;
 import com.linecorp.armeria.common.ResponseHeaders;
@@ -855,13 +857,13 @@ final public class FilibusterClientInstrumentor {
     public void afterInvocationWithByzantineFault(
             String value,
             String type,
-            JSONObject accumulator
+            Accumulator<?, ?> accumulator
     ) {
         if (generatedId > -1 && shouldCommunicateWithServer && counterexampleNotProvided()) {
 
             JSONObject byzantineFault = new JSONObject();
             byzantineFault.put("value", value);
-            byzantineFault.put("accumulator", accumulator);
+            byzantineFault.put("accumulator", new Gson().toJson(accumulator));
             byzantineFault.put("type", type);
 
             JSONObject invocationCompletePayload = new JSONObject();

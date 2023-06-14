@@ -8,6 +8,8 @@ import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrument
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
 import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineFaultType;
+import cloud.filibuster.junit.server.core.transformers.Accumulator;
+import com.google.gson.Gson;
 import io.lettuce.core.RedisBusyException;
 import io.lettuce.core.RedisCommandExecutionException;
 import io.lettuce.core.RedisCommandInterruptedException;
@@ -201,7 +203,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
                 logger.log(Level.INFO, logPrefix + "Injecting the transformed byzantine fault value: " + byzantineFaultValue);
 
                 // Extract the accumulator from the byzantineFault JSONObject.
-                JSONObject accumulator = byzantineFault.getJSONObject("accumulator");
+                Accumulator<?, ?> accumulator = new Gson().fromJson(byzantineFault.get("accumulator").toString(), Accumulator.class);
 
                 // Notify Filibuster.
                 filibusterClientInstrumentor.afterInvocationWithByzantineFault(sByzantineFaultValueString,
@@ -238,7 +240,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
                 logger.log(Level.INFO, logPrefix + "byzantineFaultType: " + byzantineFaultType);
                 logger.log(Level.INFO, logPrefix + "byzantineFaultValue: " + value);
 
-                String sByzantineFaultValue = value != null ? value.toString() : "null";
+                String sByzantineFaultValue = String.valueOf(value);
 
                 // Notify Filibuster.
                 filibusterClientInstrumentor.afterInvocationWithByzantineFault(sByzantineFaultValue, returnType.toString(), null);

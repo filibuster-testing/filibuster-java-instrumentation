@@ -181,6 +181,7 @@
         </tr>
 
         <script>
+            var numCached = 0;
             var numWarnings = 0;
 
             function copyIfBlock() {
@@ -281,6 +282,9 @@
                         row += "</td>";
                         row += "</tr>";
                         $('#rpcs').append(row);
+
+                    if (rpc.cached) {
+                        numCached++;
                     }
 
                     var row = '';

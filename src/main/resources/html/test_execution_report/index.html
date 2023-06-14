@@ -351,8 +351,6 @@
                     if (!isFaulted) {
                         row += '<td></td>';
                     } else {
-                        console.log(rpc.fault)
-
                         if ('forced_exception' in rpc.fault) {
                             row += '<td>';
                             row += '<div class="class_name">' + substringNamespace(rpc.fault.forced_exception.name) + '</div>';

@@ -379,6 +379,10 @@ public class FilibusterCore {
     }
 
     private void scheduleByzantineFault(JSONObject payload, DistributedExecutionIndex distributedExecutionIndex) {
+        if (!payload.has("module") || !payload.has("method")) {
+            throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: scheduleByzantineFault, payload missing module or method: " + payload.toString(4));
+        }
+
         String moduleName = payload.getString("module");
         String methodName = payload.getString("method");
 

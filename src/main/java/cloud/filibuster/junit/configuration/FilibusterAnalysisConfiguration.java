@@ -175,7 +175,6 @@ public class FilibusterAnalysisConfiguration {
         @CanIgnoreReturnValue
         public Builder byzantineTransformer(Class<? extends ByzantineTransformer<?>> transformer) {
             JSONObject byzantineTransformer = new JSONObject();
-            byzantineTransformer.put("transformer", transformer);
             byzantineTransformer.put("transformerClassName", transformer.getName());
             transformerByzantines.add(byzantineTransformer);
             return this;

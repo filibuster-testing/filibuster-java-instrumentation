@@ -768,7 +768,7 @@ public class FilibusterCore {
                     for (Object obj : jsonArray) {
                         JSONObject errorObject = (JSONObject) obj;
 
-                        if (errorObject.has("transformer") && errorObject.has("transformerClassName")) {
+                        if (errorObject.has("transformerClassName")) {
                             String transformerClassName = errorObject.getString("transformerClassName");
 
                             try {

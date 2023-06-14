@@ -7,12 +7,9 @@ import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.exceptions.CircuitBreakerException;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
 import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
-import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.BasicDAO;
-import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.CockroachClientService;
-import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.PostgreSQLClientService;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.PurchaseWorkflow;
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
 import io.grpc.ClientInterceptors;
@@ -23,13 +20,7 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.StatefulRedisConnection;
-import org.json.JSONObject;
-import org.postgresql.ds.PGSimpleDataSource;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.text.DecimalFormat;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -209,6 +200,25 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         }
     }
 
+    private static String getUserFromSession(Channel channel, String sessionId) {
+        UserServiceGrpc.UserServiceBlockingStub userServiceBlockingStub = UserServiceGrpc.newBlockingStub(channel);
+        Hello.GetUserRequest request = Hello.GetUserRequest.newBuilder().setSessionId(sessionId).build();
+        Hello.GetUserResponse response = userServiceBlockingStub.getUserFromSession(request);
+        return response.getUserId();
+    }
+
+    private static Hello.GetCartResponse getCartFromSession(Channel channel, String sessionId) {
+        CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
+        Hello.GetCartRequest request = Hello.GetCartRequest.newBuilder().setSessionId(sessionId).build();
+        return cartServiceBlockingStub.getCartForSession(request);
+    }
+
+    private static Hello.GetDiscountResponse getDiscountOnCart(Channel channel, String cartId) {
+        CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
+        Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder().setCartId(cartId).build();
+        return cartServiceBlockingStub.getDiscountOnCart(request);
+    }
+
     @Override
     public void simulatePurchase(Hello.PurchaseRequest req, StreamObserver<Hello.PurchaseResponse> responseObserver) {
         // Open channel to the user service.
@@ -259,110 +269,15 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     }
 
     @Override
-    @SuppressWarnings("unchecked") // TODO: How can we avoid this?
     public void purchase(Hello.PurchaseRequest req, StreamObserver<Hello.PurchaseResponse> responseObserver) {
-        // Open channel to the user service.
-        ManagedChannel originalChannel = ManagedChannelBuilder
-                .forAddress(Networking.getHost("mock"), Networking.getPort("mock"))
-                .usePlaintext()
+        PurchaseWorkflow purchaseWorkflow = new PurchaseWorkflow(req.getSessionId());
+        int cartTotal = purchaseWorkflow.execute();
+
+        Hello.PurchaseResponse purchaseResponse = Hello.PurchaseResponse.newBuilder()
+                .setSuccess(true)
+                .setTotal(String.valueOf(cartTotal))
                 .build();
-        ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("api_server");
-        Channel channel = ClientInterceptors.intercept(originalChannel, clientInterceptor);
-
-        // Open Redis channel.
-        RedisClientService redisClient = RedisClientService.getInstance();
-        StatefulRedisConnection<String, String> connection = (StatefulRedisConnection<String, String>) new RedisInterceptorFactory<>(redisClient.redisClient.connect(), redisClient.connectionString).getProxy(StatefulRedisConnection.class);
-
-        // CRDB interceptors.
-        PGSimpleDataSource cockroachClient = CockroachClientService.getInstance().cockroachClient;
-        Connection cockroachConnection = null;
-
-        try {
-            cockroachConnection = cockroachClient.getConnection();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-        String cockroachString = CockroachClientService.getInstance().connectionString;
-        Connection interceptedConnection = DynamicProxyInterceptor.createInterceptor(cockroachConnection, cockroachString);
-
-        // Setup DAO.
-        BasicDAO cockroachDAO = CockroachClientService.getInstance().dao;
-        cockroachDAO.setConnection(interceptedConnection);
-
-        // Make call to get the user.
-        getUserFromSession(channel, req.getSessionId());
-
-        // Make call to get the user, again.
-        String userId = getUserFromSession(channel, req.getSessionId());
-
-        // Get cart
-        Hello.GetCartResponse getCartResponse = getCartFromSession(channel, req.getSessionId());
-        String cartId = getCartResponse.getCartId();
-        String merchantId = getCartResponse.getMerchantId();
-        int cartTotal = Integer.parseInt(getCartResponse.getTotal());
-
-        // Make call to get the user, again.
-        getUserFromSession(channel, req.getSessionId());
-
-        // Set discount.
-        try {
-            Hello.GetDiscountResponse getDiscountResponse = getDiscountOnCart(channel, cartId);
-            int discountPercentage = Integer.parseInt(getDiscountResponse.getPercent());
-            float discountPct = discountPercentage / 100.00F;
-            float discountAmount = cartTotal * discountPct;
-            cartTotal = cartTotal - (int) discountAmount;
-        } catch (StatusRuntimeException e) {
-            // Nothing, ignore discount failure.
-        }
-
-        // Make call to get the user, again.
-        getUserFromSession(channel, req.getSessionId());
-
-        // Write cache record to Redis with information on last purchase.
-        JSONObject redisRecord = new JSONObject();
-        redisRecord.put("purchased", true);
-        redisRecord.put("user_id", userId);
-        redisRecord.put("cart_id", cartId);
-        redisRecord.put("total", String.valueOf(cartTotal));
-        connection.sync().set("last_purchase_user_" + userId, redisRecord.toString(4));
-
-        // Write record to CRDB.
-        cockroachDAO.transferFunds(UUID.fromString(userId), UUID.fromString(merchantId), cartTotal);
-
-        // Assemble response.
-        Hello.PurchaseResponse purchaseResponse = Hello.PurchaseResponse.newBuilder().setSuccess(true).setTotal(String.valueOf(cartTotal)).build();
         responseObserver.onNext(purchaseResponse);
         responseObserver.onCompleted();
-
-        // Teardown the channel.
-        originalChannel.shutdownNow();
-        try {
-            while (!originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
-                Thread.sleep(4000);
-            }
-        } catch (InterruptedException ie) {
-            logger.log(Level.SEVERE, "Failed to terminate channel: " + ie);
-        }
     }
-
-    private static String getUserFromSession(Channel channel, String sessionId) {
-        UserServiceGrpc.UserServiceBlockingStub userServiceBlockingStub = UserServiceGrpc.newBlockingStub(channel);
-        Hello.GetUserRequest request = Hello.GetUserRequest.newBuilder().setSessionId(sessionId).build();
-        Hello.GetUserResponse response = userServiceBlockingStub.getUserFromSession(request);
-        return response.getUserId();
-    }
-
-    private static Hello.GetCartResponse getCartFromSession(Channel channel, String sessionId) {
-        CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
-        Hello.GetCartRequest request = Hello.GetCartRequest.newBuilder().setSessionId(sessionId).build();
-        return cartServiceBlockingStub.getCartForSession(request);
-    }
-
-    private static Hello.GetDiscountResponse getDiscountOnCart(Channel channel, String cartId) {
-        CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
-        Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder().setCartId(cartId).build();
-        return cartServiceBlockingStub.getDiscountOnCart(request);
-    }
-
 }

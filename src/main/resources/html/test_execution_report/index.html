@@ -472,16 +472,16 @@ tryGrpcAndCatchGrpcExceptions(() -> {
                     }
                 }
 
-                if (numWarnings > 0) {
-                    $('#warnings').show();
-
-                    if (numWarnings > 1) {
-                        $('#numWarnings').html("There are " + numWarnings + " warnings in this test execution.");
-                    } else {
-                        $('#numWarnings').html("There is " + numWarnings + " warning in this test execution.");
-                    }
+                if (numCached > 0) {
+                    $('#numCached').html("" + numCached + "");
                 } else {
+                    $('#numCached').html("0");
+                }
 
+                if (numWarnings > 0) {
+                    $('#numWarnings').html("" + numWarnings + "");
+                } else {
+                    $('#numWarnings').html("0");
                 }
             });
         </script>

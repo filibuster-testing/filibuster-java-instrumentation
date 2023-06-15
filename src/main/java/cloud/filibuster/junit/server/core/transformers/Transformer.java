@@ -2,8 +2,8 @@ package cloud.filibuster.junit.server.core.transformers;
 
 /**
  * @param <PAYLOAD> Type of the object to be transformed
- * @param <CONTEXT> Type used in the accumulator to identify current iteration (e.g., Integer representing mutated
- *                  idx of mutated char in a string)
+ * @param <CONTEXT> Type used in the accumulator to identify current iteration (e.g., Integer representing idx
+ *                  of mutated char in a string)
  */
 public interface Transformer<PAYLOAD, CONTEXT> {
     /**

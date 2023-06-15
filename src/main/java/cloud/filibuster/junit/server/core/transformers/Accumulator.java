@@ -2,7 +2,7 @@ package cloud.filibuster.junit.server.core.transformers;
 
 import java.io.Serializable;
 
-public class Accumulator<PAYLOAD, CONTEXT> implements Serializable {
+public final class Accumulator<PAYLOAD, CONTEXT> implements Serializable {
     private PAYLOAD referenceValue;
     private CONTEXT context;
 

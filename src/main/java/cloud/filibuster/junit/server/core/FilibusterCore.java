@@ -258,24 +258,19 @@ public class FilibusterCore {
                 logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using byzantine_fault: " + byzantineFaultObject.toString(4));
                 response.put("byzantine_fault", byzantineFaultObject);
             } else if (faultObject.has("transformer_byzantine_fault")) {
-                try {
-                    JSONObject transformerByzantineFaultObject = faultObject.getJSONObject("transformer_byzantine_fault");
-                    ByzantineTransformer<?, ?> transformationResult = getByzantineTransformationResult(transformerByzantineFaultObject);
+                JSONObject transformerByzantineFaultObject = faultObject.getJSONObject("transformer_byzantine_fault");
+                ByzantineTransformer<?, ?> transformationResult = getByzantineTransformationResult(transformerByzantineFaultObject);
+                setValueOnTransformerBF(transformerByzantineFaultObject, (String) transformationResult.getResult());
 
-                    if (transformationResult.hasNext()) {
-                        JSONObject newFaultObject = new JSONObject(faultObject.toMap());
-                        setAccumulatorOnTransformerBF(newFaultObject.getJSONObject("transformer_byzantine_fault"),
-                                transformationResult.getNextAccumulator());
-                        createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, newFaultObject, /* isTransformedByzantineFault= */true);
-                    }
-
-                    setValueOnTransformerBF(transformerByzantineFaultObject, (String) transformationResult.getResult());
-                    logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using transformer_byzantine_fault: " + transformerByzantineFaultObject.toString(4));
-                    response.put("transformer_byzantine_fault", transformerByzantineFaultObject);
-                } catch (RuntimeException e) {
-                    logger.info("[FILIBUSTER-CORE]: beginInvocation, failed to inject transformer_byzantine_fault:" + e);
-                    throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: beginInvocation, failed to inject transformer_byzantine_fault for call: ", e);
+                if (transformationResult.hasNext()) {
+                    JSONObject newFaultObject = new JSONObject(faultObject.toMap());
+                    setAccumulatorOnTransformerBF(newFaultObject.getJSONObject("transformer_byzantine_fault"),
+                            transformationResult.getNextAccumulator());
+                    createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, newFaultObject, /* isTransformedByzantineFault= */true);
                 }
+
+                logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using transformer_byzantine_fault: " + transformerByzantineFaultObject.toString(4));
+                response.put("transformer_byzantine_fault", transformerByzantineFaultObject);
             } else if (faultObject.has("latency")) {
                 JSONObject latencyObject = faultObject.getJSONObject("latency");
                 logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using latency: " + latencyObject.toString(4));
@@ -449,7 +444,7 @@ public class FilibusterCore {
         }
     }
 
-    private <PAYLOAD> Accumulator<PAYLOAD, ?> getInitialAccumulator(JSONObject transformerBF, PAYLOAD referenceValue) {
+    private static <PAYLOAD> Accumulator<PAYLOAD, ?> getInitialAccumulator(JSONObject transformerBF, PAYLOAD referenceValue) {
         if (transformerBF.has("transformerClassName")) {
             String transformerClassName = transformerBF.getString("transformerClassName");
             @SuppressWarnings("unchecked")

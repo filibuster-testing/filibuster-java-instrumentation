@@ -4,7 +4,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 
 import javax.annotation.Nullable;
 
-public class FaultyByzantineStringTransformer implements ByzantineTransformer<String, Integer> {
+public final class FaultyByzantineStringTransformer implements ByzantineTransformer<String, Integer> {
     private boolean hasNext = true;
     private String payload;
     private Accumulator<String, Integer> accumulator;

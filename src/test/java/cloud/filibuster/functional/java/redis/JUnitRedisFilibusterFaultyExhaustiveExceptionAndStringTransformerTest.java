@@ -72,8 +72,8 @@ public class JUnitRedisFilibusterFaultyExhaustiveExceptionAndStringTransformerTe
     @Test
     @Order(2)
     public void testNumExecutions() {
-        // 1 reference execution + 2 fault injections  TODO: This is not correct, it should be 1 reference execution + 1 fault injection
-        assertEquals(3, numberOfTestExecutions);
+        // 1 reference execution + 1 fault injections
+        assertEquals(2, numberOfTestExecutions);
     }
 
     @DisplayName("Verify correct number of unique injected faults.")

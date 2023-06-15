@@ -260,15 +260,15 @@ public class FilibusterCore {
             } else if (faultObject.has("transformer_byzantine_fault")) {
                 JSONObject transformerByzantineFaultObject = faultObject.getJSONObject("transformer_byzantine_fault");
                 ByzantineTransformer<?, ?> transformationResult = getByzantineTransformationResult(transformerByzantineFaultObject);
-                setValueOnTransformerBF(transformerByzantineFaultObject, (String) transformationResult.getResult());
 
                 if (transformationResult.hasNext()) {
                     JSONObject newFaultObject = new JSONObject(faultObject.toMap());
                     setAccumulatorOnTransformerBF(newFaultObject.getJSONObject("transformer_byzantine_fault"),
                             transformationResult.getNextAccumulator());
-                    createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, newFaultObject, /* isTransformedByzantineFault= */true);
+                    createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, newFaultObject);
                 }
 
+                setValueOnTransformerBF(transformerByzantineFaultObject, (String) transformationResult.getResult());
                 logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using transformer_byzantine_fault: " + transformerByzantineFaultObject.toString(4));
                 response.put("transformer_byzantine_fault", transformerByzantineFaultObject);
             } else if (faultObject.has("latency")) {
@@ -407,7 +407,7 @@ public class FilibusterCore {
                                             payload.getJSONObject("return_value").get("toString").toString()
                                     )
                             );
-                            createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, new JSONObject(transformerBF.toMap()), /* isTransformedByzantineFault= */true);
+                            createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, new JSONObject(transformerBF.toMap()));
                         }
                     }
 
@@ -415,7 +415,7 @@ public class FilibusterCore {
                     List<JSONObject> byzantineFaultObjects = filibusterAnalysisConfiguration.getByzantineFaultObjects();
 
                     for (JSONObject faultObject : byzantineFaultObjects) {
-                        createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject, /* isTransformedByzantineFault= */false);
+                        createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject);
                     }
                 }
             }
@@ -878,7 +878,7 @@ public class FilibusterCore {
                         }
 
                         if (matcher.find()) {
-                            createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject, /* isTransformedByzantineFault= */false);
+                            createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject);
                         }
                     }
 
@@ -886,7 +886,7 @@ public class FilibusterCore {
                     List<JSONObject> exceptionFaultObjects = filibusterAnalysisConfiguration.getExceptionFaultObjects();
 
                     for (JSONObject faultObject : exceptionFaultObjects) {
-                        createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject, /* isTransformedByzantineFault= */false);
+                        createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject);
                     }
 
                     // Errors.
@@ -906,7 +906,7 @@ public class FilibusterCore {
                                 HashMap faultTypeMap = (HashMap) obj;
                                 JSONObject faultTypeObject = new JSONObject();
                                 faultTypeObject.put("failure_metadata", faultTypeMap);
-                                createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultTypeObject, /* isTransformedByzantineFault= */false);
+                                createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultTypeObject);
                             }
                         }
                     }
@@ -1034,8 +1034,7 @@ public class FilibusterCore {
     private void createAndScheduleAbstractTestExecution(
             FilibusterConfiguration filibusterConfiguration,
             DistributedExecutionIndex distributedExecutionIndex,
-            JSONObject faultObject,
-            boolean isTransformedByzantineFault) {
+            JSONObject faultObject) {
         logger.info("[FILIBUSTER-CORE]: createAndScheduleAbstractTestExecution called.");
 
         if (currentConcreteTestExecution != null) {
@@ -1046,7 +1045,7 @@ public class FilibusterCore {
             boolean abstractIsScheduledExecution = unexploredTestExecutions.containsAbstractTestExecution(abstractTestExecution);
             boolean abstractIsCurrentExecution = currentAbstractTestExecution != null && currentAbstractTestExecution.matchesAbstractTestExecution(abstractTestExecution);
 
-            if ((!abstractIsExploredExecution && !abstractIsScheduledExecution) && (!abstractIsCurrentExecution || isTransformedByzantineFault)) {
+            if ((!abstractIsExploredExecution && !abstractIsScheduledExecution) && !abstractIsCurrentExecution) {
                 if (filibusterConfiguration.getSuppressCombinations()) {
                     if (!(abstractTestExecution.getFaultsToInjectSize() > 1)) {
                         unexploredTestExecutions.addTestExecution(abstractTestExecution);

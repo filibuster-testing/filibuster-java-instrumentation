@@ -193,37 +193,37 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         }
     }
 
-    private static Object injectTransformerFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject byzantineFault, Class<?> returnType) {
+    private static Object injectTransformerFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject transformerFault, Class<?> returnType) {
         try {
-            if (byzantineFault.has("value") && byzantineFault.has("accumulator")) {
+            if (transformerFault.has("value") && transformerFault.has("accumulator")) {
 
-                // Extract the byzantine fault value from the byzantineFault JSONObject.
-                Object byzantineFaultValue = byzantineFault.get("value");
-                String sByzantineFaultValueString = byzantineFaultValue.toString();
-                logger.log(Level.INFO, logPrefix + "Injecting the transformed byzantine fault value: " + byzantineFaultValue);
+                // Extract the transformer fault value from the transformerFault JSONObject.
+                Object transformerFaultValue = transformerFault.get("value");
+                String sTransformerValue = transformerFaultValue.toString();
+                logger.log(Level.INFO, logPrefix + "Injecting the transformed fault value: " + sTransformerValue);
 
-                // Extract the accumulator from the byzantineFault JSONObject.
-                Accumulator<?, ?> accumulator = new Gson().fromJson(byzantineFault.get("accumulator").toString(), Accumulator.class);
+                // Extract the accumulator from the transformerFault JSONObject.
+                Accumulator<?, ?> accumulator = new Gson().fromJson(transformerFault.get("accumulator").toString(), Accumulator.class);
 
                 // Notify Filibuster.
-                filibusterClientInstrumentor.afterInvocationWithByzantineFault(sByzantineFaultValueString,
+                filibusterClientInstrumentor.afterInvocationWithTransformerFault(sTransformerValue,
                         returnType.toString(), accumulator);
 
                 // Return the byzantine fault value.
-                return byzantineFaultValue;
+                return transformerFaultValue;
             } else {
                 String missingKey;
-                if (byzantineFault.has("value")) {
+                if (transformerFault.has("value")) {
                     missingKey = "accumulator";
                 } else {
                     missingKey = "value";
                 }
-                logger.log(Level.WARNING, logPrefix + "injectTransformerFault: The byzantineFault does not have the required key " + missingKey);
-                throw new FilibusterFaultInjectionException("injectTransformerFault: The byzantineFault does not have the required key " + missingKey);
+                logger.log(Level.WARNING, logPrefix + "injectTransformerFault: The transformerFault does not have the required key " + missingKey);
+                throw new FilibusterFaultInjectionException("injectTransformerFault: The transformerFault does not have the required key " + missingKey);
             }
         } catch (RuntimeException e) {
-            logger.log(Level.WARNING, logPrefix + "Could not inject byzantine fault. The cast was probably not successful:", e);
-            throw new FilibusterFaultInjectionException("Could not inject byzantine fault. The cast was probably not successful:", e);
+            logger.log(Level.WARNING, logPrefix + "Could not inject transformer fault. The cast was probably not successful:", e);
+            throw new FilibusterFaultInjectionException("Could not inject transformer fault. The cast was probably not successful:", e);
         }
     }
 
@@ -243,7 +243,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
                 String sByzantineFaultValue = String.valueOf(value);
 
                 // Notify Filibuster.
-                filibusterClientInstrumentor.afterInvocationWithByzantineFault(sByzantineFaultValue, returnType.toString(), null);
+                filibusterClientInstrumentor.afterInvocationWithByzantineFault(sByzantineFaultValue, returnType.toString());
 
                 return value;
             } else {

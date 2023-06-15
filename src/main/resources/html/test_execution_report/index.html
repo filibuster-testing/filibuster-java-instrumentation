@@ -92,6 +92,10 @@
             background-color: coral;
         }
 
+        tr.transformer {
+            background-color: orange;
+        }
+
         tr.fault {
             background-color: lightcoral;
         }
@@ -227,11 +231,11 @@
             }
 
             function containsByzantineFaultKey(obj) {
-                return "byzantine_fault" in obj || "transformer_fault" in obj;
+                return "byzantine_fault" in obj;
             }
 
-            function containsAccumulator(obj) {
-                return "accumulator" in obj;
+            function containsTransformerFaultKey(obj) {
+                return "transformer_fault" in obj;
             }
 
             function toggleWarnings() {
@@ -283,6 +287,7 @@
                     var isFaulted = !isEmpty(rpc.fault);
                     var isExceptionResponse = containsExceptionKey(rpc.response);
                     var isByzantineFault = containsByzantineFaultKey(rpc.response);
+                    var isTransformerFault = containsTransformerFaultKey(rpc.response);
 
                     if (rpc.group !== group) {
                         group = rpc.group;
@@ -312,6 +317,8 @@
                         }
                     } else if (isByzantineFault) {
                         row += '<tr class="byzantine">';
+                    } else if (isTransformerFault) {
+                        row += '<tr class="transformer">';
                     } else {
                         row += '<tr class="fault">';
                     }
@@ -331,6 +338,12 @@
                         row += '<div class="class_name">' + substringNamespace(rpc.response.byzantine_fault.type) + '</div>';
                         row += '<textarea>';
                         row += rpc.response.byzantine_fault.value.toString();
+                        row += '</textarea></td>';
+                    } else if (isTransformerFault) {
+                        row += '<td>';
+                        row += '<div class="class_name">' + substringNamespace(rpc.response.transformer_fault.type) + '</div>';
+                        row += '<textarea>';
+                        row += rpc.response.transformer_fault.value.toString();
                         row += '</textarea></td>';
                     } else if (isExceptionResponse) {
                         row += '<td>';
@@ -403,11 +416,11 @@
                             row += '</td>';
                         }
 
-                        if(containsByzantineFaultKey(rpc.response) && containsAccumulator(rpc.response.byzantine_fault)) {
+                        if(isTransformerFault) {
                             row += '<td>';
-                            row += '<div class="class_name">' + substringNamespace(rpc.response.byzantine_fault.type) + '</div>';
+                            row += '<div class="class_name">' + substringNamespace(rpc.response.transformer_fault.type) + '</div>';
                             row += '<textarea>';
-                            row += '\naccumulator = ' + JSON.stringify(JSON.parse(rpc.response.byzantine_fault.accumulator));
+                            row += '\naccumulator = ' + JSON.stringify(JSON.parse(rpc.response.transformer_fault.accumulator));
                             row += '</textarea>';
                             row += '</td>';
                         }

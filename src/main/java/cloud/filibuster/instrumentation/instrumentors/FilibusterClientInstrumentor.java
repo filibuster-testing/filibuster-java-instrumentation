@@ -450,7 +450,7 @@ final public class FilibusterClientInstrumentor {
     }
 
     /**
-     * Return byzantine fault that needs to be injected.
+     * Return transformer fault that needs to be injected.
      * This value will be null until the Filibuster server has been contacted for this request.
      *
 
@@ -851,20 +851,15 @@ final public class FilibusterClientInstrumentor {
      *
      * @param value the byzantine value that was injected.
      * @param type type of the injected byzantine value (e.g., String).
-     * @param accumulator containing any additional information that should be communicated to the server and used in
-     *                    subsequent byzantine faults (e.g., original value before mutation and idx of mutated char in
-     *                    case of a byzantine string transformation).
      */
     public void afterInvocationWithByzantineFault(
             String value,
-            String type,
-            Accumulator<?, ?> accumulator
+            String type
     ) {
         if (generatedId > -1 && shouldCommunicateWithServer && counterexampleNotProvided()) {
 
             JSONObject byzantineFault = new JSONObject();
             byzantineFault.put("value", value);
-            byzantineFault.put("accumulator", new Gson().toJson(accumulator));
             byzantineFault.put("type", type);
 
             JSONObject invocationCompletePayload = new JSONObject();
@@ -884,6 +879,44 @@ final public class FilibusterClientInstrumentor {
         }
     }
 
+
+    /**
+     * Invoked after a remote call has been completed if the remote call injects a transformer value.
+     *
+     * @param value the byzantine value that was injected.
+     * @param type type of the injected byzantine value (e.g., String).
+     * @param accumulator containing any additional information that should be communicated to the server and used in
+     *                    subsequent byzantine faults (e.g., original value before mutation and idx of mutated char in
+     *                    case of a byzantine string transformation).
+     */
+    public void afterInvocationWithTransformerFault(
+            String value,
+            String type,
+            Accumulator<?, ?> accumulator
+    ) {
+        if (generatedId > -1 && shouldCommunicateWithServer && counterexampleNotProvided()) {
+
+            JSONObject transformerFault = new JSONObject();
+            transformerFault.put("value", value);
+            transformerFault.put("accumulator", new Gson().toJson(accumulator));
+            transformerFault.put("type", type);
+
+            JSONObject invocationCompletePayload = new JSONObject();
+            invocationCompletePayload.put("instrumentation_type", "invocation_complete");
+            invocationCompletePayload.put("generated_id", generatedId);
+            invocationCompletePayload.put("execution_index", distributedExecutionIndex.toString());
+            invocationCompletePayload.put("vclock", vectorClock.toJSONObject());
+            invocationCompletePayload.put("transformer_fault", transformerFault);
+            invocationCompletePayload.put("module", callsite.getClassOrModuleName());
+            invocationCompletePayload.put("method", callsite.getMethodOrFunctionName());
+
+            if (preliminaryDistributedExecutionIndex != null) {
+                invocationCompletePayload.put("preliminary_execution_index", preliminaryDistributedExecutionIndex.toString());
+            }
+
+            recordInvocationComplete(invocationCompletePayload);
+        }
+    }
 
     /**
      * Invoked after a remote call has been completed if the remote call completed successfully.

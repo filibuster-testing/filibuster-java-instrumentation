@@ -59,9 +59,9 @@ public class RedisExhaustiveExceptionAndTransformerAnalysisConfigurationFile imp
             createException(filibusterCustomAnalysisConfigurationFileBuilder, exception[0], exception[1], exception[2]);
         }
 
-        // Transformer BFI for Redis String get method
+        // Transformer faults for Redis String get method
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
-                .name("java.byzantine.transform_string.redis")
+                .name("java.transformers.transform_string.redis")
                 .pattern("io.lettuce.core.api.sync.RedisStringCommands/get\\b");
         filibusterAnalysisConfigurationBuilderRedisExceptions.transformer(StringTransformer.class);
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());

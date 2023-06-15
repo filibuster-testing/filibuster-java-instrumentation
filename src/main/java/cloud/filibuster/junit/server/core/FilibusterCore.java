@@ -269,7 +269,7 @@ public class FilibusterCore {
                     createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, newFaultObject);
                 }
 
-                setValueOnTransformer(transformerFaultObject, (String) transformationResult.getResult());
+                transformerFaultObject.put("value", transformationResult.getResult());
                 logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using transformer_fault: " + transformerFaultObject.toString(4));
                 response.put("transformer_fault", transformerFaultObject);
             } else if (faultObject.has("latency")) {
@@ -344,7 +344,7 @@ public class FilibusterCore {
 
         // Transformer faults are initially scheduled in the endInvocation since we need to know the response value.
         // For consistency, we also initially schedule Byzantine faults in the endInvocation
-        checkForByzantineAndTransformerFaults(payload, distributedExecutionIndex);
+        scheduleInitialByzantineAndTransformerFaults(payload, distributedExecutionIndex);
 
         JSONObject response = new JSONObject();
         response.put("execution_index", payload.getString("execution_index"));
@@ -354,7 +354,7 @@ public class FilibusterCore {
         return response;
     }
 
-    private void checkForByzantineAndTransformerFaults(JSONObject payload, DistributedExecutionIndex distributedExecutionIndex) {
+    private void scheduleInitialByzantineAndTransformerFaults(JSONObject payload, DistributedExecutionIndex distributedExecutionIndex) {
         boolean shouldGenerateNewAbstractExecutions;
 
         if (currentAbstractTestExecution == null) {
@@ -374,15 +374,15 @@ public class FilibusterCore {
         if (shouldGenerateNewAbstractExecutions && faultInjectionEnabled) {
             if (filibusterConfiguration.getAvoidRedundantInjections()) {
                 if (!hasSeenRpcUnderSameOrDifferentDistributedExecutionIndex) {
-                    scheduleInitialByzantineAndTransformerFault(payload, distributedExecutionIndex);
+                    generateByzantineAndTransformerFaults(payload, distributedExecutionIndex);
                 }
             } else {
-                scheduleInitialByzantineAndTransformerFault(payload, distributedExecutionIndex);
+                generateByzantineAndTransformerFaults(payload, distributedExecutionIndex);
             }
         }
     }
 
-    private void scheduleInitialByzantineAndTransformerFault(JSONObject payload, DistributedExecutionIndex distributedExecutionIndex) {
+    private void generateByzantineAndTransformerFaults(JSONObject payload, DistributedExecutionIndex distributedExecutionIndex) {
         if (!payload.has("module") || !payload.has("method")) {
             throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: scheduleByzantineFault, payload missing module or method: " + payload.toString(4));
         }
@@ -426,10 +426,6 @@ public class FilibusterCore {
 
     private static void setAccumulatorOnTransformer(JSONObject transformer, Accumulator<?, ?> accumulator) {
         transformer.put("accumulator", new Gson().toJson(accumulator));
-    }
-
-    private static void setValueOnTransformer(JSONObject transformer, String value) {
-        transformer.put("value", value);
     }
 
     private static Transformer<?, ?> getTransformerInstance(String transformerClassName) {

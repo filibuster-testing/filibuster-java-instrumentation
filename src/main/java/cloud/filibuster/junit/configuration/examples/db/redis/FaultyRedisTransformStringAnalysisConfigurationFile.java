@@ -12,7 +12,7 @@ public class FaultyRedisTransformStringAnalysisConfigurationFile implements Fili
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
-                .name("java.byzantine.transform_string.redis")
+                .name("java.transformers.transform_string.redis")
                 .pattern("io.lettuce.core.api.sync.RedisStringCommands/get\\b");
 
         filibusterAnalysisConfigurationBuilderRedisExceptions.transformer(FaultyStringTransformer.class);

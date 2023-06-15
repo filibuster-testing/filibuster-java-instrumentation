@@ -199,7 +199,7 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
                 String sByzantineFaultValue = String.valueOf(value);
 
                 // Notify Filibuster.
-                filibusterClientInstrumentor.afterInvocationWithByzantineFault(sByzantineFaultValue, byzantineFaultType.toString(), null);
+                filibusterClientInstrumentor.afterInvocationWithByzantineFault(sByzantineFaultValue, byzantineFaultType.toString());
 
                 return value;
             } else {

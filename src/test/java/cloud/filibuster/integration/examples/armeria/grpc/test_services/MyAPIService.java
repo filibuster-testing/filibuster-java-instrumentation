@@ -7,8 +7,8 @@ import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.exceptions.CircuitBreakerException;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
-import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
 import io.grpc.ClientInterceptors;
@@ -102,8 +102,8 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     @SuppressWarnings("unchecked")
     public void redisHello(Hello.RedisRequest req, StreamObserver<Hello.RedisReply> responseObserver) {
         Hello.RedisReply reply;
-        RedisClientService redisClient = RedisClientService.getInstance();
-        StatefulRedisConnection<String, String> connection = new RedisInterceptorFactory<>(redisClient.redisClient.connect(), redisClient.connectionString).getProxy(StatefulRedisConnection.class);
+        RedisClientService redisService = RedisClientService.getInstance();
+        StatefulRedisConnection<String, String> connection = DynamicProxyInterceptor.createInterceptor(redisService.redisClient.connect(), redisService.connectionString);
 
         String retrievedValue = null;
 
@@ -144,8 +144,8 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     public void redisHelloRetry(Hello.RedisRequest req, StreamObserver<Hello.RedisReply> responseObserver) {
         // API service talks to Redis before making a call to Hello
         Hello.RedisReply reply;
-        RedisClientService redisClient = RedisClientService.getInstance();
-        StatefulRedisConnection<String, String> connection = new RedisInterceptorFactory<>(redisClient.redisClient.connect(), redisClient.connectionString).getProxy(StatefulRedisConnection.class);
+        RedisClientService redisService = RedisClientService.getInstance();
+        StatefulRedisConnection<String, String> connection = DynamicProxyInterceptor.createInterceptor(redisService.redisClient.connect(), redisService.connectionString);
 
         String retrievedValue = null;
         int currentTry = 0;

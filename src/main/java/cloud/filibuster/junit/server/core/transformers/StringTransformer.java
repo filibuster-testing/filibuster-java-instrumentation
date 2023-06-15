@@ -1,11 +1,12 @@
 package cloud.filibuster.junit.server.core.transformers;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 
 import javax.annotation.Nullable;
 import java.util.Random;
 
-public final class ByzantineStringTransformer implements ByzantineTransformer<String, Integer> {
+public final class StringTransformer implements Transformer<String, Integer> {
     private static final long FIXED_SEED = 0;
     private static final Random rand = new Random(FIXED_SEED); // Seed is fixed to ensure consistent results
     private boolean hasNext = true;
@@ -13,7 +14,8 @@ public final class ByzantineStringTransformer implements ByzantineTransformer<St
     private Accumulator<String, Integer> accumulator;
 
     @Override
-    public ByzantineStringTransformer transform(String payload, @Nullable Accumulator<String, Integer> accumulator) {
+    @CanIgnoreReturnValue
+    public StringTransformer transform(String payload, @Nullable Accumulator<String, Integer> accumulator) {
         if (accumulator == null) {
             accumulator = getInitialAccumulator();
         }

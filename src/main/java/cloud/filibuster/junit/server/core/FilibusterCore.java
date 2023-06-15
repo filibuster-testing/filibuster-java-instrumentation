@@ -8,7 +8,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterLatencyInjectionExceptio
 import cloud.filibuster.instrumentation.helpers.Property;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.server.core.transformers.Accumulator;
-import cloud.filibuster.junit.server.core.transformers.ByzantineTransformer;
+import cloud.filibuster.junit.server.core.transformers.Transformer;
 import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineFaultType;
 import cloud.filibuster.junit.server.core.reports.TestSuiteReport;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
@@ -257,21 +257,21 @@ public class FilibusterCore {
                 JSONObject byzantineFaultObject = faultObject.getJSONObject("byzantine_fault");
                 logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using byzantine_fault: " + byzantineFaultObject.toString(4));
                 response.put("byzantine_fault", byzantineFaultObject);
-            } else if (faultObject.has("transformer_byzantine_fault")) {
-                JSONObject transformerByzantineFaultObject = faultObject.getJSONObject("transformer_byzantine_fault");
-                ByzantineTransformer<?, ?> transformationResult = getByzantineTransformationResult(transformerByzantineFaultObject);
+            } else if (faultObject.has("transformer_fault")) {
+                JSONObject transformerFaultObject = faultObject.getJSONObject("transformer_fault");
+                Transformer<?, ?> transformationResult = getByzantineTransformationResult(transformerFaultObject);
 
                 if (transformationResult.hasNext()) {
                     // Schedule next execution with the next accumulator
                     JSONObject newFaultObject = new JSONObject(faultObject.toMap());
-                    setAccumulatorOnTransformerBF(newFaultObject.getJSONObject("transformer_byzantine_fault"),
+                    setAccumulatorOnTransformer(newFaultObject.getJSONObject("transformer_fault"),
                             transformationResult.getNextAccumulator());
                     createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, newFaultObject);
                 }
 
-                setValueOnTransformerBF(transformerByzantineFaultObject, (String) transformationResult.getResult());
-                logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using transformer_byzantine_fault: " + transformerByzantineFaultObject.toString(4));
-                response.put("transformer_byzantine_fault", transformerByzantineFaultObject);
+                setValueOnTransformer(transformerFaultObject, (String) transformationResult.getResult());
+                logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using transformer_fault: " + transformerFaultObject.toString(4));
+                response.put("transformer_fault", transformerFaultObject);
             } else if (faultObject.has("latency")) {
                 JSONObject latencyObject = faultObject.getJSONObject("latency");
                 logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using latency: " + latencyObject.toString(4));
@@ -394,17 +394,17 @@ public class FilibusterCore {
                 // Second check here (concat) is a legacy check for the old Python server compatibility.
                 if (filibusterAnalysisConfiguration.isPatternMatch(methodName) || filibusterAnalysisConfiguration.isPatternMatch(moduleName + "." + methodName)) {
                     // Transformer Byzantine faults
-                    List<JSONObject> transformerByzantineFaults = filibusterAnalysisConfiguration.getTransformerByzantineFaultObjects();
+                    List<JSONObject> transformerFaults = filibusterAnalysisConfiguration.getTransformerFaultObjects();
 
-                    for (JSONObject transformerBF : transformerByzantineFaults) {
-                        if (transformerBF.has("transformer_byzantine_fault")
+                    for (JSONObject transformerBF : transformerFaults) {
+                        if (transformerBF.has("transformer_fault")
                                 && payload.has("return_value")
                                 && payload.getJSONObject("return_value").has("toString")
                                 && !payload.getJSONObject("return_value").get("toString").toString().isEmpty()
                                 && !payload.getJSONObject("return_value").get("toString").equals(JSONObject.NULL)) {
-                            setAccumulatorOnTransformerBF(transformerBF.getJSONObject("transformer_byzantine_fault"),
+                            setAccumulatorOnTransformer(transformerBF.getJSONObject("transformer_fault"),
                                     getInitialAccumulator(
-                                            transformerBF.getJSONObject("transformer_byzantine_fault"),
+                                            transformerBF.getJSONObject("transformer_fault"),
                                             payload.getJSONObject("return_value").get("toString").toString()
                                     )
                             );
@@ -423,22 +423,22 @@ public class FilibusterCore {
         }
     }
 
-    private static void setAccumulatorOnTransformerBF(JSONObject transformerBF, Accumulator<?, ?> accumulator) {
+    private static void setAccumulatorOnTransformer(JSONObject transformerBF, Accumulator<?, ?> accumulator) {
         transformerBF.put("accumulator", new Gson().toJson(accumulator));
     }
 
-    private static void setValueOnTransformerBF(JSONObject transformerBF, String value) {
+    private static void setValueOnTransformer(JSONObject transformerBF, String value) {
         transformerBF.put("value", value);
     }
 
-    private static ByzantineTransformer<?, ?> getTransformerInstance(String transformerClassName) {
+    private static Transformer<?, ?> getTransformerInstance(String transformerClassName) {
         try {
             @SuppressWarnings("unchecked")
-            Class<? extends ByzantineTransformer<?, ?>> transformerClass = (Class<? extends ByzantineTransformer<?, ?>>) Class.forName(transformerClassName);
+            Class<? extends Transformer<?, ?>> transformerClass = (Class<? extends Transformer<?, ?>>) Class.forName(transformerClassName);
             // Get constructor of transformer class.
             Constructor<?> ctr = transformerClass.getConstructor();
             // Create transformer object.
-            return (ByzantineTransformer<?, ?>) ctr.newInstance();
+            return (Transformer<?, ?>) ctr.newInstance();
         } catch (Exception e) {
             logger.warning("[FILIBUSTER-CORE]: getTransformerInstance, an exception occurred in getTransformerInstance: " + e);
             throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: getTransformerInstance, an exception occurred in getTransformerInstance: " + e);
@@ -802,8 +802,8 @@ public class FilibusterCore {
                 }
             }
 
-            if (nameObject.has("transformerByzantines")) {
-                JSONArray jsonArray = nameObject.getJSONArray("transformerByzantines");
+            if (nameObject.has("transformers")) {
+                JSONArray jsonArray = nameObject.getJSONArray("transformers");
 
                 try {
                     for (Object obj : jsonArray) {
@@ -814,17 +814,17 @@ public class FilibusterCore {
 
                             try {
                                 @SuppressWarnings("unchecked")
-                                Class<? extends ByzantineTransformer<?, ?>> transformerClass = (Class<? extends ByzantineTransformer<?, ?>>) Class.forName(transformerClassName);
-                                filibusterAnalysisConfigurationBuilder.byzantineTransformer(transformerClass);
+                                Class<? extends Transformer<?, ?>> transformerClass = (Class<? extends Transformer<?, ?>>) Class.forName(transformerClassName);
+                                filibusterAnalysisConfigurationBuilder.transformer(transformerClass);
                             } catch (ClassNotFoundException e) {
-                                logger.warning("[FILIBUSTER-CORE]: analysisFile/transformerByzantines: Could not find transformer class: " + transformerClassName);
-                                throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: analysisFile/transformerByzantines, could not find transformer class: " + transformerClassName, e);
+                                logger.warning("[FILIBUSTER-CORE]: analysisFile/transformers: Could not find transformer class: " + transformerClassName);
+                                throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: analysisFile/transformers, could not find transformer class: " + transformerClassName, e);
                             }
 
-                            logger.info("[FILIBUSTER-CORE]: analysisFile/transformerByzantines, found new configuration, transformedByzantines: " + transformerClassName);
+                            logger.info("[FILIBUSTER-CORE]: analysisFile/transformers, found new configuration, transformedByzantines: " + transformerClassName);
                         } else {
-                            logger.warning("[FILIBUSTER-CORE]: analysisFile/transformerByzantines: Either the key 'transformer', 'transformerClassName' does not exist.");
-                            throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: analysisFile, either the key 'transformer', 'transformerClassName' does not exist.");
+                            logger.warning("[FILIBUSTER-CORE]: analysisFile/transformers: Either the key 'transformer', 'transformerClassName' does not exist.");
+                            throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: analysisFile/transformers, either the key 'transformer', 'transformerClassName' does not exist.");
                         }
                     }
                 } catch (RuntimeException e) {
@@ -919,14 +919,14 @@ public class FilibusterCore {
         logger.info("[FILIBUSTER-CORE]: generateFaultsUsingSpecificAnalysisConfiguration returning.");
     }
 
-    private <PAYLOAD, CONTEXT> ByzantineTransformer<PAYLOAD, CONTEXT> getByzantineTransformationResult(@Nonnull JSONObject transformerBF) {
+    private <PAYLOAD, CONTEXT> Transformer<PAYLOAD, CONTEXT> getByzantineTransformationResult(@Nonnull JSONObject transformerBF) {
         try {
-            if (currentAbstractTestExecution != null && currentAbstractTestExecution.getCompletedSourceConcreteTestExecution() != null) {
+            if (currentAbstractTestExecution != null) {
 
                 if (transformerBF.has("accumulator") && transformerBF.has("transformerClassName")) {
 
                     // Get transformer object.
-                    ByzantineTransformer<?, ?> transformerObject = getTransformerInstance(transformerBF.getString("transformerClassName"));
+                    Transformer<?, ?> transformerObject = getTransformerInstance(transformerBF.getString("transformerClassName"));
 
                     // Get transform method of transformer object.
                     Method transformMethod = transformerObject.getClass().getMethod("transform", transformerObject.getPayloadType(), Accumulator.class);
@@ -942,8 +942,8 @@ public class FilibusterCore {
 
                     // Invoke transform method.
                     @SuppressWarnings("unchecked")
-                    ByzantineTransformer<PAYLOAD, CONTEXT> transformationResult =
-                            (ByzantineTransformer<PAYLOAD, CONTEXT>) transformMethod.invoke(
+                    Transformer<PAYLOAD, CONTEXT> transformationResult =
+                            (Transformer<PAYLOAD, CONTEXT>) transformMethod.invoke(
                                     transformerObject,
                                     transformerObject.getPayloadType().cast(referenceValue),
                                     accumulator

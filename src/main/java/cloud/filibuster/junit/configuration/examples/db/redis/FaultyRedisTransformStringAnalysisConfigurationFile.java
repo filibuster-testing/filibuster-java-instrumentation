@@ -1,28 +1,21 @@
-package cloud.filibuster.junit.configuration.examples.db.byzantine.redis;
+package cloud.filibuster.junit.configuration.examples.db.redis;
 
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
-import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineByteArrayFaultType;
+import cloud.filibuster.junit.server.core.transformers.FaultyStringTransformer;
 
-import java.nio.charset.Charset;
-public class RedisSingleGetByteArrByzantineFaultAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
+public class FaultyRedisTransformStringAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
     static {
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
-                .name("java.lettuce.byzantine.byte_arr")
+                .name("java.transformers.transform_string.redis")
                 .pattern("io.lettuce.core.api.sync.RedisStringCommands/get\\b");
 
-
-        String[] possibleValues = {"", "ThisIsATestString", "abcd", "1234!!", "-11"};
-        for (String value : possibleValues) {
-            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(new ByzantineByteArrayFaultType(), value.getBytes(Charset.defaultCharset()));
-        }
-        // Inject null fault
-        filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(new ByzantineByteArrayFaultType(), null);
+        filibusterAnalysisConfigurationBuilderRedisExceptions.transformer(FaultyStringTransformer.class);
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());
 

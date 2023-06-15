@@ -8,6 +8,8 @@ import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrument
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
 import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineFaultType;
+import cloud.filibuster.junit.server.core.transformers.Accumulator;
+import com.google.gson.Gson;
 import io.lettuce.core.RedisBusyException;
 import io.lettuce.core.RedisCommandExecutionException;
 import io.lettuce.core.RedisCommandInterruptedException;
@@ -122,10 +124,12 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         JSONObject forcedException = filibusterClientInstrumentor.getForcedException();
         JSONObject failureMetadata = filibusterClientInstrumentor.getFailureMetadata();
         JSONObject byzantineFault = filibusterClientInstrumentor.getByzantineFault();
+        JSONObject transformerFault = filibusterClientInstrumentor.getTransformerFault();
 
         logger.log(Level.INFO, logPrefix + "forcedException: " + forcedException);
         logger.log(Level.INFO, logPrefix + "failureMetadata: " + failureMetadata);
         logger.log(Level.INFO, logPrefix + "byzantineFault: " + byzantineFault);
+        logger.log(Level.INFO, logPrefix + "transformerFault: " + transformerFault);
 
         // ******************************************************************************************
         // If we need to throw, this is where we throw.
@@ -140,7 +144,11 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         }
 
         if (byzantineFault != null && filibusterClientInstrumentor.shouldAbort()) {
-            return injectByzantineFault(filibusterClientInstrumentor, byzantineFault);
+            return injectByzantineFault(filibusterClientInstrumentor, byzantineFault, invocation.getMethod().getReturnType());
+        }
+
+        if (transformerFault != null && filibusterClientInstrumentor.shouldAbort()) {
+            return injectTransformerFault(filibusterClientInstrumentor, transformerFault, invocation.getMethod().getReturnType());
         }
 
         // ******************************************************************************************
@@ -162,6 +170,8 @@ public class RedisInterceptor<T> implements MethodInterceptor {
                 invocationResult = new RedisInterceptorFactory<>(invocationResult, redisConnectionString)
                         .getProxy(invocation.getMethod().getReturnType());
             }
+        } else {
+            returnValueProperties.put("toString", null);
         }
 
         filibusterClientInstrumentor.afterInvocationComplete(invocation.getMethod().getReturnType().getName(), returnValueProperties);
@@ -183,34 +193,72 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         }
     }
 
+    private static Object injectTransformerFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject transformerFault, Class<?> returnType) {
+        try {
+            if (transformerFault.has("value") && transformerFault.has("accumulator")) {
+
+                // Extract the transformer fault value from the transformerFault JSONObject.
+                Object transformerFaultValue = transformerFault.get("value");
+                String sTransformerValue = transformerFaultValue.toString();
+                logger.log(Level.INFO, logPrefix + "Injecting the transformed fault value: " + sTransformerValue);
+
+                // Extract the accumulator from the transformerFault JSONObject.
+                Accumulator<?, ?> accumulator = new Gson().fromJson(transformerFault.get("accumulator").toString(), Accumulator.class);
+
+                // Notify Filibuster.
+                filibusterClientInstrumentor.afterInvocationWithTransformerFault(sTransformerValue,
+                        returnType.toString(), accumulator);
+
+                // Return the byzantine fault value.
+                return transformerFaultValue;
+            } else {
+                String missingKey;
+                if (transformerFault.has("value")) {
+                    missingKey = "accumulator";
+                } else {
+                    missingKey = "value";
+                }
+                logger.log(Level.WARNING, logPrefix + "injectTransformerFault: The transformerFault does not have the required key " + missingKey);
+                throw new FilibusterFaultInjectionException("injectTransformerFault: The transformerFault does not have the required key " + missingKey);
+            }
+        } catch (RuntimeException e) {
+            logger.log(Level.WARNING, logPrefix + "Could not inject transformer fault. The cast was probably not successful:", e);
+            throw new FilibusterFaultInjectionException("Could not inject transformer fault. The cast was probably not successful:", e);
+        }
+    }
+
     @Nullable
-    private static Object injectByzantineFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject byzantineFault) {
-        if (byzantineFault.has("type") && byzantineFault.has("metadata")) {
-            ByzantineFaultType<?> byzantineFaultType = (ByzantineFaultType<?>) byzantineFault.get("type");
-            JSONObject byzantineFaultMetadata = byzantineFault.getJSONObject("metadata");
+    private static Object injectByzantineFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject byzantineFault, Class<?> returnType) {
+        try {
+            if (byzantineFault.has("type") && byzantineFault.has("value")) {
+                ByzantineFaultType<?> byzantineFaultType = (ByzantineFaultType<?>) byzantineFault.get("type");
+                Object value = byzantineFault.get("value");
 
-            // If a value was assigned, return it. Otherwise, return null.
-            Object byzantineFaultValue = byzantineFaultMetadata.has("value") ? byzantineFaultMetadata.get("value") : null;
+                // Cast the byzantineFaultValue to the correct type.
+                value = byzantineFaultType.cast(value);
 
-            // Cast the byzantineFaultValue to the correct type.
-            byzantineFaultValue = byzantineFaultType.cast(byzantineFaultValue);
+                logger.log(Level.INFO, logPrefix + "byzantineFaultType: " + byzantineFaultType);
+                logger.log(Level.INFO, logPrefix + "byzantineFaultValue: " + value);
 
-            logger.log(Level.INFO, logPrefix + "byzantineFaultType: " + byzantineFaultType);
-            logger.log(Level.INFO, logPrefix + "byzantineFaultValue: " + byzantineFaultValue);
+                String sByzantineFaultValue = String.valueOf(value);
 
-            // Build the additional metadata used to notify Filibuster.
-            HashMap<String, String> additionalMetadata = new HashMap<>();
-            String byzantineFaultValueString = byzantineFaultValue != null ? byzantineFaultValue.toString() : "null";
-            additionalMetadata.put("name", byzantineFaultType.toString());
-            additionalMetadata.put("value", byzantineFaultValueString);
+                // Notify Filibuster.
+                filibusterClientInstrumentor.afterInvocationWithByzantineFault(sByzantineFaultValue, returnType.toString());
 
-            // Notify Filibuster.
-            filibusterClientInstrumentor.afterInvocationWithException(byzantineFaultType.toString(), byzantineFaultValueString, additionalMetadata);
-
-            return byzantineFaultValue;
-        } else {
-            logger.log(Level.WARNING, logPrefix + "The byzantineFault either does not have the required key 'type' or 'metadata'");
-            return null;
+                return value;
+            } else {
+                String missingKey;
+                if (byzantineFault.has("type")) {
+                    missingKey = "value";
+                } else {
+                    missingKey = "type";
+                }
+                logger.log(Level.WARNING, logPrefix + "The byzantineFault does not have the required key " + missingKey);
+                throw new FilibusterFaultInjectionException("injectByzantineFault: The byzantineFault does not have the required key " + missingKey);
+            }
+        } catch (RuntimeException e) {
+            logger.log(Level.WARNING, logPrefix + "Could not inject byzantine fault. The cast was probably not successful:", e);
+            throw new FilibusterFaultInjectionException("Could not inject byzantine fault. The cast was probably not successful:", e);
         }
     }
 

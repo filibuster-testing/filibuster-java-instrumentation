@@ -162,6 +162,8 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
                     method.getReturnType().getClassLoader() != null) {
                 invocationResult = DynamicProxyInterceptor.createInterceptor(invocationResult, connectionString);
             }
+        } else {
+            returnValueProperties.put("toString", null);
         }
 
         filibusterClientInstrumentor.afterInvocationComplete(method.getReturnType().getName(), returnValueProperties);
@@ -183,32 +185,36 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
 
     @Nullable
     private static Object injectByzantineFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject byzantineFault) {
-        if (byzantineFault.has("type") && byzantineFault.has("metadata")) {
-            ByzantineFaultType<?> byzantineFaultType = (ByzantineFaultType<?>) byzantineFault.get("type");
-            JSONObject byzantineFaultMetadata = byzantineFault.getJSONObject("metadata");
+        try {
+            if (byzantineFault.has("type") && byzantineFault.has("value")) {
+                ByzantineFaultType<?> byzantineFaultType = (ByzantineFaultType<?>) byzantineFault.get("type");
+                Object value = byzantineFault.get("value");
 
-            // If a value was assigned, return it. Otherwise, return null.
-            Object byzantineFaultValue = byzantineFaultMetadata.has("value") ? byzantineFaultMetadata.get("value") : null;
+                // Cast the byzantineFaultValue to the correct type.
+                value = byzantineFaultType.cast(value);
 
-            // Cast the byzantineFaultValue to the correct type.
-            byzantineFaultValue = byzantineFaultType.cast(byzantineFaultValue);
+                logger.log(Level.INFO, logPrefix + "byzantineFaultType: " + byzantineFaultType);
+                logger.log(Level.INFO, logPrefix + "byzantineFaultValue: " + value);
 
-            logger.log(Level.INFO, logPrefix + "byzantineFaultType: " + byzantineFaultType);
-            logger.log(Level.INFO, logPrefix + "byzantineFaultValue: " + byzantineFaultValue);
+                String sByzantineFaultValue = String.valueOf(value);
 
-            // Build the additional metadata used to notify Filibuster.
-            HashMap<String, String> additionalMetadata = new HashMap<>();
-            String byzantineFaultValueString = byzantineFaultValue != null ? byzantineFaultValue.toString() : "null";
-            additionalMetadata.put("name", byzantineFaultType.toString());
-            additionalMetadata.put("value", byzantineFaultValueString);
+                // Notify Filibuster.
+                filibusterClientInstrumentor.afterInvocationWithByzantineFault(sByzantineFaultValue, byzantineFaultType.toString());
 
-            // Notify Filibuster.
-            filibusterClientInstrumentor.afterInvocationWithException(byzantineFaultType.toString(), byzantineFaultValueString, additionalMetadata);
-
-            return byzantineFaultValue;
-        } else {
-            logger.log(Level.WARNING, logPrefix + "The byzantineFault either does not have the required key 'type' or 'metadata'");
-            return null;
+                return value;
+            } else {
+                String missingKey;
+                if (byzantineFault.has("type")) {
+                    missingKey = "value";
+                } else {
+                    missingKey = "type";
+                }
+                logger.log(Level.WARNING, logPrefix + "The byzantineFault does not have the required key " + missingKey);
+                throw new FilibusterFaultInjectionException("injectByzantineFault: The byzantineFault does not have the required key " + missingKey);
+            }
+        } catch (RuntimeException e) {
+            logger.log(Level.WARNING, logPrefix + "Could not inject byzantine fault. The cast was probably not successful:", e);
+            throw new FilibusterFaultInjectionException("Could not inject byzantine fault. The cast was probably not successful:", e);
         }
     }
 
@@ -229,7 +235,7 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
                 break;
             case "software.amazon.awssdk.services.dynamodb.model.RequestLimitExceededException":
                 exceptionToThrow = RequestLimitExceededException.builder().message(causeString).statusCode(Integer.parseInt(codeString))
-                        .requestId(UUID.randomUUID().toString().replace("-","").toUpperCase(Locale.ROOT)).build();
+                        .requestId(UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT)).build();
                 break;
             default:
                 throw new FilibusterFaultInjectionException("Cannot determine the execution cause to throw: " + causeString);

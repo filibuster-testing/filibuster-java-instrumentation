@@ -344,7 +344,7 @@ public class FilibusterCore {
 
         // Transformer faults are initially scheduled in the endInvocation since we need to know the response value.
         // For consistency, we also initially schedule Byzantine faults in the endInvocation
-        scheduleInitialByzantineAndTransformerFaults(payload, distributedExecutionIndex);
+        scheduleByzantineAndTransformerFaults(payload, distributedExecutionIndex);
 
         JSONObject response = new JSONObject();
         response.put("execution_index", payload.getString("execution_index"));
@@ -354,7 +354,7 @@ public class FilibusterCore {
         return response;
     }
 
-    private void scheduleInitialByzantineAndTransformerFaults(JSONObject payload, DistributedExecutionIndex distributedExecutionIndex) {
+    private void scheduleByzantineAndTransformerFaults(JSONObject payload, DistributedExecutionIndex distributedExecutionIndex) {
         boolean shouldGenerateNewAbstractExecutions;
 
         if (currentAbstractTestExecution == null) {

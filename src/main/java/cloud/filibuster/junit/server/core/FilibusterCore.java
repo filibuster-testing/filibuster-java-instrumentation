@@ -262,6 +262,7 @@ public class FilibusterCore {
                 ByzantineTransformer<?, ?> transformationResult = getByzantineTransformationResult(transformerByzantineFaultObject);
 
                 if (transformationResult.hasNext()) {
+                    // Schedule next execution with the next accumulator
                     JSONObject newFaultObject = new JSONObject(faultObject.toMap());
                     setAccumulatorOnTransformerBF(newFaultObject.getJSONObject("transformer_byzantine_fault"),
                             transformationResult.getNextAccumulator());

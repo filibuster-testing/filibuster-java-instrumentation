@@ -3,8 +3,6 @@ package cloud.filibuster.junit.server.core.transformers;
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 
-import javax.annotation.Nullable;
-
 public final class FaultyStringTransformer implements Transformer<String, Integer> {
     private boolean hasNext = true;
     private String payload;
@@ -12,11 +10,7 @@ public final class FaultyStringTransformer implements Transformer<String, Intege
 
     @Override
     @CanIgnoreReturnValue
-    public FaultyStringTransformer transform(String payload, @Nullable Accumulator<String, Integer> accumulator) {
-        if (accumulator == null) {
-            accumulator = getInitialAccumulator();
-        }
-
+    public FaultyStringTransformer transform(String payload, Accumulator<String, Integer> accumulator) {
         int idx = accumulator.getContext();
 
         StringBuilder newString = new StringBuilder(payload);
@@ -80,7 +74,7 @@ public final class FaultyStringTransformer implements Transformer<String, Intege
     }
 
     @Override
-    public Class<Integer> getCounterType() {
+    public Class<Integer> getContextType() {
         return Integer.class;
     }
 }

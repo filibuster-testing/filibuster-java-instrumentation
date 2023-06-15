@@ -934,7 +934,7 @@ public class FilibusterCore {
                     // Get the accumulator.
                     Type accumulatorType = TypeToken.getParameterized(Accumulator.class,
                             transformerObject.getPayloadType(),
-                            transformerObject.getCounterType()).getType();
+                            transformerObject.getContextType()).getType();
                     Accumulator<?, ?> accumulator = new Gson().fromJson(String.valueOf(transformerBF.get("accumulator")), accumulatorType);
 
                     // Get the reference value.

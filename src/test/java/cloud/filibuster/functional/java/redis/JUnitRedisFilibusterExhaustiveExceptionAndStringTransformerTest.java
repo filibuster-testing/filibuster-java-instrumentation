@@ -44,7 +44,7 @@ public class JUnitRedisFilibusterExhaustiveExceptionAndStringTransformerTest ext
         redisConnectionString = RedisClientService.getInstance().connectionString;
     }
 
-    @DisplayName("Tests whether Redis sync interceptor can read from existing key - Exhaustive Exception and String transformer BFI.")
+    @DisplayName("Tests whether Redis sync interceptor can read from existing key - Exhaustive Exception and String transformer faults.")
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = RedisExhaustiveExceptionAndTransformerAnalysisConfigurationFile.class)
     public void testRedisStringBFIAndExceptionInjection() {
@@ -85,7 +85,7 @@ public class JUnitRedisFilibusterExhaustiveExceptionAndStringTransformerTest ext
     @Order(2)
     public void testNumExecutions() {
         // Reference execution + 3 RedisCommandTimeoutExceptions injected on set + 4 RedisCommandTimeoutExceptions injected on get
-        // + transformer BFI on "example" (7 chars) + transformer BFI on "test" (4 chars)
+        // + transformer faults on "example" (7 chars) + transformer faults on "test" (4 chars)
         assertEquals(19, numberOfTestExecutions);
     }
 
@@ -94,7 +94,7 @@ public class JUnitRedisFilibusterExhaustiveExceptionAndStringTransformerTest ext
     @Order(3)
     public void testNumExceptions() {
         // RedisCommandTimeoutException injected on set/get
-        // + transformer BFI on "example" (7 chars) + transformer BFI on "test" (4 chars)
+        // + transformer faults on "example" (7 chars) + transformer faults on "test" (4 chars)
         assertEquals(12, testExceptionsThrown.size());
     }
 

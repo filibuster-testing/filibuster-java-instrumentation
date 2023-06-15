@@ -1,7 +1,7 @@
 package cloud.filibuster.junit.configuration;
 
 import cloud.filibuster.instrumentation.datatypes.Pair;
-import cloud.filibuster.junit.server.core.transformers.ByzantineTransformer;
+import cloud.filibuster.junit.server.core.transformers.Transformer;
 import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineFaultType;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import org.json.JSONObject;
@@ -22,7 +22,7 @@ public class FilibusterAnalysisConfiguration {
     private final List<JSONObject> errorFaultObjects = new ArrayList<>();
     private final List<JSONObject> latencyFaultObjects = new ArrayList<>();
     private final List<JSONObject> byzantineFaultObjects = new ArrayList<>();
-    private final List<JSONObject> transformerByzantineFaultObjects = new ArrayList<>();
+    private final List<JSONObject> transformerFaultObjects = new ArrayList<>();
     private final String name;
     private final String pattern;
 
@@ -74,13 +74,13 @@ public class FilibusterAnalysisConfiguration {
             }
         }
 
-        if (builder.transformerByzantines.size() > 0) {
-            configurationObject.put("transformerByzantines", builder.transformerByzantines);
+        if (builder.transformers.size() > 0) {
+            configurationObject.put("transformers", builder.transformers);
 
-            for (JSONObject byzantineObject : builder.transformerByzantines) {
-                JSONObject transformerByzantine = new JSONObject();
-                transformerByzantine.put("transformer_byzantine_fault", byzantineObject);
-                transformerByzantineFaultObjects.add(transformerByzantine);
+            for (JSONObject byzantineObject : builder.transformers) {
+                JSONObject transformerJson = new JSONObject();
+                transformerJson.put("transformer_fault", byzantineObject);
+                transformerFaultObjects.add(transformerJson);
             }
         }
 
@@ -95,8 +95,8 @@ public class FilibusterAnalysisConfiguration {
         return this.byzantineFaultObjects;
     }
 
-    public List<JSONObject> getTransformerByzantineFaultObjects() {
-        return this.transformerByzantineFaultObjects;
+    public List<JSONObject> getTransformerFaultObjects() {
+        return this.transformerFaultObjects;
     }
 
     public List<JSONObject> getErrorFaultObjects() {
@@ -129,7 +129,7 @@ public class FilibusterAnalysisConfiguration {
         private final List<JSONObject> errors = new ArrayList<>();
         private final List<JSONObject> latencies = new ArrayList<>();
         private final List<JSONObject> byzantines = new ArrayList<>();
-        private final List<JSONObject> transformerByzantines = new ArrayList<>();
+        private final List<JSONObject> transformers = new ArrayList<>();
 
         @CanIgnoreReturnValue
         public Builder name(String name) {
@@ -173,10 +173,10 @@ public class FilibusterAnalysisConfiguration {
         }
 
         @CanIgnoreReturnValue
-        public Builder byzantineTransformer(Class<? extends ByzantineTransformer<?, ?>> transformer) {
-            JSONObject byzantineTransformer = new JSONObject();
-            byzantineTransformer.put("transformerClassName", transformer.getName());
-            transformerByzantines.add(byzantineTransformer);
+        public Builder transformer(Class<? extends Transformer<?, ?>> transformer) {
+            JSONObject transformerJson = new JSONObject();
+            transformerJson.put("transformerClassName", transformer.getName());
+            transformers.add(transformerJson);
             return this;
         }
 

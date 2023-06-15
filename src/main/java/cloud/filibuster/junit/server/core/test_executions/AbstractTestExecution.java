@@ -99,11 +99,5 @@ public class AbstractTestExecution extends TestExecution {
     public int getFaultsToInjectSize() {
         return this.faultsToInject.size();
     }
-
-    // Returns the concrete execution that this abstract execution was built from.
-    // In case it is an execution, where a Byzantine fault was injected, its accumulator would contain the original
-    // value from the reference run.
-    public ConcreteTestExecution getCompletedSourceConcreteTestExecution() {
-        return completedSourceConcreteTestExecution;
-    }
+    
 }

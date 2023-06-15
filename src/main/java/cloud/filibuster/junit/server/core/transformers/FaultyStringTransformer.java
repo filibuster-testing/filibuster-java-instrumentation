@@ -1,16 +1,18 @@
 package cloud.filibuster.junit.server.core.transformers;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 
 import javax.annotation.Nullable;
 
-public final class FaultyByzantineStringTransformer implements ByzantineTransformer<String, Integer> {
+public final class FaultyStringTransformer implements Transformer<String, Integer> {
     private boolean hasNext = true;
     private String payload;
     private Accumulator<String, Integer> accumulator;
 
     @Override
-    public FaultyByzantineStringTransformer transform(String payload, @Nullable Accumulator<String, Integer> accumulator) {
+    @CanIgnoreReturnValue
+    public FaultyStringTransformer transform(String payload, @Nullable Accumulator<String, Integer> accumulator) {
         if (accumulator == null) {
             accumulator = getInitialAccumulator();
         }

@@ -453,7 +453,6 @@ final public class FilibusterClientInstrumentor {
      * Return transformer fault that needs to be injected.
      * This value will be null until the Filibuster server has been contacted for this request.
      *
-
      * @return JSON object containing failure to inject.
      */
     public JSONObject getTransformerFault() {

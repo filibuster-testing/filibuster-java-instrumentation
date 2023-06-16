@@ -959,6 +959,52 @@ final public class FilibusterClientInstrumentor {
         }
     }
 
+
+    /**
+     * Invoked after a remote call has been completed if the remote call completed successfully.
+     *
+     * @param className the fully qualified name of the response class.
+     * @param returnValueProperties any properties of the response that make the response unique.
+     */
+    public void afterInvocationComplete(
+            String className,
+            HashMap<String, String> returnValueProperties,
+            Object returnValue
+    ) {
+        // Only if instrumented request, we should communicate, and we aren't inside of Filibuster instrumentation.
+        logger.log(Level.INFO,"generatedId: " + generatedId);
+        logger.log(Level.INFO,"shouldCommunicateWithServer: " + shouldCommunicateWithServer);
+
+        if (generatedId > -1 && shouldCommunicateWithServer && counterexampleNotProvided()) {
+            JSONObject returnValueJO = new JSONObject();
+
+            returnValueJO.put("__class__", className);
+            returnValueJO.put("value", returnValue);
+
+            for (Map.Entry<String, String> entry : returnValueProperties.entrySet()) {
+                // JSONObject does not allow null values.
+                // If the value in the HashMap is null, we need to put in JSONObject.NULL instead of null.
+                returnValueJO.put(entry.getKey(), entry.getValue() == null ? JSONObject.NULL : entry.getValue());
+            }
+
+            JSONObject invocationCompletePayload = new JSONObject();
+            invocationCompletePayload.put("instrumentation_type", "invocation_complete");
+            invocationCompletePayload.put("generated_id", getGeneratedId());
+            invocationCompletePayload.put("execution_index", distributedExecutionIndex.toString());
+            invocationCompletePayload.put("vclock", getVectorClock().toJSONObject());
+            invocationCompletePayload.put("return_value", returnValueJO);
+            invocationCompletePayload.put("module", callsite.getClassOrModuleName());
+            invocationCompletePayload.put("method", callsite.getMethodOrFunctionName());
+
+            if (preliminaryDistributedExecutionIndex != null) {
+                invocationCompletePayload.put("preliminary_execution_index", preliminaryDistributedExecutionIndex.toString());
+            }
+
+            recordInvocationComplete(invocationCompletePayload);
+        }
+    }
+
+
     @SuppressWarnings("VoidMissingNullable")
     private void recordInvocationComplete(JSONObject invocationCompletePayload) {
         logger.log(Level.INFO, "invocationCompletePayload: about to make call.");

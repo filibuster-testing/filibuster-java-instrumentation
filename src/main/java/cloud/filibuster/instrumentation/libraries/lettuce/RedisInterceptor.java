@@ -174,7 +174,9 @@ public class RedisInterceptor<T> implements MethodInterceptor {
             returnValueProperties.put("toString", null);
         }
 
-        filibusterClientInstrumentor.afterInvocationComplete(invocation.getMethod().getReturnType().getName(), returnValueProperties);
+        filibusterClientInstrumentor.afterInvocationComplete(invocation.getMethod().getReturnType().getName(),
+                returnValueProperties,
+                invocationResult);
 
         return invocationResult;
     }

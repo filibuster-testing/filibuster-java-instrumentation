@@ -23,6 +23,13 @@ import java.util.UUID;
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationServerCommunicationEnabledProperty;
 
 public class PurchaseWorkflow {
+    public enum PurchaseWorkflowResponse {
+        SUCCESS,
+        INSUFFICIENT_FUNDS,
+        UNPROCESSED,
+        UNAVAILABLE
+    }
+
     public static void depositFundsToAccount(UUID account, int amount) {
         Map<UUID, Integer> balances = new HashMap<>();
         balances.put(account, amount);
@@ -62,6 +69,10 @@ public class PurchaseWorkflow {
     private final StatefulRedisConnection<String, String> connection;
 
     private final BasicDAO dao;
+
+    private int purchaseTotal = 0;
+
+    private PurchaseWorkflowResponse purchaseWorkflowResponse = PurchaseWorkflowResponse.UNPROCESSED;
 
     public PurchaseWorkflow(String sessionId) {
         this.sessionId = sessionId;

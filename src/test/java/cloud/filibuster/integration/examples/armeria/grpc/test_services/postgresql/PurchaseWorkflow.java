@@ -52,7 +52,7 @@ public class PurchaseWorkflow {
     }
 
     private static String cacheKeyForConsumer(String consumer) {
-        return "las_purchase_for_user_" + consumer;
+        return "last_purchase_for_user_" + consumer;
     }
 
     private final String sessionId;

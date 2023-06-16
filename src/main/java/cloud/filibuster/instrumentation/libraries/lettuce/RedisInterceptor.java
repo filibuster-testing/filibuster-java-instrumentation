@@ -18,6 +18,7 @@ import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.dynamic.batch.BatchException;
 import io.lettuce.core.dynamic.intercept.MethodInterceptor;
 import io.lettuce.core.dynamic.intercept.MethodInvocation;
+
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
@@ -153,7 +154,17 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         // invocationResult could be null (e.g., when querying a key in Redis that does not exist). If it is null, skip
         // execute the following block
         if (invocationResult != null) {
-            returnValueProperties.put("toString", invocationResult.toString());
+            String sInvocationResult = null;
+
+            String x = invocationResult.getClass().getName();
+
+            if (invocationResult.getClass().getName().contains("com.sun.proxy")) {
+                sInvocationResult = ""; // avoid encoding memory reference in the RPC response.
+            } else {
+                sInvocationResult = invocationResult.toString();
+            }
+
+            returnValueProperties.put("toString", sInvocationResult);
             // If "invocationResult" is an interface, return an intercepted proxy
             // (e.g., when calling StatefulRedisConnection.sync() where StatefulRedisConnection is an intercepted proxy,
             // the returned RedisCommands object should also be an intercepted proxy)

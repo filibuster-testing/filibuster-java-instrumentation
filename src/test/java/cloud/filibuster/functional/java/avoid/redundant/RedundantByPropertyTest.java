@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.redundant;
+package cloud.filibuster.functional.java.avoid.redundant;
 
 import cloud.filibuster.examples.APIServiceGrpc;
 import cloud.filibuster.examples.CartServiceGrpc;
@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class RedundantByPropertyNegativeTest {
+public class RedundantByPropertyTest {
     @RegisterExtension
     static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
             .withPort(Networking.getPort("mock"))
@@ -56,6 +56,11 @@ public class RedundantByPropertyNegativeTest {
 
     @BeforeAll
     public static void setProperties() {
+        setTestAvoidRedundantInjectionsProperty(true);
+    }
+
+    @AfterAll
+    public static void resetProperties() {
         setTestAvoidRedundantInjectionsProperty(false);
     }
 
@@ -86,7 +91,7 @@ public class RedundantByPropertyNegativeTest {
         try {
             APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
             Hello.PurchaseRequest request = Hello.PurchaseRequest.newBuilder().setSessionId(sessionId).build();
-            Hello.PurchaseResponse response = blockingStub.purchase(request);
+            Hello.PurchaseResponse response = blockingStub.simulatePurchase(request);
             assertNotNull(response);
         } catch (RuntimeException e) {
             testFailures++;
@@ -96,13 +101,20 @@ public class RedundantByPropertyNegativeTest {
     @Test
     @Order(2)
     public void testInvocationCount() {
-        assertEquals(8, testInvocationCount);
+        // 5 RPCs, 3 duplicates removed.
+        // 3 tests failing each RPC once + 1 golden path (with UNIMPLEMENTED for final call.)
+        // 4 total.
+        assertEquals(4, testInvocationCount);
     }
 
     @Test
     @Order(2)
     public void testFailures() {
-        assertEquals(6, testFailures);
+        // 5 RPCs, 3 duplicates removed.
+        // 4 executions.
+        // 1 non-fatal, 2 fatal.
+        // 2 total.
+        assertEquals(2, testFailures);
     }
 
     @Order(2)
@@ -116,7 +128,7 @@ public class RedundantByPropertyNegativeTest {
                 case "cloud.filibuster.examples.UserService/GetUserFromSession":
                     assertTrue(warning instanceof RedundantRPCWarning);
                     break;
-                case "cloud.filibuster.examples.CartService/SetDiscountOnCart":
+                case "cloud.filibuster.examples.CartService/GetDiscountOnCart":
                     assertTrue(warning instanceof UnimplementedFailuresWarning);
                     break;
                 default:
@@ -124,9 +136,8 @@ public class RedundantByPropertyNegativeTest {
             }
         }
 
-        // 4 warnings:
-        // - 3 redundant, only removable through use of the property and not annotation.
+        // 1 warning:
         // - 1 unimplemented, for the set discount RPC.
-        assertEquals(4, warnings.size());
+        assertEquals(1, warnings.size());
     }
 }

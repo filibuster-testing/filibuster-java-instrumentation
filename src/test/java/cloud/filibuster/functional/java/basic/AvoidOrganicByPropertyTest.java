@@ -91,7 +91,7 @@ public class AvoidOrganicByPropertyTest {
         try {
             APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
             Hello.PurchaseRequest request = Hello.PurchaseRequest.newBuilder().setSessionId(sessionId).build();
-            Hello.PurchaseResponse response = blockingStub.purchase(request);
+            Hello.PurchaseResponse response = blockingStub.simulatePurchase(request);
             assertNotNull(response);
         } catch (RuntimeException e) {
             testFailures++;
@@ -121,7 +121,7 @@ public class AvoidOrganicByPropertyTest {
                 case "cloud.filibuster.examples.UserService/GetUserFromSession":
                     assertTrue(warning instanceof RedundantRPCWarning);
                     break;
-                case "cloud.filibuster.examples.CartService/SetDiscountOnCart":
+                case "cloud.filibuster.examples.CartService/GetDiscountOnCart":
                     assertTrue(warning instanceof UnimplementedFailuresWarning);
                     break;
                 default:

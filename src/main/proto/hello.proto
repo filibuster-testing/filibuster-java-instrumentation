@@ -8,12 +8,14 @@ message PurchaseRequest {
 
 message PurchaseResponse {
   bool success = 1;
+  string total = 2;
 }
 
 service APIService {
   rpc Hello (HelloRequest) returns (HelloReply) {};
   rpc HelloWithMock (HelloRequest) returns (HelloReply) {};
   rpc RedisHello (RedisRequest) returns (RedisReply) {};
+  rpc SimulatePurchase (PurchaseRequest) returns (PurchaseResponse) {}
   rpc Purchase (PurchaseRequest) returns (PurchaseResponse) {}
   rpc RedisHelloRetry (RedisRequest) returns (RedisReply) {};
 }
@@ -36,19 +38,21 @@ message GetCartRequest {
 
 message GetCartResponse {
   string cart_id = 1;
+  string total = 2;
+  string merchant_id = 3;
 }
 
-message SetDiscountRequest {
-  string cart_id = 1;
+message GetDiscountRequest {
+  string code = 1;
 }
 
-message SetDiscountResponse {
-
+message GetDiscountResponse {
+  string percent = 1;
 }
 
 service CartService {
   rpc GetCartForSession (GetCartRequest) returns (GetCartResponse) {}
-  rpc SetDiscountOnCart (SetDiscountRequest) returns (SetDiscountResponse) {}
+  rpc GetDiscountOnCart (GetDiscountRequest) returns (GetDiscountResponse) {}
 }
 
 service HelloService {

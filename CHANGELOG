@@ -5,11 +5,17 @@
    - (MichaelA-ops) Implement generic dynamic proxy interceptor
    - (MichaelA-ops) Add test service for CockroachDB
    - (cmeiklejohn) Clean up snippets.
+1.8.0
    - (MichaelA-ops) Inject transformer Byzantine faults
    - (MichaelA-ops) Implement afterInvocationWithByzantineFault
    - (MichaelA-ops) Generate transformer BF inductively
    - (MichaelA-ops) Create a unit test for transformer faults for strings
    - (MichaelA-ops) UX: Use the background colour Coral for Byzantine faults
+   - (cmeiklejohn) Add new end to end test.
+   - (cmeiklejohn) Add new fault helper API that records test block type.
+   - (cmeiklejohn) Report types in UX when scope counter is enabled.
+   - (cmeiklejohn) Add end to end test with Redis FI.
+   - (cmeiklejohn) Fix several UX issues.
 1.7.6:
    - (MichaelA-ops) Use fully qualified method names for callsite in RedisInterceptor
    - (MichaelA-ops) Implement temporary fix for wasFaultInjectedOnService method

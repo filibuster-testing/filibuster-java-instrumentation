@@ -13,6 +13,7 @@ public class FilibusterLatencyOnlyAnalysisConfigurationFile implements Filibuste
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilder = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc")
                 .pattern("(.*/.*)")
+                .type("grpc")
                 .latency(SERVICE, ".*", 2000);
         FilibusterAnalysisConfiguration filibusterAnalysisConfiguration = filibusterAnalysisConfigurationBuilder.build();
         filibusterCustomAnalysisConfigurationFile = new FilibusterCustomAnalysisConfigurationFile.Builder()

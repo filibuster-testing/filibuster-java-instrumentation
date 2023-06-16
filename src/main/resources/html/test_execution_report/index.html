@@ -280,14 +280,34 @@
                             var groupWithoutPrefix = group.replace("TestScope+", "").replace("[", "").replace("]", "");
                             var groupArray = groupWithoutPrefix.split("+");
                             var groupNumber = groupArray[0];
-                            var groupType = groupArray[1].toLowerCase();
-                            var normalizedGroupType = groupType.charAt(0).toUpperCase() + groupType.slice(1);
+                            var groupType = groupArray[1];
+                            var normalizedGroupType = "";
+
+                            switch(groupType) {
+                                case "DEFAULT":
+                                    normalizedGroupType = "Default Block";
+                                    break;
+                                case "SETUP":
+                                    normalizedGroupType = "Setup Block (<i>No Faults Injected</i>)";
+                                    break;
+                                case "TEST":
+                                    normalizedGroupType = "Test Block";
+                                    break;
+                                case "ASSERTION":
+                                    normalizedGroupType = "Assertion Block (<i>No Faults Injected</i>)";
+                                    break;
+                                case "TEARDOWN":
+                                    normalizedGroupType = "Teardown Block (<i>No Faults Injected</i>)";
+                                    break;
+                                default:
+                                    normalizedGroupType = "Unknown Block (" + groupType + ")";
+                            }
 
                             var row = "";
                             row += "<tr>";
                             row += "<td colspan=4>";
                             row += "<span>";
-                            row += normalizedGroupType + " Block";
+                            row += normalizedGroupType;
                             row += "</span>";
                             row += "</td>";
                             row += "</tr>";

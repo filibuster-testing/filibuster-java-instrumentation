@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.endtoend;
+package cloud.filibuster.functional.java.purchase;
 
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
@@ -14,7 +14,7 @@ import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.P
 import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopAPIServerAndWaitUntilUnavailable;
 
-public class BaseTest {
+public class PurchaseBaseTest {
     @BeforeAll
     public static void startAllServices() throws IOException, InterruptedException {
         startAPIServerAndWaitUntilAvailable();

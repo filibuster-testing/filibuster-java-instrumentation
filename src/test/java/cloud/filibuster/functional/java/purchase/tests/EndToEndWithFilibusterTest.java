@@ -1,13 +1,15 @@
-package cloud.filibuster.functional.java.endtoend;
+package cloud.filibuster.functional.java.purchase.tests;
 
 import cloud.filibuster.examples.APIServiceGrpc;
 import cloud.filibuster.examples.CartServiceGrpc;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.UserServiceGrpc;
+import cloud.filibuster.functional.java.purchase.PurchaseBaseTest;
+import cloud.filibuster.functional.java.purchase.configurations.GRPCAnalysisConfigurationFile;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.PurchaseWorkflow;
+import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.PurchaseCustomAnalysisConfigurationFile;
 import org.grpcmock.junit5.GrpcMockExtension;
 import org.json.JSONObject;
 import org.junit.jupiter.api.MethodOrderer;
@@ -29,33 +31,27 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class EndToEndWithFilibusterTest extends BaseTest {
+public class EndToEndWithFilibusterTest extends PurchaseBaseTest {
     @RegisterExtension
     static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
             .withPort(Networking.getPort("mock"))
             .build();
 
-    private static final UUID SESSION_ID = UUID.randomUUID();
-
-    private static final UUID CONSUMER_UUID = UUID.randomUUID();
-
-    private static final UUID MERCHANT_UUID = UUID.randomUUID();
-
-    private static final UUID CART_UUID = UUID.randomUUID();
-
-    private static JSONObject generateExpectedCacheObject() {
+    private static JSONObject generateExpectedCacheObject(String consumerId, String cartId) {
         JSONObject expectedJsonObject = new JSONObject();
-        expectedJsonObject.put("cart_id", CART_UUID.toString());
-        expectedJsonObject.put("user_id", CONSUMER_UUID.toString());
+        expectedJsonObject.put("cart_id", cartId);
+        expectedJsonObject.put("user_id", consumerId);
         expectedJsonObject.put("purchased", true);
         expectedJsonObject.put("total", "9000");
         return expectedJsonObject;
     }
 
     @TestWithFilibuster(
-            analysisConfigurationFile = PurchaseCustomAnalysisConfigurationFile.class,
+            analysisConfigurationFile = GRPCAnalysisConfigurationFile.class,
             maxIterations = 1,
-            suppressCombinations = true
+            suppressCombinations = true,
+            dataNondeterminism = true,
+            searchStrategy = FilibusterSearchStrategy.BFS
     )
     public void testEndToEnd() {
         // ****************************************************************
@@ -65,16 +61,22 @@ public class EndToEndWithFilibusterTest extends BaseTest {
         // that will implicitly disable fault injection.
         // ****************************************************************
 
+        // Generate identifiers to use for this test.
+        UUID sessionId = UUID.randomUUID();
+        UUID consumerId = UUID.randomUUID();
+        UUID merchantId = UUID.randomUUID();
+        UUID cartId = UUID.randomUUID();
+
         setupBlock(() -> {
             // Reset cache state.
-            PurchaseWorkflow.resetCacheObjectForUser(CONSUMER_UUID);
+            PurchaseWorkflow.resetCacheObjectForUser(consumerId);
 
             // Reset database state.
-            PurchaseWorkflow.depositFundsToAccount(CONSUMER_UUID, 20000);
-            assertEquals(20000, PurchaseWorkflow.getAccountBalance(CONSUMER_UUID));
+            PurchaseWorkflow.depositFundsToAccount(consumerId, 20000);
+            assertEquals(20000, PurchaseWorkflow.getAccountBalance(consumerId));
 
-            PurchaseWorkflow.depositFundsToAccount(MERCHANT_UUID, 0);
-            assertEquals(0, PurchaseWorkflow.getAccountBalance(MERCHANT_UUID));
+            PurchaseWorkflow.depositFundsToAccount(merchantId, 0);
+            assertEquals(0, PurchaseWorkflow.getAccountBalance(merchantId));
         });
 
         // ****************************************************************
@@ -83,13 +85,13 @@ public class EndToEndWithFilibusterTest extends BaseTest {
 
         stubFor(unaryMethod(UserServiceGrpc.getGetUserFromSessionMethod())
                 .willReturn(Hello.GetUserResponse.newBuilder()
-                        .setUserId(CONSUMER_UUID.toString())
+                        .setUserId(consumerId.toString())
                         .build()));
         stubFor(unaryMethod(CartServiceGrpc.getGetCartForSessionMethod())
                 .willReturn(Hello.GetCartResponse.newBuilder()
-                        .setCartId(CART_UUID.toString())
+                        .setCartId(cartId.toString())
                         .setTotal("10000")
-                        .setMerchantId(MERCHANT_UUID.toString())
+                        .setMerchantId(merchantId.toString())
                         .build()));
         stubFor(unaryMethod(CartServiceGrpc.getGetDiscountOnCartMethod())
                 .willReturn(Hello.GetDiscountResponse.newBuilder()
@@ -103,7 +105,7 @@ public class EndToEndWithFilibusterTest extends BaseTest {
         testBlock(() -> {
             APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(API_CHANNEL);
             Hello.PurchaseRequest request = Hello.PurchaseRequest.newBuilder()
-                    .setSessionId(SESSION_ID.toString())
+                    .setSessionId(sessionId.toString())
                     .build();
             Hello.PurchaseResponse response = blockingStub.purchase(request);
             assertNotNull(response);
@@ -121,19 +123,19 @@ public class EndToEndWithFilibusterTest extends BaseTest {
 
         assertionBlock(() -> {
             // Verify cache writes.
-            JSONObject cacheObject = PurchaseWorkflow.getCacheObjectForUser(CONSUMER_UUID);
-            assertTrue(generateExpectedCacheObject().similar(cacheObject));
+            JSONObject cacheObject = PurchaseWorkflow.getCacheObjectForUser(consumerId);
+            assertTrue(generateExpectedCacheObject(consumerId.toString(), cartId.toString()).similar(cacheObject));
 
             // Verify database writes.
-            assertEquals(11000, PurchaseWorkflow.getAccountBalance(CONSUMER_UUID));
-            assertEquals(9000, PurchaseWorkflow.getAccountBalance(MERCHANT_UUID));
+            assertEquals(11000, PurchaseWorkflow.getAccountBalance(consumerId));
+            assertEquals(9000, PurchaseWorkflow.getAccountBalance(merchantId));
         });
 
         // ****************************************************************
         // Assert stub invocations.
         // ****************************************************************
 
-        verifyThat(UserServiceGrpc.getGetUserFromSessionMethod(), times(4));
+        verifyThat(UserServiceGrpc.getGetUserFromSessionMethod(), times(1));
         verifyThat(CartServiceGrpc.getGetCartForSessionMethod(), times(1));
         verifyThat(CartServiceGrpc.getGetDiscountOnCartMethod(), times(1));
 
@@ -143,11 +145,11 @@ public class EndToEndWithFilibusterTest extends BaseTest {
 
         teardownBlock(() -> {
             // Reset cache state.
-            PurchaseWorkflow.resetCacheObjectForUser(CONSUMER_UUID);
+            PurchaseWorkflow.resetCacheObjectForUser(consumerId);
 
             // Reset database state.
-            PurchaseWorkflow.deleteAccount(CONSUMER_UUID);
-            PurchaseWorkflow.deleteAccount(MERCHANT_UUID);
+            PurchaseWorkflow.deleteAccount(consumerId);
+            PurchaseWorkflow.deleteAccount(merchantId);
         });
     }
 }

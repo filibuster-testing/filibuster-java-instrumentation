@@ -7,6 +7,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.exceptions.filibuster.FilibusterLatencyInjectionException;
 import cloud.filibuster.instrumentation.helpers.Property;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
+import cloud.filibuster.junit.assertions.BlockType;
 import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineFaultType;
 import cloud.filibuster.junit.server.core.reports.TestSuiteReport;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
@@ -168,12 +169,27 @@ public class FilibusterCore {
         }
     }
 
+    public synchronized void incrementTestScopeCounter(BlockType blockType) {
+        if (currentConcreteTestExecution != null) {
+            currentConcreteTestExecution.incrementTestScopeCounter(blockType);
+        }
+    }
+
+
     public synchronized int getTestScopeCounter() {
         if (currentConcreteTestExecution != null) {
             return currentConcreteTestExecution.getTestScopeCounter();
         }
 
         return 0;
+    }
+
+    public synchronized BlockType getLastTestScopeBlockType() {
+        if (currentConcreteTestExecution != null) {
+            return currentConcreteTestExecution.getLastTestScopeBlockType();
+        }
+
+        return BlockType.DEFAULT;
     }
 
     // RPC hooks.
@@ -203,6 +219,14 @@ public class FilibusterCore {
             // Only works for GRPC right now.
             String moduleName = payload.getString("module");
             String methodName = payload.getString("method");
+            String rpcType = null;
+
+            if (payload.has("metadata")) {
+                JSONObject payloadMetadata = payload.getJSONObject("metadata");
+                if (payloadMetadata.has("rpc_type")) {
+                    rpcType = payloadMetadata.getString("rpc_type");
+                }
+            }
 
             boolean shouldGenerateNewAbstractExecutions;
 
@@ -217,10 +241,10 @@ public class FilibusterCore {
             if (shouldGenerateNewAbstractExecutions && faultInjectionEnabled) {
                 if (filibusterConfiguration.getAvoidRedundantInjections()) {
                     if (!hasSeenRpcUnderSameOrDifferentDistributedExecutionIndex) {
-                        generateFaultsUsingAnalysisConfiguration(filibusterConfiguration, distributedExecutionIndex, moduleName, methodName);
+                        generateFaultsUsingAnalysisConfiguration(filibusterConfiguration, distributedExecutionIndex, rpcType, moduleName, methodName);
                     }
                 } else {
-                    generateFaultsUsingAnalysisConfiguration(filibusterConfiguration, distributedExecutionIndex, moduleName, methodName);
+                    generateFaultsUsingAnalysisConfiguration(filibusterConfiguration, distributedExecutionIndex, rpcType, moduleName, methodName);
                 }
             }
         }
@@ -589,6 +613,10 @@ public class FilibusterCore {
                 filibusterAnalysisConfigurationBuilder.pattern(nameObject.getString("pattern"));
             }
 
+            if (nameObject.has("type")) {
+                filibusterAnalysisConfigurationBuilder.type(nameObject.getString("type"));
+            }
+
             if (nameObject.has("latencies")) {
                 JSONArray jsonArray = nameObject.getJSONArray("latencies");
 
@@ -677,9 +705,43 @@ public class FilibusterCore {
 
     // Private functions.
 
+    private static boolean matchesFaultInjectionPattern(
+            FilibusterAnalysisConfiguration filibusterAnalysisConfiguration,
+            String rpcType,
+            String moduleName,
+            String methodName
+    ) {
+        boolean matchesMethodName = filibusterAnalysisConfiguration.isPatternMatch(methodName);
+
+        // This check is a legacy check for the old Python server compatibility.
+        boolean matchesModuleAndMethodName = filibusterAnalysisConfiguration.isPatternMatch(moduleName + "." + methodName);
+
+        boolean patternMatchFound = matchesMethodName || matchesModuleAndMethodName;
+
+        if (rpcType == null) {
+            if (filibusterAnalysisConfiguration.hasType()) {
+                // If the analysis configuration has a type and we don't have a type, it's not a match.
+                return false;
+            }
+
+            // No type in analysis configuration, no type in the instrumentation.
+            // Fallback behavior, original Filibuster behavior.
+            //
+            return patternMatchFound;
+        }
+
+        // RPCs have unknown modules/methods and therefore we might have overly permissive patterns that need
+        // to be verified using the instrumentation type.
+        //
+        boolean isTypeMatch = filibusterAnalysisConfiguration.isTypeMatch(rpcType);
+
+        return patternMatchFound && isTypeMatch;
+    }
+
     private void generateFaultsUsingSpecificAnalysisConfiguration(
             FilibusterCustomAnalysisConfigurationFile customAnalysisConfigurationFile,
             DistributedExecutionIndex distributedExecutionIndex,
+            String rpcType,
             String moduleName,
             String methodName
     ) {
@@ -688,7 +750,7 @@ public class FilibusterCore {
         if (customAnalysisConfigurationFile != null) {
             for (FilibusterAnalysisConfiguration filibusterAnalysisConfiguration : customAnalysisConfigurationFile.getFilibusterAnalysisConfigurations()) {
                 // Second check here (concat) is a legacy check for the old Python server compatibility.
-                if (filibusterAnalysisConfiguration.isPatternMatch(methodName) || filibusterAnalysisConfiguration.isPatternMatch(moduleName + "." + methodName)) {
+                if (matchesFaultInjectionPattern(filibusterAnalysisConfiguration, rpcType, moduleName, methodName)) {
                     // Latency.
                     List<JSONObject> latencyFaultObjects = filibusterAnalysisConfiguration.getLatencyFaultObjects();
 
@@ -762,6 +824,7 @@ public class FilibusterCore {
     private void generateFaultsUsingAnalysisConfiguration(
             FilibusterConfiguration filibusterConfiguration,
             DistributedExecutionIndex distributedExecutionIndex,
+            String rpcType,
             String moduleName,
             String methodName
     ) {
@@ -781,7 +844,8 @@ public class FilibusterCore {
                     if (serviceProfile.sawMethod(methodName)) {
                         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilder = new FilibusterAnalysisConfiguration.Builder()
                                 .name("java.grpc." + methodName)
-                                .pattern("(" + methodName + ")");
+                                .pattern("(" + methodName + ")")
+                                .type("grpc");
 
                         List<ServiceRequestAndResponse> serviceRequestAndResponseList = serviceProfile.getServiceRequestAndResponsesForMethod(methodName);
 
@@ -821,7 +885,7 @@ public class FilibusterCore {
         customAnalysisConfigurationFiles.add(filibusterCustomAnalysisConfigurationFile);
 
         for (FilibusterCustomAnalysisConfigurationFile customAnalysisConfigurationFile : customAnalysisConfigurationFiles) {
-            generateFaultsUsingSpecificAnalysisConfiguration(customAnalysisConfigurationFile, distributedExecutionIndex, moduleName, methodName);
+            generateFaultsUsingSpecificAnalysisConfiguration(customAnalysisConfigurationFile, distributedExecutionIndex, rpcType, moduleName, methodName);
         }
 
         logger.info("[FILIBUSTER-CORE]: generateFaultsUsingAnalysisConfiguration returning.");

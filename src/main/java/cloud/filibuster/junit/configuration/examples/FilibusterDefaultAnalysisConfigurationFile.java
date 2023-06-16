@@ -41,7 +41,8 @@ public class FilibusterDefaultAnalysisConfigurationFile implements FilibusterAna
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderGrpcExceptions = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc.exceptions")
-                .pattern("(.*/.*)");
+                .pattern("(.*/.*)")
+                .type("grpc");
         for (String code : exhaustiveGrpcErrorCodeList) {
             filibusterAnalysisConfigurationBuilderGrpcExceptions.exception("io.grpc.StatusRuntimeException", createGrpcErrorMap(code));
         }
@@ -50,7 +51,8 @@ public class FilibusterDefaultAnalysisConfigurationFile implements FilibusterAna
         // Google's gRPC error types.
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderGrpcErrors = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc.errors")
-                .pattern("(.*/.*)");
+                .pattern("(.*/.*)")
+                .type("grpc");
 
         // Specification of error code without specification of the exception types
         // that will encapsulate the error codes.

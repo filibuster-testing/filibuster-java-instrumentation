@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.configuration.examples;
+package cloud.filibuster.functional.java.purchase.configurations;
 
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class FilibusterGrpcBasicAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
+public class GRPCAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final List<String> exhaustiveGrpcErrorCodeList = new ArrayList<>();
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
@@ -21,22 +21,17 @@ public class FilibusterGrpcBasicAnalysisConfigurationFile implements FilibusterA
     }
 
     static {
-        exhaustiveGrpcErrorCodeList.add("DEADLINE_EXCEEDED");
-        exhaustiveGrpcErrorCodeList.add("UNAVAILABLE");
+        FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
-        FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilder = new FilibusterAnalysisConfiguration.Builder()
-                .name("java.grpc")
+        // GRPC
+        FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderGrpcExceptions = new FilibusterAnalysisConfiguration.Builder()
+                .name("java.grpc.exceptions")
                 .pattern("(.*/.*)")
                 .type("grpc");
+        filibusterAnalysisConfigurationBuilderGrpcExceptions.exception("io.grpc.StatusRuntimeException", createGrpcErrorMap("UNAVAILABLE"));
+        filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderGrpcExceptions.build());
 
-        for (String code : exhaustiveGrpcErrorCodeList) {
-            filibusterAnalysisConfigurationBuilder.exception("io.grpc.StatusRuntimeException", createGrpcErrorMap(code));
-        }
-
-        FilibusterAnalysisConfiguration filibusterAnalysisConfiguration = filibusterAnalysisConfigurationBuilder.build();
-        filibusterCustomAnalysisConfigurationFile = new FilibusterCustomAnalysisConfigurationFile.Builder()
-                .analysisConfiguration(filibusterAnalysisConfiguration)
-                .build();
+        filibusterCustomAnalysisConfigurationFile = filibusterCustomAnalysisConfigurationFileBuilder.build();
     }
 
     @Override

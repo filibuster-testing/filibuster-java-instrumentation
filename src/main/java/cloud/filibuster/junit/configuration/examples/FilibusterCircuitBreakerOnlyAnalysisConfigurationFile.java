@@ -15,6 +15,7 @@ public class FilibusterCircuitBreakerOnlyAnalysisConfigurationFile implements Fi
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilder = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc")
                 .pattern("(.*/.*)")
+                .type("grpc")
                 .exception("io.grpc.StatusRuntimeException", FilibusterAnalysisConfigurationFile.createGrpcErrorMap(code, cause, description));
         FilibusterAnalysisConfiguration filibusterAnalysisConfiguration = filibusterAnalysisConfigurationBuilder.build();
         filibusterCustomAnalysisConfigurationFile = new FilibusterCustomAnalysisConfigurationFile.Builder()

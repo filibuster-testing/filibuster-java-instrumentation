@@ -400,13 +400,14 @@ public class FilibusterCore {
                     for (JSONObject transformer : transformerFaults) {
                         if (transformer.has("transformer_fault")
                                 && payload.has("return_value")
+                                && payload.getJSONObject("return_value").has("value")
                                 && payload.getJSONObject("return_value").has("toString")
                                 && !payload.getJSONObject("return_value").get("toString").toString().isEmpty()
                                 && !payload.getJSONObject("return_value").get("toString").equals(JSONObject.NULL)) {
                             setAccumulatorOnTransformer(transformer.getJSONObject("transformer_fault"),
                                     getInitialAccumulator(
                                             transformer.getJSONObject("transformer_fault"),
-                                            payload.getJSONObject("return_value").get("toString").toString()
+                                            payload.getJSONObject("return_value").get("value")
                                     )
                             );
                             createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, new JSONObject(transformer.toMap()));
@@ -939,14 +940,14 @@ public class FilibusterCore {
                     Accumulator<?, ?> accumulator = new Gson().fromJson(String.valueOf(transformer.get("accumulator")), accumulatorType);
 
                     // Get the reference value.
-                    String referenceValue = accumulator.getReferenceValue().toString();
+                    Object referenceValue = transformerObject.getPayloadType().cast(accumulator.getReferenceValue());
 
                     // Invoke transform method.
                     @SuppressWarnings("unchecked")
                     Transformer<PAYLOAD, CONTEXT> transformationResult =
                             (Transformer<PAYLOAD, CONTEXT>) transformMethod.invoke(
                                     transformerObject,
-                                    transformerObject.getPayloadType().cast(referenceValue),
+                                    referenceValue,
                                     accumulator
                             );
                     // Return the transformation result.

@@ -271,13 +271,30 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     @Override
     public void purchase(Hello.PurchaseRequest req, StreamObserver<Hello.PurchaseResponse> responseObserver) {
         PurchaseWorkflow purchaseWorkflow = new PurchaseWorkflow(req.getSessionId());
-        int cartTotal = purchaseWorkflow.execute();
+        PurchaseWorkflow.PurchaseWorkflowResponse workflowResponse = purchaseWorkflow.execute();
+        Status status;
 
-        Hello.PurchaseResponse purchaseResponse = Hello.PurchaseResponse.newBuilder()
-                .setSuccess(true)
-                .setTotal(String.valueOf(cartTotal))
-                .build();
-        responseObserver.onNext(purchaseResponse);
-        responseObserver.onCompleted();
+        switch (workflowResponse) {
+            case SUCCESS:
+                Hello.PurchaseResponse purchaseResponse = Hello.PurchaseResponse.newBuilder()
+                        .setSuccess(true)
+                        .setTotal(String.valueOf(purchaseWorkflow.getPurchaseTotal()))
+                        .build();
+                responseObserver.onNext(purchaseResponse);
+                responseObserver.onCompleted();
+                break;
+            case INSUFFICIENT_FUNDS:
+                status = Status.FAILED_PRECONDITION.withDescription("Consumer did not have sufficient funds to make purchase.");
+                responseObserver.onError(status.asRuntimeException());
+                break;
+            case UNPROCESSED:
+                status = Status.INTERNAL.withDescription("Purchase has not yet been completed.");
+                responseObserver.onError(status.asRuntimeException());
+                break;
+            case UNAVAILABLE:
+                status = Status.UNAVAILABLE.withDescription("Purchase could not be completed at this time, please retry the request.");
+                responseObserver.onError(status.asRuntimeException());
+                break;
+        }
     }
 }

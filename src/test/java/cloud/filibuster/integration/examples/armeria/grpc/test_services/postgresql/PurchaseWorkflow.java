@@ -3,6 +3,7 @@ package cloud.filibuster.integration.examples.armeria.grpc.test_services.postgre
 import cloud.filibuster.examples.CartServiceGrpc;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.UserServiceGrpc;
+import cloud.filibuster.instrumentation.datatypes.Pair;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
 import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
@@ -16,7 +17,9 @@ import io.grpc.StatusRuntimeException;
 import io.lettuce.core.api.StatefulRedisConnection;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -62,6 +65,13 @@ public class PurchaseWorkflow {
         return "last_purchase_for_user_" + consumer;
     }
 
+    public static List<Map.Entry<String, String>> getDiscountCodes() {
+        ArrayList<Map.Entry<String, String>> discountCodes = new ArrayList<>();
+        discountCodes.add(Pair.of("FIRST-TIME", "10"));
+        discountCodes.add(Pair.of("RETURNING", "5"));
+        return discountCodes;
+    }
+
     private final String sessionId;
 
     private final Channel channel;
@@ -104,19 +114,23 @@ public class PurchaseWorkflow {
             return PurchaseWorkflowResponse.UNAVAILABLE;
         }
 
-        // Make call to get the user, again.
-        getUserFromSession(channel, sessionId);
+        // Get the maximum discount.
+        int maxDiscountPercentage = 0;
 
-        // Set discount.
-        try {
-            Hello.GetDiscountResponse getDiscountResponse = getDiscountOnCart(channel, cartId);
-            int discountPercentage = Integer.parseInt(getDiscountResponse.getPercent());
-            float discountPct = discountPercentage / 100.00F;
-            float discountAmount = cartTotal * discountPct;
-            cartTotal = cartTotal - (int) discountAmount;
-        } catch (StatusRuntimeException e) {
-            // Nothing, ignore discount failure.
+        for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
+            try {
+                Hello.GetDiscountResponse getDiscountResponse = getDiscountOnCart(channel, discountCode.getKey());
+                int discountPercentage = Integer.parseInt(getDiscountResponse.getPercent());
+                maxDiscountPercentage = Integer.max(maxDiscountPercentage, discountPercentage);
+            } catch (StatusRuntimeException e) {
+                // Nothing, ignore discount failure.
+            }
         }
+
+        // Apply discount.
+        float discountPct = maxDiscountPercentage / 100.00F;
+        float discountAmount = cartTotal * discountPct;
+        cartTotal = cartTotal - (int) discountAmount;
 
         // Verify the user has sufficient funds.
         int userAccountBalance = dao.getAccountBalance(UUID.fromString(userId));
@@ -208,9 +222,9 @@ public class PurchaseWorkflow {
         return cartServiceBlockingStub.getCartForSession(request);
     }
 
-    private static Hello.GetDiscountResponse getDiscountOnCart(Channel channel, String cartId) {
+    private static Hello.GetDiscountResponse getDiscountOnCart(Channel channel, String discountCode) {
         CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
-        Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder().setCartId(cartId).build();
+        Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder().setCode(discountCode).build();
         return cartServiceBlockingStub.getDiscountOnCart(request);
     }
 }

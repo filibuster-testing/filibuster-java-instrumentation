@@ -16,12 +16,14 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import java.util.Map;
 import java.util.UUID;
 
 import static cloud.filibuster.junit.assertions.Helpers.assertionBlock;
 import static cloud.filibuster.junit.assertions.Helpers.setupBlock;
 import static cloud.filibuster.junit.assertions.Helpers.teardownBlock;
 import static cloud.filibuster.junit.assertions.Helpers.testBlock;
+import static org.grpcmock.GrpcMock.calledMethod;
 import static org.grpcmock.GrpcMock.stubFor;
 import static org.grpcmock.GrpcMock.times;
 import static org.grpcmock.GrpcMock.unaryMethod;
@@ -93,10 +95,16 @@ public class EndToEndWithFilibusterTest extends PurchaseBaseTest {
                         .setTotal("10000")
                         .setMerchantId(merchantId.toString())
                         .build()));
-        stubFor(unaryMethod(CartServiceGrpc.getGetDiscountOnCartMethod())
-                .willReturn(Hello.GetDiscountResponse.newBuilder()
-                        .setPercent("10")
-                        .build()));
+
+        for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
+            stubFor(unaryMethod(CartServiceGrpc.getGetDiscountOnCartMethod())
+                    .withRequest(Hello.GetDiscountRequest.newBuilder()
+                            .setCode(discountCode.getKey())
+                            .build())
+                    .willReturn(Hello.GetDiscountResponse.newBuilder()
+                            .setPercent(discountCode.getValue())
+                            .build()));
+        }
 
         // ****************************************************************
         // Issue RPC and assert on the response.
@@ -136,8 +144,15 @@ public class EndToEndWithFilibusterTest extends PurchaseBaseTest {
         // ****************************************************************
 
         verifyThat(UserServiceGrpc.getGetUserFromSessionMethod(), times(1));
+
         verifyThat(CartServiceGrpc.getGetCartForSessionMethod(), times(1));
-        verifyThat(CartServiceGrpc.getGetDiscountOnCartMethod(), times(1));
+
+        for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
+            verifyThat(calledMethod(CartServiceGrpc.getGetDiscountOnCartMethod())
+                    .withRequest(Hello.GetDiscountRequest.newBuilder()
+                            .setCode(discountCode.getKey())
+                            .build()), times(1));
+        }
 
         // ****************************************************************
         // Assert stub invocations.

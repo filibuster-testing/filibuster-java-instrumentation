@@ -213,9 +213,9 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         return cartServiceBlockingStub.getCartForSession(request);
     }
 
-    private static Hello.GetDiscountResponse getDiscountOnCart(Channel channel, String cartId) {
+    private static Hello.GetDiscountResponse getDiscountOnCart(Channel channel, String discountCode) {
         CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
-        Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder().setCartId(cartId).build();
+        Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder().setCode(discountCode).build();
         return cartServiceBlockingStub.getDiscountOnCart(request);
     }
 

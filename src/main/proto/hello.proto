@@ -43,7 +43,7 @@ message GetCartResponse {
 }
 
 message GetDiscountRequest {
-  string cart_id = 1;
+  string code = 1;
 }
 
 message GetDiscountResponse {

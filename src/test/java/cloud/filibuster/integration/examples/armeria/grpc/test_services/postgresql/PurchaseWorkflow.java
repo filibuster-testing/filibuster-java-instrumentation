@@ -81,18 +81,28 @@ public class PurchaseWorkflow {
         this.dao = getCockroachDAO();
     }
 
-    public int execute() {
+    public PurchaseWorkflowResponse execute() {
+        String userId;
+        String cartId;
+        String merchantId;
+        int cartTotal;
+
         // Make call to get the user.
-        getUserFromSession(channel, sessionId);
+        try {
+            userId = getUserFromSession(channel, sessionId);
+        } catch (StatusRuntimeException e) {
+            return PurchaseWorkflowResponse.UNAVAILABLE;
+        }
 
-        // Make call to get the user, again.
-        String userId = getUserFromSession(channel, sessionId);
-
-        // Get cart
-        Hello.GetCartResponse getCartResponse = getCartFromSession(channel, sessionId);
-        String cartId = getCartResponse.getCartId();
-        String merchantId = getCartResponse.getMerchantId();
-        int cartTotal = Integer.parseInt(getCartResponse.getTotal());
+        // Get cart.
+        try {
+            Hello.GetCartResponse getCartResponse = getCartFromSession(channel, sessionId);
+            cartId = getCartResponse.getCartId();
+            merchantId = getCartResponse.getMerchantId();
+            cartTotal = Integer.parseInt(getCartResponse.getTotal());
+        } catch (StatusRuntimeException e) {
+            return PurchaseWorkflowResponse.UNAVAILABLE;
+        }
 
         // Make call to get the user, again.
         getUserFromSession(channel, sessionId);
@@ -108,8 +118,12 @@ public class PurchaseWorkflow {
             // Nothing, ignore discount failure.
         }
 
-        // Make call to get the user, again.
-        getUserFromSession(channel, sessionId);
+        // Verify the user has sufficient funds.
+        int userAccountBalance = dao.getAccountBalance(UUID.fromString(userId));
+
+        if (userAccountBalance < cartTotal) {
+            return PurchaseWorkflowResponse.INSUFFICIENT_FUNDS;
+        }
 
         // Write cache record to Redis with information on last purchase.
         JSONObject redisRecord = new JSONObject();
@@ -122,7 +136,26 @@ public class PurchaseWorkflow {
         // Write record to CRDB.
         dao.transferFunds(UUID.fromString(userId), UUID.fromString(merchantId), cartTotal);
 
-        return cartTotal;
+        // Update purchase total and response.
+        purchaseTotal = cartTotal;
+        purchaseWorkflowResponse = PurchaseWorkflowResponse.SUCCESS;
+
+        // Return success.
+        return purchaseWorkflowResponse;
+    }
+
+    public static class PurchaseRuntimeException extends RuntimeException {
+        public PurchaseRuntimeException(String message) {
+            super(message);
+        }
+    }
+
+    public int getPurchaseTotal() {
+        if (purchaseWorkflowResponse == PurchaseWorkflowResponse.SUCCESS) {
+            return purchaseTotal;
+        }
+
+        throw new PurchaseRuntimeException("Purchase was not completed successfully.");
     }
 
     private static Channel getRpcChannel() {

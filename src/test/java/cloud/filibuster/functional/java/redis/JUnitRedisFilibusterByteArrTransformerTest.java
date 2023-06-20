@@ -83,7 +83,7 @@ public class JUnitRedisFilibusterByteArrTransformerTest extends JUnitAnnotationB
     @Order(3)
     // Only 1 exception due to assertArrayEquals failing
     public void testNumExceptions() {
-        assertEquals(1 , testExceptionsThrown.size());
+        assertEquals(1, testExceptionsThrown.size());
     }
 
 }

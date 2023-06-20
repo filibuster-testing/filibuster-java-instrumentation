@@ -2,45 +2,42 @@ package cloud.filibuster.junit.server.core.transformers;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import org.json.JSONObject;
 
-import java.util.AbstractMap.SimpleEntry;
-import java.util.HashMap;
+import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.ArrayList;
 import java.util.Random;
 
-public final class BitInByteArrTransformer implements Transformer<Byte[], JSONObject> {
+public final class BitInByteArrTransformer implements Transformer<Byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> {
     private static final long FIXED_SEED = 0;
     private static final Random rand = new Random(FIXED_SEED); // Seed is fixed to ensure consistent results
     private boolean hasNext = true;
     private Byte[] result;
-    private static final String LAST_ADDED_KEY = "LAST_ADDED_KEY";
-    private static final String KEYS_HASHMAP = "KEYS_HASHMAP";
-    private Accumulator<Byte[], JSONObject> accumulator;
+    private Accumulator<Byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> accumulator;
 
     @Override
     @CanIgnoreReturnValue
-    public BitInByteArrTransformer transform(Byte[] payload, Accumulator<Byte[], JSONObject> accumulator) {
-        JSONObject ctx = accumulator.getContext();
+    public BitInByteArrTransformer transform(Byte[] payload, Accumulator<Byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> accumulator) {
+        ArrayList<SimpleImmutableEntry<Integer, Integer>> ctx = accumulator.getContext();
 
-        @SuppressWarnings("unchecked")
-        SimpleEntry<Integer, Integer> byteBit = (SimpleEntry<Integer, Integer>) ctx.get(LAST_ADDED_KEY);
+        SimpleImmutableEntry<Integer, Integer> lastEntry = ctx.get(ctx.size() - 1);
 
-        byte myByte = payload[byteBit.getKey()];
+        byte myByte = payload[lastEntry.getKey()];
 
         String myBits = String.format("%8s", Integer.toBinaryString(myByte & 0xFF)).replace(' ', '0');
 
         StringBuilder myMutatedBits = new StringBuilder(myBits);
-        if (myMutatedBits.charAt(byteBit.getValue()) == '0') {
-            myMutatedBits.setCharAt(byteBit.getValue(), '1');
+        if (myMutatedBits.charAt(lastEntry.getValue()) == '0') {
+            myMutatedBits.setCharAt(lastEntry.getValue(), '1');
         } else {
-            myMutatedBits.setCharAt(byteBit.getValue(), '0');
+            myMutatedBits.setCharAt(lastEntry.getValue(), '0');
         }
 
-        payload[byteBit.getKey()] = Byte.parseByte(myMutatedBits.toString(), 2);
+        payload[lastEntry.getKey()] = Byte.parseByte(myMutatedBits.toString(), 2);
 
-        result = payload;
+        this.result = payload;
+        this.accumulator = accumulator;
 
-        if (ctx.keySet().size() == payload.length * 8) {
+        if (ctx.size() == payload.length * 8) {
             this.hasNext = false;
         }
 
@@ -59,8 +56,8 @@ public final class BitInByteArrTransformer implements Transformer<Byte[], JSONOb
 
     @Override
     @SuppressWarnings("unchecked")
-    public Class<JSONObject> getContextType() {
-        return JSONObject.class;
+    public Class<ArrayList<SimpleImmutableEntry<Integer, Integer>>> getContextType() {
+        return (Class<ArrayList<SimpleImmutableEntry<Integer, Integer>>>) (Class<?>) ArrayList.class;
     }
 
     @Override
@@ -72,7 +69,7 @@ public final class BitInByteArrTransformer implements Transformer<Byte[], JSONOb
     }
 
     @Override
-    public Accumulator<Byte[], JSONObject> getAccumulator() {
+    public Accumulator<Byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> getAccumulator() {
         if (this.accumulator == null) {
             return getInitialAccumulator();
         }
@@ -80,42 +77,30 @@ public final class BitInByteArrTransformer implements Transformer<Byte[], JSONOb
     }
 
     @Override
-    public Accumulator<Byte[], JSONObject> getInitialAccumulator() {
-        Accumulator<Byte[], JSONObject> accumulator = new Accumulator<>();
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put(LAST_ADDED_KEY, new SimpleEntry<>(null, null));
-        jsonObject.put(KEYS_HASHMAP, new HashMap<>());
-        accumulator.setContext(jsonObject);
+    public Accumulator<Byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> getInitialAccumulator() {
+        Accumulator<Byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> accumulator = new Accumulator<>();
+        accumulator.setContext(new ArrayList<>());
         return accumulator;
     }
 
     @Override
-    public Accumulator<Byte[], JSONObject> getNextAccumulator() {
+    public Accumulator<Byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> getNextAccumulator() {
         if (this.accumulator == null) {
             return getInitialAccumulator();
         } else {
-            JSONObject ctx = accumulator.getContext();
+            ArrayList<SimpleImmutableEntry<Integer, Integer>> ctx = accumulator.getContext();
 
-            @SuppressWarnings("unchecked")
-            HashMap<Integer, Integer> previousEntries = (HashMap<Integer, Integer>) ctx.get(KEYS_HASHMAP);
-
-            @SuppressWarnings("unchecked")
-            SimpleEntry<Integer, Integer> lastEntry = (SimpleEntry<Integer, Integer>) ctx.get(LAST_ADDED_KEY);
-
-            int byteIdx = generateRandomIdx(accumulator.getReferenceValue().length);
-            int bitIdx = new Random().nextInt(8);
-
-            while (previousEntries.containsKey(byteIdx) && !previousEntries.get(byteIdx).equals(bitIdx)) {
-                byteIdx = new Random().nextInt(accumulator.getReferenceValue().length);
+            int byteIdx, bitIdx;
+            SimpleImmutableEntry<Integer, Integer> newEntry;
+            do {
+                byteIdx = generateRandomIdx(accumulator.getReferenceValue().length);
                 bitIdx = new Random().nextInt(8);
-                if (previousEntries.containsKey(byteIdx) && previousEntries.get(byteIdx).equals(bitIdx)) {
+                newEntry = new SimpleImmutableEntry<>(byteIdx, bitIdx);
+                if (!ctx.contains(newEntry)) {
+                    ctx.add(newEntry);
                     break;
                 }
-            }
-
-            previousEntries.put(byteIdx, bitIdx);
-            ctx.put(LAST_ADDED_KEY, new SimpleEntry<>(byteIdx, bitIdx));
-            ctx.put(KEYS_HASHMAP, previousEntries);
+            } while (ctx.contains(newEntry));
 
             accumulator.setContext(ctx);
             return accumulator;
@@ -123,7 +108,7 @@ public final class BitInByteArrTransformer implements Transformer<Byte[], JSONOb
     }
 
     private static int generateRandomIdx(int bound) {
-        return new Random().nextInt(bound);
+        return rand.nextInt(bound);
     }
 
 }

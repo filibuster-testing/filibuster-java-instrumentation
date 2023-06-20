@@ -424,7 +424,8 @@ public class FilibusterCore {
                         if (transformer.has("transformer_fault")
                                 && payload.has("return_value")
                                 && payload.getJSONObject("return_value").has("value")
-                                && !payload.getJSONObject("return_value").getString("value").isEmpty()) {
+                                && !payload.getJSONObject("return_value").getString("value").isEmpty()
+                                && !payload.getJSONObject("return_value").getString("value").equals(JSONObject.NULL)) {
                             try {
                                 setAccumulatorOnTransformer(
                                         transformer.getJSONObject("transformer_fault"),
@@ -434,7 +435,7 @@ public class FilibusterCore {
                                         )
                                 );
                                 createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, new JSONObject(transformer.toMap()));
-                            } catch (Exception e) {
+                            } catch (Throwable e) {
                                 logger.warning("[FILIBUSTER-CORE]: generateByzantineAndTransformerFaults, an exception occurred in generateByzantineAndTransformerFaults: " + e);
                                 throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: generateByzantineAndTransformerFaults: ", e);
                             }

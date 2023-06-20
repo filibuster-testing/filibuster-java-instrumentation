@@ -52,14 +52,6 @@ public final class FaultyStringTransformer implements Transformer<String, Intege
     }
 
     @Override
-    public Accumulator<String, Integer> getAccumulator() {
-        if (this.accumulator == null) {
-            return getInitialAccumulator();
-        }
-        return this.accumulator;
-    }
-
-    @Override
     public Accumulator<String, Integer> getInitialAccumulator() {
         Accumulator<String, Integer> accumulator = new Accumulator<>();
         accumulator.setContext(0);

@@ -56,14 +56,6 @@ public final class StringTransformer implements Transformer<String, Integer> {
     }
 
     @Override
-    public Accumulator<String, Integer> getAccumulator() {
-        if (this.accumulator == null) {
-            return getInitialAccumulator();
-        }
-        return this.accumulator;
-    }
-
-    @Override
     public Type getAccumulatorType() {
         return TypeToken.getParameterized(
                 Accumulator.class,

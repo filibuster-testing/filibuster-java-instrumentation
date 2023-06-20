@@ -15,7 +15,6 @@ import java.util.regex.Pattern;
 
 public class FilibusterAnalysisConfiguration {
     public enum MatcherType { SERVICE, METHOD }
-
     private final JSONObject analysisConfiguration = new JSONObject();
     private final JSONObject configurationObject = new JSONObject();
     private final List<JSONObject> exceptionFaultObjects = new ArrayList<>();
@@ -25,14 +24,16 @@ public class FilibusterAnalysisConfiguration {
     private final List<JSONObject> transformerFaultObjects = new ArrayList<>();
     private final String name;
     private final String pattern;
-
+    private final String type;
 
     @SuppressWarnings("Varifier")
     public FilibusterAnalysisConfiguration(Builder builder) {
         this.name = builder.name;
         this.pattern = builder.pattern;
+        this.type = builder.type;
 
         configurationObject.put("pattern", builder.pattern);
+        configurationObject.put("type", builder.type);
 
         if (builder.exceptions.size() > 0) {
             configurationObject.put("exceptions", builder.exceptions);
@@ -107,10 +108,18 @@ public class FilibusterAnalysisConfiguration {
         return this.latencyFaultObjects;
     }
 
+    public boolean hasType() {
+        return this.type != null;
+    }
+
     public boolean isPatternMatch(String matchString) {
         Pattern pattern = Pattern.compile(this.pattern, Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(matchString);
         return matcher.find();
+    }
+
+    public boolean isTypeMatch(String typeMatch) {
+        return typeMatch.equals(this.type);
     }
 
     public Map.Entry<String, JSONObject> toJSONPair() {
@@ -125,6 +134,7 @@ public class FilibusterAnalysisConfiguration {
     public static class Builder {
         private String name;
         private String pattern;
+        private String type;
         private final List<JSONObject> exceptions = new ArrayList<>();
         private final List<JSONObject> errors = new ArrayList<>();
         private final List<JSONObject> latencies = new ArrayList<>();
@@ -187,6 +197,12 @@ public class FilibusterAnalysisConfiguration {
             latency.put("matcher", matcher);
             latency.put("milliseconds", milliseconds);
             latencies.add(latency);
+            return this;
+        }
+
+        @CanIgnoreReturnValue
+        public Builder type(String type) {
+            this.type = type;
             return this;
         }
 

@@ -2,6 +2,7 @@ package cloud.filibuster.junit.server.core.transformers;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.Random;
@@ -63,8 +64,11 @@ public final class StringTransformer implements Transformer<String, Integer> {
     }
 
     @Override
-    public Type getContextType() {
-        return Integer.class;
+    public Type getAccumulatorType() {
+        return TypeToken.getParameterized(
+                Accumulator.class,
+                String.class,
+                Integer.class).getType();
     }
 
     @Override

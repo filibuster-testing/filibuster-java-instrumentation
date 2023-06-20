@@ -424,15 +424,20 @@ public class FilibusterCore {
                         if (transformer.has("transformer_fault")
                                 && payload.has("return_value")
                                 && payload.getJSONObject("return_value").has("value")
-                                && payload.getJSONObject("return_value").get("value") != null) {
-                            setAccumulatorOnTransformer(
-                                    transformer.getJSONObject("transformer_fault"),
-                                    getInitialAccumulator(
-                                            transformer.getJSONObject("transformer_fault"),
-                                            payload.getJSONObject("return_value").get("value")
-                                    )
-                            );
-                            createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, new JSONObject(transformer.toMap()));
+                                && !payload.getJSONObject("return_value").getString("value").isEmpty()) {
+                            try {
+                                setAccumulatorOnTransformer(
+                                        transformer.getJSONObject("transformer_fault"),
+                                        getInitialAccumulator(
+                                                transformer.getJSONObject("transformer_fault"),
+                                                payload.getJSONObject("return_value").getString("value")
+                                        )
+                                );
+                                createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, new JSONObject(transformer.toMap()));
+                            } catch (Exception e) {
+                                logger.warning("[FILIBUSTER-CORE]: generateByzantineAndTransformerFaults, an exception occurred in generateByzantineAndTransformerFaults: " + e);
+                                throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: generateByzantineAndTransformerFaults: ", e);
+                            }
                         }
                     }
 
@@ -450,7 +455,7 @@ public class FilibusterCore {
     private static void setAccumulatorOnTransformer(JSONObject transformer, Accumulator<?, ?> accumulator) {
         if (transformer.has("transformerClassName")) {
             Transformer<?, ?> transformerObject = getTransformerInstance(transformer.getString("transformerClassName"));
-            Type accumulatorType = transformerObject.getContextType();
+            Type accumulatorType = transformerObject.getAccumulatorType();
             transformer.put("accumulator", new Gson().toJson(accumulator, accumulatorType));
         }
     }
@@ -469,12 +474,12 @@ public class FilibusterCore {
         }
     }
 
-    private static <PAYLOAD> Accumulator<PAYLOAD, ?> getInitialAccumulator(JSONObject transformer, PAYLOAD referenceValue) {
+    private static Accumulator<?, ?> getInitialAccumulator(JSONObject transformer, String referenceValue) {
         if (transformer.has("transformerClassName")) {
             String transformerClassName = transformer.getString("transformerClassName");
-            @SuppressWarnings("unchecked")
-            Accumulator<PAYLOAD, ?> initialAccumulator = (Accumulator<PAYLOAD, ?>) getTransformerInstance(transformerClassName).getInitialAccumulator();
-            initialAccumulator.setReferenceValue(referenceValue);
+            Transformer<?, ?> transformerObject = getTransformerInstance(transformerClassName);
+            Accumulator<?, ?> initialAccumulator = transformerObject.getInitialAccumulator();
+            initialAccumulator.setReferenceValue(new Gson().fromJson(referenceValue, transformerObject.getPayloadType()));
             return initialAccumulator;
         } else {
             throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: getInitialAccumulator, transformerClassName not found in transformer: " + transformer.toString(4));
@@ -994,7 +999,7 @@ public class FilibusterCore {
                     Method transformMethod = transformerObject.getClass().getMethod("transform", (Class<?>) transformerObject.getPayloadType(), Accumulator.class);
 
                     // Get the accumulator.
-                    Type accumulatorType = transformerObject.getContextType();
+                    Type accumulatorType = transformerObject.getAccumulatorType();
                     Accumulator<?, ?> accumulator = new Gson().fromJson(String.valueOf(transformer.get("accumulator")), accumulatorType);
 
                     // Get the reference value.

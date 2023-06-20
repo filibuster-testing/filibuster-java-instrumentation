@@ -111,7 +111,7 @@ public final class BitInByteArrTransformer implements Transformer<Byte[], ArrayL
     }
 
     @Override
-    public Type getContextType() {
+    public Type getAccumulatorType() {
         Type byteArrType = TypeToken.get(Byte[].class).getType();
         Type simpleEntryType = TypeToken.getParameterized(SimpleImmutableEntry.class, Integer.class, Integer.class).getType();
         Type listType = TypeToken.getParameterized(ArrayList.class, simpleEntryType).getType();

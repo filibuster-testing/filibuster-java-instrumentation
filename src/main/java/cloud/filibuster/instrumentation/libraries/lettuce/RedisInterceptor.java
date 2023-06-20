@@ -180,14 +180,23 @@ public class RedisInterceptor<T> implements MethodInterceptor {
                     invocation.getMethod().getReturnType().getClassLoader() != null) {
                 invocationResult = new RedisInterceptorFactory<>(invocationResult, redisConnectionString)
                         .getProxy(invocation.getMethod().getReturnType());
+
+                filibusterClientInstrumentor.afterInvocationComplete(
+                        invocation.getMethod().getReturnType().getName(),
+                        returnValueProperties);
+            } else {
+                filibusterClientInstrumentor.afterInvocationComplete(
+                        invocation.getMethod().getReturnType().getName(),
+                        returnValueProperties,
+                        invocationResult);
             }
         } else {
             returnValueProperties.put("toString", null);
-        }
 
-        filibusterClientInstrumentor.afterInvocationComplete(invocation.getMethod().getReturnType().getName(),
-                returnValueProperties,
-                invocationResult);
+            filibusterClientInstrumentor.afterInvocationComplete(
+                    invocation.getMethod().getReturnType().getName(),
+                    returnValueProperties);
+        }
 
         return invocationResult;
     }

@@ -83,7 +83,7 @@ final public class FilibusterClientInstrumentor {
     /**
      * Set the current vector clock for a given request id.
      *
-     * @param requestId request identifier.
+     * @param requestId   request identifier.
      * @param vectorClock vector clock.
      */
     public static void setVectorClockForRequestId(String serviceName, String requestId, VectorClock vectorClock) {
@@ -101,7 +101,7 @@ final public class FilibusterClientInstrumentor {
      * Does an entry exist in the vector clock request mapping for a particular request id?
      *
      * @param serviceName the service name.
-     * @param requestId the request identifier.
+     * @param requestId   the request identifier.
      * @return whether a mapping exists.
      */
     public static boolean vectorClockForRequestIdExists(String serviceName, String requestId) {
@@ -148,7 +148,7 @@ final public class FilibusterClientInstrumentor {
     /**
      * Set the current execution index for a given request id.
      *
-     * @param requestId request identifier.
+     * @param requestId                 request identifier.
      * @param distributedExecutionIndex execution index.
      */
     public static void setDistributedExecutionIndexForRequestId(String serviceName, String requestId, DistributedExecutionIndex distributedExecutionIndex) {
@@ -227,16 +227,17 @@ final public class FilibusterClientInstrumentor {
     @Nullable
     private DistributedExecutionIndex preliminaryDistributedExecutionIndex;
 
-    @Nullable String rpcType;
+    @Nullable
+    String rpcType;
 
     final private static String filibusterServiceName = "filibuster-instrumentation";
 
     /**
      * Create an instance of a Filibuster client instrumentor for controlling fault injection.
      *
-     * @param serviceName the name of the service being instrumented.
+     * @param serviceName                 the name of the service being instrumented.
      * @param shouldCommunicateWithServer whether the system should communicate with the Filibuster server.
-     * @param contextStorage context storage.
+     * @param contextStorage              context storage.
      */
     public FilibusterClientInstrumentor(
             String serviceName,
@@ -479,7 +480,7 @@ final public class FilibusterClientInstrumentor {
             if (forcedException.has("metadata")) {
                 JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
 
-                if (forcedExceptionMetadata.has("abort") && ! forcedExceptionMetadata.getBoolean("abort")) {
+                if (forcedExceptionMetadata.has("abort") && !forcedExceptionMetadata.getBoolean("abort")) {
                     return false;
                 }
             }
@@ -627,15 +628,14 @@ final public class FilibusterClientInstrumentor {
             originVectorClock = new VectorClock();
         }
 
-        logger.log(Level.INFO,"originVectorClock: " + originVectorClock);
+        logger.log(Level.INFO, "originVectorClock: " + originVectorClock);
     }
 
     /**
      * Invoked directly before a remote call is issued.
-     *
+     * <p>
      * Notifies Filibuster of the remote call that is about to
      * occur and determines if the remote call should instead, return a fault.
-     *
      */
     @SuppressWarnings("VoidMissingNullable")
     public void beforeInvocation() {
@@ -685,8 +685,7 @@ final public class FilibusterClientInstrumentor {
             if (jsonObject.has("transformer_fault")) {
                 transformerFault = jsonObject.getJSONObject("transformer_fault");
             }
-        }
-        else if (shouldCommunicateWithServer && counterexampleNotProvided()) {
+        } else if (shouldCommunicateWithServer && counterexampleNotProvided()) {
             if (getServerBackendCanInvokeDirectlyProperty()) {
                 if (FilibusterCore.hasCurrentInstance()) {
                     JSONObject jsonObject = FilibusterCore.getCurrentInstance().beginInvocation(invocationPayload);
@@ -788,7 +787,7 @@ final public class FilibusterClientInstrumentor {
     /**
      * Invoked after a remote call has been completed if the remote call threw an exception.
      *
-     * @param throwable the exception thrown.
+     * @param throwable          the exception thrown.
      * @param additionalMetadata any additional metadata that should be provided, such as if the request was aborted.
      */
     public void afterInvocationWithException(
@@ -796,15 +795,15 @@ final public class FilibusterClientInstrumentor {
             HashMap<String, String> additionalMetadata
     ) {
         String exceptionName = throwable.getClass().getName();
-        String exceptionCause = throwable.getCause() != null? throwable.getCause().getClass().getName(): null;
+        String exceptionCause = throwable.getCause() != null ? throwable.getCause().getClass().getName() : null;
         afterInvocationWithException(exceptionName, exceptionCause, additionalMetadata);
     }
 
     /**
      * Invoked after a remote call has been completed if the remote call threw an exception.
      *
-     * @param exceptionName the fully qualified name of the exception thrown.
-     * @param exceptionCause the fully qualified name of the cause (an exception), if provided.
+     * @param exceptionName      the fully qualified name of the exception thrown.
+     * @param exceptionCause     the fully qualified name of the cause (an exception), if provided.
      * @param additionalMetadata any additional metadata that should be provided, such as if the request was aborted.
      */
     public void afterInvocationWithException(
@@ -829,7 +828,7 @@ final public class FilibusterClientInstrumentor {
 
             metadata.put("cause", exceptionCause);
 
-            for (Map.Entry<String,String> entry : additionalMetadata.entrySet()) {
+            for (Map.Entry<String, String> entry : additionalMetadata.entrySet()) {
                 metadata.put(entry.getKey(), entry.getValue());
             }
 
@@ -859,7 +858,7 @@ final public class FilibusterClientInstrumentor {
      * Invoked after a remote call has been completed if the remote call injects a byzantine value.
      *
      * @param value the byzantine value that was injected.
-     * @param type type of the injected byzantine value (e.g., String).
+     * @param type  type of the injected byzantine value (e.g., String).
      */
     public void afterInvocationWithByzantineFault(
             String value,
@@ -892,8 +891,8 @@ final public class FilibusterClientInstrumentor {
     /**
      * Invoked after a remote call has been completed if the remote call injects a transformer value.
      *
-     * @param value the byzantine value that was injected.
-     * @param type type of the injected byzantine value (e.g., String).
+     * @param value       the byzantine value that was injected.
+     * @param type        type of the injected byzantine value (e.g., String).
      * @param accumulator containing any additional information that should be communicated to the server and used in
      *                    subsequent byzantine faults (e.g., original value before mutation and idx of mutated char in
      *                    case of a byzantine string transformation).
@@ -930,7 +929,7 @@ final public class FilibusterClientInstrumentor {
     /**
      * Invoked after a remote call has been completed if the remote call completed successfully.
      *
-     * @param className the fully qualified name of the response class.
+     * @param className             the fully qualified name of the response class.
      * @param returnValueProperties any properties of the response that make the response unique.
      */
     public void afterInvocationComplete(
@@ -938,8 +937,8 @@ final public class FilibusterClientInstrumentor {
             HashMap<String, String> returnValueProperties
     ) {
         // Only if instrumented request, we should communicate, and we aren't inside of Filibuster instrumentation.
-        logger.log(Level.INFO,"generatedId: " + generatedId);
-        logger.log(Level.INFO,"shouldCommunicateWithServer: " + shouldCommunicateWithServer);
+        logger.log(Level.INFO, "generatedId: " + generatedId);
+        logger.log(Level.INFO, "shouldCommunicateWithServer: " + shouldCommunicateWithServer);
 
         if (generatedId > -1 && shouldCommunicateWithServer && counterexampleNotProvided()) {
             JSONObject returnValue = new JSONObject();
@@ -973,9 +972,9 @@ final public class FilibusterClientInstrumentor {
     /**
      * Invoked after a remote call has been completed if the remote call completed successfully.
      *
-     * @param className the fully qualified name of the response class.
+     * @param className             the fully qualified name of the response class.
      * @param returnValueProperties any properties of the response that make the response unique.
-     * @param returnValue the actual return value after invocation.
+     * @param returnValue           the actual return value after invocation.
      */
     public void afterInvocationComplete(
             String className,
@@ -983,14 +982,18 @@ final public class FilibusterClientInstrumentor {
             Object returnValue
     ) {
         // Only if instrumented request, we should communicate, and we aren't inside of Filibuster instrumentation.
-        logger.log(Level.INFO,"generatedId: " + generatedId);
-        logger.log(Level.INFO,"shouldCommunicateWithServer: " + shouldCommunicateWithServer);
+        logger.log(Level.INFO, "generatedId: " + generatedId);
+        logger.log(Level.INFO, "shouldCommunicateWithServer: " + shouldCommunicateWithServer);
 
         if (generatedId > -1 && shouldCommunicateWithServer && counterexampleNotProvided()) {
             JSONObject returnValueJO = new JSONObject();
 
             returnValueJO.put("__class__", className);
-            returnValueJO.put("value", returnValue);
+            if (returnValue != null && returnValue != "") {
+                returnValueJO.put("value", new Gson().toJson(returnValue));
+            } else {
+                returnValueJO.put("value", returnValue);
+            }
 
             for (Map.Entry<String, String> entry : returnValueProperties.entrySet()) {
                 // JSONObject does not allow null values.

@@ -39,7 +39,7 @@ public interface Transformer<PAYLOAD, CONTEXT> {
      *
      * @return Type representation of the accumulator
      */
-    Type getContextType();
+    Type getAccumulatorType();
 
     /**
      * Returns payload after applying the transformation.

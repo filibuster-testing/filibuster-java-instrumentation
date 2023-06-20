@@ -3,6 +3,8 @@ package cloud.filibuster.junit.server.core.transformers;
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 
+import java.lang.reflect.Type;
+
 public final class FaultyStringTransformer implements Transformer<String, Integer> {
     private boolean hasNext = true;
     private String payload;
@@ -36,6 +38,11 @@ public final class FaultyStringTransformer implements Transformer<String, Intege
     }
 
     @Override
+    public Type getPayloadType() {
+        return String.class;
+    }
+
+    @Override
     public String getResult() {
         if (this.payload == null) {
             throw new FilibusterFaultInjectionException("getResult() called before transform()!");
@@ -59,6 +66,11 @@ public final class FaultyStringTransformer implements Transformer<String, Intege
     }
 
     @Override
+    public Type getContextType() {
+        return Integer.class;
+    }
+
+    @Override
     public Accumulator<String, Integer> getNextAccumulator() {
         if (accumulator == null) {
             return getInitialAccumulator();
@@ -68,13 +80,4 @@ public final class FaultyStringTransformer implements Transformer<String, Intege
         }
     }
 
-    @Override
-    public Class<String> getPayloadType() {
-        return String.class;
-    }
-
-    @Override
-    public Class<Integer> getContextType() {
-        return Integer.class;
-    }
 }

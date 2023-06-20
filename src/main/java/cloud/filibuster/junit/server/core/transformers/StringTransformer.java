@@ -3,6 +3,7 @@ package cloud.filibuster.junit.server.core.transformers;
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 
+import java.lang.reflect.Type;
 import java.util.Random;
 
 public final class StringTransformer implements Transformer<String, Integer> {
@@ -41,13 +42,8 @@ public final class StringTransformer implements Transformer<String, Integer> {
     }
 
     @Override
-    public Class<String> getPayloadType() {
+    public Type getPayloadType() {
         return String.class;
-    }
-
-    @Override
-    public Class<Integer> getContextType() {
-        return Integer.class;
     }
 
     @Override
@@ -64,6 +60,11 @@ public final class StringTransformer implements Transformer<String, Integer> {
             return getInitialAccumulator();
         }
         return this.accumulator;
+    }
+
+    @Override
+    public Type getContextType() {
+        return Integer.class;
     }
 
     @Override

@@ -50,13 +50,6 @@ public interface Transformer<PAYLOAD, CONTEXT> {
     PAYLOAD getResult();
 
     /**
-     * Returns accumulator used in current transformation.
-     *
-     * @return Generic accumulator
-     */
-    Accumulator<PAYLOAD, CONTEXT> getAccumulator();
-
-    /**
      * Returns initial accumulator used in the first transformation.
      *
      * @return Initial accumulator

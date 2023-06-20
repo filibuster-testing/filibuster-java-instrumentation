@@ -989,7 +989,7 @@ final public class FilibusterClientInstrumentor {
             JSONObject returnValueJO = new JSONObject();
 
             returnValueJO.put("__class__", className);
-            if (returnValue != null && returnValue != "") {
+            if (returnValue != null && returnValue != JSONObject.NULL && returnValue != "") {  // Only serialise if return value is not null or empty.
                 returnValueJO.put("value", new Gson().toJson(returnValue));
             } else {
                 returnValueJO.put("value", returnValue);

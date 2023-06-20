@@ -75,14 +75,6 @@ public final class BitInByteArrTransformer implements Transformer<Byte[], ArrayL
     }
 
     @Override
-    public Accumulator<Byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> getAccumulator() {
-        if (this.accumulator == null) {
-            return getInitialAccumulator();
-        }
-        return this.accumulator;
-    }
-
-    @Override
     public Accumulator<Byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> getInitialAccumulator() {
         Accumulator<Byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> accumulator = new Accumulator<>();
         accumulator.setContext(new ArrayList<>());

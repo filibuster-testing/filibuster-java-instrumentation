@@ -73,16 +73,17 @@ public class JUnitRedisFilibusterByteArrTransformerTest extends JUnitAnnotationB
     @DisplayName("Verify correct number of test executions.")
     @Test
     @Order(2)
-    // 1 for the original test and +1 for each character manipulation in the string
+    // 1 for the original test and +1 for each bit in the byte array
     public void testNumExecutions() {
-        assertEquals(value.length + 1, numberOfTestExecutions);
+        assertEquals(value.length * 8 + 1, numberOfTestExecutions);
     }
 
-    @DisplayName("Verify correct number of generated Filibuster tests.")
+    @DisplayName("Verify correct number of exception.")
     @Test
     @Order(3)
+    // Only 1 exception due to assertArrayEquals failing
     public void testNumExceptions() {
-        assertEquals(value.length, testExceptionsThrown.size());
+        assertEquals(1 , testExceptionsThrown.size());
     }
 
 }

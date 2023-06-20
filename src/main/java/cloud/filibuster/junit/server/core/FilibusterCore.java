@@ -26,7 +26,6 @@ import cloud.filibuster.junit.server.core.test_executions.AbstractTestExecution;
 import cloud.filibuster.junit.server.core.test_executions.TestExecution;
 import cloud.filibuster.junit.server.latency.FilibusterLatencyProfile;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import io.grpc.Status;
 import io.grpc.Status.Code;
 import org.json.JSONArray;
@@ -404,7 +403,8 @@ public class FilibusterCore {
                                 && payload.getJSONObject("return_value").has("toString")
                                 && !payload.getJSONObject("return_value").get("toString").toString().isEmpty()
                                 && !payload.getJSONObject("return_value").get("toString").equals(JSONObject.NULL)) {
-                            setAccumulatorOnTransformer(transformer.getJSONObject("transformer_fault"),
+                            setAccumulatorOnTransformer(
+                                    transformer.getJSONObject("transformer_fault"),
                                     getInitialAccumulator(
                                             transformer.getJSONObject("transformer_fault"),
                                             payload.getJSONObject("return_value").get("value")
@@ -426,7 +426,11 @@ public class FilibusterCore {
     }
 
     private static void setAccumulatorOnTransformer(JSONObject transformer, Accumulator<?, ?> accumulator) {
-        transformer.put("accumulator", new Gson().toJson(accumulator));
+        if (transformer.has("transformerClassName")) {
+            Transformer<?, ?> transformerObject = getTransformerInstance(transformer.getString("transformerClassName"));
+            Type accumulatorType = transformerObject.getContextType();
+            transformer.put("accumulator", new Gson().toJson(accumulator, accumulatorType));
+        }
     }
 
     private static void setValueOnTransformer(JSONObject transformer, String value) {
@@ -931,16 +935,14 @@ public class FilibusterCore {
                     Transformer<?, ?> transformerObject = getTransformerInstance(transformer.getString("transformerClassName"));
 
                     // Get transform method of transformer object.
-                    Method transformMethod = transformerObject.getClass().getMethod("transform", transformerObject.getPayloadType(), Accumulator.class);
+                    Method transformMethod = transformerObject.getClass().getMethod("transform", (Class<?>) transformerObject.getPayloadType(), Accumulator.class);
 
                     // Get the accumulator.
-                    Type accumulatorType = TypeToken.getParameterized(Accumulator.class,
-                            transformerObject.getPayloadType(),
-                            transformerObject.getContextType()).getType();
+                    Type accumulatorType = transformerObject.getContextType();
                     Accumulator<?, ?> accumulator = new Gson().fromJson(String.valueOf(transformer.get("accumulator")), accumulatorType);
 
                     // Get the reference value.
-                    Object referenceValue = transformerObject.getPayloadType().cast(accumulator.getReferenceValue());
+                    Object referenceValue = ((Class<?>) transformerObject.getPayloadType()).cast(accumulator.getReferenceValue());
 
                     // Invoke transform method.
                     @SuppressWarnings("unchecked")

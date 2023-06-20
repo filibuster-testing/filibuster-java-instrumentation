@@ -974,6 +974,7 @@ final public class FilibusterClientInstrumentor {
      *
      * @param className the fully qualified name of the response class.
      * @param returnValueProperties any properties of the response that make the response unique.
+     * @param returnValue the actual return value after invocation.
      */
     public void afterInvocationComplete(
             String className,

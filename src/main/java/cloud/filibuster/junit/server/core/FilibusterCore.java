@@ -424,9 +424,7 @@ public class FilibusterCore {
                         if (transformer.has("transformer_fault")
                                 && payload.has("return_value")
                                 && payload.getJSONObject("return_value").has("value")
-                                && payload.getJSONObject("return_value").has("toString")
-                                && !payload.getJSONObject("return_value").get("toString").toString().isEmpty()
-                                && !payload.getJSONObject("return_value").get("toString").equals(JSONObject.NULL)) {
+                                && payload.getJSONObject("return_value").get("value") != null) {
                             setAccumulatorOnTransformer(
                                     transformer.getJSONObject("transformer_fault"),
                                     getInitialAccumulator(

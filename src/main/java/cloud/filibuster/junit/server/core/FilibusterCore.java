@@ -505,7 +505,7 @@ public class FilibusterCore {
 
     // Fault injection helpers.
 
-    public synchronized HashMap<DistributedExecutionIndex, JSONObject> faultsInjected() {
+    @Nullable public synchronized HashMap<DistributedExecutionIndex, JSONObject> faultsInjected() {
         logger.info("[FILIBUSTER-CORE]: faultsInjected called");
 
         if (currentConcreteTestExecution == null) {
@@ -519,7 +519,7 @@ public class FilibusterCore {
         return result;
     }
 
-    public synchronized HashMap<DistributedExecutionIndex, JSONObject> executedRPCs() {
+    @Nullable public synchronized HashMap<DistributedExecutionIndex, JSONObject> executedRPCs() {
         logger.info("[FILIBUSTER-CORE]: executedRPCs called");
 
         if (currentConcreteTestExecution == null) {
@@ -533,7 +533,7 @@ public class FilibusterCore {
         return result;
     }
 
-    public synchronized HashMap<DistributedExecutionIndex, JSONObject> failedRPCs() {
+    @Nullable public synchronized HashMap<DistributedExecutionIndex, JSONObject> failedRPCs() {
         logger.info("[FILIBUSTER-CORE]: failedRPCs called");
 
         if (currentConcreteTestExecution == null) {

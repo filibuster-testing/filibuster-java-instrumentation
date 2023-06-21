@@ -18,6 +18,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static cloud.filibuster.junit.assertions.Helpers.assertionBlock;
 import static cloud.filibuster.junit.assertions.Helpers.setupBlock;
@@ -42,7 +43,6 @@ public class EndToEndWithFilibusterTest extends PurchaseBaseTest {
     @TestWithFilibuster(
             analysisConfigurationFile = GRPCAnalysisConfigurationFile.class,
             maxIterations = 1,
-            suppressCombinations = true,
             dataNondeterminism = true,
             searchStrategy = FilibusterSearchStrategy.BFS
     )
@@ -60,6 +60,9 @@ public class EndToEndWithFilibusterTest extends PurchaseBaseTest {
         UUID merchantId = UUID.randomUUID();
         UUID cartId = UUID.randomUUID();
 
+        // Response placeholder.
+        AtomicReference<Hello.PurchaseResponse> response = new AtomicReference<>();
+
         setupBlock(() -> {
             // Reset cache state.
             PurchaseWorkflow.resetCacheObjectForUser(consumerId);
@@ -68,6 +71,7 @@ public class EndToEndWithFilibusterTest extends PurchaseBaseTest {
             PurchaseWorkflow.depositFundsToAccount(consumerId, 20000);
             assertEquals(20000, PurchaseWorkflow.getAccountBalance(consumerId));
 
+            // Reset database state.
             PurchaseWorkflow.depositFundsToAccount(merchantId, 0);
             assertEquals(0, PurchaseWorkflow.getAccountBalance(merchantId));
         });
@@ -106,10 +110,7 @@ public class EndToEndWithFilibusterTest extends PurchaseBaseTest {
             Hello.PurchaseRequest request = Hello.PurchaseRequest.newBuilder()
                     .setSessionId(sessionId.toString())
                     .build();
-            Hello.PurchaseResponse response = blockingStub.purchase(request);
-            assertNotNull(response);
-            assertTrue(response.getSuccess());
-            assertEquals("9000", response.getTotal());
+            response.set(blockingStub.purchase(request));
         });
 
         // ****************************************************************
@@ -121,6 +122,11 @@ public class EndToEndWithFilibusterTest extends PurchaseBaseTest {
         // ****************************************************************
 
         assertionBlock(() -> {
+            // Verify response.
+            assertNotNull(response.get());
+            assertTrue(response.get().getSuccess());
+            assertEquals("9000", response.get().getTotal());
+
             // Verify cache writes.
             JSONObject cacheObject = PurchaseWorkflow.getCacheObjectForUser(consumerId);
             assertTrue(generateExpectedCacheObject(consumerId.toString(), cartId.toString()).similar(cacheObject));
@@ -146,7 +152,7 @@ public class EndToEndWithFilibusterTest extends PurchaseBaseTest {
         }
 
         // ****************************************************************
-        // Assert stub invocations.
+        // Teardown block.
         // ****************************************************************
 
         teardownBlock(() -> {
@@ -155,6 +161,8 @@ public class EndToEndWithFilibusterTest extends PurchaseBaseTest {
 
             // Reset database state.
             PurchaseWorkflow.deleteAccount(consumerId);
+
+            // Reset database state.
             PurchaseWorkflow.deleteAccount(merchantId);
         });
     }

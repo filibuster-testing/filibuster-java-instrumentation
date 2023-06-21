@@ -117,6 +117,14 @@ public class EndToEndFilibusterTest extends PurchaseBaseTest implements Filibust
                     assertEquals(9000, merchantAccountBalance);
                 }
         );
+
+        onFaultOnRequest(
+                CartServiceGrpc.getGetDiscountOnCartMethod(),
+                Hello.GetDiscountRequest.newBuilder()
+                        .setCode("DAILY")
+                        .build(),
+                this::assertTestBlock
+        );
     }
 
     @Override
@@ -221,8 +229,9 @@ public class EndToEndFilibusterTest extends PurchaseBaseTest implements Filibust
 
     @TestWithFilibuster(
             analysisConfigurationFile = GRPCAnalysisConfigurationFile.class,
-            maxIterations = 5,
+            maxIterations = 20,
             dataNondeterminism = true,
+            suppressCombinations = true,
             searchStrategy = FilibusterSearchStrategy.BFS
     )
     public void test() {

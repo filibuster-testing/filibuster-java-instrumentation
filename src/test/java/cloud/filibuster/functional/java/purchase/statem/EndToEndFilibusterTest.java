@@ -65,6 +65,29 @@ public class EndToEndFilibusterTest extends PurchaseBaseTest implements Filibust
                     }
                 }
         );
+
+        onFault(
+                CartServiceGrpc.getGetDiscountOnCartMethod(),
+                () -> {
+                    // Verify response.
+                    assertNotNull(response.get());
+                    assertTrue(response.get().getSuccess());
+                    assertEquals("9500", response.get().getTotal());
+
+                    // Verify cache writes.
+                    JSONObject cacheObject = PurchaseWorkflow.getCacheObjectForUser(consumerId);
+                    JSONObject expectedCacheObject = generateExpectedCacheObject(consumerId.toString(), cartId.toString(), "9500");
+                    assertTrue(expectedCacheObject.similar(cacheObject));
+
+                    // Verify database writes.
+                    int consumerAccountBalance = PurchaseWorkflow.getAccountBalance(consumerId);
+                    assertEquals(10500, consumerAccountBalance);
+
+                    // Verify database writes.
+                    int merchantAccountBalance = PurchaseWorkflow.getAccountBalance(merchantId);
+                    assertEquals(9500, merchantAccountBalance);
+                }
+        );
     }
 
     @Override
@@ -169,7 +192,7 @@ public class EndToEndFilibusterTest extends PurchaseBaseTest implements Filibust
 
     @TestWithFilibuster(
             analysisConfigurationFile = GRPCAnalysisConfigurationFile.class,
-            maxIterations = 3,
+            maxIterations = 4,
             dataNondeterminism = true,
             searchStrategy = FilibusterSearchStrategy.BFS
     )

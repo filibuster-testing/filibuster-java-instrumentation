@@ -30,7 +30,8 @@ public class PurchaseWorkflow {
         SUCCESS,
         INSUFFICIENT_FUNDS,
         UNPROCESSED,
-        UNAVAILABLE
+        USER_UNAVAILABLE,
+        CART_UNAVAILABLE
     }
 
     public static void depositFundsToAccount(UUID account, int amount) {
@@ -69,6 +70,7 @@ public class PurchaseWorkflow {
         ArrayList<Map.Entry<String, String>> discountCodes = new ArrayList<>();
         discountCodes.add(Pair.of("FIRST-TIME", "10"));
         discountCodes.add(Pair.of("RETURNING", "5"));
+        discountCodes.add(Pair.of("DAILY", "1"));
         return discountCodes;
     }
 
@@ -101,7 +103,7 @@ public class PurchaseWorkflow {
         try {
             userId = getUserFromSession(channel, sessionId);
         } catch (StatusRuntimeException e) {
-            return PurchaseWorkflowResponse.UNAVAILABLE;
+            return PurchaseWorkflowResponse.USER_UNAVAILABLE;
         }
 
         // Get cart.
@@ -111,7 +113,7 @@ public class PurchaseWorkflow {
             merchantId = getCartResponse.getMerchantId();
             cartTotal = Integer.parseInt(getCartResponse.getTotal());
         } catch (StatusRuntimeException e) {
-            return PurchaseWorkflowResponse.UNAVAILABLE;
+            return PurchaseWorkflowResponse.CART_UNAVAILABLE;
         }
 
         // Get the maximum discount.

@@ -156,8 +156,6 @@ public class RedisInterceptor<T> implements MethodInterceptor {
         if (invocationResult != null) {
             String sInvocationResult = null;
 
-            String x = invocationResult.getClass().getName();
-
             if (invocationResult.getClass().getName().contains("com.sun.proxy")) {
                 sInvocationResult = ""; // avoid encoding memory reference in the RPC response.
             } else {

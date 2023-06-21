@@ -10,16 +10,16 @@ import java.util.Random;
 
 import com.google.gson.reflect.TypeToken;
 
-public final class BitInByteArrTransformer implements Transformer<Byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> {
+public final class BitInByteArrTransformer implements Transformer<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> {
     private static final long FIXED_SEED = 0;
     private static final Random rand = new Random(FIXED_SEED); // Seed is fixed to ensure consistent results
     private boolean hasNext = true;
-    private Byte[] result;
-    private Accumulator<Byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> accumulator;
+    private byte[] result;
+    private Accumulator<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> accumulator;
 
     @Override
     @CanIgnoreReturnValue
-    public BitInByteArrTransformer transform(Byte[] payload, Accumulator<Byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> accumulator) {
+    public BitInByteArrTransformer transform(byte[] payload, Accumulator<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> accumulator) {
         ArrayList<SimpleImmutableEntry<Integer, Integer>> ctx = accumulator.getContext();
 
         if (ctx.size() == 0) {  // Initial transformation
@@ -29,13 +29,13 @@ public final class BitInByteArrTransformer implements Transformer<Byte[], ArrayL
 
         SimpleImmutableEntry<Integer, Integer> entryToMutate = ctx.get(ctx.size() - 1);  // Get the last entry in the context
 
-        byte myByte = payload[entryToMutate.getKey()];
+        byte mybyte = payload[entryToMutate.getKey()];
 
-        String myBits = String.format("%8s", Integer.toBinaryString(myByte & 0xFF)).replace(' ', '0');
+        String myBits = String.format("%8s", Integer.toBinaryString(mybyte & 0xFF)).replace(' ', '0');
 
         StringBuilder myMutatedBits = new StringBuilder(myBits);
         if (myMutatedBits.charAt(entryToMutate.getValue()) == '0') {
-            if (entryToMutate.getValue() == 0) {  // Byte is signed. If the byte is positive (i.e., its first bit is 0), mutate it to "-".
+            if (entryToMutate.getValue() == 0) {  // byte is signed. If the byte is positive (i.e., its first bit is 0), mutate it to "-".
                 myMutatedBits.setCharAt(0, '-');
             } else {
                 myMutatedBits.setCharAt(entryToMutate.getValue(), '1');
@@ -44,9 +44,10 @@ public final class BitInByteArrTransformer implements Transformer<Byte[], ArrayL
             myMutatedBits.setCharAt(entryToMutate.getValue(), '0');
         }
 
-        payload[entryToMutate.getKey()] = (byte) (int) Integer.valueOf(myMutatedBits.toString(), 2);
+        byte[] mutatedPayload = payload.clone();
+        mutatedPayload[entryToMutate.getKey()] = (byte) (int) Integer.valueOf(myMutatedBits.toString(), 2);
 
-        this.result = payload;
+        this.result = mutatedPayload;
         this.accumulator = accumulator;
 
         if (ctx.size() == payload.length * 8) {
@@ -63,11 +64,11 @@ public final class BitInByteArrTransformer implements Transformer<Byte[], ArrayL
 
     @Override
     public Type getPayloadType() {
-        return Byte[].class;
+        return byte[].class;
     }
 
     @Override
-    public Byte[] getResult() {
+    public byte[] getResult() {
         if (this.result == null) {
             throw new FilibusterFaultInjectionException("getResult() called before transform()!");
         }
@@ -75,14 +76,14 @@ public final class BitInByteArrTransformer implements Transformer<Byte[], ArrayL
     }
 
     @Override
-    public Accumulator<Byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> getInitialAccumulator() {
-        Accumulator<Byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> accumulator = new Accumulator<>();
+    public Accumulator<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> getInitialAccumulator() {
+        Accumulator<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> accumulator = new Accumulator<>();
         accumulator.setContext(new ArrayList<>());
         return accumulator;
     }
 
     @Override
-    public Accumulator<Byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> getNextAccumulator() {
+    public Accumulator<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> getNextAccumulator() {
         if (this.accumulator == null) {
             return getInitialAccumulator();
         } else {
@@ -104,7 +105,7 @@ public final class BitInByteArrTransformer implements Transformer<Byte[], ArrayL
 
     @Override
     public Type getAccumulatorType() {
-        Type byteArrType = TypeToken.get(Byte[].class).getType();
+        Type byteArrType = TypeToken.get(byte[].class).getType();
         Type simpleEntryType = TypeToken.getParameterized(SimpleImmutableEntry.class, Integer.class, Integer.class).getType();
         Type listType = TypeToken.getParameterized(ArrayList.class, simpleEntryType).getType();
 

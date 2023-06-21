@@ -21,6 +21,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
@@ -112,7 +113,7 @@ public class JUnitRedisFilibusterByteArrPositiveTransformerApplicationTest exten
     @Order(4)
     public void testNumFaultsOnKey() {
         // The key "uni" has 3 chars, each char has 8 bits, so 3 * 8 = 24 faults
-        int keyFaults = testExceptionsThrown.stream().filter(e -> e.contains("Expected key \"uni\" not found in JSONObject")).toList().size();
+        int keyFaults = testExceptionsThrown.stream().filter(e -> e.contains("Expected key \"uni\" not found in JSONObject")).collect(Collectors.toList()).size();
         assertEquals(24, keyFaults);
     }
 

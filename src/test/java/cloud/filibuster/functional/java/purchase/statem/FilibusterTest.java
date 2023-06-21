@@ -53,10 +53,24 @@ public interface FilibusterTest {
             JSONObject rpcWhereFirstFaultInjected = rpcWhereFirstFaultInjected();
 
             if (rpcWhereFirstFaultInjected != null) {
-                if (modifiedAssertions.containsKey(rpcWhereFirstFaultInjected.getString("method"))) {
-                    modifiedAssertions.get(rpcWhereFirstFaultInjected.getString("method")).run();
+                String requestToString = null;
+
+                if (rpcWhereFirstFaultInjected.has("args")) {
+                    JSONObject argsJsonObject = rpcWhereFirstFaultInjected.getJSONObject("args");
+
+                    if (argsJsonObject.has("toString")) {
+                        requestToString = argsJsonObject.getString("toString");
+                    }
+                }
+
+                if (modifiedAssertionsByMethod.containsKey(rpcWhereFirstFaultInjected.getString("method"))) {
+                    modifiedAssertionsByMethod.get(rpcWhereFirstFaultInjected.getString("method")).run();
                     shouldRunAssertionBlock = false;
-                } else {
+                } else if (requestToString != null && modifiedAssertionsByRequest.containsKey(requestToString)) {
+                    modifiedAssertionsByRequest.get(requestToString).run();
+                    shouldRunAssertionBlock = false;
+                }
+                else {
                     throw new FilibusterTestRuntimeException("Test injected a fault, but no specification of failure behavior present.\n");
                 }
             }
@@ -202,9 +216,15 @@ public interface FilibusterTest {
         adjustedExpectations.put(code, runnable);
     }
 
-    HashMap<String, Runnable> modifiedAssertions = new HashMap<>();
+    HashMap<String, Runnable> modifiedAssertionsByMethod = new HashMap<>();
 
-    default void onFault(MethodDescriptor methodDescriptor, Runnable runnable) {
-        modifiedAssertions.put(methodDescriptor.getFullMethodName(), runnable);
+    default void onFaultOnMethod(MethodDescriptor methodDescriptor, Runnable runnable) {
+        modifiedAssertionsByMethod.put(methodDescriptor.getFullMethodName(), runnable);
+    }
+
+    HashMap<String, Runnable> modifiedAssertionsByRequest = new HashMap<>();
+
+    default  <ReqT> void onFaultOnRequest(MethodDescriptor methodDescriptor, ReqT request, Runnable runnable) {
+        modifiedAssertionsByRequest.put(request.toString(), runnable);
     }
 }

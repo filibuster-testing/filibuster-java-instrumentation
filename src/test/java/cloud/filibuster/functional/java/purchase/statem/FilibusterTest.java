@@ -186,4 +186,10 @@ public interface FilibusterTest {
     default void onException(Status.Code code, Runnable runnable) {
         adjustedExpectations.put(code, runnable);
     }
+
+    HashMap<String, Runnable> modifiedAssertions = new HashMap<>();
+
+    default void onFault(MethodDescriptor methodDescriptor, Runnable runnable) {
+        modifiedAssertions.put(methodDescriptor.getFullMethodName(), runnable);
+    }
 }

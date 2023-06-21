@@ -19,8 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import java.nio.charset.Charset;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
 
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
@@ -38,7 +37,7 @@ public class JUnitRedisFilibusterByteArrTransformerTest extends JUnitAnnotationB
     static final byte[] value = "example".getBytes(Charset.defaultCharset());
     static StatefulRedisConnection<String, byte[]> statefulRedisConnection;
     static String redisConnectionString;
-    private final static Set<String> testExceptionsThrown = new HashSet<>();
+    private final static ArrayList<String> testExceptionsThrown = new ArrayList<>();
 
     private static int numberOfTestExecutions = 0;
 
@@ -62,11 +61,7 @@ public class JUnitRedisFilibusterByteArrTransformerTest extends JUnitAnnotationB
             assertArrayEquals(value, returnVal);
             assertFalse(wasFaultInjected());
         } catch (Throwable t) {
-            if (t.getMessage().contains("expected")) {
-                // Get the first part of the exception message. Message has the format:
-                // array contents differ at index [X], expected: <Y> but was: <Z>
-                testExceptionsThrown.add(t.getMessage().split("expected")[0]);
-            }
+            testExceptionsThrown.add(t.getMessage());
 
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
             assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService("io.lettuce.core.api.sync.RedisStringCommands"), "Expected FilibusterUnsupportedAPIException to be thrown: " + t);
@@ -85,9 +80,9 @@ public class JUnitRedisFilibusterByteArrTransformerTest extends JUnitAnnotationB
     @DisplayName("Verify correct number of faults.")
     @Test
     @Order(3)
-    // 1 fault per byte in the byte array
+    // 1 fault per bit per byte in the byte array
     public void testNumFaults() {
-        assertEquals(value.length, testExceptionsThrown.size());
+        assertEquals(value.length * 8, testExceptionsThrown.size());
     }
 
 }

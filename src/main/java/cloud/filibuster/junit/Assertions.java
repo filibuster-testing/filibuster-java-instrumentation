@@ -19,7 +19,6 @@ import com.linecorp.armeria.common.RequestHeaders;
 import com.linecorp.armeria.common.ResponseHeaders;
 
 import org.json.JSONObject;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.function.ThrowingConsumer;
 import io.grpc.MethodDescriptor;
 

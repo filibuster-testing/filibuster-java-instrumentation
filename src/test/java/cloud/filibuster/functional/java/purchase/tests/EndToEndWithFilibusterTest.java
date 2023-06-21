@@ -39,15 +39,6 @@ public class EndToEndWithFilibusterTest extends PurchaseBaseTest {
             .withPort(Networking.getPort("mock"))
             .build();
 
-    private static JSONObject generateExpectedCacheObject(String consumerId, String cartId) {
-        JSONObject expectedJsonObject = new JSONObject();
-        expectedJsonObject.put("cart_id", cartId);
-        expectedJsonObject.put("user_id", consumerId);
-        expectedJsonObject.put("purchased", true);
-        expectedJsonObject.put("total", "9000");
-        return expectedJsonObject;
-    }
-
     @TestWithFilibuster(
             analysisConfigurationFile = GRPCAnalysisConfigurationFile.class,
             maxIterations = 1,

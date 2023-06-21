@@ -62,7 +62,9 @@ public class JUnitRedisFilibusterByteArrTransformerTest extends JUnitAnnotationB
             assertArrayEquals(value, returnVal);
             assertFalse(wasFaultInjected());
         } catch (Throwable t) {
-            testExceptionsThrown.add(t.getMessage());
+            if (t.getMessage().contains("expected")) {
+                testExceptionsThrown.add(t.getMessage().split("expected")[0]);  // Get the first part of the message
+            }
 
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
             assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService("io.lettuce.core.api.sync.RedisStringCommands"), "Expected FilibusterUnsupportedAPIException to be thrown: " + t);
@@ -78,12 +80,12 @@ public class JUnitRedisFilibusterByteArrTransformerTest extends JUnitAnnotationB
         assertEquals(value.length * 8 + 1, numberOfTestExecutions);
     }
 
-    @DisplayName("Verify correct number of exception.")
+    @DisplayName("Verify correct number of faults.")
     @Test
     @Order(3)
-    // Only 1 exception due to assertArrayEquals failing
-    public void testNumExceptions() {
-        assertEquals(1, testExceptionsThrown.size());
+    // 1 exception per byte in the byte array
+    public void testNumFaults() {
+        assertEquals(value.length, testExceptionsThrown.size());
     }
 
 }

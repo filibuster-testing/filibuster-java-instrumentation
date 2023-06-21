@@ -11,6 +11,7 @@ import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.codec.ByteArrayCodec;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.codec.StringCodec;
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -19,31 +20,37 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import java.nio.charset.Charset;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
 
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("unchecked")
-public class JUnitRedisFilibusterByteArrTransformerTest extends JUnitAnnotationBaseTest {
+public class JUnitRedisFilibusterByteArrPositiveTransformerApplicationTest extends JUnitAnnotationBaseTest {
     static final String key = "test";
-    static final byte[] value = "example".getBytes(Charset.defaultCharset());
+    static byte[] value;
+    static JSONObject referenceJSONObject;
     static StatefulRedisConnection<String, byte[]> statefulRedisConnection;
     static String redisConnectionString;
-    private final static Set<String> testExceptionsThrown = new HashSet<>();
+    private final static ArrayList<String> testExceptionsThrown = new ArrayList<>();
 
     private static int numberOfTestExecutions = 0;
 
     @BeforeAll
     public static void primeCache() {
+        referenceJSONObject = new JSONObject();
+        referenceJSONObject.put("uni", "cmu");
+        referenceJSONObject.put("course", "15440");
+        referenceJSONObject.put("city", "pittsburgh");
+        referenceJSONObject.put("state", "pa");
+
+        value = referenceJSONObject.toString().getBytes(Charset.defaultCharset());
+
         statefulRedisConnection = RedisClientService.getInstance().redisClient.connect(RedisCodec.of(new StringCodec(), new ByteArrayCodec()));
         redisConnectionString = RedisClientService.getInstance().connectionString;
         statefulRedisConnection.sync().set(key, value);
@@ -51,22 +58,26 @@ public class JUnitRedisFilibusterByteArrTransformerTest extends JUnitAnnotationB
 
     @DisplayName("Tests whether Redis sync interceptor can read from existing key - Byte Array transformer faults.")
     @Order(1)
-    @TestWithFilibuster(analysisConfigurationFile = RedisTransformBitInByteArrAnalysisConfigurationFile.class)
-    public void testRedisByteArrTransformation() {
+    @TestWithFilibuster(analysisConfigurationFile = RedisTransformBitInByteArrAnalysisConfigurationFile.class,
+            maxIterations = 550)
+    public void testRedisByteArrPositiveTransformation() {
         try {
             numberOfTestExecutions++;
 
             StatefulRedisConnection<String, byte[]> myStatefulRedisConnection = new RedisInterceptorFactory<>(statefulRedisConnection, redisConnectionString).getProxy(StatefulRedisConnection.class);
             RedisCommands<String, byte[]> myRedisCommands = myStatefulRedisConnection.sync();
+
+            // Get the value as byte[] from the cache
             byte[] returnVal = myRedisCommands.get(key);
-            assertArrayEquals(value, returnVal);
-            assertFalse(wasFaultInjected());
+            // Convert the byte[] to a string
+            String sJsonObject = new String(returnVal, Charset.defaultCharset());
+            // Convert the string to a JSONObject
+            JSONObject returnJO = new JSONObject(sJsonObject);
+
+            // Check if the JSONObject contains the key "uni"
+            assertTrue(returnJO.has("uni"), "Expected key \"uni\" not found in JSONObject: " + returnJO);
         } catch (Throwable t) {
-            if (t.getMessage().contains("expected")) {
-                // Get the first part of the exception message. Message has the format:
-                // array contents differ at index [X], expected: <Y> but was: <Z>
-                testExceptionsThrown.add(t.getMessage().split("expected")[0]);
-            }
+            testExceptionsThrown.add(t.getMessage());
 
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
             assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService("io.lettuce.core.api.sync.RedisStringCommands"), "Expected FilibusterUnsupportedAPIException to be thrown: " + t);
@@ -85,9 +96,25 @@ public class JUnitRedisFilibusterByteArrTransformerTest extends JUnitAnnotationB
     @DisplayName("Verify correct number of faults.")
     @Test
     @Order(3)
-    // 1 fault per byte in the byte array
-    public void testNumFaults() {
-        assertEquals(value.length, testExceptionsThrown.size());
+    public void testTotalNumFaults() {
+        // Faults causing deserialisation exceptions were injected on "{", "}", ":", "," and "\""
+        // { = 1, } = 1, : = 4, , = 3, " = 16 (4 keys + 4 values, each with two quotes)
+        // Total number of deserialisation faults = 1 + 1 + 4 + 3 + 16 = 25
+        // Each fault is injected 8 times (once for each bit in the byte array) = 25 * 8 = 200 faults
+        // +1 fault for unterminated string
+        // The key "uni" has 3 chars, each char has 8 bits, so 3 * 8 = 24 faults
+        // Total number of faults = 200 + 24 + 1 = 225
+        assertEquals(225, testExceptionsThrown.size());
     }
+
+    @DisplayName("Verify correct number of faults.")
+    @Test
+    @Order(4)
+    public void testNumFaultsOnKey() {
+        // The key "uni" has 3 chars, each char has 8 bits, so 3 * 8 = 24 faults
+        int keyFaults = testExceptionsThrown.stream().filter(e -> e.contains("Expected key \"uni\" not found in JSONObject")).toList().size();
+        assertEquals(24, keyFaults);
+    }
+
 
 }

@@ -71,25 +71,7 @@ public class EndToEndFilibusterTest extends PurchaseBaseTest implements Filibust
                 Hello.GetDiscountRequest.newBuilder()
                         .setCode("FIRST-TIME")
                         .build(),
-                () -> {
-                    // Verify response.
-                    assertNotNull(response.get());
-                    assertTrue(response.get().getSuccess());
-                    assertEquals("9500", response.get().getTotal());
-
-                    // Verify cache writes.
-                    JSONObject cacheObject = PurchaseWorkflow.getCacheObjectForUser(consumerId);
-                    JSONObject expectedCacheObject = generateExpectedCacheObject(consumerId.toString(), cartId.toString(), "9500");
-                    assertTrue(expectedCacheObject.similar(cacheObject));
-
-                    // Verify database writes.
-                    int consumerAccountBalance = PurchaseWorkflow.getAccountBalance(consumerId);
-                    assertEquals(20000 - 9500, consumerAccountBalance);
-
-                    // Verify database writes.
-                    int merchantAccountBalance = PurchaseWorkflow.getAccountBalance(merchantId);
-                    assertEquals(9500, merchantAccountBalance);
-                }
+                () -> { assertTestBlock(9500); }
         );
 
         onFaultOnRequest(
@@ -97,25 +79,7 @@ public class EndToEndFilibusterTest extends PurchaseBaseTest implements Filibust
                 Hello.GetDiscountRequest.newBuilder()
                         .setCode("RETURNING")
                         .build(),
-                () -> {
-                    // Verify response.
-                    assertNotNull(response.get());
-                    assertTrue(response.get().getSuccess());
-                    assertEquals("9000", response.get().getTotal());
-
-                    // Verify cache writes.
-                    JSONObject cacheObject = PurchaseWorkflow.getCacheObjectForUser(consumerId);
-                    JSONObject expectedCacheObject = generateExpectedCacheObject(consumerId.toString(), cartId.toString(), "9000");
-                    assertTrue(expectedCacheObject.similar(cacheObject));
-
-                    // Verify database writes.
-                    int consumerAccountBalance = PurchaseWorkflow.getAccountBalance(consumerId);
-                    assertEquals(20000 - 9000, consumerAccountBalance);
-
-                    // Verify database writes.
-                    int merchantAccountBalance = PurchaseWorkflow.getAccountBalance(merchantId);
-                    assertEquals(9000, merchantAccountBalance);
-                }
+                this::assertTestBlock
         );
 
         onFaultOnRequest(
@@ -185,20 +149,24 @@ public class EndToEndFilibusterTest extends PurchaseBaseTest implements Filibust
         response.set(blockingStub.purchase(request));
     }
 
-    @Override
-    public void assertTestBlock() {
+    private void assertTestBlock(int total) {
         // Verify response.
         assertNotNull(response.get());
         assertTrue(response.get().getSuccess());
-        assertEquals("9000", response.get().getTotal());
+        assertEquals(String.valueOf(total), response.get().getTotal());
 
         // Verify cache writes.
         JSONObject cacheObject = PurchaseWorkflow.getCacheObjectForUser(consumerId);
-        assertTrue(generateExpectedCacheObject(consumerId.toString(), cartId.toString(), "9000").similar(cacheObject));
+        assertTrue(generateExpectedCacheObject(consumerId.toString(), cartId.toString(), String.valueOf(total)).similar(cacheObject));
 
         // Verify database writes.
-        assertEquals(11000, PurchaseWorkflow.getAccountBalance(consumerId));
-        assertEquals(9000, PurchaseWorkflow.getAccountBalance(merchantId));
+        assertEquals(20000 - total, PurchaseWorkflow.getAccountBalance(consumerId));
+        assertEquals(total, PurchaseWorkflow.getAccountBalance(merchantId));
+    }
+
+    @Override
+    public void assertTestBlock() {
+        assertTestBlock(9000);
     }
 
     @Override

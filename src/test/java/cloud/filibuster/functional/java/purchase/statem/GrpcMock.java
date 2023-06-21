@@ -34,14 +34,14 @@ public class GrpcMock {
     public static <ReqT> void adjustExpectation(
             @Nonnull MethodDescriptor<ReqT, ?> method,
             @Nonnull ReqT request,
-            @Nonnull int count
+            int count
     ) {
         adjustedExpectationsForRequests.put(request, count);
     }
 
     public static <ReqT> void verifyThat(
             @Nonnull MethodDescriptor<ReqT, ?> method,
-            @Nonnull int count
+            int count
     ) {
         if (Assertions.wasFaultInjectedOnMethod(method.getFullMethodName())) {
             if (count > 0) {
@@ -59,7 +59,7 @@ public class GrpcMock {
     public static <ReqT> void verifyThat(
             @Nonnull MethodDescriptor<ReqT, ?> method,
             @Nonnull ReqT request,
-            @Nonnull int count
+            int count
     ) {
         String fullMethodName = method.getFullMethodName();
         HashMap<DistributedExecutionIndex, JSONObject> faultsInjected = getFaultsInjected();

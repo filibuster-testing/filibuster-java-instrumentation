@@ -48,9 +48,24 @@ public interface FilibusterTest {
             // Execute the test.
             Helpers.testBlock(this::testBlock);
 
-            // Only if the test runs, execute the assertion block.
-            // This assumes that the assertion block will not pass if the request returns error.
-            Helpers.assertionBlock(this::assertTestBlock);
+            // If a fault was injected, ask the developer to specify an alternative assertion block.
+            boolean shouldRunAssertionBlock = true;
+            JSONObject rpcWhereFirstFaultInjected = rpcWhereFirstFaultInjected();
+
+            if (rpcWhereFirstFaultInjected != null) {
+                if (modifiedAssertions.containsKey(rpcWhereFirstFaultInjected.getString("method"))) {
+                    modifiedAssertions.get(rpcWhereFirstFaultInjected.getString("method")).run();
+                    shouldRunAssertionBlock = false;
+                } else {
+                    throw new FilibusterTestRuntimeException("Test injected a fault, but no specification of failure behavior present.\n");
+                }
+            }
+
+            if (shouldRunAssertionBlock) {
+                // Only in the reference execution, execute the assertion block.
+                // This assumes that the assertion block will not pass if the request returns error.
+                Helpers.assertionBlock(this::assertTestBlock);
+            }
 
             // Verify stub invocations.
             Helpers.assertionBlock(this::assertStubBlock);

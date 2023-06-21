@@ -129,7 +129,7 @@ public class EndToEndWithFilibusterTest extends PurchaseBaseTest {
 
             // Verify cache writes.
             JSONObject cacheObject = PurchaseWorkflow.getCacheObjectForUser(consumerId);
-            assertTrue(generateExpectedCacheObject(consumerId.toString(), cartId.toString()).similar(cacheObject));
+            assertTrue(generateExpectedCacheObject(consumerId.toString(), cartId.toString(), "9000").similar(cacheObject));
 
             // Verify database writes.
             assertEquals(11000, PurchaseWorkflow.getAccountBalance(consumerId));

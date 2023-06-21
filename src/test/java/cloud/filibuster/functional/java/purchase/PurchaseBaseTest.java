@@ -48,12 +48,12 @@ public class PurchaseBaseTest {
             .usePlaintext()
             .build();
 
-    protected static JSONObject generateExpectedCacheObject(String consumerId, String cartId) {
+    protected static JSONObject generateExpectedCacheObject(String consumerId, String cartId, String total) {
         JSONObject expectedJsonObject = new JSONObject();
         expectedJsonObject.put("cart_id", cartId);
         expectedJsonObject.put("user_id", consumerId);
         expectedJsonObject.put("purchased", true);
-        expectedJsonObject.put("total", "9000");
+        expectedJsonObject.put("total", total);
         return expectedJsonObject;
     }
 }

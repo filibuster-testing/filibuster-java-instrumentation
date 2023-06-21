@@ -162,7 +162,7 @@ public interface FilibusterTest {
                                 String code = metadataExceptionJsonObject.getString("code");
 
                                 if (code.equals("UNIMPLEMENTED")) {
-                                    throw new FilibusterTestRuntimeException("Some RPCs are left unstubbed!");
+                                    throw new FilibusterTestRuntimeException("Some RPCs are left UNIMPLEMENTED!");
                                 }
                             }
                         }

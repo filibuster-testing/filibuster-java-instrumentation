@@ -66,8 +66,11 @@ public class EndToEndFilibusterTest extends PurchaseBaseTest implements Filibust
                 }
         );
 
-        onFault(
+        onFaultOnRequest(
                 CartServiceGrpc.getGetDiscountOnCartMethod(),
+                Hello.GetDiscountRequest.newBuilder()
+                        .setCode("FIRST-TIME")
+                        .build(),
                 () -> {
                     // Verify response.
                     assertNotNull(response.get());
@@ -81,11 +84,37 @@ public class EndToEndFilibusterTest extends PurchaseBaseTest implements Filibust
 
                     // Verify database writes.
                     int consumerAccountBalance = PurchaseWorkflow.getAccountBalance(consumerId);
-                    assertEquals(10500, consumerAccountBalance);
+                    assertEquals(20000 - 9500, consumerAccountBalance);
 
                     // Verify database writes.
                     int merchantAccountBalance = PurchaseWorkflow.getAccountBalance(merchantId);
                     assertEquals(9500, merchantAccountBalance);
+                }
+        );
+
+        onFaultOnRequest(
+                CartServiceGrpc.getGetDiscountOnCartMethod(),
+                Hello.GetDiscountRequest.newBuilder()
+                        .setCode("RETURNING")
+                        .build(),
+                () -> {
+                    // Verify response.
+                    assertNotNull(response.get());
+                    assertTrue(response.get().getSuccess());
+                    assertEquals("9000", response.get().getTotal());
+
+                    // Verify cache writes.
+                    JSONObject cacheObject = PurchaseWorkflow.getCacheObjectForUser(consumerId);
+                    JSONObject expectedCacheObject = generateExpectedCacheObject(consumerId.toString(), cartId.toString(), "9000");
+                    assertTrue(expectedCacheObject.similar(cacheObject));
+
+                    // Verify database writes.
+                    int consumerAccountBalance = PurchaseWorkflow.getAccountBalance(consumerId);
+                    assertEquals(20000 - 9000, consumerAccountBalance);
+
+                    // Verify database writes.
+                    int merchantAccountBalance = PurchaseWorkflow.getAccountBalance(merchantId);
+                    assertEquals(9000, merchantAccountBalance);
                 }
         );
     }
@@ -192,7 +221,7 @@ public class EndToEndFilibusterTest extends PurchaseBaseTest implements Filibust
 
     @TestWithFilibuster(
             analysisConfigurationFile = GRPCAnalysisConfigurationFile.class,
-            maxIterations = 4,
+            maxIterations = 5,
             dataNondeterminism = true,
             searchStrategy = FilibusterSearchStrategy.BFS
     )

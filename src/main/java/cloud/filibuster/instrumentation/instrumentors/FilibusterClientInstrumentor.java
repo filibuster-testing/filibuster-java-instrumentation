@@ -926,6 +926,7 @@ final public class FilibusterClientInstrumentor {
         }
     }
 
+
     /**
      * Invoked after a remote call has been completed if the remote call completed successfully.
      *
@@ -936,36 +937,7 @@ final public class FilibusterClientInstrumentor {
             String className,
             HashMap<String, String> returnValueProperties
     ) {
-        // Only if instrumented request, we should communicate, and we aren't inside of Filibuster instrumentation.
-        logger.log(Level.INFO, "generatedId: " + generatedId);
-        logger.log(Level.INFO, "shouldCommunicateWithServer: " + shouldCommunicateWithServer);
-
-        if (generatedId > -1 && shouldCommunicateWithServer && counterexampleNotProvided()) {
-            JSONObject returnValue = new JSONObject();
-
-            returnValue.put("__class__", className);
-
-            for (Map.Entry<String, String> entry : returnValueProperties.entrySet()) {
-                // JSONObject does not allow null values.
-                // If the value in the HashMap is null, we need to put in JSONObject.NULL instead of null.
-                returnValue.put(entry.getKey(), entry.getValue() == null ? JSONObject.NULL : entry.getValue());
-            }
-
-            JSONObject invocationCompletePayload = new JSONObject();
-            invocationCompletePayload.put("instrumentation_type", "invocation_complete");
-            invocationCompletePayload.put("generated_id", getGeneratedId());
-            invocationCompletePayload.put("execution_index", distributedExecutionIndex.toString());
-            invocationCompletePayload.put("vclock", getVectorClock().toJSONObject());
-            invocationCompletePayload.put("return_value", returnValue);
-            invocationCompletePayload.put("module", callsite.getClassOrModuleName());
-            invocationCompletePayload.put("method", callsite.getMethodOrFunctionName());
-
-            if (preliminaryDistributedExecutionIndex != null) {
-                invocationCompletePayload.put("preliminary_execution_index", preliminaryDistributedExecutionIndex.toString());
-            }
-
-            recordInvocationComplete(invocationCompletePayload);
-        }
+        afterInvocationComplete(className, returnValueProperties, null);
     }
 
 

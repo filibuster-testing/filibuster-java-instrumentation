@@ -131,9 +131,6 @@ public interface FilibusterTest {
 
                     // Verify stub invocations.
                     Helpers.assertionBlock(this::assertStubBlock);
-
-                    // Avoid any further checks, progress to teardown.
-                    return;
                 } else {
                     throw new FilibusterTestRuntimeException(
                             "Expected exception description does not match the actual thrown exception's description.\n" +

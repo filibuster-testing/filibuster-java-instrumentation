@@ -1,17 +1,20 @@
 package cloud.filibuster.functional.java.purchase.statem;
 
+import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.junit.Assertions;
 import cloud.filibuster.junit.server.core.FilibusterCore;
 import com.google.protobuf.GeneratedMessageV3;
 import io.grpc.MethodDescriptor;
 import org.grpcmock.definitions.verification.CountMatcher;
 import org.grpcmock.definitions.verification.steps.RequestPatternBuilderStep;
+import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import static cloud.filibuster.junit.Assertions.getFaultsInjected;
 import static org.grpcmock.GrpcMock.calledMethod;
 import static org.grpcmock.GrpcMock.times;
 
@@ -62,7 +65,11 @@ public class GrpcMock {
             @Nonnull ReqT request,
             @Nonnull int count
     ) {
-        if (Assertions.wasFaultInjectedOnMethod(method.getFullMethodName())) {
+        String fullMethodName = method.getFullMethodName();
+        HashMap<DistributedExecutionIndex, JSONObject> faultsInjected = getFaultsInjected();
+        String toStringRequest = request.toString();
+
+        if (Assertions.wasFaultInjectedOnRequest(request.toString())) {
             if (count > 0) {
                 count = count - 1;
             }

@@ -23,6 +23,7 @@ import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.codec.ByteArrayCodec;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.codec.StringCodec;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.nio.charset.Charset;
@@ -210,7 +211,7 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     @Override
     @SuppressWarnings("unchecked")
     public void getBook(Hello.GetBookRequest req, StreamObserver<Hello.GetBookResponse> responseObserver) {
-        Hello.GetBookResponse reply;
+        Hello.GetBookResponse reply = null;
         RedisClientService redisService = RedisClientService.getInstance();
         Hello.GetBookResponse.Builder bookBuilder = Hello.GetBookResponse.newBuilder();
 
@@ -218,45 +219,39 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
 
         redisConnection = new RedisInterceptorFactory<>(redisConnection, redisService.connectionString).getProxy(StatefulRedisConnection.class);
 
-        byte[] retrievedValue = null;
+        byte[] retrievedValue = redisConnection.sync().get(req.getBookId());
 
-        try {
-            retrievedValue = redisConnection.sync().get(req.getBookId());
-
-            if (retrievedValue != null && retrievedValue.length > 0) {  // Return book if there is a hit
+        if (retrievedValue != null) {  // Check whether there is a Redis hit
+            try {  // Try deserializing the retrieved value as JSONObject
                 JSONObject bookJO = new JSONObject(new String(retrievedValue, Charset.defaultCharset()));
                 reply = bookBuilder.setBook(bookJO.toString()).build();
-            } else {  // Else make a call to the Hello service, the hello service always returns an error
-                ManagedChannel helloChannel = ManagedChannelBuilder
-                        .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
-                        .usePlaintext()
-                        .build();
-                ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("api_server");
-                Channel channel = ClientInterceptors.intercept(helloChannel, clientInterceptor);
-
-                HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(channel);
-                Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName(req.getBookId()).build();
-                Hello.HelloReply helloReply = blockingStub.throwException(request);
-
-                reply = bookBuilder.setBook(helloReply.getMessage()).build();
+            } catch (JSONException e) {
+                String description = "Error deserializing retrievedValue: "
+                        + Arrays.toString(retrievedValue) +
+                        " which reads: " + new String(retrievedValue, Charset.defaultCharset())
+                        + " - " + e.getMessage();
+                respondWithError(responseObserver, description);
             }
+        } else {
+            // Else make a call to the Hello service. The hello service always returns an error.
+            // This error will not be found no matter what bit is flipped since we only check whether the retrieved
+            // value is null
+            ManagedChannel helloChannel = ManagedChannelBuilder
+                    .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
+                    .usePlaintext()
+                    .build();
+            ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("api_server");
+            Channel channel = ClientInterceptors.intercept(helloChannel, clientInterceptor);
 
-            responseObserver.onNext(reply);
-            responseObserver.onCompleted();
+            HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(channel);
+            Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName(req.getBookId()).build();
+            Hello.HelloReply helloReply = blockingStub.throwException(request);
 
-        } catch (Throwable e) {
-
-            String description = "MyAPIService could not process the request as an exception was thrown. " +
-                    "The retrieved return value is: " + Arrays.toString(retrievedValue);
-            if (retrievedValue != null) {
-                description += " which reads: " + new String(retrievedValue, Charset.defaultCharset());
-            }
-
-            // Propagate exception back to the caller
-            Status status = Status.INTERNAL.withDescription(e.getMessage())
-                    .augmentDescription(description);
-            responseObserver.onError(status.asException());
+            reply = bookBuilder.setBook(helloReply.getMessage()).build();
         }
+
+        responseObserver.onNext(reply);
+        responseObserver.onCompleted();
     }
 
 
@@ -271,39 +266,52 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
 
         redisConnection = new RedisInterceptorFactory<>(redisConnection, redisService.connectionString).getProxy(StatefulRedisConnection.class);
 
-        byte[] retrievedValue = null;
+        byte[] retrievedValue = redisConnection.sync().get(req.getBookId());
 
-        try {
-            retrievedValue = redisConnection.sync().get(req.getBookId());
+        if (retrievedValue != null) {  // Check whether there is a Redis hit
+            try {  // Try deserializing the retrieved value as JSONObject
 
-            JSONObject bookJO = new JSONObject(new String(retrievedValue, Charset.defaultCharset()));
-            if (bookJO.has("title")) {
-                reply = bookTitleBuilder.setTitle(bookJO.getString("title")).build();
-            } else {
-                String description = "The requested book does not have a title.";
-                // Propagate exception back to the caller
-                Status status = Status.INTERNAL.withDescription(description);
-                responseObserver.onError(status.asException());
+                JSONObject bookJO = new JSONObject(new String(retrievedValue, Charset.defaultCharset()));
+
+                if (bookJO.has("title")) {  // Check whether the bookJO has a title field
+                    reply = bookTitleBuilder.setTitle(bookJO.getString("title")).build();
+                } else {
+                    // Else make a call to the Hello service. The hello service always returns an error.
+                    // This error will be found in the cases where a bit is transformed in the key of the title field
+                    ManagedChannel helloChannel = ManagedChannelBuilder
+                            .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
+                            .usePlaintext()
+                            .build();
+                    ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("api_server");
+                    Channel channel = ClientInterceptors.intercept(helloChannel, clientInterceptor);
+
+                    HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(channel);
+                    Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName(req.getBookId()).build();
+                    Hello.HelloReply helloReply = blockingStub.throwException(request);
+
+                    reply = bookTitleBuilder.setTitle(helloReply.getMessage()).build();
+                }
+            } catch (JSONException e) {
+                String description = "Error deserializing retrievedValue: "
+                        + Arrays.toString(retrievedValue) +
+                        " which reads: "
+                        + new String(retrievedValue, Charset.defaultCharset())
+                        + " - " + e.getMessage();
+                respondWithError(responseObserver, description);
             }
-
-            responseObserver.onNext(reply);
-            responseObserver.onCompleted();
-
-        } catch (Throwable e) {
-
-            String description = "MyAPIService could not process the request as an exception was thrown. " +
-                    "The retrieved return value is: " + Arrays.toString(retrievedValue);
-            if (retrievedValue != null) {
-                description += " which reads: " + new String(retrievedValue, Charset.defaultCharset());
-            }
-
-            // Propagate exception back to the caller
-            Status status = Status.INTERNAL.withDescription(e.getMessage())
-                    .augmentDescription(description);
-            responseObserver.onError(status.asException());
+        } else {
+            String description = "Book was not found";
+            respondWithError(responseObserver, description);
         }
+
+        responseObserver.onNext(reply);
+        responseObserver.onCompleted();
     }
 
+    private static void respondWithError(StreamObserver<?> responseObserver, String message) {
+        Status status = Status.INTERNAL.withDescription(message);
+        responseObserver.onError(status.asException());
+    }
 
     private static String getUserFromSession(Channel channel, String sessionId) {
         UserServiceGrpc.UserServiceBlockingStub userServiceBlockingStub = UserServiceGrpc.newBlockingStub(channel);

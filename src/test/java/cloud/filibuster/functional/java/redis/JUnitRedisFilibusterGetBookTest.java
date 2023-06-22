@@ -111,7 +111,11 @@ public class JUnitRedisFilibusterGetBookTest extends JUnitAnnotationBaseTest {
     public void testNumDeserializationFaults() {
         // In this scenario, the bit transformations should only cause deserialization faults
         // Out of 553 executions, 208 were deserialization faults
+        // This shows that only 208 / 553 = 0.376 = 37.6% of the executions actually caused faults
+        // The rest of the executions were successful, although a bit was flipped
         int deserializationFaults = testFaults.stream().filter(e -> e.contains("Error deserializing")).collect(Collectors.toList()).size();
+
+        // All faults should be deserialization faults
         assertEquals(testFaults.size(), deserializationFaults);
     }
 
@@ -119,6 +123,7 @@ public class JUnitRedisFilibusterGetBookTest extends JUnitAnnotationBaseTest {
     @Test
     @Order(4)
     public void testHelloFaultNotFound() {
+        // The fault in the hello service should not be found in this scenario
         int helloFaults = testFaults.stream().filter(e -> e.contains("An exception was thrown at Hello service")).collect(Collectors.toList()).size();
         assertEquals(0, helloFaults);
     }

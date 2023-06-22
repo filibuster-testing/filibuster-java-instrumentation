@@ -18,6 +18,20 @@ service APIService {
   rpc SimulatePurchase (PurchaseRequest) returns (PurchaseResponse) {}
   rpc Purchase (PurchaseRequest) returns (PurchaseResponse) {}
   rpc RedisHelloRetry (RedisRequest) returns (RedisReply) {};
+  rpc GetBook (GetBookRequest) returns (GetBookResponse) {};
+  rpc GetBookTitle (GetBookRequest) returns (GetBookTitleResponse) {};
+}
+
+message GetBookRequest {
+  string book_id = 1;
+}
+
+message GetBookTitleResponse {
+  string title = 1;
+}
+
+message GetBookResponse {
+  string book = 1;
 }
 
 message GetUserRequest {

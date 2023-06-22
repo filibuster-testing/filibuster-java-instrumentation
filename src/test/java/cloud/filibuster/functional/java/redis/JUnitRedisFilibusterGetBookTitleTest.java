@@ -1,17 +1,21 @@
 package cloud.filibuster.functional.java.redis;
 
+import cloud.filibuster.examples.APIServiceGrpc;
+import cloud.filibuster.examples.Hello;
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedAPIException;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
-import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
+import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.db.redis.RedisTransformBitInByteArrAnalysisConfigurationFile;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
 import io.lettuce.core.api.StatefulRedisConnection;
-import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.codec.ByteArrayCodec;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.codec.StringCodec;
 import org.json.JSONObject;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -19,9 +23,12 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 
+import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
+import static cloud.filibuster.integration.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
@@ -31,58 +38,60 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@SuppressWarnings("unchecked")
-public class JUnitRedisFilibusterByteArrNegativeTransformerApplicationTest extends JUnitAnnotationBaseTest {
-    static final String key = "test";
-    static byte[] value;
-    static JSONObject referenceJSONObject;
+public class JUnitRedisFilibusterGetBookTitleTest extends JUnitAnnotationBaseTest {
+    static JSONObject referenceBook;
+    static byte[] bookBytes;
+    static String bookId = "abc123";
     static StatefulRedisConnection<String, byte[]> statefulRedisConnection;
     static String redisConnectionString;
     private final static ArrayList<String> testExceptionsThrown = new ArrayList<>();
-
+    private static ManagedChannel apiChannel;
     private static int numberOfTestExecutions = 0;
 
     @BeforeAll
-    public static void primeCache() {
-        referenceJSONObject = new JSONObject();
-        referenceJSONObject.put("uni", "cmu");
-        referenceJSONObject.put("course", "15440");
-        referenceJSONObject.put("city", "pittsburgh");
-        referenceJSONObject.put("state", "pa");
+    public static void primeCache() throws IOException, InterruptedException {
+        referenceBook = new JSONObject();
+        referenceBook.put("title", "dist sys");
+        referenceBook.put("isbn", "12-34");
+        referenceBook.put("author", "j. smith");
+        referenceBook.put("pages", "230");
 
-        value = referenceJSONObject.toString().getBytes(Charset.defaultCharset());
+        bookBytes = referenceBook.toString().getBytes(Charset.defaultCharset());
 
         statefulRedisConnection = RedisClientService.getInstance().redisClient.connect(RedisCodec.of(new StringCodec(), new ByteArrayCodec()));
         redisConnectionString = RedisClientService.getInstance().connectionString;
-        statefulRedisConnection.sync().set(key, value);
+        statefulRedisConnection.sync().set(bookId, bookBytes);
+
+        startAPIServerAndWaitUntilAvailable();
+        startHelloServerAndWaitUntilAvailable();
+
+        apiChannel = ManagedChannelBuilder.forAddress(Networking.getHost("api_server"), Networking.getPort("api_server")).usePlaintext().build();
     }
 
-    @DisplayName("Tests whether Redis sync interceptor can read from existing key - Byte Array transformer faults.")
+    @AfterAll
+    public static void destruct() {
+        apiChannel.shutdown();
+    }
+
+    @DisplayName("Tests whether a book title can be retrieved from Redis - Inject transformer faults where random bits are flipped in the byte array.")
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = RedisTransformBitInByteArrAnalysisConfigurationFile.class,
-            maxIterations = 550)
-    public void testRedisByteArrNegativeTransformation() {
+            maxIterations = 1000)
+    public void testGetBookTitleFromRedis() {
+        numberOfTestExecutions++;
+
         try {
-            numberOfTestExecutions++;
-
-            StatefulRedisConnection<String, byte[]> myStatefulRedisConnection = new RedisInterceptorFactory<>(statefulRedisConnection, redisConnectionString).getProxy(StatefulRedisConnection.class);
-            RedisCommands<String, byte[]> myRedisCommands = myStatefulRedisConnection.sync();
-
-            // Get the value as byte[] from the cache
-            byte[] returnVal = myRedisCommands.get(key);
-            // Convert the byte[] to a string
-            String sJsonObject = new String(returnVal, Charset.defaultCharset());
-            // Convert the string to a JSONObject
-            JSONObject returnJO = new JSONObject(sJsonObject);
-
-            // Assert returnJO is not null
-            assertNotNull(returnJO);
+            APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
+            Hello.GetBookRequest bookRequest = Hello.GetBookRequest.newBuilder().setBookId(bookId).build();
+            Hello.GetBookTitleResponse reply = blockingStub.getBookTitle(bookRequest);
+            assertNotNull(reply.getTitle());
         } catch (Throwable t) {
             testExceptionsThrown.add(t.getMessage());
 
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
             assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService("io.lettuce.core.api.sync.RedisStringCommands"), "Expected FilibusterUnsupportedAPIException to be thrown: " + t);
             assertTrue(wasFaultInjectedOnMethod("io.lettuce.core.api.sync.RedisStringCommands/get"), "Fault was not injected on the expected Redis method: " + t);
+
         }
     }
 
@@ -91,20 +100,7 @@ public class JUnitRedisFilibusterByteArrNegativeTransformerApplicationTest exten
     @Order(2)
     // 1 for the original test and +1 for each bit in the byte array
     public void testNumExecutions() {
-        assertEquals(value.length * 8 + 1, numberOfTestExecutions);
-    }
-
-    @DisplayName("Verify correct number of faults.")
-    @Test
-    @Order(3)
-    public void testTotalNumFaults() {
-        // Faults causing deserialisation exceptions were injected on "{", "}", ":", "," and "\""
-        // { = 1, } = 1, : = 4, , = 3, " = 16 (4 keys + 4 values, each with two quotes)
-        // Total number of deserialisation faults = 1 + 1 + 4 + 3 + 16 = 25
-        // Each fault is injected 8 times (once for each bit in the byte array) = 25 * 8 = 200 faults
-        // +1 fault for unterminated string
-        // Total number of faults = 200 + 1 = 201
-        assertEquals(201, testExceptionsThrown.size());
+        assertEquals(bookBytes.length * 8 + 1, numberOfTestExecutions);
     }
 
 }

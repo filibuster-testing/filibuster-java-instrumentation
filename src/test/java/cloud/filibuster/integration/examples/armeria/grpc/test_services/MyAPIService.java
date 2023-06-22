@@ -20,7 +20,13 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.codec.ByteArrayCodec;
+import io.lettuce.core.codec.RedisCodec;
+import io.lettuce.core.codec.StringCodec;
+import org.json.JSONObject;
 
+import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -199,6 +205,105 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
             responseObserver.onError(status.asRuntimeException());
         }
     }
+
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void getBook(Hello.GetBookRequest req, StreamObserver<Hello.GetBookResponse> responseObserver) {
+        Hello.GetBookResponse reply;
+        RedisClientService redisService = RedisClientService.getInstance();
+        Hello.GetBookResponse.Builder bookBuilder = Hello.GetBookResponse.newBuilder();
+
+        StatefulRedisConnection<String, byte[]> redisConnection = redisService.redisClient.connect(RedisCodec.of(new StringCodec(), new ByteArrayCodec()));
+
+        redisConnection = new RedisInterceptorFactory<>(redisConnection, redisService.connectionString).getProxy(StatefulRedisConnection.class);
+
+        byte[] retrievedValue = null;
+
+        try {
+            retrievedValue = redisConnection.sync().get(req.getBookId());
+
+            if (retrievedValue != null && retrievedValue.length > 0) {  // Return book if there is a hit
+                JSONObject bookJO = new JSONObject(new String(retrievedValue, Charset.defaultCharset()));
+                reply = bookBuilder.setBook(bookJO.toString()).build();
+            } else {  // Else make a call to the Hello service, the hello service always returns an error
+                ManagedChannel helloChannel = ManagedChannelBuilder
+                        .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
+                        .usePlaintext()
+                        .build();
+                ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("api_server");
+                Channel channel = ClientInterceptors.intercept(helloChannel, clientInterceptor);
+
+                HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(channel);
+                Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName(req.getBookId()).build();
+                Hello.HelloReply helloReply = blockingStub.throwException(request);
+
+                reply = bookBuilder.setBook(helloReply.getMessage()).build();
+            }
+
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+
+        } catch (Throwable e) {
+
+            String description = "MyAPIService could not process the request as an exception was thrown. " +
+                    "The retrieved return value is: " + Arrays.toString(retrievedValue);
+            if (retrievedValue != null) {
+                description += " which reads: " + new String(retrievedValue, Charset.defaultCharset());
+            }
+
+            // Propagate exception back to the caller
+            Status status = Status.INTERNAL.withDescription(e.getMessage())
+                    .augmentDescription(description);
+            responseObserver.onError(status.asException());
+        }
+    }
+
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void getBookTitle(Hello.GetBookRequest req, StreamObserver<Hello.GetBookTitleResponse> responseObserver) {
+        Hello.GetBookTitleResponse reply = null;
+        RedisClientService redisService = RedisClientService.getInstance();
+        Hello.GetBookTitleResponse.Builder bookTitleBuilder = Hello.GetBookTitleResponse.newBuilder();
+
+        StatefulRedisConnection<String, byte[]> redisConnection = redisService.redisClient.connect(RedisCodec.of(new StringCodec(), new ByteArrayCodec()));
+
+        redisConnection = new RedisInterceptorFactory<>(redisConnection, redisService.connectionString).getProxy(StatefulRedisConnection.class);
+
+        byte[] retrievedValue = null;
+
+        try {
+            retrievedValue = redisConnection.sync().get(req.getBookId());
+
+            JSONObject bookJO = new JSONObject(new String(retrievedValue, Charset.defaultCharset()));
+            if (bookJO.has("title")) {
+                reply = bookTitleBuilder.setTitle(bookJO.getString("title")).build();
+            } else {
+                String description = "The requested book does not have a title.";
+                // Propagate exception back to the caller
+                Status status = Status.INTERNAL.withDescription(description);
+                responseObserver.onError(status.asException());
+            }
+
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+
+        } catch (Throwable e) {
+
+            String description = "MyAPIService could not process the request as an exception was thrown. " +
+                    "The retrieved return value is: " + Arrays.toString(retrievedValue);
+            if (retrievedValue != null) {
+                description += " which reads: " + new String(retrievedValue, Charset.defaultCharset());
+            }
+
+            // Propagate exception back to the caller
+            Status status = Status.INTERNAL.withDescription(e.getMessage())
+                    .augmentDescription(description);
+            responseObserver.onError(status.asException());
+        }
+    }
+
 
     private static String getUserFromSession(Channel channel, String sessionId) {
         UserServiceGrpc.UserServiceBlockingStub userServiceBlockingStub = UserServiceGrpc.newBlockingStub(channel);

@@ -22,11 +22,6 @@ public final class BitInByteArrTransformer implements Transformer<byte[], ArrayL
     public BitInByteArrTransformer transform(byte[] payload, Accumulator<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> accumulator) {
         ArrayList<SimpleImmutableEntry<Integer, Integer>> ctx = accumulator.getContext();
 
-        if (ctx.size() == 0) {  // Initial transformation
-            SimpleImmutableEntry<Integer, Integer> initialEntry = generateRandomEntry(accumulator.getReferenceValue().length);
-            ctx.add(initialEntry);
-        }
-
         SimpleImmutableEntry<Integer, Integer> entryToMutate = ctx.get(ctx.size() - 1);  // Get the last entry in the context
 
         byte mybyte = payload[entryToMutate.getKey()];
@@ -78,7 +73,10 @@ public final class BitInByteArrTransformer implements Transformer<byte[], ArrayL
     @Override
     public Accumulator<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> getInitialAccumulator() {
         Accumulator<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> accumulator = new Accumulator<>();
-        accumulator.setContext(new ArrayList<>());
+        ArrayList<SimpleImmutableEntry<Integer, Integer>> ctx = new ArrayList<>();
+        // Initial entry for byte 0 at a random bit - the byteBound is exclusive
+        ctx.add(generateRandomEntry(1));
+        accumulator.setContext(ctx);
         return accumulator;
     }
 

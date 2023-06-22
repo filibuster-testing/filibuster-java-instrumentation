@@ -126,6 +126,8 @@ public class JUnitRedisFilibusterGetBookTitleTest extends JUnitAnnotationBaseTes
         int helloFaults = testFaults.stream().filter(e -> e.contains("An exception was thrown at Hello service")).collect(Collectors.toList()).size();
 
         // Total faults should be 208 + 40 = 248 faults
+        // This shows that only 248 / 553 = 44.8% of the executions actually caused faults
+        // The rest of the executions were successful, although a bit was flipped
         assertEquals(248, deserializationFaults + helloFaults);
 
         // All faults should be either deserialization faults or from the hello service

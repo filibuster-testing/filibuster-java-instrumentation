@@ -26,6 +26,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
@@ -44,7 +45,7 @@ public class JUnitRedisFilibusterGetBookTest extends JUnitAnnotationBaseTest {
     static String bookId = "abc123";
     static StatefulRedisConnection<String, byte[]> statefulRedisConnection;
     static String redisConnectionString;
-    private final static ArrayList<String> testExceptionsThrown = new ArrayList<>();
+    private final static ArrayList<String> testFaults = new ArrayList<>();
     private static int numberOfTestExecutions = 0;
     private static ManagedChannel apiChannel;
 
@@ -86,7 +87,7 @@ public class JUnitRedisFilibusterGetBookTest extends JUnitAnnotationBaseTest {
             Hello.GetBookResponse reply = blockingStub.getBook(bookRequest);
             assertNotNull(reply.getBook());
         } catch (Throwable t) {
-            testExceptionsThrown.add(t.getMessage());
+            testFaults.add(t.getMessage());
 
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
             assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService("io.lettuce.core.api.sync.RedisStringCommands"), "Expected FilibusterUnsupportedAPIException to be thrown: " + t);
@@ -98,9 +99,28 @@ public class JUnitRedisFilibusterGetBookTest extends JUnitAnnotationBaseTest {
     @DisplayName("Verify correct number of test executions.")
     @Test
     @Order(2)
-    // 1 for the original test and +1 for each bit in the byte array
+    // 1 for the reference execution and +1 for each bit in the byte array
+    // => 1 + bookBytes.length * 8 = 1 + 69 * 8 = 553
     public void testNumExecutions() {
         assertEquals(bookBytes.length * 8 + 1, numberOfTestExecutions);
+    }
+
+    @DisplayName("Assert all faults that occurred were deserialization faults")
+    @Test
+    @Order(3)
+    public void testNumDeserializationFaults() {
+        // In this scenario, the bit transformations should only cause deserialization faults
+        // Out of 553 executions, 208 were deserialization faults
+        int deserializationFaults = testFaults.stream().filter(e -> e.contains("Error deserializing")).collect(Collectors.toList()).size();
+        assertEquals(testFaults.size(), deserializationFaults);
+    }
+
+    @DisplayName("Assert the fault at the hello service was not found")
+    @Test
+    @Order(4)
+    public void testHelloFaultNotFound() {
+        int helloFaults = testFaults.stream().filter(e -> e.contains("An exception was thrown at Hello service")).collect(Collectors.toList()).size();
+        assertEquals(0, helloFaults);
     }
 
 }

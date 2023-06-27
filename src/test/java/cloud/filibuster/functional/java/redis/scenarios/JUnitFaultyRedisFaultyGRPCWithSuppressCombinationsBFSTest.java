@@ -169,7 +169,7 @@ public class JUnitFaultyRedisFaultyGRPCWithSuppressCombinationsBFSTest extends J
         }
     }
 
-    private void getFromRedisAndAssert(RedisCommands<String, String> redisCommand, String key, String value, FilibusterSearchStrategy searchStrategy) {
+    private static void getFromRedisAndAssert(RedisCommands<String, String> redisCommand, String key, String value, FilibusterSearchStrategy searchStrategy) {
         try {
             String result = redisCommand.get(key);
             assertEquals(value, result);

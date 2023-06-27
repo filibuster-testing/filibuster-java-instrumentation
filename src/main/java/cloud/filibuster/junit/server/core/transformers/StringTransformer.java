@@ -31,7 +31,7 @@ public final class StringTransformer implements Transformer<String, Integer> {
 
     private static char getNextChar(char c) {
         // ASCII printable characters range from 33 to 126. Upper bound in nextInt is exclusive, hence 127.
-        return (char) ((c + 1) % (127) + 33);
+        return (char) ((c + 1) % 127 + 33);
     }
 
     @Override

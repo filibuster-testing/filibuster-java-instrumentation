@@ -111,7 +111,7 @@ public class JUnitFaultyRedisFaultyGRPCTest extends JUnitAnnotationBaseTest {
         }
     }
 
-    private void getFromRedisAndAssert(RedisCommands<String, String> redisCommand, String key, String value) {
+    private static void getFromRedisAndAssert(RedisCommands<String, String> redisCommand, String key, String value) {
         try {
             String result = redisCommand.get(key);
             assertEquals(value, result);

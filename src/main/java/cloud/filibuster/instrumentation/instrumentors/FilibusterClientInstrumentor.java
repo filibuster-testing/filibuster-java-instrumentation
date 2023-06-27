@@ -460,7 +460,6 @@ final public class FilibusterClientInstrumentor {
      * Return transformer fault that needs to be injected.
      * This value will be null until the Filibuster server has been contacted for this request.
      *
-
      * @return JSON object containing failure to inject.
      */
     public JSONObject getTransformerFault() {
@@ -951,7 +950,7 @@ final public class FilibusterClientInstrumentor {
     public void afterInvocationComplete(
             String className,
             HashMap<String, String> returnValueProperties,
-            Object returnValue
+            @Nullable Object returnValue
     ) {
         // Only if instrumented request, we should communicate, and we aren't inside of Filibuster instrumentation.
         logger.log(Level.INFO, "generatedId: " + generatedId);

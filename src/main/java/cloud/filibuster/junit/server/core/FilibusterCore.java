@@ -43,7 +43,7 @@ import java.util.regex.Pattern;
 import static cloud.filibuster.junit.server.core.FilibusterCoreTransformerExtension.getInitialAccumulator;
 import static cloud.filibuster.junit.server.core.FilibusterCoreTransformerExtension.getTransformerResult;
 import static cloud.filibuster.junit.server.core.FilibusterCoreTransformerExtension.setNextAccumulator;
-import static cloud.filibuster.junit.server.core.FilibusterCoreTransformerExtension.setNextValue;
+import static cloud.filibuster.junit.server.core.FilibusterCoreTransformerExtension.generateAndSetTransformerValue;
 
 @SuppressWarnings({"Varifier", "Var"})
 public class FilibusterCore {
@@ -287,7 +287,7 @@ public class FilibusterCore {
                     JSONObject newFaultObject = new JSONObject(faultObject.toMap());
                     setNextAccumulator(newFaultObject.getJSONObject("transformer_fault"),
                             transformationResult.getNextAccumulator());
-                    setNextValue(newFaultObject.getJSONObject("transformer_fault"));
+                    generateAndSetTransformerValue(newFaultObject.getJSONObject("transformer_fault"));
                     createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, newFaultObject);
                 }
 
@@ -433,7 +433,7 @@ public class FilibusterCore {
                                                 payload.getJSONObject("return_value").getString("value")
                                         )
                                 );
-                                setNextValue(transformer.getJSONObject("transformer_fault"));
+                                generateAndSetTransformerValue(transformer.getJSONObject("transformer_fault"));
                                 createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, new JSONObject(transformer.toMap()));
                             } catch (Throwable e) {
                                 logger.warning("[FILIBUSTER-CORE]: generateByzantineAndTransformerFaults, an exception occurred in generateByzantineAndTransformerFaults: " + e);

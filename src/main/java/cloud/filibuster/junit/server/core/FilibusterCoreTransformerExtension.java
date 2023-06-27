@@ -62,7 +62,7 @@ public final class FilibusterCoreTransformerExtension {
         }
     }
 
-    public static void setNextValue(JSONObject transformer) {
+    public static void generateAndSetTransformerValue(JSONObject transformer) {
         Transformer<?, ?> transformerResult = getTransformerResult(transformer);
         transformer.put("value", transformerResult.getResult());
     }

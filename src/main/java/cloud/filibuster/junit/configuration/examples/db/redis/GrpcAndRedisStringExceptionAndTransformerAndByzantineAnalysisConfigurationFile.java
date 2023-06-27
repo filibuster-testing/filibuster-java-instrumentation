@@ -6,14 +6,11 @@ import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfiguratio
 import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineStringFaultType;
 import cloud.filibuster.junit.server.core.transformers.StringTransformer;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class GrpcAndRedisStringExceptionAndTransformerAndByzantineAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
-    private static final List<String> grpcErrorCodeList = new ArrayList<>();
 
     private static Map<String, String> createErrorMap(String cause) {
         Map<String, String> myMap = new HashMap<>();
@@ -57,16 +54,16 @@ public class GrpcAndRedisStringExceptionAndTransformerAndByzantineAnalysisConfig
 
 
         // GRPC exception
-        grpcErrorCodeList.add("UNAVAILABLE");
-
         FilibusterAnalysisConfiguration.Builder grpcConfigBuilder = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc")
                 .pattern("(.*/.*)")
                 .type("grpc");
 
-        for (String code : grpcErrorCodeList) {
-            grpcConfigBuilder.exception("io.grpc.StatusRuntimeException", createErrorMap(code));
-        }
+        Map<String, String> grpcMap = new HashMap<>();
+        grpcMap.put("cause", "");
+        grpcMap.put("code", "UNAVAILABLE");
+
+        grpcConfigBuilder.exception("io.grpc.StatusRuntimeException", grpcMap);
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(grpcConfigBuilder.build());
 

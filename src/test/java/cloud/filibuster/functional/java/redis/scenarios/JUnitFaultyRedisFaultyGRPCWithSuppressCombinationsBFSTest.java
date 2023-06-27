@@ -27,11 +27,12 @@ import org.junit.jupiter.api.TestMethodOrder;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static cloud.filibuster.integration.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopHelloServerAndWaitUntilUnavailable;
@@ -47,8 +48,8 @@ public class JUnitFaultyRedisFaultyGRPCWithSuppressCombinationsBFSTest extends J
     private static final ArrayList<String> values = new ArrayList<>();
     private static int numberOfBFSExecutions = 0;
     private static int numberOfDFSExecutions = 0;
-    private static final Set<Throwable> BFSExceptions = new HashSet<>();
-    private static final Set<Throwable> DFSExceptions = new HashSet<>();
+    private static final ArrayList<String> BFSExceptions = new ArrayList<>();
+    private static final ArrayList<String> DFSExceptions = new ArrayList<>();
     private static String name;
     private static final Random rand = new Random(0);
 
@@ -145,6 +146,45 @@ public class JUnitFaultyRedisFaultyGRPCWithSuppressCombinationsBFSTest extends J
         assertEquals(numberOfBFSExecutions, numberOfDFSExecutions);
     }
 
+    @DisplayName("Assert correct BFS fault messages")
+    @Order(5)
+    @Test
+    public void testBFSFaultMessages() {
+        List<String> transformerFaults = getMatchesInFaultMessages("expected: <..> but was: <..>", BFSExceptions);
+        List<String> nullFaults = getMatchesInFaultMessages("expected: <..> but was: <null>", BFSExceptions);
+        List<String> timeoutException = getMatchesInFaultMessages("Command timed out after 100 millisecond\\(s\\)", BFSExceptions);
+        List<String> grpcException = getMatchesInFaultMessages("UNAVAILABLE", BFSExceptions);
+
+        assertEquals(6, transformerFaults.size());
+        assertEquals(3, nullFaults.size());
+        assertEquals(3, timeoutException.size());
+        assertEquals(2, grpcException.size());
+    }
+
+    @DisplayName("Assert correct DFS fault messages")
+    @Order(6)
+    @Test
+    public void testDFSFaultMessages() {
+        List<String> transformerFaults = getMatchesInFaultMessages("expected: <..> but was: <..>", DFSExceptions);
+        List<String> nullFaults = getMatchesInFaultMessages("expected: <..> but was: <null>", DFSExceptions);
+        List<String> timeoutException = getMatchesInFaultMessages("Command timed out after 100 millisecond\\(s\\)", DFSExceptions);
+        List<String> grpcException = getMatchesInFaultMessages("UNAVAILABLE", DFSExceptions);
+
+        assertEquals(6, transformerFaults.size());
+        assertEquals(3, nullFaults.size());
+        assertEquals(3, timeoutException.size());
+        assertEquals(2, grpcException.size());
+    }
+
+    private static List<String> getMatchesInFaultMessages(String regex, List<String> messageList) {
+        Pattern pattern = Pattern.compile(regex);
+
+        return messageList
+                .stream()
+                .filter(e -> pattern.matcher(e).matches())
+                .collect(Collectors.toList());
+    }
+
     private static void sayHelloAndAssert(String name, FilibusterSearchStrategy searchStrategy) {
         try {
             ManagedChannel helloChannel = ManagedChannelBuilder.forAddress(Networking.getHost("hello"), Networking.getPort("hello")).usePlaintext().build();
@@ -163,9 +203,9 @@ public class JUnitFaultyRedisFaultyGRPCWithSuppressCombinationsBFSTest extends J
             logger.log(Level.INFO, "getFromRedis threw an exception: " + e);
 
             if (searchStrategy == FilibusterSearchStrategy.BFS) {
-                BFSExceptions.add(e);
+                BFSExceptions.add(e.getMessage());
             } else {
-                DFSExceptions.add(e);
+                DFSExceptions.add(e.getMessage());
             }
         }
     }
@@ -178,13 +218,14 @@ public class JUnitFaultyRedisFaultyGRPCWithSuppressCombinationsBFSTest extends J
             logger.log(Level.INFO, "getFromRedis threw an exception: " + e);
 
             if (searchStrategy == FilibusterSearchStrategy.BFS) {
-                BFSExceptions.add(e);
+                BFSExceptions.add(e.getMessage());
             } else {
-                DFSExceptions.add(e);
+                DFSExceptions.add(e.getMessage());
             }
         }
     }
 
     private static String getRandomString() {
         return String.valueOf(rand.nextInt(90) + 10);
-    }}
+    }
+}

@@ -112,7 +112,7 @@ public class JUnitFaultyRedisFaultyGRPCTest extends JUnitAnnotationBaseTest {
         // 1 byzantine execution (injecting null) and 1 exception execution (injecting RedisCommandTimeoutException)
         // Redis get is called 2 times, leading to 5^2 = 25 executions
         // Each GRPC call leads to 2 execution: One is fault free, while the other throws a StatusRuntimeException.
-        // There are two GRPC calls. Therefore, we expect 25 + 2 * 2 = 1ßß executions
+        // There are two GRPC calls. Therefore, we expect 25 + 2 * 2 = 100 executions
         assertEquals(100, numberOfExecution);
     }
 

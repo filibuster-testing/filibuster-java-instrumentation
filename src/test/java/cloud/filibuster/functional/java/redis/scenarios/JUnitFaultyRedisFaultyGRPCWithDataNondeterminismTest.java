@@ -21,17 +21,25 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static cloud.filibuster.integration.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopHelloServerAndWaitUntilUnavailable;
+import static cloud.filibuster.junit.Assertions.wasFaultInjected;
+import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("unchecked")
@@ -42,6 +50,8 @@ public class JUnitFaultyRedisFaultyGRPCWithDataNondeterminismTest extends JUnitA
     private static final ArrayList<String> keys = new ArrayList<>();
     private static final ArrayList<String> values = new ArrayList<>();
     private static final Random rand = new Random(0);
+    private static int numberOfExecution = 0;
+    private static final HashSet<String> actualFaultMessages = new HashSet<>();
 
     @BeforeAll
     public static void beforeAll() throws IOException, InterruptedException {
@@ -50,7 +60,7 @@ public class JUnitFaultyRedisFaultyGRPCWithDataNondeterminismTest extends JUnitA
 
         // Generate random keys and values and add them to Redis
         RedisCommands<String, String> redisCommands = statefulRedisConnection.sync();
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 2; i++) {
             String key = getRandomString();
             String value = getRandomString();
             keys.add(key);
@@ -74,6 +84,8 @@ public class JUnitFaultyRedisFaultyGRPCWithDataNondeterminismTest extends JUnitA
             dataNondeterminism = true
     )
     public void testRedisSync() {
+        numberOfExecution++;
+
         // Send GRPC request with random name
         sayHelloAndAssert(getRandomString());
 
@@ -87,9 +99,57 @@ public class JUnitFaultyRedisFaultyGRPCWithDataNondeterminismTest extends JUnitA
         }
 
         // Send GRPC request with random name
-       sayHelloAndAssert(getRandomString());
+        sayHelloAndAssert(getRandomString());
     }
 
+    @DisplayName("Assert correct number of test executions")
+    @Order(2)
+    @Test
+    public void testNumberOfExecutions() {
+        // Each Redis get call leads to 5 executions: 1 fault-free execution, 2 transformer faults (one for each char),
+        // 1 byzantine execution (injecting null) and 1 exception execution (injecting RedisCommandTimeoutException)
+        // Redis get is called 2 times, leading to 5^2 = 25 executions
+        // Each GRPC call leads to 2 execution: One is fault free, while the other throws a StatusRuntimeException.
+        // There are two GRPC calls. Therefore, we expect 25 + 2 * 2 = 100 executions
+        assertEquals(100, numberOfExecution);
+    }
+
+    @DisplayName("Assert number of faults")
+    @Order(3)
+    @Test
+    public void testNumberOfFaults() {
+        // For each of the 2 Redis get call, we inject 4 faults: 2 transformer faults (one for each char), 1 byzantine
+        // fault and 1 exception. The error message of the exception is the same for all Redis get calls.
+        // Therefore, we expect 1 + 2 * 3 = 7 Redis fault messages
+        // Additionally, we have 2 GRPC calls. Each can throw an UNAVAILABLE exception.
+        // The exception message is the same for both GRPC calls.
+        // Therefore, we expect 7 + 1 = 8 fault messages
+        assertEquals(8, actualFaultMessages.size());
+    }
+
+    @DisplayName("Assert correct fault messages")
+    @Order(4)
+    @Test
+    public void testFaultMessages() {
+        List<String> transformerFaults = getMatchesInFaultMessages("expected: <..> but was: <..>");
+        List<String> nullFaults = getMatchesInFaultMessages("expected: <..> but was: <null>");
+        List<String> timeoutException = getMatchesInFaultMessages("Command timed out after 100 millisecond\\(s\\)");
+        List<String> grpcException = getMatchesInFaultMessages("UNAVAILABLE");
+
+        assertEquals(4, transformerFaults.size());
+        assertEquals(2, nullFaults.size());
+        assertEquals(1, timeoutException.size());
+        assertEquals(1, grpcException.size());
+    }
+
+    private static List<String> getMatchesInFaultMessages(String regex) {
+        Pattern pattern = Pattern.compile(regex);
+
+        return actualFaultMessages
+                .stream()
+                .filter(e -> pattern.matcher(e).matches())
+                .collect(Collectors.toList());
+    }
 
     private static void sayHelloAndAssert(String name) {
         try {
@@ -107,6 +167,9 @@ public class JUnitFaultyRedisFaultyGRPCWithDataNondeterminismTest extends JUnitA
             assertEquals(String.format("Hello, %s!!", name), helloReply.getMessage());
         } catch (Throwable e) {
             logger.log(Level.INFO, "getFromRedis threw an exception: " + e);
+            actualFaultMessages.add(e.getMessage());
+            assertTrue(wasFaultInjected());
+            assertTrue(wasFaultInjectedOnMethod(HelloServiceGrpc.getHelloMethod()));
         }
     }
 
@@ -116,9 +179,13 @@ public class JUnitFaultyRedisFaultyGRPCWithDataNondeterminismTest extends JUnitA
             assertEquals(value, result);
         } catch (Throwable e) {
             logger.log(Level.INFO, "getFromRedis threw an exception: " + e);
+            actualFaultMessages.add(e.getMessage());
+            assertTrue(wasFaultInjected());
+            assertTrue(wasFaultInjectedOnMethod("io.lettuce.core.api.sync.RedisStringCommands/get"));
         }
     }
 
     private static String getRandomString() {
         return String.valueOf(rand.nextInt(90) + 10);
-    }}
+    }
+}

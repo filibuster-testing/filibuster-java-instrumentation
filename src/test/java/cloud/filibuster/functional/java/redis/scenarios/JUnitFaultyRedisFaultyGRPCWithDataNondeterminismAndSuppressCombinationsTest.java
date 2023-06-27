@@ -121,10 +121,10 @@ public class JUnitFaultyRedisFaultyGRPCWithDataNondeterminismAndSuppressCombinat
     public void testNumberOfFaults() {
         // For each of the 2 Redis get call, we inject 4 faults: 2 transformer faults (one for each char), 1 byzantine
         // fault and 1 exception. The error message of the exception is the same for all Redis get calls.
-        // Therefore, we expect 1 + 2 * 3 = 7 Redis fault messages
+        // Therefore, we expect 1 + 3 * 3 = 10 Redis fault messages
         // Additionally, we have 2 GRPC calls. Each can throw an UNAVAILABLE exception.
         // The exception message is the same for both GRPC calls.
-        // Therefore, we expect 7 + 1 = 8 fault messages
+        // Therefore, we expect 10 + 1 = 11 fault messages
         assertEquals(11, actualFaultMessages.size());
     }
 

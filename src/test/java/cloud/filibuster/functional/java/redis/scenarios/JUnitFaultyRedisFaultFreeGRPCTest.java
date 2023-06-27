@@ -21,11 +21,13 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -41,6 +43,8 @@ public class JUnitFaultyRedisFaultFreeGRPCTest extends JUnitAnnotationBaseTest {
     private static final Logger logger = Logger.getLogger(JUnitFaultyRedisFaultFreeGRPCTest.class.getName());
     private static final ArrayList<String> keys = new ArrayList<>();
     private static final ArrayList<String> values = new ArrayList<>();
+    private static int numberOfExecution = 0;
+    private static final HashSet<String> faultMessages = new HashSet<>();
     private static String name;
 
     @BeforeAll
@@ -72,9 +76,11 @@ public class JUnitFaultyRedisFaultFreeGRPCTest extends JUnitAnnotationBaseTest {
     @Order(1)
     @TestWithFilibuster(
             analysisConfigurationFile = RedisStringExceptionAndTransformerAndByzantineAnalysisConfigurationFile.class,
-            maxIterations = 300
+            maxIterations = 200
     )
     public void testRedisSync() {
+        numberOfExecution++;
+
         // Send GRPC request
         Hello.HelloReply helloReply = sayHello(name);
         assertEquals(String.format("Hello, %s!!", name), helloReply.getMessage());
@@ -84,13 +90,31 @@ public class JUnitFaultyRedisFaultFreeGRPCTest extends JUnitAnnotationBaseTest {
         RedisCommands<String, String> myRedisCommands = myStatefulRedisConnection.sync();
 
         // Get key from Redis and assert correct value
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 3; i++) {
             getFromRedisAndAssert(myRedisCommands, keys.get(i), values.get(i));
         }
 
         // Send GRPC request
         helloReply = sayHello(name);
         assertEquals(String.format("Hello, %s!!", name), helloReply.getMessage());
+    }
+
+    @DisplayName("Assert correct number of test executions")
+    @Test
+    public void testNumberOfExecutions() {
+        // Each Redis get call leads to 5 executions: 1 fault-free execution, 2 transformer faults (one for each char),
+        // 1 byzantine execution (injecting null) and 1 exception execution (injecting RedisCommandTimeoutException)
+        // Redis get is called 3 times, leading to 5^3 = 125 executions
+        assertEquals(125, numberOfExecution);
+    }
+
+    @DisplayName("Assert number of faults")
+    @Test
+    public void testNumberOfFaults() {
+        // For each of the 3 Redis get call, we inject 4 faults: 2 transformer faults (one for each char), 1 byzantine fault and 1 exception.
+        // The error message of the exception is the same for all Redis get calls.
+        // Therefore, we expect 1 + 3 * 3 = 10 unique fault messages
+        assertEquals(10, faultMessages.size());
     }
 
 
@@ -114,6 +138,7 @@ public class JUnitFaultyRedisFaultFreeGRPCTest extends JUnitAnnotationBaseTest {
             assertEquals(value, result);
         } catch (Throwable e) {
             logger.log(Level.INFO, "getFromRedis threw an exception: " + e);
+            faultMessages.add(e.getMessage());
         }
     }
 

@@ -2,7 +2,9 @@ package cloud.filibuster.junit.server.core.transformers;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.util.Random;
 
 public final class FaultyStringTransformerWithFalseHasNext implements Transformer<String, Integer> {
@@ -50,14 +52,6 @@ public final class FaultyStringTransformerWithFalseHasNext implements Transforme
     }
 
     @Override
-    public Accumulator<String, Integer> getAccumulator() {
-        if (this.accumulator == null) {
-            return getInitialAccumulator();
-        }
-        return this.accumulator;
-    }
-
-    @Override
     public Accumulator<String, Integer> getInitialAccumulator() {
         Accumulator<String, Integer> accumulator = new Accumulator<>();
         accumulator.setContext(0);
@@ -80,8 +74,11 @@ public final class FaultyStringTransformerWithFalseHasNext implements Transforme
     }
 
     @Override
-    public Class<Integer> getContextType() {
-        return Integer.class;
+    public Type getAccumulatorType() {
+        return TypeToken.getParameterized(
+                Accumulator.class,
+                String.class,
+                Integer.class).getType();
     }
 
 }

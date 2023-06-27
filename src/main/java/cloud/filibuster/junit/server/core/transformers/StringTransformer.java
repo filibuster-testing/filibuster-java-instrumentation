@@ -5,11 +5,8 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
-import java.util.Random;
 
 public final class StringTransformer implements Transformer<String, Integer> {
-    private static final long FIXED_SEED = 0;
-    private static final Random rand = new Random(FIXED_SEED); // Seed is fixed to ensure consistent results
     private boolean hasNext = true;
     private String result;
     private Accumulator<String, Integer> accumulator;
@@ -20,7 +17,7 @@ public final class StringTransformer implements Transformer<String, Integer> {
         int idx = accumulator.getContext();
 
         StringBuilder newString = new StringBuilder(payload);
-        newString.setCharAt(idx, generateRandomChar());
+        newString.setCharAt(idx, getNextChar(newString.charAt(idx)));
 
         if (idx == payload.length() - 1) {
             this.hasNext = false;
@@ -32,9 +29,9 @@ public final class StringTransformer implements Transformer<String, Integer> {
         return this;
     }
 
-    private static char generateRandomChar() {
+    private static char getNextChar(char c) {
         // ASCII printable characters range from 33 to 126. Upper bound in nextInt is exclusive, hence 127.
-        return (char) (rand.nextInt(127) + 33);
+        return (char) ((c + 1) % (127) + 33);
     }
 
     @Override

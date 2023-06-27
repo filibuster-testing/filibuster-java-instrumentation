@@ -54,12 +54,17 @@ public final class FilibusterCoreTransformerExtension {
     }
 
 
-    public static void setAccumulatorOnTransformer(JSONObject transformer, Accumulator<?, ?> accumulator) {
+    public static void setNextAccumulator(JSONObject transformer, Accumulator<?, ?> accumulator) {
         if (transformer.has("transformerClassName")) {
             Transformer<?, ?> transformerObject = getTransformerInstance(transformer.getString("transformerClassName"));
             Type accumulatorType = transformerObject.getAccumulatorType();
             transformer.put("accumulator", new Gson().toJson(accumulator, accumulatorType));
         }
+    }
+
+    public static void setNextValue(JSONObject transformer) {
+        Transformer<?, ?> transformerResult = getTransformerResult(transformer);
+        transformer.put("value", transformerResult.getResult());
     }
 
 

@@ -144,7 +144,7 @@ public class JUnitFaultyRedisFaultyGRPCWithSuppressCombinationsBFSTest extends J
         assertEquals(numberOfBFSExecutions, numberOfDFSExecutions);
     }
 
-    private void sayHelloAndAssert(String name, FilibusterSearchStrategy searchStrategy) {
+    private static void sayHelloAndAssert(String name, FilibusterSearchStrategy searchStrategy) {
         try {
             ManagedChannel helloChannel = ManagedChannelBuilder.forAddress(Networking.getHost("hello"), Networking.getPort("hello")).usePlaintext().build();
 

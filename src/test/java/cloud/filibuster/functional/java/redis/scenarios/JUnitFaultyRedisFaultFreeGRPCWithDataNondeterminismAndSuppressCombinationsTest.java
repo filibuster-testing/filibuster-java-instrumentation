@@ -21,17 +21,25 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static cloud.filibuster.integration.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopHelloServerAndWaitUntilUnavailable;
+import static cloud.filibuster.junit.Assertions.wasFaultInjected;
+import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("unchecked")
@@ -41,6 +49,8 @@ public class JUnitFaultyRedisFaultFreeGRPCWithDataNondeterminismAndSuppressCombi
     private static final Logger logger = Logger.getLogger(JUnitFaultyRedisFaultFreeGRPCWithDataNondeterminismAndSuppressCombinationsTest.class.getName());
     private static final ArrayList<String> keys = new ArrayList<>();
     private static final ArrayList<String> values = new ArrayList<>();
+    private static int numberOfExecution = 0;
+    private static final HashSet<String> actualFaultMessages = new HashSet<>();
 
     @BeforeAll
     public static void beforeAll() throws IOException, InterruptedException {
@@ -74,6 +84,8 @@ public class JUnitFaultyRedisFaultFreeGRPCWithDataNondeterminismAndSuppressCombi
             suppressCombinations = true
     )
     public void testRedisSync() {
+        numberOfExecution++;
+
         // Send GRPC request with random name
         String name = getRandomString();
         Hello.HelloReply helloReply = sayHello(name);
@@ -94,8 +106,49 @@ public class JUnitFaultyRedisFaultFreeGRPCWithDataNondeterminismAndSuppressCombi
         assertEquals(String.format("Hello, %s!!", name), helloReply.getMessage());
     }
 
+    @DisplayName("Assert correct number of test executions")
+    @Order(2)
+    @Test
+    public void testNumberOfExecutions() {
+        // We inject 4 faults per Redis get call: 2 transformer faults (one for each char),
+        // 1 byzantine execution (injecting null) and 1 exception execution (injecting RedisCommandTimeoutException)
+        // Since suppressCombinations is true and Redis get is called 3 times, this leads to 1 reference execution + 4*3 = 13 executions
+        assertEquals(13, numberOfExecution);
+    }
 
-    private Hello.HelloReply sayHello(String name) {
+    @DisplayName("Assert number of faults")
+    @Order(3)
+    @Test
+    public void testNumberOfFaults() {
+        // For each of the 3 Redis get call, we inject 4 faults: 2 transformer faults (one for each char), 1 byzantine fault and 1 exception.
+        // The error message of the exception is the same for all Redis get calls.
+        // Therefore, we expect 1 + 3 * 3 = 10 unique fault messages
+        assertEquals(10, actualFaultMessages.size());
+    }
+
+    @DisplayName("Assert correct fault messages")
+    @Order(4)
+    @Test
+    public void testFaultMessages() {
+        List<String> transformerFaults = getMatchesInFaultMessages("expected: <..> but was: <..>");
+        List<String> nullFaults = getMatchesInFaultMessages("expected: <..> but was: <null>");
+        List<String> timeoutException = getMatchesInFaultMessages("Command timed out after 100 millisecond\\(s\\)");
+
+        assertEquals(6, transformerFaults.size());
+        assertEquals(3, nullFaults.size());
+        assertEquals(1, timeoutException.size());
+    }
+
+    private static List<String> getMatchesInFaultMessages(String regex) {
+        Pattern pattern = Pattern.compile(regex);
+
+        return actualFaultMessages
+                .stream()
+                .filter(e -> pattern.matcher(e).matches())
+                .collect(Collectors.toList());
+    }
+
+    private static Hello.HelloReply sayHello(String name) {
         ManagedChannel helloChannel = ManagedChannelBuilder.forAddress(Networking.getHost("hello"), Networking.getPort("hello")).usePlaintext().build();
 
         ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("hello");
@@ -115,6 +168,9 @@ public class JUnitFaultyRedisFaultFreeGRPCWithDataNondeterminismAndSuppressCombi
             assertEquals(value, result);
         } catch (Throwable e) {
             logger.log(Level.INFO, "getFromRedis threw an exception: " + e);
+            actualFaultMessages.add(e.getMessage());
+            assertTrue(wasFaultInjected());
+            assertTrue(wasFaultInjectedOnMethod("io.lettuce.core.api.sync.RedisStringCommands/get"));
         }
     }
 

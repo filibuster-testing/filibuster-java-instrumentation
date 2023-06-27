@@ -93,7 +93,7 @@ public class JUnitFaultyRedisFaultyGRPCWithSuppressCombinationsTest extends JUni
     }
 
 
-    private void sayHelloAndAssert(String name) {
+    private static void sayHelloAndAssert(String name) {
         try {
             ManagedChannel helloChannel = ManagedChannelBuilder.forAddress(Networking.getHost("hello"), Networking.getPort("hello")).usePlaintext().build();
 

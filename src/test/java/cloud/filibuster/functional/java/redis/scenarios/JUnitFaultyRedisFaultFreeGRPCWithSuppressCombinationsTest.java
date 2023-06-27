@@ -95,7 +95,7 @@ public class JUnitFaultyRedisFaultFreeGRPCWithSuppressCombinationsTest extends J
     }
 
 
-    private Hello.HelloReply sayHello(String name) {
+    private static Hello.HelloReply sayHello(String name) {
         ManagedChannel helloChannel = ManagedChannelBuilder.forAddress(Networking.getHost("hello"), Networking.getPort("hello")).usePlaintext().build();
 
         ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("hello");

@@ -28,12 +28,18 @@ import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static cloud.filibuster.integration.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopHelloServerAndWaitUntilUnavailable;
+import static cloud.filibuster.junit.Assertions.wasFaultInjected;
+import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("unchecked")
@@ -44,7 +50,7 @@ public class JUnitFaultyRedisFaultFreeGRPCTest extends JUnitAnnotationBaseTest {
     private static final ArrayList<String> keys = new ArrayList<>();
     private static final ArrayList<String> values = new ArrayList<>();
     private static int numberOfExecution = 0;
-    private static final HashSet<String> faultMessages = new HashSet<>();
+    private static final HashSet<String> actualFaultMessages = new HashSet<>();
     private static String name;
 
     @BeforeAll
@@ -100,6 +106,7 @@ public class JUnitFaultyRedisFaultFreeGRPCTest extends JUnitAnnotationBaseTest {
     }
 
     @DisplayName("Assert correct number of test executions")
+    @Order(2)
     @Test
     public void testNumberOfExecutions() {
         // Each Redis get call leads to 5 executions: 1 fault-free execution, 2 transformer faults (one for each char),
@@ -109,16 +116,38 @@ public class JUnitFaultyRedisFaultFreeGRPCTest extends JUnitAnnotationBaseTest {
     }
 
     @DisplayName("Assert number of faults")
+    @Order(3)
     @Test
     public void testNumberOfFaults() {
         // For each of the 3 Redis get call, we inject 4 faults: 2 transformer faults (one for each char), 1 byzantine fault and 1 exception.
         // The error message of the exception is the same for all Redis get calls.
         // Therefore, we expect 1 + 3 * 3 = 10 unique fault messages
-        assertEquals(10, faultMessages.size());
+        assertEquals(10, actualFaultMessages.size());
     }
 
+    @DisplayName("Assert correct fault messages")
+    @Order(4)
+    @Test
+    public void testFaultMessages() {
+        List<String> transformerFaults = getMatchesInFaultMessages("expected: <..> but was: <..>");
+        List<String> nullFaults = getMatchesInFaultMessages("expected: <..> but was: <null>");
+        List<String> timeoutException = getMatchesInFaultMessages("Command timed out after 100 millisecond\\(s\\)");
 
-    private Hello.HelloReply sayHello(String name) {
+        assertEquals(6, transformerFaults.size());
+        assertEquals(3, nullFaults.size());
+        assertEquals(1, timeoutException.size());
+    }
+
+    private static List<String> getMatchesInFaultMessages(String regex) {
+        Pattern pattern = Pattern.compile(regex);
+
+        return actualFaultMessages
+                .stream()
+                .filter(e -> pattern.matcher(e).matches())
+                .collect(Collectors.toList());
+    }
+
+    private static Hello.HelloReply sayHello(String name) {
         ManagedChannel helloChannel = ManagedChannelBuilder.forAddress(Networking.getHost("hello"), Networking.getPort("hello")).usePlaintext().build();
 
         ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("hello");
@@ -138,7 +167,9 @@ public class JUnitFaultyRedisFaultFreeGRPCTest extends JUnitAnnotationBaseTest {
             assertEquals(value, result);
         } catch (Throwable e) {
             logger.log(Level.INFO, "getFromRedis threw an exception: " + e);
-            faultMessages.add(e.getMessage());
+            actualFaultMessages.add(e.getMessage());
+            assertTrue(wasFaultInjected());
+            assertTrue(wasFaultInjectedOnMethod("io.lettuce.core.api.sync.RedisStringCommands/get"));
         }
     }
 

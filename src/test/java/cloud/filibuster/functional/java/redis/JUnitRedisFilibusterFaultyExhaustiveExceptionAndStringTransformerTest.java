@@ -41,7 +41,7 @@ public class JUnitRedisFilibusterFaultyExhaustiveExceptionAndStringTransformerTe
         redisConnectionString = RedisClientService.getInstance().connectionString;
     }
 
-    @DisplayName("Tests whether Redis sync interceptor can read from existing key - String transformer BFI with Faulty Accumulator.")
+    @DisplayName("Tests whether Redis sync interceptor can read from existing key - String transformer faults with Faulty Accumulator.")
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = FaultyRedisTransformStringAnalysisConfigurationFile.class)
     public void testRedisStringBFIWithFaultyAccumulator() {

@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.redundant;
+package cloud.filibuster.functional.java.avoid.organic;
 
 import cloud.filibuster.examples.APIServiceGrpc;
 import cloud.filibuster.examples.CartServiceGrpc;
@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class RedundantByPropertyTest {
+public class RedundantByPropertyAvoidOrganicByAnnotationTest {
     @RegisterExtension
     static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
             .withPort(Networking.getPort("mock"))
@@ -70,7 +70,8 @@ public class RedundantByPropertyTest {
 
     @TestWithFilibuster(
             dataNondeterminism = true,
-            analysisConfigurationFile = FilibusterSingleFaultUnavailableAnalysisConfigurationFile.class
+            analysisConfigurationFile = FilibusterSingleFaultUnavailableAnalysisConfigurationFile.class,
+            avoidInjectionsOnOrganicFailures = true
     )
     @Order(1)
     public void testPurchase() {
@@ -91,7 +92,7 @@ public class RedundantByPropertyTest {
         try {
             APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
             Hello.PurchaseRequest request = Hello.PurchaseRequest.newBuilder().setSessionId(sessionId).build();
-            Hello.PurchaseResponse response = blockingStub.purchase(request);
+            Hello.PurchaseResponse response = blockingStub.simulatePurchase(request);
             assertNotNull(response);
         } catch (RuntimeException e) {
             testFailures++;
@@ -103,8 +104,9 @@ public class RedundantByPropertyTest {
     public void testInvocationCount() {
         // 5 RPCs, 3 duplicates removed.
         // 3 tests failing each RPC once + 1 golden path (with UNIMPLEMENTED for final call.)
-        // 4 total.
-        assertEquals(4, testInvocationCount);
+        // NO FI on UNIMPLEMENTED.
+        // 3 total.
+        assertEquals(3, testInvocationCount);
     }
 
     @Test
@@ -128,7 +130,7 @@ public class RedundantByPropertyTest {
                 case "cloud.filibuster.examples.UserService/GetUserFromSession":
                     assertTrue(warning instanceof RedundantRPCWarning);
                     break;
-                case "cloud.filibuster.examples.CartService/SetDiscountOnCart":
+                case "cloud.filibuster.examples.CartService/GetDiscountOnCart":
                     assertTrue(warning instanceof UnimplementedFailuresWarning);
                     break;
                 default:

@@ -2,7 +2,7 @@ package cloud.filibuster.functional.java.redis;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedAPIException;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
-import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
+import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.db.redis.RedisExhaustiveExceptionAndTransformerAnalysisConfigurationFile;
@@ -17,6 +17,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
@@ -28,13 +29,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitRedisFilibusterExhaustiveExceptionAndStringTransformerTest extends JUnitAnnotationBaseTest {
-    static final String key = "test";
-    static final String value = "example";
+@SuppressWarnings("unchecked")
+public class JUnitRedisFilibusterExhaustiveExceptionAndStringTransformerDataNonDeterminismTest extends JUnitAnnotationBaseTest {
     static StatefulRedisConnection<String, String> statefulRedisConnection;
     static String redisConnectionString;
     private final static Set<String> testExceptionsThrown = new HashSet<>();
-
+    private final static int keyLength = 5;
+    private final static int valueLength = 10;
     private static int numberOfTestExecutions = 0;
 
     @BeforeAll
@@ -45,12 +46,18 @@ public class JUnitRedisFilibusterExhaustiveExceptionAndStringTransformerTest ext
 
     @DisplayName("Tests whether Redis sync interceptor can read from existing key - Exhaustive Exception and String transformer faults.")
     @Order(1)
-    @TestWithFilibuster(analysisConfigurationFile = RedisExhaustiveExceptionAndTransformerAnalysisConfigurationFile.class)
+    @TestWithFilibuster(
+            analysisConfigurationFile = RedisExhaustiveExceptionAndTransformerAnalysisConfigurationFile.class,
+            dataNondeterminism = true
+    )
     public void testRedisStringBFIAndExceptionInjection() {
         try {
             numberOfTestExecutions++;
 
-            StatefulRedisConnection<String, String> myStatefulRedisConnection = DynamicProxyInterceptor.createInterceptor(statefulRedisConnection, redisConnectionString);
+            String key = generateRandomString(keyLength);
+            String value = generateRandomString(valueLength);
+
+            StatefulRedisConnection<String, String> myStatefulRedisConnection = new RedisInterceptorFactory<>(statefulRedisConnection, redisConnectionString).getProxy(StatefulRedisConnection.class);
             RedisCommands<String, String> myRedisCommands = myStatefulRedisConnection.sync();
 
             myRedisCommands.set(key, value);
@@ -84,8 +91,8 @@ public class JUnitRedisFilibusterExhaustiveExceptionAndStringTransformerTest ext
     @Order(2)
     public void testNumExecutions() {
         // Reference execution + 3 RedisCommandTimeoutExceptions injected on set + 4 RedisCommandTimeoutExceptions injected on get
-        // + transformer faults on "example" (7 chars) + transformer faults on "test" (4 chars)
-        assertEquals(19, numberOfTestExecutions);
+        // + transformer faults on key + transformer faults on test (4 chars)
+        assertEquals(8 + keyLength + valueLength, numberOfTestExecutions);
     }
 
     @DisplayName("Verify correct number of unique injected faults.")
@@ -93,8 +100,13 @@ public class JUnitRedisFilibusterExhaustiveExceptionAndStringTransformerTest ext
     @Order(3)
     public void testNumExceptions() {
         // RedisCommandTimeoutException injected on set/get
-        // + transformer faults on "example" (7 chars) + transformer faults on "test" (4 chars)
-        assertEquals(12, testExceptionsThrown.size());
+        // + transformer faults on key + transformer faults on value
+        assertEquals(1 + keyLength + valueLength, testExceptionsThrown.size());
+    }
+
+    private static String generateRandomString(int length) {
+        String uuid = UUID.randomUUID().toString();
+        return uuid.substring(0, length);
     }
 
 }

@@ -29,7 +29,8 @@ public class FilibusterSingleFaultUnimplementedAnalysisConfigurationFile impleme
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderGrpcExceptions = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc.exceptions")
-                .pattern("(.*/.*)");
+                .pattern("(.*/.*)")
+                .type("grpc");
         for (String code : exhaustiveGrpcErrorCodeList) {
             filibusterAnalysisConfigurationBuilderGrpcExceptions.exception("io.grpc.StatusRuntimeException", createGrpcErrorMap(code));
         }

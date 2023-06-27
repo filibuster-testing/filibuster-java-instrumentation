@@ -38,6 +38,8 @@ public class RedundantRPCAnalyzer extends TestExecutionReportAnalyzer {
                 responseToEncode = response.getJSONObject("exception").toString();
             } else if (response.has("byzantine_fault")) {
                 responseToEncode = response.getJSONObject("byzantine_fault").toString();
+            } else if (response.has("transformer_fault")) {
+                responseToEncode = response.getJSONObject("transformer_fault").toString();
             } else {
                 throw new FilibusterAnalysisFailureException("Response did not contain either a return value or an exception.");
             }

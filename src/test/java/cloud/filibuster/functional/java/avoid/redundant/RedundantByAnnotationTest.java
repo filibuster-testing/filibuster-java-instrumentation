@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.redundant;
+package cloud.filibuster.functional.java.avoid.redundant;
 
 import cloud.filibuster.examples.APIServiceGrpc;
 import cloud.filibuster.examples.CartServiceGrpc;
@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
-import static cloud.filibuster.instrumentation.helpers.Property.setTestAvoidRedundantInjectionsProperty;
 import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopAPIServerAndWaitUntilUnavailable;
 import static org.grpcmock.GrpcMock.stubFor;
@@ -38,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class RedundantByPropertyAvoidOrganicByAnnotationTest {
+public class RedundantByAnnotationTest {
     @RegisterExtension
     static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
             .withPort(Networking.getPort("mock"))
@@ -54,16 +53,6 @@ public class RedundantByPropertyAvoidOrganicByAnnotationTest {
         stopAPIServerAndWaitUntilUnavailable();
     }
 
-    @BeforeAll
-    public static void setProperties() {
-        setTestAvoidRedundantInjectionsProperty(true);
-    }
-
-    @AfterAll
-    public static void resetProperties() {
-        setTestAvoidRedundantInjectionsProperty(false);
-    }
-
     public static int testInvocationCount = 0;
 
     public static int testFailures = 0;
@@ -71,7 +60,7 @@ public class RedundantByPropertyAvoidOrganicByAnnotationTest {
     @TestWithFilibuster(
             dataNondeterminism = true,
             analysisConfigurationFile = FilibusterSingleFaultUnavailableAnalysisConfigurationFile.class,
-            avoidInjectionsOnOrganicFailures = true
+            avoidRedundantInjections = true
     )
     @Order(1)
     public void testPurchase() {
@@ -92,7 +81,7 @@ public class RedundantByPropertyAvoidOrganicByAnnotationTest {
         try {
             APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
             Hello.PurchaseRequest request = Hello.PurchaseRequest.newBuilder().setSessionId(sessionId).build();
-            Hello.PurchaseResponse response = blockingStub.purchase(request);
+            Hello.PurchaseResponse response = blockingStub.simulatePurchase(request);
             assertNotNull(response);
         } catch (RuntimeException e) {
             testFailures++;
@@ -104,9 +93,8 @@ public class RedundantByPropertyAvoidOrganicByAnnotationTest {
     public void testInvocationCount() {
         // 5 RPCs, 3 duplicates removed.
         // 3 tests failing each RPC once + 1 golden path (with UNIMPLEMENTED for final call.)
-        // NO FI on UNIMPLEMENTED.
-        // 3 total.
-        assertEquals(3, testInvocationCount);
+        // 4 total.
+        assertEquals(4, testInvocationCount);
     }
 
     @Test
@@ -130,7 +118,7 @@ public class RedundantByPropertyAvoidOrganicByAnnotationTest {
                 case "cloud.filibuster.examples.UserService/GetUserFromSession":
                     assertTrue(warning instanceof RedundantRPCWarning);
                     break;
-                case "cloud.filibuster.examples.CartService/SetDiscountOnCart":
+                case "cloud.filibuster.examples.CartService/GetDiscountOnCart":
                     assertTrue(warning instanceof UnimplementedFailuresWarning);
                     break;
                 default:
@@ -138,8 +126,9 @@ public class RedundantByPropertyAvoidOrganicByAnnotationTest {
             }
         }
 
-        // 1 warning:
+        // 4 warnings:
+        // - 3 redundant, only removable through use of the property and not annotation.
         // - 1 unimplemented, for the set discount RPC.
-        assertEquals(1, warnings.size());
+        assertEquals(4, warnings.size());
     }
 }

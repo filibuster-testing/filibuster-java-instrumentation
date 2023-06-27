@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.redundant;
+package cloud.filibuster.functional.java.avoid.redundant;
 
 import cloud.filibuster.examples.APIServiceGrpc;
 import cloud.filibuster.examples.CartServiceGrpc;
@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+import static cloud.filibuster.instrumentation.helpers.Property.setTestAvoidRedundantInjectionsProperty;
 import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopAPIServerAndWaitUntilUnavailable;
 import static org.grpcmock.GrpcMock.stubFor;
@@ -37,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class RedundantByAnnotationTest {
+public class RedundantByPropertyNegativeTest {
     @RegisterExtension
     static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
             .withPort(Networking.getPort("mock"))
@@ -53,14 +54,18 @@ public class RedundantByAnnotationTest {
         stopAPIServerAndWaitUntilUnavailable();
     }
 
+    @BeforeAll
+    public static void setProperties() {
+        setTestAvoidRedundantInjectionsProperty(false);
+    }
+
     public static int testInvocationCount = 0;
 
     public static int testFailures = 0;
 
     @TestWithFilibuster(
             dataNondeterminism = true,
-            analysisConfigurationFile = FilibusterSingleFaultUnavailableAnalysisConfigurationFile.class,
-            avoidRedundantInjections = true
+            analysisConfigurationFile = FilibusterSingleFaultUnavailableAnalysisConfigurationFile.class
     )
     @Order(1)
     public void testPurchase() {
@@ -81,7 +86,7 @@ public class RedundantByAnnotationTest {
         try {
             APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
             Hello.PurchaseRequest request = Hello.PurchaseRequest.newBuilder().setSessionId(sessionId).build();
-            Hello.PurchaseResponse response = blockingStub.purchase(request);
+            Hello.PurchaseResponse response = blockingStub.simulatePurchase(request);
             assertNotNull(response);
         } catch (RuntimeException e) {
             testFailures++;
@@ -91,20 +96,13 @@ public class RedundantByAnnotationTest {
     @Test
     @Order(2)
     public void testInvocationCount() {
-        // 5 RPCs, 3 duplicates removed.
-        // 3 tests failing each RPC once + 1 golden path (with UNIMPLEMENTED for final call.)
-        // 4 total.
-        assertEquals(4, testInvocationCount);
+        assertEquals(8, testInvocationCount);
     }
 
     @Test
     @Order(2)
     public void testFailures() {
-        // 5 RPCs, 3 duplicates removed.
-        // 4 executions.
-        // 1 non-fatal, 2 fatal.
-        // 2 total.
-        assertEquals(2, testFailures);
+        assertEquals(6, testFailures);
     }
 
     @Order(2)
@@ -118,7 +116,7 @@ public class RedundantByAnnotationTest {
                 case "cloud.filibuster.examples.UserService/GetUserFromSession":
                     assertTrue(warning instanceof RedundantRPCWarning);
                     break;
-                case "cloud.filibuster.examples.CartService/SetDiscountOnCart":
+                case "cloud.filibuster.examples.CartService/GetDiscountOnCart":
                     assertTrue(warning instanceof UnimplementedFailuresWarning);
                     break;
                 default:

@@ -40,7 +40,8 @@ public class FilibusterGrpcExhaustiveAnalysisConfigurationFile implements Filibu
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilder = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc")
-                .pattern("(.*/.*)");
+                .pattern("(.*/.*)")
+                .type("grpc");
 
         for (String code : exhaustiveGrpcErrorCodeList) {
             filibusterAnalysisConfigurationBuilder.exception("io.grpc.StatusRuntimeException", createGrpcErrorMap(code));

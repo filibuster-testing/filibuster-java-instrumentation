@@ -176,11 +176,7 @@ public class RedisInterceptor<T> implements MethodInterceptor {
             // If "invocationResult" is an interface, return an intercepted proxy
             // (e.g., when calling StatefulRedisConnection.sync() where StatefulRedisConnection is an intercepted proxy,
             // the returned RedisCommands object should also be an intercepted proxy)
-            if (invocation.getMethod().getReturnType().isInterface() &&
-                    invocation.getMethod().getReturnType().getClassLoader() != null) {
-                invocationResult = new RedisInterceptorFactory<>(invocationResult, redisConnectionString)
-                        .getProxy(invocation.getMethod().getReturnType());
-            }
+
         } else {
             returnValueProperties.put("toString", null);
         }

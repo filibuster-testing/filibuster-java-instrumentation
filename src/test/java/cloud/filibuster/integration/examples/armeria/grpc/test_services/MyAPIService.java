@@ -9,7 +9,6 @@ import cloud.filibuster.exceptions.CircuitBreakerException;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
-import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.PurchaseWorkflow;
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;

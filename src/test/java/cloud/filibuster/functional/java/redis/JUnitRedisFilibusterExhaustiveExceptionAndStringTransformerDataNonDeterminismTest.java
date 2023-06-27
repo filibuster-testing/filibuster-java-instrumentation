@@ -2,7 +2,7 @@ package cloud.filibuster.functional.java.redis;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedAPIException;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
-import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
+import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.db.redis.RedisExhaustiveExceptionAndTransformerAnalysisConfigurationFile;
@@ -29,7 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@SuppressWarnings("unchecked")
 public class JUnitRedisFilibusterExhaustiveExceptionAndStringTransformerDataNonDeterminismTest extends JUnitAnnotationBaseTest {
     static StatefulRedisConnection<String, String> statefulRedisConnection;
     static String redisConnectionString;
@@ -57,7 +56,7 @@ public class JUnitRedisFilibusterExhaustiveExceptionAndStringTransformerDataNonD
             String key = generateRandomString(keyLength);
             String value = generateRandomString(valueLength);
 
-            StatefulRedisConnection<String, String> myStatefulRedisConnection = new RedisInterceptorFactory<>(statefulRedisConnection, redisConnectionString).getProxy(StatefulRedisConnection.class);
+            StatefulRedisConnection<String, String> myStatefulRedisConnection = DynamicProxyInterceptor.createInterceptor(statefulRedisConnection, redisConnectionString);
             RedisCommands<String, String> myRedisCommands = myStatefulRedisConnection.sync();
 
             myRedisCommands.set(key, value);

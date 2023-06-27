@@ -5,8 +5,8 @@ import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.instrumentation.datatypes.Pair;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
-import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
@@ -186,13 +186,11 @@ public class PurchaseWorkflow {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private static StatefulRedisConnection<String, String> getRedisConnection() {
         RedisClientService redisClient = RedisClientService.getInstance();
 
         if (getInstrumentationServerCommunicationEnabledProperty()) {
-            return new RedisInterceptorFactory<>(redisClient.redisClient.connect(), redisClient.connectionString)
-                    .getProxy(StatefulRedisConnection.class);
+            return DynamicProxyInterceptor.createInterceptor(redisClient.redisClient.connect(), redisClient.connectionString);
         } else {
             return RedisClientService.getInstance().redisClient.connect();
         }

@@ -22,10 +22,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,6 +42,7 @@ public class JUnitFaultyRedisFaultyGRPCWithSuppressCombinationsTest extends JUni
     private static final ArrayList<String> keys = new ArrayList<>();
     private static final ArrayList<String> values = new ArrayList<>();
     private static String name;
+    private static final Random rand = new Random(0);
 
     @BeforeAll
     public static void beforeAll() throws IOException, InterruptedException {
@@ -122,6 +123,6 @@ public class JUnitFaultyRedisFaultyGRPCWithSuppressCombinationsTest extends JUni
     }
 
     private static String getRandomString() {
-        return RandomStringUtils.randomAlphanumeric(2);
+        return String.valueOf(rand.nextInt(90) + 10);
     }
 }

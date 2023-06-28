@@ -30,7 +30,7 @@ public final class BitInByteArrTransformer implements Transformer<byte[], ArrayL
         // The last entry in the context is the byte/bit pair that we want to mutate in this call.
         SimpleImmutableEntry<Integer, Integer> entryToMutate = ctx.get(ctx.size() - 1);  // Get the last entry in the context
 
-        // Ge the byte from the payload by its index
+        // Get the byte from the payload by its index
         byte myByte = payload[entryToMutate.getKey()];
 
         // Convert the byte to a string of bits:

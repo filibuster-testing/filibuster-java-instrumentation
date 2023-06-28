@@ -1,6 +1,6 @@
 package cloud.filibuster.junit.server.core.transformers;
 
-import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
+import cloud.filibuster.exceptions.transformer.TransformerNullResultException;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.gson.reflect.TypeToken;
 
@@ -47,7 +47,7 @@ public final class StringTransformer implements Transformer<String, Integer> {
     @Override
     public String getResult() {
         if (this.result == null) {
-            throw new FilibusterFaultInjectionException("getResult() called before transform()!");
+            throw new TransformerNullResultException("Result is null. getResult() was probably called before transform()!");
         }
         return this.result;
     }

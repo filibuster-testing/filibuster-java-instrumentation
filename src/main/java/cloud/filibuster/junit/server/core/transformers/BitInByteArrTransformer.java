@@ -1,6 +1,6 @@
 package cloud.filibuster.junit.server.core.transformers;
 
-import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
+import cloud.filibuster.exceptions.transformer.TransformerNullResultException;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 
 import java.lang.reflect.Type;
@@ -85,7 +85,7 @@ public final class BitInByteArrTransformer implements Transformer<byte[], ArrayL
     @Override
     public byte[] getResult() {
         if (this.result == null) {
-            throw new FilibusterFaultInjectionException("getResult() called before transform()!");
+            throw new TransformerNullResultException("Result is null. getResult() was probably called before transform()!");
         }
         return this.result;
     }

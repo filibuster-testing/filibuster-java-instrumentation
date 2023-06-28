@@ -1,16 +1,11 @@
-2.0.0:
+1.8.0:
+   - (cmeiklejohn) New test interface style.
    - (cmeiklejohn) Fix bug in getAvoidInjectionsOnOrganicFailures.
    - (cmeiklejohn) Fix UX rendering issues.
    - (cmeiklejohn) Warn on bypassed executions.
    - (MichaelA-ops) Implement generic dynamic proxy interceptor
    - (MichaelA-ops) Add test service for CockroachDB
    - (cmeiklejohn) Clean up snippets.
-1.8.0
-   - (MichaelA-ops) Inject transformer Byzantine faults
-   - (MichaelA-ops) Implement afterInvocationWithByzantineFault
-   - (MichaelA-ops) Generate transformer BF inductively
-   - (MichaelA-ops) Create a unit test for transformer faults for strings
-   - (MichaelA-ops) UX: Use the background colour Coral for Byzantine faults
    - (cmeiklejohn) Add new end to end test.
    - (cmeiklejohn) Add new fault helper API that records test block type.
    - (cmeiklejohn) Report types in UX when scope counter is enabled.

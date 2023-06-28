@@ -21,26 +21,45 @@ public final class BitInByteArrTransformer implements Transformer<byte[], ArrayL
     @Override
     @CanIgnoreReturnValue
     public BitInByteArrTransformer transform(byte[] payload, Accumulator<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> accumulator) {
+
+        // The context saved in the accumulator is an array of SimpleImmutableEntries, each has an integer key and an integer value.
+        // Each SimpleImmutableEntry represents a byte/bit pair that has been mutated in the payload.
+        // The key of the entry is the idx of the byte in the payload, and the value is the idx of the bit in the byte.
         ArrayList<SimpleImmutableEntry<Integer, Integer>> ctx = accumulator.getContext();
 
+        // The last entry in the context is the byte/bit pair that we want to mutate in this call.
         SimpleImmutableEntry<Integer, Integer> entryToMutate = ctx.get(ctx.size() - 1);  // Get the last entry in the context
 
-        byte mybyte = payload[entryToMutate.getKey()];
+        // Ge the byte from the payload by its index
+        byte myByte = payload[entryToMutate.getKey()];
 
-        String myBits = String.format("%8s", Integer.toBinaryString(mybyte & 0xFF)).replace(' ', '0');
+        // Convert the byte to a string of bits:
+        // 'myByte & 0xFF' performs a bitwise AND operation between myByte and 0xFF. This operation ensures that only the
+        // lowest 8 bits of myByte are preserved, while any higher bits are set to zero.
+        // 'Integer.toBinaryString' returns the representation of the integer argument as an unsigned integer in base 2.
+        // 'String.format("%8s", ...)' formats the binary string with a width of 8 characters, padding it with spaces on the left if necessary.
+        // 'String.replace' replaces the leading space characters with '0'.
+        String myBits = String.format("%8s", Integer.toBinaryString(myByte & 0xFF)).replace(' ', '0');
 
         StringBuilder myMutatedBits = new StringBuilder(myBits);
+
+        // If the bit is 0, mutate it to "1" or "-", depending on its position.
         if (myMutatedBits.charAt(entryToMutate.getValue()) == '0') {
-            if (entryToMutate.getValue() == 0) {  // byte is signed. If the byte is positive (i.e., its first bit is 0), mutate it to "-".
+            // Byte is signed. If the byte is positive (i.e., its first bit is 0), mutate it to "-".
+            if (entryToMutate.getValue() == 0) {  // "entryToMutate.getValue" is the bit idx -> If the idx is 0, it's the first bit.
                 myMutatedBits.setCharAt(0, '-');
             } else {
+                // Otherwise, mutate the bit to 1.
                 myMutatedBits.setCharAt(entryToMutate.getValue(), '1');
             }
         } else {
+            // If the bit is 1, mutate it 0.
             myMutatedBits.setCharAt(entryToMutate.getValue(), '0');
         }
 
+        // Based on the original payload, create a new byte array called mutatedPayload
         byte[] mutatedPayload = payload.clone();
+        // Convert the mutated bits back to a byte and put it in the mutatedPayload array
         mutatedPayload[entryToMutate.getKey()] = (byte) (int) Integer.valueOf(myMutatedBits.toString(), 2);
 
         this.result = mutatedPayload;

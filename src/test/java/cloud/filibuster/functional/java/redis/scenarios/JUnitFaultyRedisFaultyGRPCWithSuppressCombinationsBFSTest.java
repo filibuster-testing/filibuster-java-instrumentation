@@ -78,7 +78,8 @@ public class JUnitFaultyRedisFaultyGRPCWithSuppressCombinationsBFSTest extends J
         stopHelloServerAndWaitUntilUnavailable();
     }
 
-    @DisplayName("BFS - Tests whether Redis sync interceptor connection can read and write")
+    @DisplayName("Tests the scenario where faults are injected in both Redis and the GRPC client. GRPC calls are issued before and after the Redis call. " +
+            "SuppressCombinations is set to true, search strategy is BFS")
     @Order(1)
     @TestWithFilibuster(
             analysisConfigurationFile = GrpcAndRedisStringExceptionAndTransformerAndByzantineAnalysisConfigurationFile.class,
@@ -105,7 +106,8 @@ public class JUnitFaultyRedisFaultyGRPCWithSuppressCombinationsBFSTest extends J
         sayHelloAndAssert(name, FilibusterSearchStrategy.BFS);
     }
 
-    @DisplayName("DFS - Tests whether Redis sync interceptor connection can read and write")
+    @DisplayName("Tests the scenario where faults are injected in both Redis and the GRPC client. GRPC calls are issued before and after the Redis call. " +
+            "SuppressCombinations is set to true, search strategy is DFS")
     @Order(2)
     @TestWithFilibuster(
             analysisConfigurationFile = GrpcAndRedisStringExceptionAndTransformerAndByzantineAnalysisConfigurationFile.class,

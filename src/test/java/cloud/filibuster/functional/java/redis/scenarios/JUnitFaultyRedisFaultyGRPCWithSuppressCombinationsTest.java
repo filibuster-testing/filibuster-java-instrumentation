@@ -79,7 +79,8 @@ public class JUnitFaultyRedisFaultyGRPCWithSuppressCombinationsTest extends JUni
         stopHelloServerAndWaitUntilUnavailable();
     }
 
-    @DisplayName("Tests whether Redis sync interceptor connection can read and write")
+    @DisplayName("Tests the scenario where faults are injected in both Redis and the GRPC client. GRPC calls are issued before and after the Redis call. " +
+            "SuppressCombinations is set to false while dataNondeterminism is true")
     @Order(1)
     @TestWithFilibuster(
             analysisConfigurationFile = GrpcAndRedisStringExceptionAndTransformerAndByzantineAnalysisConfigurationFile.class,

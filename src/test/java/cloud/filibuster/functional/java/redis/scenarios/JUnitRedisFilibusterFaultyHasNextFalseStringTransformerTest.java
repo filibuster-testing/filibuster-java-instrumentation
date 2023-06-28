@@ -42,7 +42,7 @@ public class JUnitRedisFilibusterFaultyHasNextFalseStringTransformerTest extends
         redisConnectionString = RedisClientService.getInstance().connectionString;
     }
 
-    @DisplayName("Tests whether Redis sync interceptor can read from existing key - String transformer faults with Faulty Accumulator.")
+    @DisplayName("Tests the scenario where the accumulator is faulty. In this case, the accumulator hasNext() method always returns false")
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = FaultyHasNextFalseRedisTransformStringAnalysisConfigurationFile.class)
     public void testRedisStringBFIWithFaultyAccumulator() {
@@ -72,7 +72,7 @@ public class JUnitRedisFilibusterFaultyHasNextFalseStringTransformerTest extends
     @Test
     @Order(2)
     public void testNumExecutions() {
-        // 1 reference execution + 1 fault injections
+        // 1 reference execution + 1 fault injection
         assertEquals(2, numberOfTestExecutions);
     }
 

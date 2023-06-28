@@ -162,10 +162,6 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
         // Invoke.
         // ******************************************************************************************
 
-        if (fullMethodName.equals("java.sql.Statement/close") || fullMethodName.equals("java.sql.Connection/close")) {  // Do not actually close the DB connection as a proxy connection cannot be reopened
-            return null;
-        }
-
         Object invocationResult = invokeOnInterceptedObject(method, args);
         HashMap<String, String> returnValueProperties = new HashMap<>();
 

@@ -442,7 +442,29 @@ public class Property {
         if (isPropertyNull(propertyValue)) {
             return REDIS_PORT_NONDETERMINISM_DEFAULT;
         } else {
-            return Boolean.valueOf(propertyValue);
+            return Boolean.parseBoolean(propertyValue);
+        }
+    }
+
+    /***********************************************************************************
+     ** filibuster.random_seed
+     ***********************************************************************************/
+
+    public static final int RANDOM_SEED_DEFAULT = 0;
+
+    private final static String RANDOM_SEED = "filibuster.random_seed";
+
+    public static void setRandomSeedProperty(int value) {
+        System.setProperty(RANDOM_SEED, String.valueOf(value));
+    }
+
+    public static int getRandomSeedProperty() {
+        String propertyValue = System.getProperty(RANDOM_SEED);
+
+        if (isPropertyNull(propertyValue)) {
+            return RANDOM_SEED_DEFAULT;
+        } else {
+            return Integer.parseInt(propertyValue);
         }
     }
 }

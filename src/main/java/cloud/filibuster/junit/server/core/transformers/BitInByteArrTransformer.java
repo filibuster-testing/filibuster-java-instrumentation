@@ -10,10 +10,10 @@ import java.util.Random;
 
 import com.google.gson.reflect.TypeToken;
 
-import static cloud.filibuster.instrumentation.Constants.FIXED_SEED;
+import static cloud.filibuster.instrumentation.helpers.Property.getRandomSeedProperty;
 
 public final class BitInByteArrTransformer implements Transformer<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> {
-    private static final Random rand = new Random(FIXED_SEED); // Seed is fixed to ensure consistent results
+    private static final Random rand = new Random(getRandomSeedProperty());
     private boolean hasNext = true;
     private byte[] result;
     private Accumulator<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> accumulator;

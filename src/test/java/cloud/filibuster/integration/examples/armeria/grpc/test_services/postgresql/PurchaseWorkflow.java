@@ -3,6 +3,7 @@ package cloud.filibuster.integration.examples.armeria.grpc.test_services.postgre
 import cloud.filibuster.examples.CartServiceGrpc;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.UserServiceGrpc;
+import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.instrumentation.datatypes.Pair;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
@@ -17,6 +18,8 @@ import io.grpc.StatusRuntimeException;
 import io.lettuce.core.api.StatefulRedisConnection;
 import org.json.JSONObject;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -200,8 +203,13 @@ public class PurchaseWorkflow {
         CockroachClientService cockroachClientService = CockroachClientService.getInstance();
 
         if (getInstrumentationServerCommunicationEnabledProperty()) {
-            // TODO: incomplete, needs instrumentation.
-            return cockroachClientService.dao;
+            try {
+                Connection interceptedCockroachConnection = DynamicProxyInterceptor.createInterceptor(cockroachClientService.cockroachClient.getConnection(), cockroachClientService.connectionString);
+                cockroachClientService.dao.setConnection(interceptedCockroachConnection);
+                return cockroachClientService.dao;
+            } catch (SQLException e) {
+                throw new FilibusterFaultInjectionException("Could not intercept the cockroach connection: " + e);
+            }
         } else {
             return cockroachClientService.dao;
         }

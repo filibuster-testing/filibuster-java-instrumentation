@@ -247,6 +247,7 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName(req.getBookId()).build();
             Hello.HelloReply helloReply = blockingStub.throwException(request);
 
+            // This line will never be reached since the hello service always returns an error
             reply = bookBuilder.setBook(helloReply.getMessage()).build();
         }
 
@@ -289,6 +290,7 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
                     Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName(req.getBookId()).build();
                     Hello.HelloReply helloReply = blockingStub.throwException(request);
 
+                    // This line will never be reached since the hello service always returns an error
                     reply = bookTitleBuilder.setTitle(helloReply.getMessage()).build();
                 }
             } catch (JSONException e) {

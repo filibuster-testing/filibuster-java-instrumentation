@@ -134,6 +134,17 @@ public class PurchaseWorkflow {
         float discountAmount = cartTotal * discountPct;
         cartTotal = cartTotal - (int) discountAmount;
 
+        // Notify of applied discount.
+        if (discountAmount > 0) {
+            CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
+            Hello.NotifyDiscountAppliedRequest notifyDiscountAppliedRequest = Hello.NotifyDiscountAppliedRequest.newBuilder().setCartId(cartId).build();
+            try {
+                cartServiceBlockingStub.notifyDiscountApplied(notifyDiscountAppliedRequest);
+            } catch (StatusRuntimeException statusRuntimeException) {
+                // Nothing, ignore the failure.
+            }
+        }
+
         // Verify the user has sufficient funds.
         int userAccountBalance = dao.getAccountBalance(UUID.fromString(userId));
 

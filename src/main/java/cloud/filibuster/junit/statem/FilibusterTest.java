@@ -149,6 +149,10 @@ public interface FilibusterTest {
             // Fail the test if any RPCs were left UNIMPLEMENTED (and, we didn't inject it!)
             HashMap<DistributedExecutionIndex, JSONObject> failedRPCs = getFailedRPCs();
 
+            if (failedRPCs == null) {
+                throw new FilibusterTestRuntimeException("failedRPCs is null: this could indicate a problem!");
+            }
+
             if (getFaultsInjected().size() == 0) {
                 for (Map.Entry<DistributedExecutionIndex, JSONObject> failedRPC : failedRPCs.entrySet()) {
                     JSONObject jsonObject = failedRPC.getValue();

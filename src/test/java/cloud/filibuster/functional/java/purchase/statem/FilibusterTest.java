@@ -35,6 +35,9 @@ public interface FilibusterTest {
         // For each test execution, clear out the adjusted test expectations.
         GrpcMock.resetAdjustedExpectations();
 
+        // For each test execution, clear out verifyThat mapping.
+        GrpcMock.resetVerifyThatMapping();
+
         // Execute setup blocks.
         Helpers.setupBlock(this::setupBlock);
 

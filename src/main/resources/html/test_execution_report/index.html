@@ -88,6 +88,14 @@
             background-color: lightyellow;
         }
 
+        tr.byzantine {
+            background-color: coral;
+        }
+
+        tr.transformer {
+            background-color: orange;
+        }
+
         tr.fault {
             background-color: lightcoral;
         }
@@ -136,6 +144,7 @@
 
         .debug {
             display: none;
+            background-color: lightcyan;
         }
 
         section {
@@ -156,8 +165,9 @@
 
 <body>
 <section style="margin: 0; padding: 0;">
-    <span style="float: right; display: inline; text-align: right; text-decoration: none; margin-bottom: 10px; margin-left: 10px;"><a style="text-decoration: none;" href="#" onClick="toggleCached();">💵</a></span>
-    <span style="float: right; display: inline; text-align: right; text-decoration: none; margin-bottom: 10px; margin-left: 10px;"><a style="text-decoration: none;" href="#" onClick="toggleDebug();">🐞</a></span>
+    <span style="float: right; display: inline; text-align: right; text-decoration: none; margin-bottom: 10px; margin-left: 10px; vertical-align: middle;"><a style="vertical-align: middle; text-decoration: none; color: black;" href="#" onClick="toggleWarnings();">⚠️ (<span style="font-size: 10px; color: black;" id="numWarnings">0</span>)</a></span>
+    <span style="float: right; display: inline; text-align: right; text-decoration: none; margin-bottom: 10px; margin-left: 10px; vertical-align: middle;"><a style="vertical-align: middle; text-decoration: none; color: black;" href="#" onClick="toggleCached();">💵 (<span style="font-size: 10px; color: black;" id="numCached">0</span>)</a></span>
+    <span style="float: right; display: inline; text-align: right; text-decoration: none; margin-bottom: 10px; margin-left: 10px; vertical-align: middle;"><a style="vertical-align: middle; text-decoration: none; color: black;" href="#" onClick="toggleDebug();">🐞</a></span>
 
     <!-- Assertion failure goes here. -->
     <div id="failure" style="display: none; margin: 0; padding: 0; width: 100%; font-size: 11px;">
@@ -170,13 +180,6 @@
     <div id="failureStackTrace" style="display: none;margin: 0; padding: 0; width: 100%; font-size: 11px;">
     </div>
 
-    <!-- Global warnings go here. -->
-    <table id='warnings' style="display: none; background-color: lightyellow; margin: 0; padding: 0;">
-        <tr>
-            <td>⚠️ <a href="#" onClick="toggleWarnings();"><span id="numWarnings" style="vertical-align: middle;"></span></a></td>
-        </tr>
-    </table>
-
     <table id='rpcs' style="margin: 0; padding: 0;">
         <tr>
             <th>RPC Method</th>
@@ -186,6 +189,7 @@
         </tr>
 
         <script>
+            var numCached = 0;
             var numWarnings = 0;
 
             function copyIfBlock() {
@@ -208,6 +212,7 @@
 
             function toggleDebug() {
                 $(".debug").toggle();
+                toggleCached();
             }
 
             function toggleCached() {
@@ -224,6 +229,10 @@
 
             function containsByzantineFaultKey(obj) {
                 return "byzantine_fault" in obj;
+            }
+
+            function containsTransformerFaultKey(obj) {
+                return "transformer_fault" in obj;
             }
 
             function toggleWarnings() {
@@ -274,18 +283,72 @@
                     var rpc = analysis.rpcs[i];
                     var isFaulted = !isEmpty(rpc.fault);
                     var isExceptionResponse = containsExceptionKey(rpc.response);
-                    var isByzantineFault = containsByzantineFaultKey(rpc.fault);
+                    var isByzantineFault = containsByzantineFaultKey(rpc.response);
+                    var isTransformerFault = containsTransformerFaultKey(rpc.response);
 
                     if (rpc.group !== group) {
                         group = rpc.group;
 
-                        var row = "";
-                        row += "<tr>";
-                        row += "<td colspan=4>";
-                        row += "<span>Assertion Block: " + rpc.group.replace("TestScope+", "").replace("[", "").replace("]", "");
-                        row += "</td>";
-                        row += "</tr>";
-                        $('#rpcs').append(row);
+                        if (group.includes("TestScope")) {
+                            var groupWithoutPrefix = group.replace("TestScope+", "").replace("[", "").replace("]", "");
+                            var groupArray = groupWithoutPrefix.split("+");
+                            var groupNumber = groupArray[0];
+                            var groupType = groupArray[1];
+                            var normalizedGroupType = "";
+
+                            switch(groupType) {
+                                case "DEFAULT":
+                                    normalizedGroupType = "Default Block";
+                                    break;
+                                case "SETUP":
+                                    normalizedGroupType = "Setup Block (<i>No Faults Injected</i>)";
+                                    break;
+                                case "TEST":
+                                    normalizedGroupType = "Test Block";
+                                    break;
+                                case "ASSERTION":
+                                    normalizedGroupType = "Assertion Block (<i>No Faults Injected</i>)";
+                                    break;
+                                case "TEARDOWN":
+                                    normalizedGroupType = "Teardown Block (<i>No Faults Injected</i>)";
+                                    break;
+                                default:
+                                    normalizedGroupType = "Unknown Block (" + groupType + ")";
+                            }
+
+                            var row = "";
+                            row += "<tr>";
+                            row += "<td colspan=4>";
+                            row += "<span>";
+                            row += normalizedGroupType;
+                            row += "</span>";
+                            row += "</td>";
+                            row += "</tr>";
+                            $('#rpcs').append(row);
+
+                            var row = "";
+                            row += '<tr class="debug">';
+                            row += '<td class="right">🐞</td>';
+                            row += '<td colspan="3" class="warning" style="vertical-align: middle; text-align: left">';
+                            row += '<span style="font-weight: bold">Assertion Block ' + groupNumber + '</span>';
+                            row += '</td>';
+                            row += '</tr>';
+                            $('#rpcs').append(row);
+                        } else {
+                            var row = "";
+                            row += "<tr>";
+                            row += "<td colspan=4>";
+                            row += "<span>";
+                            row += '<span>Test Block: ' + rpc.group + '</span>';
+                            row += "</span>";
+                            row += "</td>";
+                            row += "</tr>";
+                            $('#rpcs').append(row);
+                        }
+                    }
+
+                    if (rpc.cached) {
+                        numCached++;
                     }
 
                     var row = '';
@@ -302,6 +365,10 @@
                                 row += '<tr class="success">';
                             }
                         }
+                    } else if (isByzantineFault) {
+                        row += '<tr class="byzantine">';
+                    } else if (isTransformerFault) {
+                        row += '<tr class="transformer">';
                     } else {
                         row += '<tr class="fault">';
                     }
@@ -318,11 +385,15 @@
                         row += '<td>⚠️ No RPC response was recorded.</td>';
                     } else if (isByzantineFault) {
                         row += '<td>';
-                        row += '<div class="class_name">' + substringNamespace(rpc.response.exception.name) + '</div>';
+                        row += '<div class="class_name">' + substringNamespace(rpc.response.byzantine_fault.type) + '</div>';
                         row += '<textarea>';
-
-                        row += '\ninjected byzantine value = ' + rpc.response.exception.metadata.value.toString();
-
+                        row += rpc.response.byzantine_fault.value.toString();
+                        row += '</textarea></td>';
+                    } else if (isTransformerFault) {
+                        row += '<td>';
+                        row += '<div class="class_name">' + substringNamespace(rpc.response.transformer_fault.type) + '</div>';
+                        row += '<textarea>';
+                        row += rpc.response.transformer_fault.value.toString();
                         row += '</textarea></td>';
                     } else if (isExceptionResponse) {
                         row += '<td>';
@@ -356,8 +427,6 @@
                     if (!isFaulted) {
                         row += '<td></td>';
                     } else {
-                        console.log(rpc.fault)
-
                         if ('forced_exception' in rpc.fault) {
                             row += '<td>';
                             row += '<div class="class_name">' + substringNamespace(rpc.fault.forced_exception.name) + '</div>';
@@ -394,6 +463,15 @@
                             row += '</textarea>';
                             row += '</td>';
                         }
+
+                        if(isTransformerFault) {
+                            row += '<td>';
+                            row += '<div class="class_name">' + substringNamespace(rpc.response.transformer_fault.type) + '</div>';
+                            row += '<textarea>';
+                            row += '\naccumulator = ' + JSON.stringify(JSON.parse(rpc.response.transformer_fault.accumulator));
+                            row += '</textarea>';
+                            row += '</td>';
+                        }
                     }
 
                     row += '</tr>';
@@ -401,9 +479,9 @@
 
                     var row = '';
                     row += '<tr class="debug">';
-                    row += '<td class="right">⚠️</td>';
+                    row += '<td class="right">🐞</td>';
                     row += '<td colspan="3" class="warning" style="vertical-align: middle; text-align: left">';
-                    row += '<span>Distributed Execution Index:</span>';
+                    row += '<span style="font-weight: bold">Distributed Execution Index:</span>';
                     row += '<textarea style="height: 60px; margin-top:10px;">';
                     row += rpc.dei;
                     row += '</textarea>';
@@ -475,16 +553,16 @@ tryGrpcAndCatchGrpcExceptions(() -> {
                     }
                 }
 
-                if (numWarnings > 0) {
-                    $('#warnings').show();
-
-                    if (numWarnings > 1) {
-                        $('#numWarnings').html("There are " + numWarnings + " warnings in this test execution.");
-                    } else {
-                        $('#numWarnings').html("There is " + numWarnings + " warning in this test execution.");
-                    }
+                if (numCached > 0) {
+                    $('#numCached').html("" + numCached + "");
                 } else {
+                    $('#numCached').html("0");
+                }
 
+                if (numWarnings > 0) {
+                    $('#numWarnings').html("" + numWarnings + "");
+                } else {
+                    $('#numWarnings').html("0");
                 }
             });
         </script>

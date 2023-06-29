@@ -44,7 +44,7 @@ public class BasicDAO {
 
     /**
      * Run SQL code in a way that automatically handles the
-     * transaction retry logic so we don't have to duplicate it in
+     * transaction retry logic, so we don't have to duplicate it in
      * various places.
      *
      * @param sqlCode a String containing the SQL code you want to
@@ -199,13 +199,25 @@ public class BasicDAO {
      */
     public void updateAccounts(Map<UUID, Integer> accounts) {
         for (Map.Entry<UUID, Integer> account : accounts.entrySet()) {
-
             UUID k = account.getKey();
             String v = account.getValue().toString();
+
+            Object[] removeArgs = {k};
+            runSQL("DELETE FROM accounts WHERE id = ?", removeArgs);
 
             Object[] args = {k, v};
             runSQL("INSERT INTO accounts (id, balance) VALUES (?, ?)", args);
         }
+    }
+
+    /**
+     * Delete account by UUID.
+     *
+     * @param account (UUID)
+     */
+    public void deleteAccount(UUID account) {
+        Object[] removeArgs = {account};
+        runSQL("DELETE FROM accounts WHERE id = ?", removeArgs);
     }
 
     /**

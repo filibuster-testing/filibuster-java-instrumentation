@@ -1,10 +1,12 @@
 package cloud.filibuster.junit.server.core.test_executions;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
+import cloud.filibuster.junit.assertions.BlockType;
 import cloud.filibuster.junit.server.core.reports.TestExecutionReport;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
 import java.util.UUID;
 
 @SuppressWarnings("Varifier")
@@ -12,6 +14,8 @@ public class ConcreteTestExecution extends TestExecution implements Cloneable {
     private final TestExecutionReport testExecutionReport;
 
     private int testScopeCounter = 0;
+
+    private BlockType lastTestScopeBlockType = BlockType.DEFAULT;
 
     public ConcreteTestExecution(String testName, UUID testUUID, String className) {
         testExecutionReport = new TestExecutionReport(testName, testUUID, className);
@@ -23,12 +27,33 @@ public class ConcreteTestExecution extends TestExecution implements Cloneable {
         testExecutionReport.setFaultsInjected(faultsToInject);
     }
 
+    public HashMap<DistributedExecutionIndex, JSONObject> getFaultsToInject() {
+        return this.faultsToInject;
+    }
+
+    public HashMap<DistributedExecutionIndex, JSONObject> getFailedRPCs() {
+        return this.failedRPCs;
+    }
+
+    public HashMap<DistributedExecutionIndex, JSONObject> getExecutedRPCs() {
+        return this.executedRPCs;
+    }
+
     public void incrementTestScopeCounter() {
         testScopeCounter++;
     }
 
+    public void incrementTestScopeCounter(BlockType blockType) {
+        testScopeCounter++;
+        lastTestScopeBlockType = blockType;
+    }
+
     public int getTestScopeCounter() {
         return testScopeCounter;
+    }
+
+    public BlockType getLastTestScopeBlockType() {
+        return lastTestScopeBlockType;
     }
 
     public AbstractTestExecution toAbstractTestExecution() {

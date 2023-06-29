@@ -7,8 +7,9 @@ import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.exceptions.CircuitBreakerException;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
-import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.PurchaseWorkflow;
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
 import io.grpc.ClientInterceptors;
@@ -102,8 +103,8 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     @SuppressWarnings("unchecked")
     public void redisHello(Hello.RedisRequest req, StreamObserver<Hello.RedisReply> responseObserver) {
         Hello.RedisReply reply;
-        RedisClientService redisClient = RedisClientService.getInstance();
-        StatefulRedisConnection<String, String> connection = new RedisInterceptorFactory<>(redisClient.redisClient.connect(), redisClient.connectionString).getProxy(StatefulRedisConnection.class);
+        RedisClientService redisService = RedisClientService.getInstance();
+        StatefulRedisConnection<String, String> connection = DynamicProxyInterceptor.createInterceptor(redisService.redisClient.connect(), redisService.connectionString);
 
         String retrievedValue = null;
 
@@ -144,8 +145,8 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     public void redisHelloRetry(Hello.RedisRequest req, StreamObserver<Hello.RedisReply> responseObserver) {
         // API service talks to Redis before making a call to Hello
         Hello.RedisReply reply;
-        RedisClientService redisClient = RedisClientService.getInstance();
-        StatefulRedisConnection<String, String> connection = new RedisInterceptorFactory<>(redisClient.redisClient.connect(), redisClient.connectionString).getProxy(StatefulRedisConnection.class);
+        RedisClientService redisService = RedisClientService.getInstance();
+        StatefulRedisConnection<String, String> connection = DynamicProxyInterceptor.createInterceptor(redisService.redisClient.connect(), redisService.connectionString);
 
         String retrievedValue = null;
         int currentTry = 0;
@@ -199,8 +200,27 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         }
     }
 
+    private static String getUserFromSession(Channel channel, String sessionId) {
+        UserServiceGrpc.UserServiceBlockingStub userServiceBlockingStub = UserServiceGrpc.newBlockingStub(channel);
+        Hello.GetUserRequest request = Hello.GetUserRequest.newBuilder().setSessionId(sessionId).build();
+        Hello.GetUserResponse response = userServiceBlockingStub.getUserFromSession(request);
+        return response.getUserId();
+    }
+
+    private static Hello.GetCartResponse getCartFromSession(Channel channel, String sessionId) {
+        CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
+        Hello.GetCartRequest request = Hello.GetCartRequest.newBuilder().setSessionId(sessionId).build();
+        return cartServiceBlockingStub.getCartForSession(request);
+    }
+
+    private static Hello.GetDiscountResponse getDiscountOnCart(Channel channel, String discountCode) {
+        CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
+        Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder().setCode(discountCode).build();
+        return cartServiceBlockingStub.getDiscountOnCart(request);
+    }
+
     @Override
-    public void purchase(Hello.PurchaseRequest req, StreamObserver<Hello.PurchaseResponse> responseObserver) {
+    public void simulatePurchase(Hello.PurchaseRequest req, StreamObserver<Hello.PurchaseResponse> responseObserver) {
         // Open channel to the user service.
         ManagedChannel originalChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("mock"), Networking.getPort("mock"))
@@ -216,14 +236,15 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         getUserFromSession(channel, req.getSessionId());
 
         // Get cart
-        String cartId = getCartFromSession(channel, req.getSessionId());
+        Hello.GetCartResponse getCartResponse = getCartFromSession(channel, req.getSessionId());
+        String cartId = getCartResponse.getCartId();
 
         // Make call to get the user, again.
         getUserFromSession(channel, req.getSessionId());
 
         // Set discount.
         try {
-            setDiscountOnCart(channel, cartId);
+            getDiscountOnCart(channel, cartId);
         } catch (StatusRuntimeException e) {
             // Nothing, ignore discount failure.
         }
@@ -247,25 +268,37 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         }
     }
 
-    private static String getUserFromSession(Channel channel, String sessionId) {
-        UserServiceGrpc.UserServiceBlockingStub userServiceBlockingStub = UserServiceGrpc.newBlockingStub(channel);
-        Hello.GetUserRequest request = Hello.GetUserRequest.newBuilder().setSessionId(sessionId).build();
-        Hello.GetUserResponse response = userServiceBlockingStub.getUserFromSession(request);
-        return response.getUserId();
-    }
+    @Override
+    public void purchase(Hello.PurchaseRequest req, StreamObserver<Hello.PurchaseResponse> responseObserver) {
+        PurchaseWorkflow purchaseWorkflow = new PurchaseWorkflow(req.getSessionId());
+        PurchaseWorkflow.PurchaseWorkflowResponse workflowResponse = purchaseWorkflow.execute();
+        Status status;
 
-    private static String getCartFromSession(Channel channel, String sessionId) {
-        CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
-        Hello.GetCartRequest request = Hello.GetCartRequest.newBuilder().setSessionId(sessionId).build();
-        Hello.GetCartResponse response = cartServiceBlockingStub.getCartForSession(request);
-        return response.getCartId();
+        switch (workflowResponse) {
+            case SUCCESS:
+                Hello.PurchaseResponse purchaseResponse = Hello.PurchaseResponse.newBuilder()
+                        .setSuccess(true)
+                        .setTotal(String.valueOf(purchaseWorkflow.getPurchaseTotal()))
+                        .build();
+                responseObserver.onNext(purchaseResponse);
+                responseObserver.onCompleted();
+                break;
+            case INSUFFICIENT_FUNDS:
+                status = Status.FAILED_PRECONDITION.withDescription("Consumer did not have sufficient funds to make purchase.");
+                responseObserver.onError(status.asRuntimeException());
+                break;
+            case UNPROCESSED:
+                status = Status.INTERNAL.withDescription("Purchase has not yet been completed.");
+                responseObserver.onError(status.asRuntimeException());
+                break;
+            case USER_UNAVAILABLE:
+                status = Status.UNAVAILABLE.withDescription("Purchase could not be completed at this time, please retry the request: user could not be retrieved.");
+                responseObserver.onError(status.asRuntimeException());
+                break;
+            case CART_UNAVAILABLE:
+                status = Status.UNAVAILABLE.withDescription("Purchase could not be completed at this time, please retry the request: cart could not be retrieved.");
+                responseObserver.onError(status.asRuntimeException());
+                break;
+        }
     }
-
-    private static void setDiscountOnCart(Channel channel, String cartId) {
-        CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
-        Hello.SetDiscountRequest request = Hello.SetDiscountRequest.newBuilder().setCartId(cartId).build();
-        Hello.SetDiscountResponse response = cartServiceBlockingStub.setDiscountOnCart(request);
-        return;
-    }
-
 }

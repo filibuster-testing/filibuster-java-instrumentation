@@ -1,11 +1,11 @@
-package cloud.filibuster.functional.java.redis;
+package cloud.filibuster.functional.java.redis.scenarios;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedAPIException;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.functional.java.redis.transformers.configuration.FaultyRedisTransformStringAnalysisConfigurationFile;
+import cloud.filibuster.functional.java.redis.transformers.configuration.FaultyHasNextFalseRedisTransformStringAnalysisConfigurationFile;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import org.junit.jupiter.api.BeforeAll;
@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("unchecked")
-public class JUnitRedisFilibusterFaultyExhaustiveExceptionAndStringTransformerTest extends JUnitAnnotationBaseTest {
+public class JUnitRedisFilibusterFaultyHasNextFalseStringTransformerTest extends JUnitAnnotationBaseTest {
     static final String key = "test";
     static final String value = "example";
     static StatefulRedisConnection<String, String> statefulRedisConnection;
@@ -42,9 +42,9 @@ public class JUnitRedisFilibusterFaultyExhaustiveExceptionAndStringTransformerTe
         redisConnectionString = RedisClientService.getInstance().connectionString;
     }
 
-    @DisplayName("Tests whether Redis sync interceptor can read from existing key - String transformer faults with Faulty Accumulator.")
+    @DisplayName("Tests the scenario where the accumulator is faulty. In this case, the accumulator hasNext() method always returns false")
     @Order(1)
-    @TestWithFilibuster(analysisConfigurationFile = FaultyRedisTransformStringAnalysisConfigurationFile.class)
+    @TestWithFilibuster(analysisConfigurationFile = FaultyHasNextFalseRedisTransformStringAnalysisConfigurationFile.class)
     public void testRedisStringBFIWithFaultyAccumulator() {
         try {
             numberOfTestExecutions++;
@@ -72,7 +72,7 @@ public class JUnitRedisFilibusterFaultyExhaustiveExceptionAndStringTransformerTe
     @Test
     @Order(2)
     public void testNumExecutions() {
-        // 1 reference execution + 1 fault injections
+        // 1 reference execution + 1 fault injection
         assertEquals(2, numberOfTestExecutions);
     }
 

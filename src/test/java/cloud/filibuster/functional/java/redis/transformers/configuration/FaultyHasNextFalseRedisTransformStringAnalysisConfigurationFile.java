@@ -1,11 +1,11 @@
-package cloud.filibuster.junit.configuration.examples.db.redis;
+package cloud.filibuster.functional.java.redis.transformers.configuration;
 
+import cloud.filibuster.functional.java.redis.transformers.FaultyStringTransformerWithFalseHasNext;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
-import cloud.filibuster.junit.server.core.transformers.FaultyStringTransformer;
 
-public class FaultyRedisTransformStringAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
+public class FaultyHasNextFalseRedisTransformStringAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
     static {
@@ -15,7 +15,7 @@ public class FaultyRedisTransformStringAnalysisConfigurationFile implements Fili
                 .name("java.transformers.transform_string.redis")
                 .pattern("io.lettuce.core.api.sync.RedisStringCommands/get\\b");
 
-        filibusterAnalysisConfigurationBuilderRedisExceptions.transformer(FaultyStringTransformer.class);
+        filibusterAnalysisConfigurationBuilderRedisExceptions.transformer(FaultyStringTransformerWithFalseHasNext.class);
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());
 

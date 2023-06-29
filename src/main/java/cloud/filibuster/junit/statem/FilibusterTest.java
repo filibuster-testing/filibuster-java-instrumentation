@@ -201,6 +201,10 @@ public interface FilibusterTest {
         HashMap<DistributedExecutionIndex, JSONObject> executedRPCs = getExecutedRPCs();
         HashMap<DistributedExecutionIndex, JSONObject> faultsInjected = getFaultsInjected();
 
+        if (faultsInjected == null) {
+            throw new FilibusterTestRuntimeException("faultsInjected is null: this could indicate a problem!");
+        }
+
         // If no fault was injected, it's gotta be the reference execution, return null;
         if (faultsInjected.size() == 0) {
             return null;

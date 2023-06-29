@@ -63,6 +63,8 @@ public class EndToEndFilibusterTest extends PurchaseBaseTest implements Filibust
 
                         GrpcMock.adjustExpectation(CartServiceGrpc.getGetDiscountOnCartMethod(), request, 0);
                     }
+
+                    GrpcMock.adjustExpectation(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
                 }
         );
 
@@ -181,6 +183,8 @@ public class EndToEndFilibusterTest extends PurchaseBaseTest implements Filibust
 
             verifyThat(CartServiceGrpc.getGetDiscountOnCartMethod(), request, 1);
         }
+
+        verifyThat(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 1);
     }
 
     @Override

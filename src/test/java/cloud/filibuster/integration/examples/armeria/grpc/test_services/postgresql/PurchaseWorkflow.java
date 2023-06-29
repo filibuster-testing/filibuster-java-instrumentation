@@ -102,7 +102,7 @@ public class PurchaseWorkflow {
         // Make call to get the user.
         try {
             userId = getUserFromSession(channel, sessionId);
-        } catch (StatusRuntimeException e) {
+        } catch (StatusRuntimeException statusRuntimeException) {
             return PurchaseWorkflowResponse.USER_UNAVAILABLE;
         }
 
@@ -112,7 +112,7 @@ public class PurchaseWorkflow {
             cartId = getCartResponse.getCartId();
             merchantId = getCartResponse.getMerchantId();
             cartTotal = Integer.parseInt(getCartResponse.getTotal());
-        } catch (StatusRuntimeException e) {
+        } catch (StatusRuntimeException statusRuntimeException) {
             return PurchaseWorkflowResponse.CART_UNAVAILABLE;
         }
 
@@ -124,7 +124,7 @@ public class PurchaseWorkflow {
                 Hello.GetDiscountResponse getDiscountResponse = getDiscountOnCart(channel, discountCode.getKey());
                 int discountPercentage = Integer.parseInt(getDiscountResponse.getPercent());
                 maxDiscountPercentage = Integer.max(maxDiscountPercentage, discountPercentage);
-            } catch (StatusRuntimeException e) {
+            } catch (StatusRuntimeException statusRuntimeException) {
                 // Nothing, ignore discount failure.
             }
         }

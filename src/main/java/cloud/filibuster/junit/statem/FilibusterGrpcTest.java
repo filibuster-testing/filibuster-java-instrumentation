@@ -209,7 +209,7 @@ public interface FilibusterGrpcTest {
         HashMap<DistributedExecutionIndex, JSONObject> faultsInjected = getFaultsInjected();
 
         if (faultsInjected == null) {
-            throw new FilibusterTestRuntimeException("faultsInjected is null: this could indicate a problem!");
+            throw new FilibusterGrpcTestInternalRuntimeException("faultsInjected is null: this could indicate a problem!");
         }
 
         // If no fault was injected, it's gotta be the reference execution, return null;
@@ -220,7 +220,7 @@ public interface FilibusterGrpcTest {
         // Fail if more than one fault was injected.
         // We could be smarter about this, but let's skip it for now since we probably won't run tests this way.
         if (faultsInjected.size() > 1) {
-            throw new FilibusterTestRuntimeException("Test threw an exception; however, multiple faults were injected.");
+            throw new FilibusterGrpcTestInternalRuntimeException("Test threw an exception; however, multiple faults were injected.");
         }
 
         // At this point, there should be only a single injected fault.
@@ -233,11 +233,11 @@ public interface FilibusterGrpcTest {
         }
 
         if (executedRPCs == null) {
-            throw new FilibusterTestRuntimeException("executedRPCs is null: this could indicate a problem!");
+            throw new FilibusterGrpcTestInternalRuntimeException("executedRPCs is null: this could indicate a problem!");
         }
 
         if (firstFaultInjected == null) {
-            throw new FilibusterTestRuntimeException("firstFaultInjected is null: this could indicate a problem!");
+            throw new FilibusterGrpcTestInternalRuntimeException("firstFaultInjected is null: this could indicate a problem!");
         }
 
         return executedRPCs.get(firstFaultInjected.getKey());

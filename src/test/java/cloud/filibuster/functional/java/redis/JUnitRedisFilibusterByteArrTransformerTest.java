@@ -2,7 +2,7 @@ package cloud.filibuster.functional.java.redis;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedAPIException;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
-import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
+import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.db.redis.RedisTransformBitInByteArrAnalysisConfigurationFile;
@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@SuppressWarnings("unchecked")
 public class JUnitRedisFilibusterByteArrTransformerTest extends JUnitAnnotationBaseTest {
     static final String key = "test";
     static final byte[] value = "example".getBytes(Charset.defaultCharset());
@@ -55,7 +54,7 @@ public class JUnitRedisFilibusterByteArrTransformerTest extends JUnitAnnotationB
         try {
             numberOfTestExecutions++;
 
-            StatefulRedisConnection<String, byte[]> myStatefulRedisConnection = new RedisInterceptorFactory<>(statefulRedisConnection, redisConnectionString).getProxy(StatefulRedisConnection.class);
+            StatefulRedisConnection<String, byte[]> myStatefulRedisConnection = DynamicProxyInterceptor.createInterceptor(statefulRedisConnection, redisConnectionString);
             RedisCommands<String, byte[]> myRedisCommands = myStatefulRedisConnection.sync();
             byte[] returnVal = myRedisCommands.get(key);
             assertArrayEquals(value, returnVal);

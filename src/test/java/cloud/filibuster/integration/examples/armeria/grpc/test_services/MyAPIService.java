@@ -217,7 +217,7 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
 
         StatefulRedisConnection<String, byte[]> redisConnection = redisService.redisClient.connect(RedisCodec.of(new StringCodec(), new ByteArrayCodec()));
 
-        redisConnection = new RedisInterceptorFactory<>(redisConnection, redisService.connectionString).getProxy(StatefulRedisConnection.class);
+        redisConnection = DynamicProxyInterceptor.createInterceptor(redisConnection, redisService.connectionString);
 
         byte[] retrievedValue = redisConnection.sync().get(req.getBookId());
 
@@ -265,7 +265,7 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
 
         StatefulRedisConnection<String, byte[]> redisConnection = redisService.redisClient.connect(RedisCodec.of(new StringCodec(), new ByteArrayCodec()));
 
-        redisConnection = new RedisInterceptorFactory<>(redisConnection, redisService.connectionString).getProxy(StatefulRedisConnection.class);
+        redisConnection = DynamicProxyInterceptor.createInterceptor(redisConnection, redisService.connectionString);
 
         byte[] retrievedValue = redisConnection.sync().get(req.getBookId());
 

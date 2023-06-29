@@ -4,8 +4,8 @@ import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
-import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.db.redis.RedisStringExceptionAndTransformerAndByzantineAnalysisConfigurationFile;
@@ -42,7 +42,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@SuppressWarnings("unchecked")
 public class JUnitFaultyRedisFaultFreeGRPCWithSuppressCombinationsTest extends JUnitAnnotationBaseTest {
     static StatefulRedisConnection<String, String> statefulRedisConnection;
     static String redisConnectionString;
@@ -95,7 +94,7 @@ public class JUnitFaultyRedisFaultFreeGRPCWithSuppressCombinationsTest extends J
         assertEquals(String.format("Hello, %s!!", name), helloReply.getMessage());
 
         // Prepare Redis interceptor
-        StatefulRedisConnection<String, String> myStatefulRedisConnection = new RedisInterceptorFactory<>(statefulRedisConnection, redisConnectionString).getProxy(StatefulRedisConnection.class);
+        StatefulRedisConnection<String, String> myStatefulRedisConnection = DynamicProxyInterceptor.createInterceptor(statefulRedisConnection, redisConnectionString);
         RedisCommands<String, String> myRedisCommands = myStatefulRedisConnection.sync();
 
         // Get key from Redis and assert correct value

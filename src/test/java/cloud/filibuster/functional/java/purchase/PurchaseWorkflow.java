@@ -137,8 +137,6 @@ public class PurchaseWorkflow {
         cartTotal = cartTotal - (int) discountAmount;
 
         // Notify of applied discount.
-        // TODO: what about fault on all three of the discounts?
-        // TODO: suppress
         if (discountAmount > 0) {
             CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
             Hello.NotifyDiscountAppliedRequest notifyDiscountAppliedRequest = Hello.NotifyDiscountAppliedRequest.newBuilder().setCartId(cartId).build();
@@ -219,7 +217,7 @@ public class PurchaseWorkflow {
         CockroachClientService cockroachClientService = CockroachClientService.getInstance();
 
         if (getInstrumentationServerCommunicationEnabledProperty()) {
-            // TODO: incomplete, needs instrumentation.
+            // incomplete, needs instrumentation.
             return cockroachClientService.dao;
         } else {
             return cockroachClientService.dao;

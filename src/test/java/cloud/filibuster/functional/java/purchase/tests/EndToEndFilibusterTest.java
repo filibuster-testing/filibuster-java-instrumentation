@@ -203,7 +203,7 @@ public class EndToEndFilibusterTest extends PurchaseBaseTest implements Filibust
 
     @TestWithFilibuster(
             analysisConfigurationFile = GRPCAnalysisConfigurationFile.class,
-            maxIterations = 20,
+            maxIterations = 50,
             dataNondeterminism = true,
             suppressCombinations = true,
             searchStrategy = FilibusterSearchStrategy.BFS

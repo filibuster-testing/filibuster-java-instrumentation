@@ -424,7 +424,7 @@
                         row += '</td>';
                     }
 
-                    if (!isFaulted) {
+                    if (!isFaulted || isByzantineFault) {
                         row += '<td></td>';
                     } else {
                         if ('forced_exception' in rpc.fault) {

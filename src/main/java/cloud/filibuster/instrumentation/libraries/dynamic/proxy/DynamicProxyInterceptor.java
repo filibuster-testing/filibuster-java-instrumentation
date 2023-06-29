@@ -165,10 +165,24 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
         Object invocationResult = invokeOnInterceptedObject(method, args);
         HashMap<String, String> returnValueProperties = new HashMap<>();
 
-        // invocationResult could be null (e.g., when querying a key in that does not exist). If it is null, skip
-        // execute the following block
+        // invocationResult could be null (e.g., when querying a key in that does not exist)
         if (invocationResult != null) {
-            returnValueProperties.put("toString", invocationResult.toString());
+            String sInvocationResult;
+
+            // Remove memory references from the response
+            // They can differ for each test execution and can cause non-termination
+            if ((invocationResult.getClass().getName().contains("jdk.proxy") || // Matches Redis
+                    invocationResult.getClass().getName().contains("org.postgresql.jdbc")) // Matches Postgres
+                    && invocationResult.toString().matches(".*\\..*@.*"))  // Match the pattern of having class names, separated by ".", then "@" and then the memory reference
+            {
+                // Avoid encoding memory reference in the RPC response. Instead, encode only the class name
+                sInvocationResult = invocationResult.toString().split("@")[0];
+            } else {
+                sInvocationResult = invocationResult.toString();
+            }
+
+            returnValueProperties.put("toString", sInvocationResult);
+
             // If "invocationResult" is an interface, return an intercepted proxy
             // (e.g., when calling StatefulRedisConnection.sync() where StatefulRedisConnection is an intercepted proxy,
             // the returned RedisCommands object should also be an intercepted proxy)

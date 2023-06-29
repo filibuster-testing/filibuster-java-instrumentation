@@ -611,6 +611,48 @@ public class FilibusterCore {
 
     // Fault injection helpers.
 
+    @Nullable public synchronized HashMap<DistributedExecutionIndex, JSONObject> faultsInjected() {
+        logger.info("[FILIBUSTER-CORE]: faultsInjected called");
+
+        if (currentConcreteTestExecution == null) {
+            return null;
+        }
+
+        HashMap<DistributedExecutionIndex, JSONObject> result = currentConcreteTestExecution.getFaultsToInject();
+
+        logger.info("[FILIBUSTER-CORE]: faultsInjected returning: " + result);
+
+        return result;
+    }
+
+    @Nullable public synchronized HashMap<DistributedExecutionIndex, JSONObject> executedRPCs() {
+        logger.info("[FILIBUSTER-CORE]: executedRPCs called");
+
+        if (currentConcreteTestExecution == null) {
+            return null;
+        }
+
+        HashMap<DistributedExecutionIndex, JSONObject> result = currentConcreteTestExecution.getExecutedRPCs();
+
+        logger.info("[FILIBUSTER-CORE]: executedRPCs returning: " + result);
+
+        return result;
+    }
+
+    @Nullable public synchronized HashMap<DistributedExecutionIndex, JSONObject> failedRPCs() {
+        logger.info("[FILIBUSTER-CORE]: failedRPCs called");
+
+        if (currentConcreteTestExecution == null) {
+            return null;
+        }
+
+        HashMap<DistributedExecutionIndex, JSONObject> result = currentConcreteTestExecution.getFailedRPCs();
+
+        logger.info("[FILIBUSTER-CORE]: failedRPCs returning: " + result);
+
+        return result;
+    }
+
     public synchronized boolean wasFaultInjected() {
         logger.info("[FILIBUSTER-CORE]: wasFaultInjected called");
 

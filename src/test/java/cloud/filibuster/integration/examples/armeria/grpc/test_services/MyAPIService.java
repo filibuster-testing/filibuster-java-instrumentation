@@ -7,8 +7,8 @@ import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.exceptions.CircuitBreakerException;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
-import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.PurchaseWorkflow;
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
@@ -110,8 +110,8 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     @SuppressWarnings("unchecked")
     public void redisHello(Hello.RedisRequest req, StreamObserver<Hello.RedisReply> responseObserver) {
         Hello.RedisReply reply;
-        RedisClientService redisClient = RedisClientService.getInstance();
-        StatefulRedisConnection<String, String> connection = new RedisInterceptorFactory<>(redisClient.redisClient.connect(), redisClient.connectionString).getProxy(StatefulRedisConnection.class);
+        RedisClientService redisService = RedisClientService.getInstance();
+        StatefulRedisConnection<String, String> connection = DynamicProxyInterceptor.createInterceptor(redisService.redisClient.connect(), redisService.connectionString);
 
         String retrievedValue = null;
 
@@ -152,8 +152,8 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     public void redisHelloRetry(Hello.RedisRequest req, StreamObserver<Hello.RedisReply> responseObserver) {
         // API service talks to Redis before making a call to Hello
         Hello.RedisReply reply;
-        RedisClientService redisClient = RedisClientService.getInstance();
-        StatefulRedisConnection<String, String> connection = new RedisInterceptorFactory<>(redisClient.redisClient.connect(), redisClient.connectionString).getProxy(StatefulRedisConnection.class);
+        RedisClientService redisService = RedisClientService.getInstance();
+        StatefulRedisConnection<String, String> connection = DynamicProxyInterceptor.createInterceptor(redisService.redisClient.connect(), redisService.connectionString);
 
         String retrievedValue = null;
         int currentTry = 0;
@@ -406,8 +406,12 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
                 status = Status.INTERNAL.withDescription("Purchase has not yet been completed.");
                 responseObserver.onError(status.asRuntimeException());
                 break;
-            case UNAVAILABLE:
-                status = Status.UNAVAILABLE.withDescription("Purchase could not be completed at this time, please retry the request.");
+            case USER_UNAVAILABLE:
+                status = Status.UNAVAILABLE.withDescription("Purchase could not be completed at this time, please retry the request: user could not be retrieved.");
+                responseObserver.onError(status.asRuntimeException());
+                break;
+            case CART_UNAVAILABLE:
+                status = Status.UNAVAILABLE.withDescription("Purchase could not be completed at this time, please retry the request: cart could not be retrieved.");
                 responseObserver.onError(status.asRuntimeException());
                 break;
         }

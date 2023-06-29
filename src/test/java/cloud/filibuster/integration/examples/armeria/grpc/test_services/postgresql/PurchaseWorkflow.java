@@ -5,8 +5,8 @@ import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.instrumentation.datatypes.Pair;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
-import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
@@ -17,6 +17,7 @@ import io.grpc.StatusRuntimeException;
 import io.lettuce.core.api.StatefulRedisConnection;
 import org.json.JSONObject;
 
+import javax.sql.DataSource;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +31,8 @@ public class PurchaseWorkflow {
         SUCCESS,
         INSUFFICIENT_FUNDS,
         UNPROCESSED,
-        UNAVAILABLE
+        USER_UNAVAILABLE,
+        CART_UNAVAILABLE
     }
 
     public static void depositFundsToAccount(UUID account, int amount) {
@@ -69,6 +71,7 @@ public class PurchaseWorkflow {
         ArrayList<Map.Entry<String, String>> discountCodes = new ArrayList<>();
         discountCodes.add(Pair.of("FIRST-TIME", "10"));
         discountCodes.add(Pair.of("RETURNING", "5"));
+        discountCodes.add(Pair.of("DAILY", "1"));
         return discountCodes;
     }
 
@@ -101,7 +104,7 @@ public class PurchaseWorkflow {
         try {
             userId = getUserFromSession(channel, sessionId);
         } catch (StatusRuntimeException e) {
-            return PurchaseWorkflowResponse.UNAVAILABLE;
+            return PurchaseWorkflowResponse.USER_UNAVAILABLE;
         }
 
         // Get cart.
@@ -111,7 +114,7 @@ public class PurchaseWorkflow {
             merchantId = getCartResponse.getMerchantId();
             cartTotal = Integer.parseInt(getCartResponse.getTotal());
         } catch (StatusRuntimeException e) {
-            return PurchaseWorkflowResponse.UNAVAILABLE;
+            return PurchaseWorkflowResponse.CART_UNAVAILABLE;
         }
 
         // Get the maximum discount.
@@ -186,13 +189,11 @@ public class PurchaseWorkflow {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private static StatefulRedisConnection<String, String> getRedisConnection() {
         RedisClientService redisClient = RedisClientService.getInstance();
 
         if (getInstrumentationServerCommunicationEnabledProperty()) {
-            return new RedisInterceptorFactory<>(redisClient.redisClient.connect(), redisClient.connectionString)
-                    .getProxy(StatefulRedisConnection.class);
+            return DynamicProxyInterceptor.createInterceptor(redisClient.redisClient.connect(), redisClient.connectionString);
         } else {
             return RedisClientService.getInstance().redisClient.connect();
         }
@@ -202,11 +203,11 @@ public class PurchaseWorkflow {
         CockroachClientService cockroachClientService = CockroachClientService.getInstance();
 
         if (getInstrumentationServerCommunicationEnabledProperty()) {
-            // TODO: incomplete, needs instrumentation.
-            return cockroachClientService.dao;
-        } else {
-            return cockroachClientService.dao;
+            DataSource interceptedDS = DynamicProxyInterceptor.createInterceptor(cockroachClientService.dataSource,
+                    cockroachClientService.connectionString);
+            cockroachClientService.dao.setDS(interceptedDS);
         }
+        return cockroachClientService.dao;
     }
 
     private static String getUserFromSession(Channel channel, String sessionId) {

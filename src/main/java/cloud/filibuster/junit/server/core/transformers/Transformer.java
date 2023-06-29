@@ -1,5 +1,7 @@
 package cloud.filibuster.junit.server.core.transformers;
 
+import java.lang.reflect.Type;
+
 /**
  * Returns a generic transformer interface that can be implemented in type-specific classes (e.g., StringTransformer).
  *
@@ -25,18 +27,19 @@ public interface Transformer<PAYLOAD, CONTEXT> {
     boolean hasNext();
 
     /**
-     * Returns class of the payload.
+     * Returns Type of the payload.
      *
-     * @return Class of the payload
+     * @return Type of the payload
      */
-    Class<PAYLOAD> getPayloadType();
+    Type getPayloadType();
 
     /**
-     * Returns class of the context.
+     * Returns Type representation of the accumulator.
+     * This method is used to serialize the accumulator in Gson.
      *
-     * @return Class of the context
+     * @return Type representation of the accumulator
      */
-    Class<CONTEXT> getContextType();
+    Type getAccumulatorType();
 
     /**
      * Returns payload after applying the transformation.
@@ -45,13 +48,6 @@ public interface Transformer<PAYLOAD, CONTEXT> {
      * @return Payload
      */
     PAYLOAD getResult();
-
-    /**
-     * Returns accumulator used in current transformation.
-     *
-     * @return Generic accumulator
-     */
-    Accumulator<PAYLOAD, CONTEXT> getAccumulator();
 
     /**
      * Returns initial accumulator used in the first transformation.

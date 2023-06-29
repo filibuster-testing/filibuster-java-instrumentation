@@ -1,9 +1,9 @@
-package cloud.filibuster.junit.configuration.examples.db.redis;
+package cloud.filibuster.functional.java.redis.transformers.configuration;
 
+import cloud.filibuster.functional.java.redis.transformers.FaultyStringTransformerWithFalseHasNext;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
-import cloud.filibuster.junit.server.core.transformers.FaultyStringTransformerWithFalseHasNext;
 
 public class FaultyHasNextFalseRedisTransformStringAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;

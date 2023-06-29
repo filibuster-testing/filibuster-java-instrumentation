@@ -8,7 +8,6 @@ import org.json.JSONObject;
 import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 import static cloud.filibuster.junit.Assertions.getFaultsInjected;
 import static org.grpcmock.GrpcMock.calledMethod;

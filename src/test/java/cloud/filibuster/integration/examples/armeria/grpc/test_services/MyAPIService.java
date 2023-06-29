@@ -107,7 +107,6 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void redisHello(Hello.RedisRequest req, StreamObserver<Hello.RedisReply> responseObserver) {
         Hello.RedisReply reply;
         RedisClientService redisService = RedisClientService.getInstance();
@@ -148,7 +147,6 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void redisHelloRetry(Hello.RedisRequest req, StreamObserver<Hello.RedisReply> responseObserver) {
         // API service talks to Redis before making a call to Hello
         Hello.RedisReply reply;
@@ -209,7 +207,6 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
 
 
     @Override
-    @SuppressWarnings("unchecked")
     public void getBook(Hello.GetBookRequest req, StreamObserver<Hello.GetBookResponse> responseObserver) {
         Hello.GetBookResponse reply = null;
         RedisClientService redisService = RedisClientService.getInstance();
@@ -257,7 +254,6 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
 
 
     @Override
-    @SuppressWarnings("unchecked")
     public void getBookTitle(Hello.GetBookRequest req, StreamObserver<Hello.GetBookTitleResponse> responseObserver) {
         Hello.GetBookTitleResponse reply = null;
         RedisClientService redisService = RedisClientService.getInstance();

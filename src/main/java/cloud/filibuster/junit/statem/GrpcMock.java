@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.purchase.statem;
+package cloud.filibuster.junit.statem;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.junit.Assertions;

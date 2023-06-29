@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.purchase.statem;
+package cloud.filibuster.exceptions.filibuster;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 

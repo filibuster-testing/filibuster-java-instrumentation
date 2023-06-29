@@ -7,8 +7,8 @@ import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.functional.java.purchase.PurchaseBaseTest;
 
 import cloud.filibuster.functional.java.purchase.configurations.GRPCAnalysisConfigurationFile;
-import cloud.filibuster.functional.java.purchase.statem.FilibusterTest;
-import cloud.filibuster.functional.java.purchase.statem.GrpcMock;
+import cloud.filibuster.junit.statem.FilibusterTest;
+import cloud.filibuster.junit.statem.GrpcMock;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.functional.java.purchase.PurchaseWorkflow;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
@@ -22,8 +22,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static cloud.filibuster.functional.java.purchase.statem.GrpcMock.stubFor;
-import static cloud.filibuster.functional.java.purchase.statem.GrpcMock.verifyThat;
+import static cloud.filibuster.junit.statem.GrpcMock.stubFor;
+import static cloud.filibuster.junit.statem.GrpcMock.verifyThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;

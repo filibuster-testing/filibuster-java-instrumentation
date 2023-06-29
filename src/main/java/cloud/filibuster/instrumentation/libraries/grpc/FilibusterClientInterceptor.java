@@ -7,6 +7,7 @@ import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
+import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineFaultType;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
@@ -164,6 +165,44 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
     public FilibusterClientInterceptor(String serviceName) {
         this.serviceName = serviceName;
         this.contextStorage = new ThreadLocalContextStorage();
+    }
+
+    @Nullable
+    private <REQUEST> REQUEST injectByzantineFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject byzantineFault, REQUEST originalRequest) {
+        try {
+            if (byzantineFault.has("type") && byzantineFault.has("value")) {
+                ByzantineFaultType<?> byzantineFaultType = (ByzantineFaultType<?>) byzantineFault.get("type");
+                Object value = byzantineFault.get("value");
+
+                // Cast the byzantineFaultValue to the correct type.
+                value = byzantineFaultType.cast(value);
+
+                @SuppressWarnings("unchecked")
+                REQUEST valueAsRequest = (REQUEST) value;
+
+                logger.log(Level.INFO, logPrefix + "byzantineFaultType: " + byzantineFaultType);
+                logger.log(Level.INFO, logPrefix + "byzantineFaultValue: " + value);
+
+                String sByzantineFaultValue = String.valueOf(value);
+
+                // Notify Filibuster.
+                filibusterClientInstrumentor.afterInvocationWithByzantineFault(sByzantineFaultValue, originalRequest.getClass().toString());
+
+                return valueAsRequest;
+            } else {
+                String missingKey;
+                if (byzantineFault.has("type")) {
+                    missingKey = "value";
+                } else {
+                    missingKey = "type";
+                }
+                logger.log(Level.WARNING, logPrefix + "The byzantineFault does not have the required key " + missingKey);
+                throw new FilibusterFaultInjectionException("injectByzantineFault: The byzantineFault does not have the required key " + missingKey);
+            }
+        } catch (RuntimeException e) {
+            logger.log(Level.WARNING, logPrefix + "Could not inject byzantine fault. The cast was probably not successful:", e);
+            throw new FilibusterFaultInjectionException("Could not inject byzantine fault. The cast was probably not successful:", e);
+        }
     }
 
     @Override
@@ -375,8 +414,8 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                     // Inject byzantine fault, if necessary.
                     // ******************************************************************************************
 
-                    if (byzantineFault != null) {
-                        // TODO: Inject byzantine faults.
+                    if (byzantineFault != null && filibusterClientInstrumentor.shouldAbort()) {
+                        message = injectByzantineFault(filibusterClientInstrumentor, byzantineFault, message);
                     }
 
                     delegate = next.newCall(method, callOptions);

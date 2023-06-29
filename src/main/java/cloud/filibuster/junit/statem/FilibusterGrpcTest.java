@@ -12,6 +12,7 @@ import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import org.json.JSONObject;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -212,6 +213,7 @@ public interface FilibusterGrpcTest {
         expectedExceptions.put(methodDescriptor.getFullMethodName(), Pair.of(code, description));
     }
 
+    @Nullable
     default JSONObject rpcWhereFirstFaultInjected() {
         // Look up the RPCs that were executed and the faults that were injected.
         HashMap<DistributedExecutionIndex, JSONObject> executedRPCs = getExecutedRPCs();

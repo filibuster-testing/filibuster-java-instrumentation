@@ -1,6 +1,7 @@
 package cloud.filibuster.junit.statem;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
+import cloud.filibuster.dei.implementations.DistributedExecutionIndexV1;
 import cloud.filibuster.exceptions.filibuster.FilibusterTestRuntimeException;
 import cloud.filibuster.instrumentation.datatypes.Pair;
 import cloud.filibuster.junit.assertions.Helpers;
@@ -154,20 +155,29 @@ public interface FilibusterTest {
             throw new FilibusterTestRuntimeException("failedRPCs is null: this could indicate a problem!");
         }
 
-        if (getFaultsInjected().size() == 0) {
-            for (Map.Entry<DistributedExecutionIndex, JSONObject> failedRPC : failedRPCs.entrySet()) {
-                JSONObject jsonObject = failedRPC.getValue();
+        HashMap<DistributedExecutionIndex, JSONObject> faultsInjected = getFaultsInjected();
 
-                if (jsonObject.has("exception")) {
-                    JSONObject exceptionJsonObject = jsonObject.getJSONObject("exception");
+        if (faultsInjected == null) {
+            throw new FilibusterTestRuntimeException("faultsInjected is null: this could indicate a problem!");
+        }
 
-                    if (exceptionJsonObject.has("metadata")) {
-                        JSONObject metadataExceptionJsonObject = exceptionJsonObject.getJSONObject("metadata");
+        for (Map.Entry<DistributedExecutionIndex, JSONObject> failedRPC : failedRPCs.entrySet()) {
+            DistributedExecutionIndex distributedExecutionIndex = failedRPC.getKey();
+            JSONObject jsonObject = failedRPC.getValue();
 
-                        if (metadataExceptionJsonObject.has("code")) {
-                            String code = metadataExceptionJsonObject.getString("code");
+            if (jsonObject.has("exception")) {
+                JSONObject exceptionJsonObject = jsonObject.getJSONObject("exception");
 
-                            if (code.equals("UNIMPLEMENTED")) {
+                if (exceptionJsonObject.has("metadata")) {
+                    JSONObject metadataExceptionJsonObject = exceptionJsonObject.getJSONObject("metadata");
+
+                    if (metadataExceptionJsonObject.has("code")) {
+                        String code = metadataExceptionJsonObject.getString("code");
+
+                        if (code.equals("UNIMPLEMENTED")) {
+                            boolean faultInjected = faultsInjected.containsKey(distributedExecutionIndex);
+
+                            if (!faultInjected) {
                                 throw new FilibusterTestRuntimeException("Some RPCs are left UNIMPLEMENTED!");
                             }
                         }

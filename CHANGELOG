@@ -1,3 +1,11 @@
+2.0.0:
+    - (MichaelA-ops) Use dynamic proxy interceptor for Redis and Cockroach
+    - (MichaelA-ops) Introduce transformer faults
+    - (MichaelA-ops) Generate transformer faults inductively, not up front
+    - (MichaelA-ops) Use a generic accumulator in transformer faults
+    - (MichaelA-ops) Implement String transformers
+    - (MichaelA-ops) Use different background colours in the plugin for Byzantine and transformer faults
+    - (MichaelA-ops) Implement afterInvocationWithByzantineFault and afterInvocationWithTransformerFault
 1.8.0:
    - (cmeiklejohn) New test interface style.
    - (cmeiklejohn) Fix bug in getAvoidInjectionsOnOrganicFailures.

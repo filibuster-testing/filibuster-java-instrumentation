@@ -77,7 +77,9 @@ public interface FilibusterGrpcTest {
                     shouldRunAssertionBlock = false;
                 }
                 else {
-                    throw new FilibusterTestRuntimeException("Test injected a fault, but no specification of failure behavior present.\n");
+                    throw new FilibusterGrpcTestRuntimeException(
+                            "Test injected a fault, but no specification of failure behavior present.",
+                            "Use onFaultOnMethod(MethodDescriptor, Runnable) or onFaultOnRequest(MethodDescriptor, ReqT, Runnable) to specify assertions under fault.");
                 }
             }
 

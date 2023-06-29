@@ -212,7 +212,7 @@ public interface FilibusterGrpcTest {
 
     HashMap<String, Map.Entry<Status.Code, String>> expectedExceptions = new HashMap<>();
 
-    default void downstreamFailureResultsInException(MethodDescriptor methodDescriptor, Status.Code code, String description) {
+    default <ReqT, ResT> void downstreamFailureResultsInException(MethodDescriptor<ReqT, ResT> methodDescriptor, Status.Code code, String description) {
         expectedExceptions.put(methodDescriptor.getFullMethodName(), Pair.of(code, description));
     }
 
@@ -265,13 +265,13 @@ public interface FilibusterGrpcTest {
 
     HashMap<String, Runnable> modifiedAssertionsByMethod = new HashMap<>();
 
-    default void onFaultOnMethod(MethodDescriptor methodDescriptor, Runnable runnable) {
+    default <ReqT, ResT> void onFaultOnMethod(MethodDescriptor<ReqT, ResT> methodDescriptor, Runnable runnable) {
         modifiedAssertionsByMethod.put(methodDescriptor.getFullMethodName(), runnable);
     }
 
     HashMap<String, Runnable> modifiedAssertionsByRequest = new HashMap<>();
 
-    default  <ReqT> void onFaultOnRequest(MethodDescriptor methodDescriptor, ReqT request, Runnable runnable) {
+    default <ReqT, ResT> void onFaultOnRequest(MethodDescriptor<ReqT, ResT> methodDescriptor, ReqT request, Runnable runnable) {
         modifiedAssertionsByRequest.put(request.toString(), runnable);
     }
 }

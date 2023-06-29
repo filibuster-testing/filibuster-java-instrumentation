@@ -151,13 +151,13 @@ public interface FilibusterGrpcTest {
         HashMap<DistributedExecutionIndex, JSONObject> failedRPCs = getFailedRPCs();
 
         if (failedRPCs == null) {
-            throw new FilibusterTestRuntimeException("failedRPCs is null: this could indicate a problem!");
+            throw new FilibusterGrpcTestInternalRuntimeException("failedRPCs is null: this could indicate a problem!");
         }
 
         HashMap<DistributedExecutionIndex, JSONObject> faultsInjected = getFaultsInjected();
 
         if (faultsInjected == null) {
-            throw new FilibusterTestRuntimeException("faultsInjected is null: this could indicate a problem!");
+            throw new FilibusterGrpcTestInternalRuntimeException("faultsInjected is null: this could indicate a problem!");
         }
 
         for (Map.Entry<DistributedExecutionIndex, JSONObject> failedRPC : failedRPCs.entrySet()) {

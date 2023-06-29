@@ -1,4 +1,4 @@
-package cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql;
+package cloud.filibuster.functional.java.purchase;
 
 import cloud.filibuster.examples.CartServiceGrpc;
 import cloud.filibuster.examples.Hello;
@@ -8,6 +8,8 @@ import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
 import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.BasicDAO;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.CockroachClientService;
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
 import io.grpc.ClientInterceptors;
@@ -136,7 +138,7 @@ public class PurchaseWorkflow {
 
         // Notify of applied discount.
         // TODO: what about fault on all three of the discounts?
-        // TODO: suppress 
+        // TODO: suppress
         if (discountAmount > 0) {
             CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
             Hello.NotifyDiscountAppliedRequest notifyDiscountAppliedRequest = Hello.NotifyDiscountAppliedRequest.newBuilder().setCartId(cartId).build();

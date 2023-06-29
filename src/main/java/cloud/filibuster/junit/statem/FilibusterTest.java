@@ -145,15 +145,6 @@ public interface FilibusterTest {
         } finally {
             // Execute teardown.
             Helpers.teardownBlock(this::teardownBlock);
-
-            if (getFaultsInjected().size() == 0) {
-                // Fail the test if something hasn't had a verifyThat called on it.
-                for (Map.Entry<String, Boolean> verifyThat : GrpcMock.verifyThatMapping.entrySet()) {
-                    if (!verifyThat.getValue()) {
-                        throw new FilibusterTestRuntimeException("RPC " + verifyThat.getKey() + " has no assertions on invocation count!");
-                    }
-                }
-            }
         }
 
         // Fail the test if any RPCs were left UNIMPLEMENTED (and, we didn't inject it!)
@@ -181,6 +172,15 @@ public interface FilibusterTest {
                             }
                         }
                     }
+                }
+            }
+        }
+
+        // Fail the test if something hasn't had a verifyThat called on it.
+        if (getFaultsInjected().size() == 0) {
+            for (Map.Entry<String, Boolean> verifyThat : GrpcMock.verifyThatMapping.entrySet()) {
+                if (!verifyThat.getValue()) {
+                    throw new FilibusterTestRuntimeException("RPC " + verifyThat.getKey() + " has no assertions on invocation count!");
                 }
             }
         }

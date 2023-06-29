@@ -209,8 +209,7 @@ public interface FilibusterTest {
         // Fail if more than one fault was injected.
         // We could be smarter about this, but let's skip it for now since we probably won't run tests this way.
         if (faultsInjected.size() > 1) {
-            throw new FilibusterTestRuntimeException(
-                    "Test threw an exception; however, multiple faults were injected.");
+            throw new FilibusterTestRuntimeException("Test threw an exception; however, multiple faults were injected.");
         }
 
         // At this point, there should be only a single injected fault.

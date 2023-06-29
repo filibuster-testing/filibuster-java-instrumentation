@@ -50,9 +50,18 @@ message GetDiscountResponse {
   string percent = 1;
 }
 
+message NotifyDiscountAppliedRequest {
+  string cart_id = 1;
+}
+
+message NotifyDiscountAppliedResponse {
+
+}
+
 service CartService {
   rpc GetCartForSession (GetCartRequest) returns (GetCartResponse) {}
   rpc GetDiscountOnCart (GetDiscountRequest) returns (GetDiscountResponse) {}
+  rpc NotifyDiscountApplied (NotifyDiscountAppliedRequest) returns (NotifyDiscountAppliedResponse) {}
 }
 
 service HelloService {

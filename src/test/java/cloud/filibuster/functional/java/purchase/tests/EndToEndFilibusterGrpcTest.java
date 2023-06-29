@@ -145,7 +145,7 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
     }
 
     @Override
-    public void testBlock() {
+    public void executeTestBlock() {
         APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(API_CHANNEL);
         Hello.PurchaseRequest request = Hello.PurchaseRequest.newBuilder()
                 .setSessionId(sessionId.toString())

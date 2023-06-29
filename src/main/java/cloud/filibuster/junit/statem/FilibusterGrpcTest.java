@@ -27,7 +27,7 @@ public interface FilibusterGrpcTest {
 
     void stubBlock();
 
-    void testBlock();
+    void executeTestBlock();
 
     void assertTestBlock();
 
@@ -53,7 +53,7 @@ public interface FilibusterGrpcTest {
 
         try {
             // Execute the test.
-            Helpers.testBlock(this::testBlock);
+            Helpers.testBlock(this::executeTestBlock);
 
             // If a fault was injected, ask the developer to specify an alternative assertion block.
             boolean shouldRunAssertionBlock = true;

@@ -302,7 +302,7 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
                 respondWithError(responseObserver, description);
             }
         } else {
-            String description = "Book was not found";
+            String description = "Retrieved value is null. Book was not found";
             respondWithError(responseObserver, description);
         }
 

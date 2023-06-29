@@ -189,12 +189,14 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
             if (method.getReturnType().isInterface() &&
                     method.getReturnType().getClassLoader() != null) {
                 invocationResult = DynamicProxyInterceptor.createInterceptor(invocationResult, connectionString);
+                filibusterClientInstrumentor.afterInvocationComplete(method.getReturnType().getName(), returnValueProperties);
+            } else {
+                filibusterClientInstrumentor.afterInvocationComplete(method.getReturnType().getName(), returnValueProperties, invocationResult);
             }
         } else {
             returnValueProperties.put("toString", null);
+            filibusterClientInstrumentor.afterInvocationComplete(method.getReturnType().getName(), returnValueProperties);
         }
-
-        filibusterClientInstrumentor.afterInvocationComplete(method.getReturnType().getName(), returnValueProperties);
 
         return invocationResult;
     }

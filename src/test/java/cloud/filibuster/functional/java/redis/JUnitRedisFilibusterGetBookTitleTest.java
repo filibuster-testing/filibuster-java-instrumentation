@@ -7,7 +7,7 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.db.redis.RedisTransformBitInByteArrAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.db.redis.RedisTransformBitInByteArrAndByzantineAnalysisConfigurationFile;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.lettuce.core.api.StatefulRedisConnection;
@@ -76,7 +76,7 @@ public class JUnitRedisFilibusterGetBookTitleTest extends JUnitAnnotationBaseTes
 
     @DisplayName("Tests whether a book title can be retrieved from Redis - Inject transformer faults where random bits are flipped in the byte array.")
     @Order(1)
-    @TestWithFilibuster(analysisConfigurationFile = RedisTransformBitInByteArrAnalysisConfigurationFile.class,
+    @TestWithFilibuster(analysisConfigurationFile = RedisTransformBitInByteArrAndByzantineAnalysisConfigurationFile.class,
             maxIterations = 1000)
     public void testGetBookTitleFromRedis() {
         numberOfTestExecutions++;
@@ -99,10 +99,10 @@ public class JUnitRedisFilibusterGetBookTitleTest extends JUnitAnnotationBaseTes
     @DisplayName("Verify correct number of test executions.")
     @Test
     @Order(2)
-    // 1 for the reference execution and +1 for each bit in the byte array
-    // => 1 + bookBytes.length * 8 = 1 + 69 * 8 = 553
+    // 1 for the reference execution, +1 for the byzantine faults (injecting null), and +1 for each bit in the byte array
+    // => 1 + 1 + bookBytes.length * 8 = 1 + 1 + 69 * 8 = 554
     public void testNumExecutions() {
-        assertEquals(bookBytes.length * 8 + 1, numberOfTestExecutions);
+        assertEquals(1 + 1 + bookBytes.length * 8, numberOfTestExecutions);
     }
 
     @DisplayName("Assert the fault at the hello service was found")
@@ -115,23 +115,36 @@ public class JUnitRedisFilibusterGetBookTitleTest extends JUnitAnnotationBaseTes
         assertEquals(40, helloFaults);
     }
 
-    @DisplayName("Assert all faults were either deserialization faults or from the hello service")
+    @DisplayName("Assert the book not found exception was found")
     @Test
     @Order(4)
-    public void testNumDeserializationAndHelloFaults() {
-        // Out of 553 executions, 208 were deserialization faults
+    public void testBookNotFound() {
+        // Assert that the "book not found" exception was found once.
+        // It is found in the iteration in which we inject the byzantine value null
+        int bookNotFound = testFaults.stream().filter(e -> e.contains("Retrieved value is null. Book was not found")).collect(Collectors.toList()).size();
+        assertEquals(1, bookNotFound);
+    }
+
+    @DisplayName("Assert all faults were either deserialization faults, Byzantine faults or from the hello service")
+    @Test
+    @Order(5)
+    public void testNumDeserializationAndHelloAndByzantineFaults() {
+        // Out of 554 executions, 208 were deserialization faults
         int deserializationFaults = testFaults.stream().filter(e -> e.contains("Error deserializing")).collect(Collectors.toList()).size();
 
         // 40 iterations mutated the key "title" and therefore caused a fault in the hello service
         int helloFaults = testFaults.stream().filter(e -> e.contains("An exception was thrown at Hello service")).collect(Collectors.toList()).size();
 
-        // Total faults should be 208 + 40 = 248 faults
-        // This shows that only 248 / 553 = 44.8% of the executions actually caused faults
+        // 1 Byzantine iteration
+        int byzantineFaults = testFaults.stream().filter(e -> e.contains("Retrieved value is null. Book was not found")).collect(Collectors.toList()).size();
+
+        // Total faults should be 208 + 40 + 1 = 249 faults
+        // This shows that only 249 / 554 = 44.9% of the executions actually caused faults
         // The rest of the executions were successful, although a bit was flipped
-        assertEquals(248, deserializationFaults + helloFaults);
+        assertEquals(249, deserializationFaults + helloFaults + byzantineFaults);
 
         // All faults should be either deserialization faults or from the hello service
-        assertEquals(testFaults.size(), deserializationFaults + helloFaults);
+        assertEquals(testFaults.size(), deserializationFaults + helloFaults + byzantineFaults);
     }
 
 }

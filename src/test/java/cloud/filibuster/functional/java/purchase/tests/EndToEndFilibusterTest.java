@@ -69,6 +69,11 @@ public class EndToEndFilibusterTest extends PurchaseBaseTest implements Filibust
                 }
         );
 
+        onFaultOnMethod(
+                CartServiceGrpc.getNotifyDiscountAppliedMethod(),
+                this::assertTestBlock
+        );
+
         onFaultOnRequest(
                 CartServiceGrpc.getGetDiscountOnCartMethod(),
                 Hello.GetDiscountRequest.newBuilder()

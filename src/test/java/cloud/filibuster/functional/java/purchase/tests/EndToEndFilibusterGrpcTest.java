@@ -8,11 +8,11 @@ import cloud.filibuster.functional.java.purchase.PurchaseBaseTest;
 
 import cloud.filibuster.functional.java.purchase.configurations.GRPCAnalysisConfigurationFile;
 import cloud.filibuster.junit.statem.FilibusterGrpcTest;
-import cloud.filibuster.junit.statem.GrpcMock;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.functional.java.purchase.PurchaseWorkflow;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.TestWithFilibuster;
+import cloud.filibuster.junit.statem.GrpcMock;
 import io.grpc.Status;
 import org.grpcmock.junit5.GrpcMockExtension;
 import org.json.JSONObject;

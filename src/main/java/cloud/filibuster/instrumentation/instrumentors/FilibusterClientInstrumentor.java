@@ -961,7 +961,11 @@ final public class FilibusterClientInstrumentor {
 
             returnValueJO.put("__class__", className);
             if (returnValue != null && returnValue != JSONObject.NULL && returnValue != "") {  // Only serialise if return value is not null or empty.
-                returnValueJO.put("value", new Gson().toJson(returnValue));
+                try {
+                    returnValueJO.put("value", new Gson().toJson(returnValue));
+                } catch (Exception e) {
+                    logger.log(Level.WARNING, "Could not serialise return value to JSON: " + e);
+                }
             } else {
                 returnValueJO.put("value", returnValue);
             }

@@ -7,7 +7,7 @@ import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.functional.java.purchase.PurchaseBaseTest;
 
 import cloud.filibuster.functional.java.purchase.configurations.GRPCAnalysisConfigurationFile;
-import cloud.filibuster.junit.statem.FilibusterTest;
+import cloud.filibuster.junit.statem.FilibusterGrpcTest;
 import cloud.filibuster.junit.statem.GrpcMock;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.functional.java.purchase.PurchaseWorkflow;
@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class EndToEndFilibusterTest extends PurchaseBaseTest implements FilibusterTest {
+public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements FilibusterGrpcTest {
     @RegisterExtension
     static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
             .withPort(Networking.getPort("mock"))

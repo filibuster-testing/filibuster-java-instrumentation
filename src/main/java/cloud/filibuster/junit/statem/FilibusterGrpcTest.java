@@ -1,7 +1,6 @@
 package cloud.filibuster.junit.statem;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
-import cloud.filibuster.dei.implementations.DistributedExecutionIndexV1;
 import cloud.filibuster.exceptions.filibuster.FilibusterTestRuntimeException;
 import cloud.filibuster.instrumentation.datatypes.Pair;
 import cloud.filibuster.junit.assertions.Helpers;
@@ -18,7 +17,7 @@ import static cloud.filibuster.junit.Assertions.getExecutedRPCs;
 import static cloud.filibuster.junit.Assertions.getFailedRPCs;
 import static cloud.filibuster.junit.Assertions.getFaultsInjected;
 
-public interface FilibusterTest {
+public interface FilibusterGrpcTest {
     void failureBlock();
 
     void setupBlock();

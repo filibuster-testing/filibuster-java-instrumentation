@@ -5,7 +5,7 @@ import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.db.byzantine.grpc.FilibusterGRPCNullByzantineFaultAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.grpc.FilibusterGRPCNullByzantineFaultAnalysisConfigurationFile;
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
 import io.grpc.ClientInterceptors;

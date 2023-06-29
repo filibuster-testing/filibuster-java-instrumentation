@@ -7,7 +7,8 @@ import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
-import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineFaultType;
+import cloud.filibuster.junit.server.core.transformers.Accumulator;
+import com.google.gson.Gson;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
@@ -168,40 +169,39 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
     }
 
     @Nullable
-    private <REQUEST> REQUEST injectByzantineFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject byzantineFault, REQUEST originalRequest) {
+    private static <REQUEST> REQUEST injectTransformerFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject transformerFault, REQUEST originalRequest) {
         try {
-            if (byzantineFault.has("type") && byzantineFault.has("value")) {
-                ByzantineFaultType<?> byzantineFaultType = (ByzantineFaultType<?>) byzantineFault.get("type");
-                Object value = byzantineFault.get("value");
+            if (transformerFault.has("value") && transformerFault.has("accumulator")) {
 
-                // Cast the byzantineFaultValue to the correct type.
-                value = byzantineFaultType.cast(value);
-
+                // Extract the transformer fault value from the transformerFault JSONObject.
+                Object transformerFaultValue = transformerFault.get("value");
+                String sTransformerValue = transformerFaultValue.toString();
                 @SuppressWarnings("unchecked")
-                REQUEST valueAsRequest = (REQUEST) value;
+                REQUEST castedValue = (REQUEST) transformerFaultValue;
+                logger.log(Level.INFO, logPrefix + "Injecting the transformed fault value: " + sTransformerValue);
 
-                logger.log(Level.INFO, logPrefix + "byzantineFaultType: " + byzantineFaultType);
-                logger.log(Level.INFO, logPrefix + "byzantineFaultValue: " + value);
-
-                String sByzantineFaultValue = String.valueOf(value);
+                // Extract the accumulator from the transformerFault JSONObject.
+                Accumulator<?, ?> accumulator = new Gson().fromJson(transformerFault.get("accumulator").toString(), Accumulator.class);
 
                 // Notify Filibuster.
-                filibusterClientInstrumentor.afterInvocationWithByzantineFault(sByzantineFaultValue, originalRequest.getClass().toString());
+                filibusterClientInstrumentor.afterInvocationWithTransformerFault(sTransformerValue,
+                        originalRequest.getClass().toString(), accumulator);
 
-                return valueAsRequest;
+                // Return the transformer fault value.
+                return castedValue;
             } else {
                 String missingKey;
-                if (byzantineFault.has("type")) {
-                    missingKey = "value";
+                if (transformerFault.has("value")) {
+                    missingKey = "accumulator";
                 } else {
-                    missingKey = "type";
+                    missingKey = "value";
                 }
-                logger.log(Level.WARNING, logPrefix + "The byzantineFault does not have the required key " + missingKey);
-                throw new FilibusterFaultInjectionException("injectByzantineFault: The byzantineFault does not have the required key " + missingKey);
+                logger.log(Level.WARNING, logPrefix + "injectTransformerFault: The transformerFault does not have the required key " + missingKey);
+                throw new FilibusterFaultInjectionException("injectTransformerFault: The transformerFault does not have the required key " + missingKey);
             }
         } catch (RuntimeException e) {
-            logger.log(Level.WARNING, logPrefix + "Could not inject byzantine fault. The cast was probably not successful:", e);
-            throw new FilibusterFaultInjectionException("Could not inject byzantine fault. The cast was probably not successful:", e);
+            logger.log(Level.WARNING, logPrefix + "Could not inject transformer fault. The cast was probably not successful:", e);
+            throw new FilibusterFaultInjectionException("Could not inject transformer fault. The cast was probably not successful:", e);
         }
     }
 
@@ -361,11 +361,11 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
 
                     JSONObject forcedException = filibusterClientInstrumentor.getForcedException();
                     JSONObject failureMetadata = filibusterClientInstrumentor.getFailureMetadata();
-                    JSONObject byzantineFault = filibusterClientInstrumentor.getByzantineFault();
+                    JSONObject transformerFault = filibusterClientInstrumentor.getTransformerFault();
 
                     logger.log(Level.INFO, logPrefix + "forcedException: " + forcedException);
                     logger.log(Level.INFO, logPrefix + "failureMetadata: " + failureMetadata);
-                    logger.log(Level.INFO, logPrefix + "byzantineFault: " + byzantineFault);
+                    logger.log(Level.INFO, logPrefix + "transformerFault: " + transformerFault);
 
                     // ******************************************************************************************
                     // Setup additional failure headers, if necessary.
@@ -411,11 +411,11 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                     }
 
                     // ******************************************************************************************
-                    // Inject byzantine fault, if necessary.
+                    // Inject transformer fault, if necessary.
                     // ******************************************************************************************
 
-                    if (byzantineFault != null && filibusterClientInstrumentor.shouldAbort()) {
-                        message = injectByzantineFault(filibusterClientInstrumentor, byzantineFault, message);
+                    if (transformerFault != null && filibusterClientInstrumentor.shouldAbort()) {
+                        message = injectTransformerFault(filibusterClientInstrumentor, transformerFault, message);
                     }
 
                     delegate = next.newCall(method, callOptions);
@@ -464,7 +464,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                 String className = message.getClass().getName();
                 HashMap<String, String> returnValueProperties = new HashMap<>();
                 returnValueProperties.put("toString", message.toString());
-                filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties);
+                filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, message);
 
                 // Delegate.
                 delegate().onMessage(message);

@@ -229,6 +229,10 @@ public interface FilibusterTest {
             throw new FilibusterTestRuntimeException("executedRPCs is null: this could indicate a problem!");
         }
 
+        if (firstFaultInjected == null) {
+            throw new FilibusterTestRuntimeException("firstFaultInjected is null: this could indicate a problem!");
+        }
+
         return executedRPCs.get(firstFaultInjected.getKey());
     }
 

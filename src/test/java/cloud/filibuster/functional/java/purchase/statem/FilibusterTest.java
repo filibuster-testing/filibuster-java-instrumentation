@@ -169,6 +169,15 @@ public interface FilibusterTest {
                     }
                 }
             }
+
+            if (getFaultsInjected().size() == 0) {
+                // Fail the test if something hasn't had a verifyThat called on it.
+                for (Map.Entry<String, Boolean> verifyThat : GrpcMock.verifyThatMapping.entrySet()) {
+                    if (!verifyThat.getValue()) {
+                        throw new FilibusterTestRuntimeException("RPC " + verifyThat.getKey() + " has no assertions on invocation count!");
+                    }
+                }
+            }
         }
     }
 

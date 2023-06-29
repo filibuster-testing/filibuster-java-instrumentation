@@ -240,7 +240,7 @@
             {
                 let selectedFailureIndex = parseInt($("#failureSelection").find(":selected").val());
                 let selectedFailure = analysis.failures[selectedFailureIndex];
-                $("#failureStackTrace").html(`<textarea>${selectedFailure.assertion_failure_stacktrace}</textarea>`)
+                $("#failureStackTrace").html(`<textarea class="stacktrace">${selectedFailure.assertion_failure_stacktrace}</textarea>`)
                 $("#failureStackTrace").toggle();
             }
 

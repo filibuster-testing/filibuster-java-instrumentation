@@ -14,6 +14,7 @@ import org.json.JSONObject;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import static cloud.filibuster.junit.Assertions.getExecutedRPCs;
 import static cloud.filibuster.junit.Assertions.getFailedRPCs;
@@ -129,10 +130,8 @@ public interface FilibusterGrpcTest {
                     throw new FilibusterGrpcTestRuntimeException(
                             "Expected exception description is NOT null but actual exception description is null.",
                             "Verify downstreamFailureResultsInException(MethodDescriptor, Status.Code, String) and thrown exception match.");
-                } else if (expectedStatus.getDescription() == null && actualStatus.getDescription() == null) {
-                    descriptionMatches = true;
                 } else {
-                    descriptionMatches = expectedStatus.getDescription().equals(actualStatus.getDescription());
+                    descriptionMatches = Objects.equals(expectedStatus.getDescription(), actualStatus.getDescription());
                 }
 
                 if (codeMatches && descriptionMatches) {

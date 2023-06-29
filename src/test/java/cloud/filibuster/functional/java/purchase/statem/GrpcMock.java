@@ -47,6 +47,16 @@ public class GrpcMock {
         verifyThatMapping = new HashMap<>();
     }
 
+    public static <ReqT, RespT> void stubFor(
+            @Nonnull MethodDescriptor<ReqT, RespT> method,
+            @Nonnull ReqT request,
+            @Nonnull RespT response
+            ) {
+        verifyThatMapping.put(method.getFullMethodName(), false);
+
+        org.grpcmock.GrpcMock.stubFor(unaryMethod(method).withRequest(request).willReturn(response));
+    }
+
     public static <ReqT> void verifyThat(
             @Nonnull MethodDescriptor<ReqT, ?> method,
             int count

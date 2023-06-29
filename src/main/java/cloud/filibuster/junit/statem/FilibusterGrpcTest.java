@@ -179,7 +179,9 @@ public interface FilibusterGrpcTest {
                             boolean faultInjected = faultsInjected.containsKey(distributedExecutionIndex);
 
                             if (!faultInjected) {
-                                throw new FilibusterTestRuntimeException("Some RPCs are left UNIMPLEMENTED!");
+                                throw new FilibusterGrpcTestRuntimeException(
+                                        "Invoked RPCs was left UNIMPLEMENTED.",
+                                        "Use stubFor(MethodDescriptor, ReqT, ResT) to implement stub.");
                             }
                         }
                     }

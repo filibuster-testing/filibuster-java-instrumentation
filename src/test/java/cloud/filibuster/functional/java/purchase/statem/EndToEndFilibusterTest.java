@@ -7,6 +7,8 @@ import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.functional.java.purchase.PurchaseBaseTest;
 
 import cloud.filibuster.functional.java.purchase.configurations.GRPCAnalysisConfigurationFile;
+import cloud.filibuster.functional.java.purchase.statem.FilibusterTest;
+import cloud.filibuster.functional.java.purchase.statem.GrpcMock;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.PurchaseWorkflow;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
@@ -20,9 +22,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static cloud.filibuster.functional.java.purchase.statem.GrpcMock.stubFor;
 import static cloud.filibuster.functional.java.purchase.statem.GrpcMock.verifyThat;
-import static org.grpcmock.GrpcMock.stubFor;
-import static org.grpcmock.GrpcMock.unaryMethod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -109,37 +110,33 @@ public class EndToEndFilibusterTest extends PurchaseBaseTest implements Filibust
 
     @Override
     public void stubBlock() {
-        stubFor(unaryMethod(UserServiceGrpc.getGetUserFromSessionMethod())
-                .willReturn(Hello.GetUserResponse.newBuilder()
-                        .setUserId(consumerId.toString())
-                        .build()));
-        stubFor(unaryMethod(CartServiceGrpc.getGetCartForSessionMethod())
-                .willReturn(Hello.GetCartResponse.newBuilder()
+        stubFor(UserServiceGrpc.getGetUserFromSessionMethod(),
+                Hello.GetUserRequest.newBuilder().setSessionId(sessionId.toString()).build(),
+                Hello.GetUserResponse.newBuilder().setUserId(consumerId.toString()).build());
+
+        stubFor(CartServiceGrpc.getGetCartForSessionMethod(),
+                Hello.GetCartRequest.newBuilder().setSessionId(sessionId.toString()).build(),
+                Hello.GetCartResponse.newBuilder()
                         .setCartId(cartId.toString())
                         .setTotal("10000")
                         .setMerchantId(merchantId.toString())
-                        .build()));
-        stubFor(unaryMethod(CartServiceGrpc.getGetDiscountOnCartMethod())
-                .withRequest(Hello.GetDiscountRequest.newBuilder()
-                        .setCode("FIRST-TIME")
-                        .build())
-                .willReturn(Hello.GetDiscountResponse.newBuilder()
-                        .setPercent("10")
-                        .build()));
-        stubFor(unaryMethod(CartServiceGrpc.getGetDiscountOnCartMethod())
-                .withRequest(Hello.GetDiscountRequest.newBuilder()
-                        .setCode("RETURNING")
-                        .build())
-                .willReturn(Hello.GetDiscountResponse.newBuilder()
-                        .setPercent("5")
-                        .build()));
-        stubFor(unaryMethod(CartServiceGrpc.getGetDiscountOnCartMethod())
-                .withRequest(Hello.GetDiscountRequest.newBuilder()
-                        .setCode("DAILY")
-                        .build())
-                .willReturn(Hello.GetDiscountResponse.newBuilder()
-                        .setPercent("1")
-                        .build()));
+                        .build());
+
+        stubFor(CartServiceGrpc.getGetDiscountOnCartMethod(),
+                Hello.GetDiscountRequest.newBuilder().setCode("FIRST-TIME").build(),
+                Hello.GetDiscountResponse.newBuilder().setPercent("10").build());
+
+        stubFor(CartServiceGrpc.getGetDiscountOnCartMethod(),
+                Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build(),
+                Hello.GetDiscountResponse.newBuilder().setPercent("5").build());
+
+        stubFor(CartServiceGrpc.getGetDiscountOnCartMethod(),
+                Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build(),
+                Hello.GetDiscountResponse.newBuilder().setPercent("1").build());
+
+        stubFor(CartServiceGrpc.getNotifyDiscountAppliedMethod(),
+                Hello.NotifyDiscountAppliedRequest.newBuilder().setCartId(cartId.toString()).build(),
+                Hello.NotifyDiscountAppliedResponse.newBuilder().build());
     }
 
     @Override

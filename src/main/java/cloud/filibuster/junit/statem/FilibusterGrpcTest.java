@@ -104,9 +104,10 @@ public interface FilibusterGrpcTest {
             if (!expectedExceptions.containsKey(rpcWhereFirstFaultInjected.getString("method"))) {
                 // If the user didn't tell us what should happen when this fault was injected,
                 // throw an error.
-                throw new FilibusterTestRuntimeException(
-                        "Test threw an exception, but no specification of failure behavior present.\n" +
-                        statusRuntimeException.getMessage());
+                throw new FilibusterGrpcTestRuntimeException(
+                        "Test threw an exception, but no specification of failure behavior present.",
+                        "Use downstreamFailureResultsInException(MethodDescriptor, Status.Code, String) to specify failure is expected when fault injected.",
+                        statusRuntimeException);
             } else {
                 // Verify the user specified behavior matches the system behavior.
                 Map.Entry<Status.Code, String> expectedException = expectedExceptions.get(rpcWhereFirstFaultInjected.getString("method"));

@@ -32,7 +32,7 @@ public interface FilibusterTest {
     void teardownBlock();
 
     default void execute() {
-        // TODO
+        // For each test execution, clear out the adjusted test expectations.
         GrpcMock.resetAdjustedExpectations();
 
         // Execute setup blocks.

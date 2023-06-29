@@ -2,6 +2,8 @@ package cloud.filibuster.junit.statem;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.exceptions.filibuster.FilibusterTestRuntimeException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestInternalRuntimeException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException;
 import cloud.filibuster.instrumentation.datatypes.Pair;
 import cloud.filibuster.junit.assertions.Helpers;
 

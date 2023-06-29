@@ -1,7 +1,6 @@
 package cloud.filibuster.junit.statem;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
-import cloud.filibuster.exceptions.filibuster.FilibusterTestRuntimeException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestInternalRuntimeException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException;
 import cloud.filibuster.instrumentation.datatypes.Pair;
@@ -123,9 +122,13 @@ public interface FilibusterGrpcTest {
                 boolean descriptionMatches;
 
                 if (expectedStatus.getDescription() == null && actualStatus.getDescription() != null) {
-                    throw new FilibusterTestRuntimeException("Expected exception description is null but actual exception description is NOT null.");
+                    throw new FilibusterGrpcTestRuntimeException(
+                            "Expected exception description is null but actual exception description is NOT null.",
+                            "Verify downstreamFailureResultsInException(MethodDescriptor, Status.Code, String) and thrown exception match.");
                 } else if (expectedStatus.getDescription() != null && actualStatus.getDescription() == null) {
-                    throw new FilibusterTestRuntimeException("Expected exception description is NOT null but actual exception description is null.");
+                    throw new FilibusterGrpcTestRuntimeException(
+                            "Expected exception description is NOT null but actual exception description is null.",
+                            "Verify downstreamFailureResultsInException(MethodDescriptor, Status.Code, String) and thrown exception match.");
                 } else if (expectedStatus.getDescription() == null && actualStatus.getDescription() == null) {
                     descriptionMatches = true;
                 } else {
@@ -142,10 +145,11 @@ public interface FilibusterGrpcTest {
                     // Verify stub invocations.
                     Helpers.assertionBlock(this::assertStubBlock);
                 } else {
-                    throw new FilibusterTestRuntimeException(
-                            "Expected exception description does not match the actual thrown exception's description.\n" +
-                            "expected: " + expectedStatus + "\n" +
-                            "actual: " + actualStatus);
+                    throw new FilibusterGrpcTestRuntimeException(
+                            "Expected exception description does not match the actual thrown exception's description.",
+                            expectedStatus.toString(),
+                            actualStatus.toString(),
+                            "Verify downstreamFailureResultsInException(MethodDescriptor, Status.Code, String) and thrown exception match.");
                 }
             }
         } finally {
@@ -223,7 +227,7 @@ public interface FilibusterGrpcTest {
             throw new FilibusterGrpcTestInternalRuntimeException("faultsInjected is null: this could indicate a problem!");
         }
 
-        // If no fault was injected, it's gotta be the reference execution, return null;
+        // If no fault was injected, it's gotta be the reference execution, return null.
         if (faultsInjected.size() == 0) {
             return null;
         }

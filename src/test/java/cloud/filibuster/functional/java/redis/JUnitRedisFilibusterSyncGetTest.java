@@ -2,7 +2,7 @@ package cloud.filibuster.functional.java.redis;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedAPIException;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
-import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
+import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.db.redis.RedisSingleFaultCommandTimeoutExceptionAnalysisConfigurationFile;
@@ -30,7 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@SuppressWarnings("unchecked")
 public class JUnitRedisFilibusterSyncGetTest extends JUnitAnnotationBaseTest {
     static final String key = "test";
     static final String value = "example";
@@ -60,7 +59,7 @@ public class JUnitRedisFilibusterSyncGetTest extends JUnitAnnotationBaseTest {
         try {
             numberOfTestExecutions++;
 
-            StatefulRedisConnection<String, String> myStatefulRedisConnection = new RedisInterceptorFactory<>(statefulRedisConnection, redisConnectionString).getProxy(StatefulRedisConnection.class);
+            StatefulRedisConnection<String, String> myStatefulRedisConnection = DynamicProxyInterceptor.createInterceptor(statefulRedisConnection, redisConnectionString);
             RedisCommands<String, String> myRedisCommands = myStatefulRedisConnection.sync();
             String returnVal = myRedisCommands.get(key);
             assertEquals(value, returnVal);

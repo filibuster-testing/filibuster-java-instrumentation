@@ -146,40 +146,40 @@ public interface FilibusterTest {
             // Execute teardown.
             Helpers.teardownBlock(this::teardownBlock);
 
-            // Fail the test if any RPCs were left UNIMPLEMENTED (and, we didn't inject it!)
-            HashMap<DistributedExecutionIndex, JSONObject> failedRPCs = getFailedRPCs();
-
-            if (failedRPCs == null) {
-                throw new FilibusterTestRuntimeException("failedRPCs is null: this could indicate a problem!");
-            }
-
-            if (getFaultsInjected().size() == 0) {
-                for (Map.Entry<DistributedExecutionIndex, JSONObject> failedRPC : failedRPCs.entrySet()) {
-                    JSONObject jsonObject = failedRPC.getValue();
-
-                    if (jsonObject.has("exception")) {
-                        JSONObject exceptionJsonObject = jsonObject.getJSONObject("exception");
-
-                        if (exceptionJsonObject.has("metadata")) {
-                            JSONObject metadataExceptionJsonObject = exceptionJsonObject.getJSONObject("metadata");
-
-                            if (metadataExceptionJsonObject.has("code")) {
-                                String code = metadataExceptionJsonObject.getString("code");
-
-                                if (code.equals("UNIMPLEMENTED")) {
-                                    throw new FilibusterTestRuntimeException("Some RPCs are left UNIMPLEMENTED!");
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
             if (getFaultsInjected().size() == 0) {
                 // Fail the test if something hasn't had a verifyThat called on it.
                 for (Map.Entry<String, Boolean> verifyThat : GrpcMock.verifyThatMapping.entrySet()) {
                     if (!verifyThat.getValue()) {
                         throw new FilibusterTestRuntimeException("RPC " + verifyThat.getKey() + " has no assertions on invocation count!");
+                    }
+                }
+            }
+        }
+
+        // Fail the test if any RPCs were left UNIMPLEMENTED (and, we didn't inject it!)
+        HashMap<DistributedExecutionIndex, JSONObject> failedRPCs = getFailedRPCs();
+
+        if (failedRPCs == null) {
+            throw new FilibusterTestRuntimeException("failedRPCs is null: this could indicate a problem!");
+        }
+
+        if (getFaultsInjected().size() == 0) {
+            for (Map.Entry<DistributedExecutionIndex, JSONObject> failedRPC : failedRPCs.entrySet()) {
+                JSONObject jsonObject = failedRPC.getValue();
+
+                if (jsonObject.has("exception")) {
+                    JSONObject exceptionJsonObject = jsonObject.getJSONObject("exception");
+
+                    if (exceptionJsonObject.has("metadata")) {
+                        JSONObject metadataExceptionJsonObject = exceptionJsonObject.getJSONObject("metadata");
+
+                        if (metadataExceptionJsonObject.has("code")) {
+                            String code = metadataExceptionJsonObject.getString("code");
+
+                            if (code.equals("UNIMPLEMENTED")) {
+                                throw new FilibusterTestRuntimeException("Some RPCs are left UNIMPLEMENTED!");
+                            }
+                        }
                     }
                 }
             }

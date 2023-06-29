@@ -3,6 +3,7 @@ package cloud.filibuster.functional.java.purchase.statem;
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.junit.Assertions;
 import io.grpc.MethodDescriptor;
+import org.grpcmock.definitions.stub.steps.MethodStubBuilder;
 import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
@@ -13,6 +14,7 @@ import java.util.Objects;
 import static cloud.filibuster.junit.Assertions.getFaultsInjected;
 import static org.grpcmock.GrpcMock.calledMethod;
 import static org.grpcmock.GrpcMock.times;
+import static org.grpcmock.GrpcMock.unaryMethod;
 
 public class GrpcMock {
     private static HashMap<String, Integer> adjustedExpectationsForMethods = new HashMap<>();
@@ -39,10 +41,18 @@ public class GrpcMock {
         adjustedExpectationsForRequests.put(request, count);
     }
 
+    public static HashMap<String, Boolean> verifyThatMapping = new HashMap<>();
+
+    public static void resetVerifyThatMapping() {
+        verifyThatMapping = new HashMap<>();
+    }
+
     public static <ReqT> void verifyThat(
             @Nonnull MethodDescriptor<ReqT, ?> method,
             int count
     ) {
+        verifyThatMapping.put(method.getFullMethodName(), true);
+
         if (Assertions.wasFaultInjectedOnMethod(method.getFullMethodName())) {
             if (count > 0) {
                 count = count - 1;
@@ -61,9 +71,7 @@ public class GrpcMock {
             @Nonnull ReqT request,
             int count
     ) {
-        String fullMethodName = method.getFullMethodName();
-        HashMap<DistributedExecutionIndex, JSONObject> faultsInjected = getFaultsInjected();
-        String toStringRequest = request.toString();
+        verifyThatMapping.put(method.getFullMethodName(), true);
 
         if (Assertions.wasFaultInjectedOnRequest(request.toString())) {
             if (count > 0) {

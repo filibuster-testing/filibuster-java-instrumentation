@@ -72,10 +72,25 @@ public interface FilibusterGrpcTest {
                 }
 
                 if (modifiedAssertionsByMethod.containsKey(rpcWhereFirstFaultInjected.getString("method"))) {
-                    modifiedAssertionsByMethod.get(rpcWhereFirstFaultInjected.getString("method")).run();
+                    try {
+                        modifiedAssertionsByMethod.get(rpcWhereFirstFaultInjected.getString("method")).run();
+                    } catch (Throwable t) {
+                        throw new FilibusterGrpcTestRuntimeException(
+                                "Assertions in onFaultOnMethod(" + rpcWhereFirstFaultInjected.getString("method") + ", Runnable) failed.",
+                                "Please adjust assertions in onFaultOnMethod(" + rpcWhereFirstFaultInjected.getString("method") + ", Runnable) so that test passes.",
+                                t);
+                    }
                     shouldRunAssertionBlock = false;
-                } else if (requestToString != null && modifiedAssertionsByRequest.containsKey(requestToString)) {
-                    modifiedAssertionsByRequest.get(requestToString).run();
+                } else if (requestToString != null && modifiedAssertionsByRequest.containsKey(rpcWhereFirstFaultInjected.getString("method") + requestToString)) {
+                    try {
+                        modifiedAssertionsByRequest.get(rpcWhereFirstFaultInjected.getString("method")+ requestToString).run();
+                    } catch (Throwable t) {
+                        throw new FilibusterGrpcTestRuntimeException(
+                                "Assertions in onFaultOnRequest(" + rpcWhereFirstFaultInjected.getString("method") + ", ReqT, Runnable) failed.",
+                                "Please adjust assertions in onFaultOnRequest(" + rpcWhereFirstFaultInjected.getString("method") + ", " + requestToString.replaceAll("\\n", "") + ", Runnable) so that test passes.",
+                                t);
+                    }
+
                     shouldRunAssertionBlock = false;
                 }
                 else {
@@ -88,7 +103,14 @@ public interface FilibusterGrpcTest {
             if (shouldRunAssertionBlock) {
                 // Only in the reference execution, execute the assertion block.
                 // This assumes that the assertion block will not pass if the request returns error.
-                Helpers.assertionBlock(this::assertTestBlock);
+                try {
+                    Helpers.assertionBlock(this::assertTestBlock);
+                } catch (Throwable t) {
+                    throw new FilibusterGrpcTestRuntimeException(
+                            "Assertions in assertTestBlock() failed.",
+                            "Please adjust assertions in assertTestBlock() so that test passes.",
+                            t);
+                }
             }
 
             // Verify stub invocations.
@@ -280,6 +302,6 @@ public interface FilibusterGrpcTest {
     HashMap<String, Runnable> modifiedAssertionsByRequest = new HashMap<>();
 
     default <ReqT, ResT> void onFaultOnRequest(MethodDescriptor<ReqT, ResT> methodDescriptor, ReqT request, Runnable runnable) {
-        modifiedAssertionsByRequest.put(request.toString(), runnable);
+        modifiedAssertionsByRequest.put(methodDescriptor.getFullMethodName() + request.toString(), runnable);
     }
 }

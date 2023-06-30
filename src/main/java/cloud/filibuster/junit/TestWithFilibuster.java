@@ -227,7 +227,7 @@ public @interface TestWithFilibuster {
      *
      * @return search strategy
      */
-    FilibusterSearchStrategy searchStrategy() default FilibusterSearchStrategy.DFS;
+    FilibusterSearchStrategy searchStrategy() default FilibusterSearchStrategy.BFS;
 
     /**
      * Latency profile for the execution.

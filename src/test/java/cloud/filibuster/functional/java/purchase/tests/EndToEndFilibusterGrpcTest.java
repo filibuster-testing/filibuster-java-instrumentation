@@ -66,6 +66,10 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
                     }
 
                     GrpcMock.adjustExpectation(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
+
+                    // Verify transaction did not occur.
+                    assertEquals(20000, PurchaseWorkflow.getAccountBalance(consumerId));
+                    assertEquals(0, PurchaseWorkflow.getAccountBalance(merchantId));
                 }
         );
 

@@ -88,8 +88,10 @@ public class JUnitFilibusterTransformerGRPCTest {
         // 1 fault for the transformer value
         assertEquals(1, testExceptionsThrown.size());
 
-        // Injecting the transformer value 'null' for the 'name' field of the 'HelloRequest' message
-        // results in the message 'Hello, !!' instead of 'Hello, world!!'
+        // The test issues an intercepted call to the hello service. This call has the name field set to "world".
+        // The hello service sends an HTTP response back with the message "Hello, world!!".
+        // In the first execution after the reference run, we inject the value null as the message of the request being
+        // issued to the hello service. Therefore, the response coming from the hello service is just "Hello, !!"; without any name.
         assertTrue(testExceptionsThrown.contains("expected: <Hello, world!!> but was: <Hello, !!>"));
     }
 }

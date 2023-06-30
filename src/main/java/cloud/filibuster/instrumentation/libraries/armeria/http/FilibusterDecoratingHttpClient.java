@@ -418,7 +418,11 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
                             logger.log(Level.INFO, logPrefix +"Notifying Filibuster!!!");
                             HashMap<String, String> returnValueProperties = new HashMap<>();
                             returnValueProperties.put("status_code", statusCode);
-                            filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, statusCode);
+
+                            if (filibusterClientInstrumentor.getTransformerFault() == null) {
+                                // Only communicate a successful invocation if there was no transformer fault.
+                                filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, statusCode);
+                            }  // In the case of transformer faults, we already call 'afterInvocationWithTransformerFault' in the 'injectTransformerFault' method.
                         }
 
                     }

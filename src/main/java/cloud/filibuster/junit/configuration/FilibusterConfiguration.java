@@ -23,6 +23,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FilibusterConfiguration {
+    public static FilibusterServerBackend backendToBackendClass(Class<? extends FilibusterServerBackend> clazz) {
+        FilibusterServerBackend serverBackend;
+
+        try {
+            serverBackend = clazz.getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | NoSuchMethodException | IllegalAccessException |
+                 InvocationTargetException e) {
+            throw new FilibusterUnsupportedServerBackendException("Backend " + clazz + " is not supported.", e);
+        }
+
+        return serverBackend;
+    }
+
     private static final String filibusterExecutable = "/usr/local/bin/filibuster";
 
     private final boolean dynamicReduction;
@@ -352,16 +365,7 @@ public class FilibusterConfiguration {
          */
         @CanIgnoreReturnValue
         public Builder serverBackend(Class<? extends FilibusterServerBackend> clazz) {
-            FilibusterServerBackend serverBackend;
-
-            try {
-                serverBackend = clazz.getDeclaredConstructor().newInstance();
-            } catch (InstantiationException | NoSuchMethodException | IllegalAccessException |
-                     InvocationTargetException e) {
-                throw new FilibusterUnsupportedServerBackendException("Backend " + clazz + " is not supported.", e);
-            }
-
-            this.serverBackend = serverBackend;
+            this.serverBackend = backendToBackendClass(clazz);
             return this;
         }
 

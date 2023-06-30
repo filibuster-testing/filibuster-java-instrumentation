@@ -5,7 +5,7 @@ import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.grpc.FilibusterGRPCNullByzantineFaultAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.grpc.FilibusterGRPCNullTransformerAnalysisConfigurationFile;
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
 import io.grpc.ClientInterceptors;
@@ -13,8 +13,10 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -28,7 +30,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class JUnitFilibusterByzantineGRPCTest {
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+public class JUnitFilibusterTransformerGRPCTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
     private static int numberOfExecutions = 0;
 
@@ -39,7 +42,7 @@ public class JUnitFilibusterByzantineGRPCTest {
 
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @TestWithFilibuster(analysisConfigurationFile = FilibusterGRPCNullByzantineFaultAnalysisConfigurationFile.class)
+    @TestWithFilibuster(analysisConfigurationFile = FilibusterGRPCNullTransformerAnalysisConfigurationFile.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         numberOfExecutions++;

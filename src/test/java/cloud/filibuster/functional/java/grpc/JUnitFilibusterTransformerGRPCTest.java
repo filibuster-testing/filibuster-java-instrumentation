@@ -66,7 +66,7 @@ public class JUnitFilibusterTransformerGRPCTest {
 
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
             assertTrue(wasFaultInjectedOnMethod("cloud.filibuster.examples.HelloService/Hello"),
-                    "Fault was not injected on the expected Redis method: " + t);
+                    "Fault was not injected on the expected HelloService/Hello: " + t);
         }
 
         helloChannel.shutdownNow();

@@ -106,9 +106,10 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                     throwableMessage = causeMessageString;
                 }
 
-                Throwable throwable = Class.forName(causeString).asSubclass(Throwable.class).getConstructor(new Class[] { String.class }).newInstance(throwableMessage);
+                Throwable throwable = Class.forName(causeString).asSubclass(Throwable.class).getConstructor(new Class[]{String.class}).newInstance(throwableMessage);
                 status = Status.fromThrowable(throwable);
-            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException | InvocationTargetException e) {
+            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException |
+                     InvocationTargetException e) {
                 throw new FilibusterFaultInjectionException("Unable to generate custom exception from string '" + causeString + "':" + e, e);
             }
         } else if (!codeStr.isEmpty()) {
@@ -188,6 +189,9 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                         originalRequest.getClass().toString(), accumulator);
 
                 // Return the transformer fault value.
+                if (castedValue == JSONObject.NULL) {
+                    return null;
+                }
                 return castedValue;
             } else {
                 String missingKey;
@@ -225,7 +229,8 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
             private int requestTokens;
             private FilibusterClientInstrumentor filibusterClientInstrumentor;
 
-            @Override protected ClientCall<REQUEST, RESPONSE> delegate() {
+            @Override
+            protected ClientCall<REQUEST, RESPONSE> delegate() {
                 if (delegate == null) {
                     throw new FilibusterInstrumentationMissingDelegateException("Delegate is null, something threw inside of the Filibuster interceptor.");
                 }
@@ -266,7 +271,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                 boolean instrumentationRequest = Boolean.parseBoolean(instrumentationRequestStr);
                 logger.log(Level.INFO, logPrefix + "instrumentationRequest: " + instrumentationRequest);
 
-                if (! shouldInstrument() || instrumentationRequest) {
+                if (!shouldInstrument() || instrumentationRequest) {
                     delegate = next.newCall(method, callOptions);
                     super.start(responseListener, headers);
                     headers = null;
@@ -454,7 +459,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
             logger.log(Level.INFO, logPrefix + "INSIDE: onMessage!");
             logger.log(Level.INFO, logPrefix + "message: " + message);
 
-            if (! filibusterClientInstrumentor.shouldAbort()) {
+            if (!filibusterClientInstrumentor.shouldAbort()) {
                 // Request completed normally, but we want to throw the exception anyway, generate and throw.
                 generateExceptionFromForcedException(filibusterClientInstrumentor);
             } else {
@@ -480,12 +485,12 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
             logger.log(Level.INFO, logPrefix + "status: " + status);
             logger.log(Level.INFO, logPrefix + "trailers: " + trailers);
 
-            if (! filibusterClientInstrumentor.shouldAbort()) {
+            if (!filibusterClientInstrumentor.shouldAbort()) {
                 Status rewrittenStatus = generateCorrectStatusForAbort(filibusterClientInstrumentor);
                 delegate().onClose(rewrittenStatus, trailers);
             }
 
-            if (! status.isOk()) {
+            if (!status.isOk()) {
                 // Request completed -- if it completed with a failure, it will be coming here for
                 // the first time (didn't call onMessage) and therefore, we need to notify the Filibuster
                 // server that the call completed with failure.  If it completed successfully, we would

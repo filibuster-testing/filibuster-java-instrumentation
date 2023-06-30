@@ -963,7 +963,7 @@ final public class FilibusterClientInstrumentor {
             if (returnValue != null && returnValue != JSONObject.NULL && returnValue != "") {  // Only serialise if return value is not null or empty.
                 try {
                     returnValueJO.put("value", new Gson().toJson(returnValue));
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     logger.log(Level.WARNING, "Could not serialise return value to JSON: " + e);
                 }
             } else {

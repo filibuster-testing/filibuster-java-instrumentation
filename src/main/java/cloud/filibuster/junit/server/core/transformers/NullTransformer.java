@@ -1,12 +1,16 @@
 package cloud.filibuster.junit.server.core.transformers;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.gson.reflect.TypeToken;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Type;
 
 public final class NullTransformer implements Transformer<Object, Object> {
+    @Nullable
     private Object result;
 
+    @CanIgnoreReturnValue
     @Override
     public NullTransformer transform(Object payload, Accumulator<Object, Object> accumulator) {
 
@@ -26,6 +30,7 @@ public final class NullTransformer implements Transformer<Object, Object> {
     }
 
     @Override
+    @Nullable
     public Object getResult() {
         return this.result;
     }

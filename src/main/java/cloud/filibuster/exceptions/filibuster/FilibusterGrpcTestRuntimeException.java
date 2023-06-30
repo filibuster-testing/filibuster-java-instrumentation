@@ -9,7 +9,7 @@ public class FilibusterGrpcTestRuntimeException extends FilibusterRuntimeExcepti
         super(error + "\n\t * " + recommendation + "\nexpected: " + expected + "\nactual: " + actual);
     }
 
-    public FilibusterGrpcTestRuntimeException(String error, String recommendation, RuntimeException re) {
-        super(error + "\n\t * " + recommendation + "\n" + re.getClass().getName() + ": " + re.getMessage());
+    public FilibusterGrpcTestRuntimeException(String error, String recommendation, Throwable t) {
+        super(error + "\n\t * " + recommendation + "\n" + t.getClass().getName() + ": " + t.getMessage());
     }
 }

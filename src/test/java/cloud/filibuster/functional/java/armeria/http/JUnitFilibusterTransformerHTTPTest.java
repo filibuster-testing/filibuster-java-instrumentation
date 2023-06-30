@@ -67,15 +67,15 @@ public class JUnitFilibusterTransformerHTTPTest {
     @DisplayName("Verify correct number of test execution.")
     @Test
     @Order(2)
-    public void testNumberOfTestsExecuted() {
+    public void testNumExecutions() {
         // 1 for the reference execution and 1 for the test with the injected transformer fault
         assertEquals(2, numberOfTestsExecuted);
     }
 
-    @DisplayName("Verify correct number of generated Filibuster tests.")
+    @DisplayName("Verify correct faults number and status code.")
     @Test
     @Order(3)
-    public void testNumAssertions() {
+    public void testFaultsNumAndStatusCode() {
         // 1 fault for the transformer value 'null'
         assertEquals(1, testErrorCodesReceived.size());
 

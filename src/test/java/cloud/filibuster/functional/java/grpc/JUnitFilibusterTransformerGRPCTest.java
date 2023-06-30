@@ -84,7 +84,7 @@ public class JUnitFilibusterTransformerGRPCTest {
     @DisplayName("Verify correct faults number and message.")
     @Test
     @Order(3)
-    public void testNumFaults() {
+    public void testFaultsNumAndMessage() {
         // 1 fault for the transformer value
         assertEquals(1, testExceptionsThrown.size());
 

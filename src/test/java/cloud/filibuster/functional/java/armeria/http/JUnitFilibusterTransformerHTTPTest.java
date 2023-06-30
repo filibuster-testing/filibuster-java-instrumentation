@@ -18,9 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static cloud.filibuster.integration.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
@@ -35,8 +33,6 @@ public class JUnitFilibusterTransformerHTTPTest {
     private final static Set<String> testErrorCodesReceived = new HashSet<>();
 
     private static int numberOfTestsExecuted = 0;
-
-    private final List<String> validErrorCodes = Arrays.asList("404", "503");
 
     @BeforeAll
     public static void startHelloService() throws IOException, InterruptedException {
@@ -60,7 +56,6 @@ public class JUnitFilibusterTransformerHTTPTest {
 
             if (wasFaultInjected()) {
                 testErrorCodesReceived.add(statusCode);
-                assertTrue(validErrorCodes.contains(statusCode));
             } else {
                 assertEquals("200", statusCode);
             }
@@ -69,17 +64,22 @@ public class JUnitFilibusterTransformerHTTPTest {
         }
     }
 
-    @DisplayName("Verify correct number of generated Filibuster tests.")
+    @DisplayName("Verify correct number of test execution.")
     @Test
     @Order(2)
-    public void testNumAssertions() {
-        assertEquals(2, testErrorCodesReceived.size());
+    public void testNumberOfTestsExecuted() {
+        // 1 for the reference execution and 1 for the test with the injected transformer fault
+        assertEquals(2, numberOfTestsExecuted);
     }
 
     @DisplayName("Verify correct number of generated Filibuster tests.")
     @Test
     @Order(3)
-    public void testNumberOfTestsExecuted() {
-        assertEquals(6, numberOfTestsExecuted);
+    public void testNumAssertions() {
+        // 1 fault for the transformer value 'null'
+        assertEquals(1, testErrorCodesReceived.size());
+
+        // Injecting the transformer value 'null' leads to an error code of '503'
+        assertTrue(testErrorCodesReceived.contains("503"));
     }
 }

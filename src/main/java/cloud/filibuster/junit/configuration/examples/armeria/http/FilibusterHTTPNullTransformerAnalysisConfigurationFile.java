@@ -11,9 +11,8 @@ public class FilibusterHTTPNullTransformerAnalysisConfigurationFile implements F
     static {
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
-        // Armeria's WebClient exception types.
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilder = new FilibusterAnalysisConfiguration.Builder()
-                .name("java.WebClient.exceptions")
+                .name("java.WebClient.transformer_fault")
                 .pattern("WebClient\\.(GET|PUT|POST|HEAD)");
 
         filibusterAnalysisConfigurationBuilder.transformer(NullTransformer.class);

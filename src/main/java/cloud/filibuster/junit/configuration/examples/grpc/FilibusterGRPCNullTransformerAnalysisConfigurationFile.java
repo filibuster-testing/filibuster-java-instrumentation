@@ -12,7 +12,7 @@ public class FilibusterGRPCNullTransformerAnalysisConfigurationFile implements F
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilder = new FilibusterAnalysisConfiguration.Builder()
-                .name("java.grpc.byzantine_fault")
+                .name("java.grpc.transformer_fault")
                 .pattern("(.*/.*)")
                 .type("grpc");
 

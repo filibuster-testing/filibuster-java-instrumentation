@@ -76,7 +76,7 @@ public class JUnitFilibusterTransformerGRPCTest {
     @DisplayName("Verify correct number of test executions.")
     @Test
     @Order(2)
-    // 1 for the reference execution and 1 for the test with the injected Byzantine fault
+    // 1 for the reference execution and 1 for the test with the injected transformer fault
     public void testNumExecutions() {
         assertEquals(2, numberOfExecutions);
     }
@@ -85,12 +85,11 @@ public class JUnitFilibusterTransformerGRPCTest {
     @Test
     @Order(3)
     public void testNumFaults() {
-        // 1 fault for the Byzantine value
+        // 1 fault for the transformer value
         assertEquals(1, testExceptionsThrown.size());
 
-        // Injecting the Byzantine value 'null' for the 'name' field of the 'HelloRequest' message
+        // Injecting the transformer value 'null' for the 'name' field of the 'HelloRequest' message
         // results in the message 'Hello, !!' instead of 'Hello, world!!'
         assertTrue(testExceptionsThrown.contains("expected: <Hello, world!!> but was: <Hello, !!>"));
-
     }
 }

@@ -135,7 +135,7 @@ public interface FilibusterGrpcTest {
                 }
 
                 if (codeMatches && descriptionMatches) {
-                    for (Map.Entry<Status.Code, Runnable> adjustedExpectation : adjustedExpectations.entrySet()) {
+                    for (Map.Entry<Status.Code, Runnable> adjustedExpectation : adjustedExpectationsAndAssertions.entrySet()) {
                         if (adjustedExpectation.getKey().equals(statusRuntimeException.getStatus().getCode())) {
                             adjustedExpectation.getValue().run();
                         }
@@ -257,10 +257,10 @@ public interface FilibusterGrpcTest {
         return executedRPCs.get(firstFaultInjected.getKey());
     }
 
-    HashMap<Status.Code, Runnable> adjustedExpectations = new HashMap<>();
+    HashMap<Status.Code, Runnable> adjustedExpectationsAndAssertions = new HashMap<>();
 
     default void onException(Status.Code code, Runnable runnable) {
-        adjustedExpectations.put(code, runnable);
+        adjustedExpectationsAndAssertions.put(code, runnable);
     }
 
     HashMap<String, Runnable> modifiedAssertionsByMethod = new HashMap<>();

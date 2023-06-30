@@ -9,6 +9,7 @@ import cloud.filibuster.junit.assertions.Helpers;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import junit.framework.AssertionFailedError;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
@@ -137,7 +138,14 @@ public interface FilibusterGrpcTest {
                 if (codeMatches && descriptionMatches) {
                     for (Map.Entry<Status.Code, Runnable> adjustedExpectation : adjustedExpectationsAndAssertions.entrySet()) {
                         if (adjustedExpectation.getKey().equals(statusRuntimeException.getStatus().getCode())) {
-                            adjustedExpectation.getValue().run();
+                            try {
+                                adjustedExpectation.getValue().run();
+                            } catch (Throwable t) {
+                                throw new FilibusterGrpcTestRuntimeException(
+                                        "Assertions for onException(Status.Code." + adjustedExpectation.getKey() + ", Runnable) failed.",
+                                        "Please adjust onException(Status.Code." + adjustedExpectation.getKey() + ", Runnable) for the assertions that should hold under this status code.",
+                                        t);
+                            }
                         }
                     }
 

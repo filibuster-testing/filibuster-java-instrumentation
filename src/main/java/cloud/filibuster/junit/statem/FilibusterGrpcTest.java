@@ -6,13 +6,15 @@ import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException
 import cloud.filibuster.instrumentation.datatypes.Pair;
 import cloud.filibuster.junit.assertions.Helpers;
 
+import com.google.protobuf.GeneratedMessageV3;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import org.json.JSONObject;
 
-import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -57,45 +59,56 @@ public interface FilibusterGrpcTest {
 
             // If a fault was injected, ask the developer to specify an alternative assertion block.
             boolean shouldRunAssertionBlock = true;
-            JSONObject rpcWhereLastFaultInjected = rpcWhereLastFaultInjected();
+            List<JSONObject> rpcsWhereFaultsInjected = rpcsWhereFaultsInjected();
 
-            if (rpcWhereLastFaultInjected != null) {
-                String requestToString = null;
+            if (rpcsWhereFaultsInjected == null) {
+                throw new FilibusterGrpcTestInternalRuntimeException("rpcsWhereFaultsInjected is null: this could indicate a problem!");
+            }
 
-                if (rpcWhereLastFaultInjected.has("args")) {
-                    JSONObject argsJsonObject = rpcWhereLastFaultInjected.getJSONObject("args");
+            if (rpcsWhereFaultsInjected.size() > 0) {
+                if (rpcsWhereFaultsInjected.size() > 1) {
+                    // TODO
+                } else {
+                    // Single fault.
+                    //
+                    // See if we have special error handling for this fault, then bypass the existing assertion block
+                    // in favor of the fault-specific assertion block.
+                    //
+                    Map.Entry<String, String> keysForExecutedRPC = generateKeysForExecutedRPC(rpcsWhereFaultsInjected);
 
-                    if (argsJsonObject.has("toString")) {
-                        requestToString = argsJsonObject.getString("toString");
+                    if (keysForExecutedRPC == null) {
+                        throw new FilibusterGrpcTestInternalRuntimeException("keysForExecutedRPC is null: this could indicate a problem!");
                     }
-                }
 
-                if (modifiedAssertionsByMethod.containsKey(rpcWhereLastFaultInjected.getString("method"))) {
-                    try {
-                        modifiedAssertionsByMethod.get(rpcWhereLastFaultInjected.getString("method")).run();
-                    } catch (Throwable t) {
+                    String methodKey = keysForExecutedRPC.getKey();
+                    String argsKey = keysForExecutedRPC.getValue();
+
+                    if (argsKey != null && modifiedAssertionsByRequest.containsKey(methodKey + argsKey)) {
+                        try {
+                            modifiedAssertionsByRequest.get(methodKey + argsKey).run();
+                        } catch (Throwable t) {
+                            throw new FilibusterGrpcTestRuntimeException(
+                                    "Assertions in onFaultOnRequest(" + methodKey + ", ReqT, Runnable) failed.",
+                                    "Please adjust assertions in onFaultOnRequest(" + methodKey + ", " + argsKey.replaceAll("\\n", "") + ", Runnable) so that test passes.",
+                                    t);
+                        }
+
+                        shouldRunAssertionBlock = false;
+                    } else if (modifiedAssertionsByMethod.containsKey(methodKey)) {
+                        try {
+                            modifiedAssertionsByMethod.get(methodKey).run();
+                        } catch (Throwable t) {
+                            throw new FilibusterGrpcTestRuntimeException(
+                                    "Assertions in onFaultOnMethod(" + methodKey + ", Runnable) failed.",
+                                    "Please adjust assertions in onFaultOnMethod(" + methodKey + ", Runnable) so that test passes.",
+                                    t);
+                        }
+                        shouldRunAssertionBlock = false;
+                    } else {
                         throw new FilibusterGrpcTestRuntimeException(
-                                "Assertions in onFaultOnMethod(" + rpcWhereLastFaultInjected.getString("method") + ", Runnable) failed.",
-                                "Please adjust assertions in onFaultOnMethod(" + rpcWhereLastFaultInjected.getString("method") + ", Runnable) so that test passes.",
-                                t);
+                                "Test injected a fault, but no specification of failure behavior present.",
+                                "Use onFaultOnMethod(MethodDescriptor, Runnable) or onFaultOnRequest(MethodDescriptor, ReqT, Runnable) to specify assertions under fault.");
                     }
-                    shouldRunAssertionBlock = false;
-                } else if (requestToString != null && modifiedAssertionsByRequest.containsKey(rpcWhereLastFaultInjected.getString("method") + requestToString)) {
-                    try {
-                        modifiedAssertionsByRequest.get(rpcWhereLastFaultInjected.getString("method")+ requestToString).run();
-                    } catch (Throwable t) {
-                        throw new FilibusterGrpcTestRuntimeException(
-                                "Assertions in onFaultOnRequest(" + rpcWhereLastFaultInjected.getString("method") + ", ReqT, Runnable) failed.",
-                                "Please adjust assertions in onFaultOnRequest(" + rpcWhereLastFaultInjected.getString("method") + ", " + requestToString.replaceAll("\\n", "") + ", Runnable) so that test passes.",
-                                t);
-                    }
-
-                    shouldRunAssertionBlock = false;
-                }
-                else {
-                    throw new FilibusterGrpcTestRuntimeException(
-                            "Test injected a fault, but no specification of failure behavior present.",
-                            "Use onFaultOnMethod(MethodDescriptor, Runnable) or onFaultOnRequest(MethodDescriptor, ReqT, Runnable) to specify assertions under fault.");
                 }
             }
 
@@ -116,15 +129,29 @@ public interface FilibusterGrpcTest {
             Helpers.assertionBlock(this::assertStubBlock);
         } catch (StatusRuntimeException statusRuntimeException) {
             // Look up the first RPC where a fault was injected.
-            JSONObject rpcWhereLastFaultInjected = rpcWhereLastFaultInjected();
+            List<JSONObject> rpcsWhereFaultsInjected = rpcsWhereFaultsInjected();
+
+            if (rpcsWhereFaultsInjected == null) {
+                throw new FilibusterGrpcTestInternalRuntimeException("rpcsWhereFaultsInjected is null: this could indicate a problem!");
+            }
 
             // If we're in the reference execution, just rethrow.
-            if (rpcWhereLastFaultInjected == null) {
+            if (rpcsWhereFaultsInjected.size() == 0) {
                 throw statusRuntimeException;
             }
 
+            // Verify that at least one of the injected faults is expected to result in an exception.
+            List<JSONObject> matchingRPCsWhereFaultsInjected = new ArrayList<>();
+
+            for (JSONObject rpcWhereFaultInjected : rpcsWhereFaultsInjected) {
+                String method = rpcWhereFaultInjected.getString("method");
+                if (expectedExceptions.containsKey(method)) {
+                    matchingRPCsWhereFaultsInjected.add(rpcWhereFaultInjected);
+                }
+            }
+
             // See if the developer told us what would happen when this fault was injected.
-            if (!expectedExceptions.containsKey(rpcWhereLastFaultInjected.getString("method"))) {
+            if (matchingRPCsWhereFaultsInjected.size() == 0) {
                 // If the user didn't tell us what should happen when this fault was injected,
                 // throw an error.
                 throw new FilibusterGrpcTestRuntimeException(
@@ -132,52 +159,59 @@ public interface FilibusterGrpcTest {
                         "Use downstreamFailureResultsInException(MethodDescriptor, Status.Code, String) to specify failure is expected when fault injected.",
                         statusRuntimeException);
             } else {
-                // Verify the user specified behavior matches the system behavior.
-                Map.Entry<Status.Code, String> expectedException = expectedExceptions.get(rpcWhereLastFaultInjected.getString("method"));
-
-                Status expectedStatus = Status.fromCode(expectedException.getKey()).withDescription(expectedException.getValue());
+                // Get actual status.
                 Status actualStatus = statusRuntimeException.getStatus();
 
-                // Verify code matches.
-                boolean codeMatches = expectedStatus.getCode().equals(actualStatus.getCode());
+                // Find a status that matches the error code and description.
+                JSONObject foundMatchingExpectedStatus = null;
 
-                // Verify description matches.
-                boolean descriptionMatches;
+                for (JSONObject matchingRPCWhereFaultsInjected : matchingRPCsWhereFaultsInjected) {
+                    String method = matchingRPCWhereFaultsInjected.getString("method");
+                    Map.Entry<Status.Code, String> expectedException = expectedExceptions.get(method);
+                    Status expectedStatus = Status.fromCode(expectedException.getKey()).withDescription(expectedException.getValue());
+                    boolean codeMatches = expectedStatus.getCode().equals(actualStatus.getCode());
+                    boolean descriptionMatches = Objects.equals(expectedStatus.getDescription(), actualStatus.getDescription());
 
-                if (expectedStatus.getDescription() == null && actualStatus.getDescription() != null) {
-                    throw new FilibusterGrpcTestRuntimeException(
-                            "Expected exception description is null but actual exception description is NOT null.",
-                            "Verify downstreamFailureResultsInException(MethodDescriptor, Status.Code, String) and thrown exception match.");
-                } else if (expectedStatus.getDescription() != null && actualStatus.getDescription() == null) {
-                    throw new FilibusterGrpcTestRuntimeException(
-                            "Expected exception description is NOT null but actual exception description is null.",
-                            "Verify downstreamFailureResultsInException(MethodDescriptor, Status.Code, String) and thrown exception match.");
-                } else {
-                    descriptionMatches = Objects.equals(expectedStatus.getDescription(), actualStatus.getDescription());
+                    if (codeMatches && descriptionMatches) {
+                        foundMatchingExpectedStatus = matchingRPCWhereFaultsInjected;
+                        break;
+                    }
                 }
 
-                if (codeMatches && descriptionMatches) {
-                    for (Map.Entry<Status.Code, Runnable> adjustedExpectation : adjustedExpectationsAndAssertions.entrySet()) {
-                        if (adjustedExpectation.getKey().equals(statusRuntimeException.getStatus().getCode())) {
-                            try {
-                                adjustedExpectation.getValue().run();
-                            } catch (Throwable t) {
-                                throw new FilibusterGrpcTestRuntimeException(
-                                        "Assertions for onException(Status.Code." + adjustedExpectation.getKey() + ", Runnable) failed.",
-                                        "Please adjust onException(Status.Code." + adjustedExpectation.getKey() + ", Runnable) for the assertions that should hold under this status code.",
-                                        t);
-                            }
+                // If not found, throw error.
+                if (foundMatchingExpectedStatus == null) {
+                    throw new FilibusterGrpcTestRuntimeException(
+                            "Failed RPC resulted in exception, but error codes and descriptions did not match.",
+                            "Verify downstreamFailureResultsInException(MethodDescriptor, Status.Code, String) and thrown exception match.");
+                }
+
+                if (! adjustedExpectationsAndAssertions.containsKey(statusRuntimeException.getStatus().getCode())) {
+                    throw new FilibusterGrpcTestRuntimeException(
+                            "Missing assertion block for Status.Code." + actualStatus.getCode() + " response.",
+                            "Please write onException(Status.Code." + actualStatus.getCode() + ", Runnable) for the assertions that should hold under this status code.");
+                }
+
+                for (Map.Entry<Status.Code, Runnable> adjustedExpectation : adjustedExpectationsAndAssertions.entrySet()) {
+                    if (adjustedExpectation.getKey().equals(statusRuntimeException.getStatus().getCode())) {
+                        try {
+                            adjustedExpectation.getValue().run();
+                        } catch (Throwable t) {
+                            throw new FilibusterGrpcTestRuntimeException(
+                                    "Assertions for onException(Status.Code." + adjustedExpectation.getKey() + ", Runnable) failed.",
+                                    "Please adjust onException(Status.Code." + adjustedExpectation.getKey() + ", Runnable) for the assertions that should hold under this status code.",
+                                    t);
                         }
                     }
+                }
 
+                try {
                     // Verify stub invocations.
                     Helpers.assertionBlock(this::assertStubBlock);
-                } else {
+                } catch (Throwable t) {
                     throw new FilibusterGrpcTestRuntimeException(
-                            "Expected exception description does not match the actual thrown exception's description.",
-                            expectedStatus.toString(),
-                            actualStatus.toString(),
-                            "Verify downstreamFailureResultsInException(MethodDescriptor, Status.Code, String) and thrown exception match.");
+                            "Assertions did not hold under error response.",
+                            "Please write onException(Status.Code." + actualStatus.getCode() + ", Runnable) for the assertions that should hold under this status code.",
+                            t);
                 }
             }
         } finally {
@@ -245,8 +279,9 @@ public interface FilibusterGrpcTest {
         expectedExceptions.put(methodDescriptor.getFullMethodName(), Pair.of(code, description));
     }
 
-    @Nullable
-    default JSONObject rpcWhereLastFaultInjected() {
+    default List<JSONObject> rpcsWhereFaultsInjected() {
+        List<JSONObject> rpcsWhereFaultsInjected = new ArrayList<>();
+
         // Look up the RPCs that were executed and the faults that were injected.
         HashMap<DistributedExecutionIndex, JSONObject> executedRPCs = getExecutedRPCs();
         HashMap<DistributedExecutionIndex, JSONObject> faultsInjected = getFaultsInjected();
@@ -255,15 +290,13 @@ public interface FilibusterGrpcTest {
             throw new FilibusterGrpcTestInternalRuntimeException("faultsInjected is null: this could indicate a problem!");
         }
 
-        // If no fault was injected, it's gotta be the reference execution, return null.
-        if (faultsInjected.size() == 0) {
-            return null;
+        if (executedRPCs == null) {
+            throw new FilibusterGrpcTestInternalRuntimeException("executedRPCs is null: this could indicate a problem!");
         }
 
-        // Fail if more than one fault was injected.
-        // We could be smarter about this, but let's skip it for now since we probably won't run tests this way.
-        if (faultsInjected.size() > 1) {
-            throw new FilibusterGrpcTestInternalRuntimeException("Test threw an exception; however, multiple faults were injected.");
+        // If no fault was injected, it's gotta be the reference execution, return null.
+        if (faultsInjected.size() == 0) {
+            return rpcsWhereFaultsInjected;
         }
 
         // At this point, there should be only a single injected fault.
@@ -271,18 +304,10 @@ public interface FilibusterGrpcTest {
         Map.Entry<DistributedExecutionIndex, JSONObject> lastFaultInjected = null;
 
         for (Map.Entry<DistributedExecutionIndex, JSONObject> faultInjected : faultsInjected.entrySet()) {
-            lastFaultInjected = faultInjected;
+            rpcsWhereFaultsInjected.add(executedRPCs.get(faultInjected.getKey()));
         }
 
-        if (executedRPCs == null) {
-            throw new FilibusterGrpcTestInternalRuntimeException("executedRPCs is null: this could indicate a problem!");
-        }
-
-        if (lastFaultInjected == null) {
-            throw new FilibusterGrpcTestInternalRuntimeException("lastFaultInjected is null: this could indicate a problem!");
-        }
-
-        return executedRPCs.get(lastFaultInjected.getKey());
+        return rpcsWhereFaultsInjected;
     }
 
     HashMap<Status.Code, Runnable> adjustedExpectationsAndAssertions = new HashMap<>();
@@ -301,5 +326,48 @@ public interface FilibusterGrpcTest {
 
     default <ReqT, ResT> void onFaultOnRequest(MethodDescriptor<ReqT, ResT> methodDescriptor, ReqT request, Runnable runnable) {
         modifiedAssertionsByRequest.put(methodDescriptor.getFullMethodName() + request.toString(), runnable);
+    }
+
+    default void onFaultOnRequests(
+            Map<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3> rpcMap,
+            Runnable runnable
+    ) {
+        Map.Entry<String, String> keysForExecutedRPC = generateKeysForExecutedRPC(rpcMap);
+        String methodKey = keysForExecutedRPC.getKey();
+        String argsKey = keysForExecutedRPC.getValue();
+        modifiedAssertionsByRequest.put(methodKey + argsKey, runnable);
+    }
+
+    default Map.Entry<String, String> generateKeysForExecutedRPC(
+            Map<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3> rpcMap
+    ) {
+        String methodKey = "";
+        String argsKey = "";
+
+        for (Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3> rpc : rpcMap.entrySet()) {
+            methodKey += rpc.getKey().getFullMethodName();
+            argsKey += rpc.getValue().toString();
+        }
+
+        return Pair.of(methodKey, argsKey);
+    }
+
+    default Map.Entry<String, String> generateKeysForExecutedRPC(List<JSONObject> rpcsWhereFaultsInjected) {
+        String methodKey = "";
+        String argsKey = "";
+
+        for (JSONObject rpcWhereFaultsInjected : rpcsWhereFaultsInjected) {
+            methodKey += rpcWhereFaultsInjected.getString("method");
+
+            if (rpcWhereFaultsInjected.has("args")) {
+                JSONObject argsJsonObject = rpcWhereFaultsInjected.getJSONObject("args");
+
+                if (argsJsonObject.has("toString")) {
+                    argsKey += argsJsonObject.getString("toString");
+                }
+            }
+        }
+
+        return Pair.of(methodKey, argsKey);
     }
 }

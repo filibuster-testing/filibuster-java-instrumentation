@@ -9,7 +9,6 @@ import cloud.filibuster.junit.assertions.Helpers;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
-import junit.framework.AssertionFailedError;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
@@ -58,36 +57,36 @@ public interface FilibusterGrpcTest {
 
             // If a fault was injected, ask the developer to specify an alternative assertion block.
             boolean shouldRunAssertionBlock = true;
-            JSONObject rpcWhereFirstFaultInjected = rpcWhereFirstFaultInjected();
+            JSONObject rpcWhereLastFaultInjected = rpcWhereLastFaultInjected();
 
-            if (rpcWhereFirstFaultInjected != null) {
+            if (rpcWhereLastFaultInjected != null) {
                 String requestToString = null;
 
-                if (rpcWhereFirstFaultInjected.has("args")) {
-                    JSONObject argsJsonObject = rpcWhereFirstFaultInjected.getJSONObject("args");
+                if (rpcWhereLastFaultInjected.has("args")) {
+                    JSONObject argsJsonObject = rpcWhereLastFaultInjected.getJSONObject("args");
 
                     if (argsJsonObject.has("toString")) {
                         requestToString = argsJsonObject.getString("toString");
                     }
                 }
 
-                if (modifiedAssertionsByMethod.containsKey(rpcWhereFirstFaultInjected.getString("method"))) {
+                if (modifiedAssertionsByMethod.containsKey(rpcWhereLastFaultInjected.getString("method"))) {
                     try {
-                        modifiedAssertionsByMethod.get(rpcWhereFirstFaultInjected.getString("method")).run();
+                        modifiedAssertionsByMethod.get(rpcWhereLastFaultInjected.getString("method")).run();
                     } catch (Throwable t) {
                         throw new FilibusterGrpcTestRuntimeException(
-                                "Assertions in onFaultOnMethod(" + rpcWhereFirstFaultInjected.getString("method") + ", Runnable) failed.",
-                                "Please adjust assertions in onFaultOnMethod(" + rpcWhereFirstFaultInjected.getString("method") + ", Runnable) so that test passes.",
+                                "Assertions in onFaultOnMethod(" + rpcWhereLastFaultInjected.getString("method") + ", Runnable) failed.",
+                                "Please adjust assertions in onFaultOnMethod(" + rpcWhereLastFaultInjected.getString("method") + ", Runnable) so that test passes.",
                                 t);
                     }
                     shouldRunAssertionBlock = false;
-                } else if (requestToString != null && modifiedAssertionsByRequest.containsKey(rpcWhereFirstFaultInjected.getString("method") + requestToString)) {
+                } else if (requestToString != null && modifiedAssertionsByRequest.containsKey(rpcWhereLastFaultInjected.getString("method") + requestToString)) {
                     try {
-                        modifiedAssertionsByRequest.get(rpcWhereFirstFaultInjected.getString("method")+ requestToString).run();
+                        modifiedAssertionsByRequest.get(rpcWhereLastFaultInjected.getString("method")+ requestToString).run();
                     } catch (Throwable t) {
                         throw new FilibusterGrpcTestRuntimeException(
-                                "Assertions in onFaultOnRequest(" + rpcWhereFirstFaultInjected.getString("method") + ", ReqT, Runnable) failed.",
-                                "Please adjust assertions in onFaultOnRequest(" + rpcWhereFirstFaultInjected.getString("method") + ", " + requestToString.replaceAll("\\n", "") + ", Runnable) so that test passes.",
+                                "Assertions in onFaultOnRequest(" + rpcWhereLastFaultInjected.getString("method") + ", ReqT, Runnable) failed.",
+                                "Please adjust assertions in onFaultOnRequest(" + rpcWhereLastFaultInjected.getString("method") + ", " + requestToString.replaceAll("\\n", "") + ", Runnable) so that test passes.",
                                 t);
                     }
 
@@ -117,15 +116,15 @@ public interface FilibusterGrpcTest {
             Helpers.assertionBlock(this::assertStubBlock);
         } catch (StatusRuntimeException statusRuntimeException) {
             // Look up the first RPC where a fault was injected.
-            JSONObject rpcWhereFirstFaultInjected = rpcWhereFirstFaultInjected();
+            JSONObject rpcWhereLastFaultInjected = rpcWhereLastFaultInjected();
 
             // If we're in the reference execution, just rethrow.
-            if (rpcWhereFirstFaultInjected == null) {
+            if (rpcWhereLastFaultInjected == null) {
                 throw statusRuntimeException;
             }
 
             // See if the developer told us what would happen when this fault was injected.
-            if (!expectedExceptions.containsKey(rpcWhereFirstFaultInjected.getString("method"))) {
+            if (!expectedExceptions.containsKey(rpcWhereLastFaultInjected.getString("method"))) {
                 // If the user didn't tell us what should happen when this fault was injected,
                 // throw an error.
                 throw new FilibusterGrpcTestRuntimeException(
@@ -134,7 +133,7 @@ public interface FilibusterGrpcTest {
                         statusRuntimeException);
             } else {
                 // Verify the user specified behavior matches the system behavior.
-                Map.Entry<Status.Code, String> expectedException = expectedExceptions.get(rpcWhereFirstFaultInjected.getString("method"));
+                Map.Entry<Status.Code, String> expectedException = expectedExceptions.get(rpcWhereLastFaultInjected.getString("method"));
 
                 Status expectedStatus = Status.fromCode(expectedException.getKey()).withDescription(expectedException.getValue());
                 Status actualStatus = statusRuntimeException.getStatus();
@@ -247,7 +246,7 @@ public interface FilibusterGrpcTest {
     }
 
     @Nullable
-    default JSONObject rpcWhereFirstFaultInjected() {
+    default JSONObject rpcWhereLastFaultInjected() {
         // Look up the RPCs that were executed and the faults that were injected.
         HashMap<DistributedExecutionIndex, JSONObject> executedRPCs = getExecutedRPCs();
         HashMap<DistributedExecutionIndex, JSONObject> faultsInjected = getFaultsInjected();
@@ -269,22 +268,21 @@ public interface FilibusterGrpcTest {
 
         // At this point, there should be only a single injected fault.
         // Therefore, find it and return the associated RPC where the fault was injected.
-        Map.Entry<DistributedExecutionIndex, JSONObject> firstFaultInjected = null;
+        Map.Entry<DistributedExecutionIndex, JSONObject> lastFaultInjected = null;
 
         for (Map.Entry<DistributedExecutionIndex, JSONObject> faultInjected : faultsInjected.entrySet()) {
-            firstFaultInjected = faultInjected;
-            break;
+            lastFaultInjected = faultInjected;
         }
 
         if (executedRPCs == null) {
             throw new FilibusterGrpcTestInternalRuntimeException("executedRPCs is null: this could indicate a problem!");
         }
 
-        if (firstFaultInjected == null) {
-            throw new FilibusterGrpcTestInternalRuntimeException("firstFaultInjected is null: this could indicate a problem!");
+        if (lastFaultInjected == null) {
+            throw new FilibusterGrpcTestInternalRuntimeException("lastFaultInjected is null: this could indicate a problem!");
         }
 
-        return executedRPCs.get(firstFaultInjected.getKey());
+        return executedRPCs.get(lastFaultInjected.getKey());
     }
 
     HashMap<Status.Code, Runnable> adjustedExpectationsAndAssertions = new HashMap<>();

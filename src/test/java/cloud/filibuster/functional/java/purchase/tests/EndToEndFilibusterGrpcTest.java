@@ -47,11 +47,6 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
                 Status.Code.UNAVAILABLE,
                 "Purchase could not be completed at this time, please retry the request: user could not be retrieved.");
 
-        downstreamFailureResultsInException(
-                CartServiceGrpc.getGetCartForSessionMethod(),
-                Status.Code.UNAVAILABLE,
-                "Purchase could not be completed at this time, please retry the request: cart could not be retrieved.");
-
         onException(Status.Code.UNAVAILABLE,
                 // If we return unavailable, we should never invoke any of these downstream dependencies.
                 () -> {
@@ -73,8 +68,13 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
                 }
         );
 
+        downstreamFailureResultsInException(
+                CartServiceGrpc.getGetCartForSessionMethod(),
+                Status.Code.UNAVAILABLE,
+                "Purchase could not be completed at this time, please retry the request: cart could not be retrieved.");
+
         onFaultOnMethod(
-                CartServiceGrpc.getNotifyDiscountAppliedMethod(),
+                CartServiceGrpc.getGetDiscountOnCartMethod(),
                 this::assertTestBlock
         );
 
@@ -86,19 +86,8 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
                 () -> { assertTestBlock(9500); }
         );
 
-        onFaultOnRequest(
-                CartServiceGrpc.getGetDiscountOnCartMethod(),
-                Hello.GetDiscountRequest.newBuilder()
-                        .setCode("RETURNING")
-                        .build(),
-                this::assertTestBlock
-        );
-
-        onFaultOnRequest(
-                CartServiceGrpc.getGetDiscountOnCartMethod(),
-                Hello.GetDiscountRequest.newBuilder()
-                        .setCode("DAILY")
-                        .build(),
+        onFaultOnMethod(
+                CartServiceGrpc.getNotifyDiscountAppliedMethod(),
                 this::assertTestBlock
         );
     }

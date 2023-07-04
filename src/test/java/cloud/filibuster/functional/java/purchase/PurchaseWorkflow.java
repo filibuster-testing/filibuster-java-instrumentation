@@ -206,8 +206,8 @@ public class PurchaseWorkflow {
         RedisClientService redisClient = RedisClientService.getInstance();
 
         if (getInstrumentationServerCommunicationEnabledProperty()) {
-            return new RedisInterceptorFactory<>(redisClient.redisClient.connect(), redisClient.connectionString)
-                    .getProxy(StatefulRedisConnection.class);
+            // incomplete, needs instrumentation.
+            return RedisClientService.getInstance().redisClient.connect();
         } else {
             return RedisClientService.getInstance().redisClient.connect();
         }

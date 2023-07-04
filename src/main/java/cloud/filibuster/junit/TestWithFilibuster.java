@@ -209,6 +209,13 @@ public @interface TestWithFilibuster {
     String dockerImageName() default "";
 
     /**
+     * Should we abort on first failure?
+     *
+     * @return true
+     */
+    boolean abortOnFirstFailure() default false;
+
+    /**
      * If the Filibuster server is unavailable, should the system degrade to just running fault-free tests?
      *
      * @return boolean

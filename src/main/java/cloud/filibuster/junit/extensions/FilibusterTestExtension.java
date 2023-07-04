@@ -131,6 +131,7 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
         }
 
         FilibusterConfiguration filibusterConfiguration = new FilibusterConfiguration.Builder()
+                .abortOnFirstFailure(testWithFilibuster.abortOnFirstFailure())
                 .dynamicReduction(testWithFilibuster.dynamicReduction())
                 .suppressCombinations(suppressCombinations)
                 .dataNondeterminism(dataNondeterminism)

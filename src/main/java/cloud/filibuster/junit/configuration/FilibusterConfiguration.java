@@ -58,6 +58,8 @@ public class FilibusterConfiguration {
 
     private final boolean degradeWhenServerInitializationFails;
 
+    private boolean abortOnFirstFailure;
+
     private final Class<? extends Throwable> expected;
 
     private final FilibusterLatencyProfile latencyProfile;
@@ -70,6 +72,7 @@ public class FilibusterConfiguration {
     private final ServiceProfileBehavior serviceProfileBehavior;
 
     private FilibusterConfiguration(Builder builder) {
+        this.abortOnFirstFailure = builder.abortOnFirstFailure;
         this.dynamicReduction = builder.dynamicReduction;
         this.suppressCombinations = builder.suppressCombinations;
         this.dataNondeterminism = builder.dataNondeterminism;
@@ -149,6 +152,15 @@ public class FilibusterConfiguration {
      */
     public boolean getDynamicReduction() {
         return this.dynamicReduction;
+    }
+
+    /**
+     * Should abort on first failure?
+     *
+     * @return boolean
+     */
+    public boolean getAbortOnFirstFailure() {
+        return this.abortOnFirstFailure;
     }
 
     /**
@@ -263,6 +275,7 @@ public class FilibusterConfiguration {
         private boolean dataNondeterminism = false;
         private boolean avoidRedundantInjections = false;
         private boolean avoidInjectionsOnOrganicFailures = false;
+        private boolean abortOnFirstFailure = false;
 
         private FilibusterSearchStrategy searchStrategy;
 
@@ -306,6 +319,18 @@ public class FilibusterConfiguration {
         @CanIgnoreReturnValue
         public Builder suppressCombinations(boolean suppressCombinations) {
             this.suppressCombinations = suppressCombinations;
+            return this;
+        }
+
+        /**
+         * Should we abort on first failure?
+         *
+         * @param abortOnFirstFailure should we abort on first failure
+         * @return boolean
+         */
+        @CanIgnoreReturnValue
+        public Builder abortOnFirstFailure(boolean abortOnFirstFailure) {
+            this.abortOnFirstFailure = abortOnFirstFailure;
             return this;
         }
 

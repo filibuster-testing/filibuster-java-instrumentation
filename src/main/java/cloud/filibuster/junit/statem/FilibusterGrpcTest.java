@@ -15,10 +15,11 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.TreeMap;
+import java.util.Set;
 
 import static cloud.filibuster.junit.Assertions.getExecutedRPCs;
 import static cloud.filibuster.junit.Assertions.getFailedRPCs;
@@ -405,7 +406,7 @@ public interface FilibusterGrpcTest {
                         "Please use onFaultOnMethod(MethodDescriptor, Runnable), onFaultOnRequest(MethodDescriptor, ReqT, Runnable), or onFaultOnMethodHasNoEffect(MethodDescriptor) to specify assertions under fault.");
             }
 
-            // Otherwise, pass through and run normal assertion blcok.
+            // Otherwise, pass through and run normal assertion block.
         }
 
         return shouldRunAssertionBlock;
@@ -413,17 +414,17 @@ public interface FilibusterGrpcTest {
 
     // Multiple faults.
     //
-    // TODO
+    // Look to see if the user specified behavior for that precise combination of faults.
+    // If they didn't, try to verify compositionally using the information that they have provided.
+    //
     default boolean performMultipleFaultChecking(List<JSONObject> rpcsWhereFaultsInjected, String methodKey, String argsKey) {
-        boolean shouldRunAssertionBlock = true;
-
         // If the user specified an assertion block for this precise combination of faults.
         if (argsKey != null && modifiedAssertionsByRequest.containsKey(methodKey + argsKey)) {
             try {
                 modifiedAssertionsByRequest.get(methodKey + argsKey).run();
             } catch (Throwable t) {
                 throw new FilibusterGrpcTestRuntimeException(
-                        "Assertions in onFaultOnRequest(" + methodKey + ", ReqT, Runnable) failed.",
+                        "Assertions in onFaultOnRequest(Array<MethodDescriptors, GeneratedMessageV3>, ReqT, Runnable) failed.",
                         "Please adjust assertions in onFaultOnRequests(Array<MethodDescriptors, GeneratedMessageV3>, Runnable) so that test passes.",
                         t);
             }
@@ -431,30 +432,43 @@ public interface FilibusterGrpcTest {
             return false;
         }
 
-        // Otherwise, try to verify compositionally.
-        List<String> methodsWhereFaultInjected = new ArrayList<>();
-        List<String> methodsWhereFaultInjectedWithNoFaultImpact = new ArrayList<>();
+        // Otherwise, try to verify compositional-ly.
+        Set<JSONObject> methodsWithFaultImpact = new HashSet<>();
 
         for (JSONObject rpcWhereFaultInjected : rpcsWhereFaultsInjected) {
             String method = rpcWhereFaultInjected.getString("method");
-            methodsWhereFaultInjected.add(method);
 
-            if (methodsWithNoFaultImpact.contains(method)) {
-                methodsWhereFaultInjectedWithNoFaultImpact.add(method);
+            if (!methodsWithNoFaultImpact.contains(method)) {
+                methodsWithFaultImpact.add(rpcWhereFaultInjected);
             }
         }
 
-        if (methodsWhereFaultInjected.size() == methodsWhereFaultInjectedWithNoFaultImpact.size() + 1) {
-            // Only a single fault has impact.
-            throw new FilibusterGrpcTestRuntimeException(
-                    "Not working yet.",
-                    "Not working yet.");
+        if (methodsWithFaultImpact.size() == 0) {
+            return true;
+        } else if (methodsWithFaultImpact.size() == 1) {
+            ArrayList<JSONObject> rpcsWhereFaultsInjectedWithImpact = new ArrayList<>(methodsWithFaultImpact);
+            Map.Entry<String, String> keysForExecutedRPC = generateKeysForExecutedRPCFromJSON(rpcsWhereFaultsInjectedWithImpact);
+
+            if (keysForExecutedRPC == null) {
+                throw new FilibusterGrpcTestInternalRuntimeException("keysForExecutedRPC is null: this could indicate a problem!");
+            }
+
+            String singleFaultMethodKey = keysForExecutedRPC.getKey();
+            String singleFaultArgsKey = keysForExecutedRPC.getValue();
+
+            return performSingleFaultChecking(singleFaultMethodKey, singleFaultArgsKey);
+        } else if (methodsWithFaultImpact.size() < rpcsWhereFaultsInjected.size()) {
+            List<JSONObject> rpcsWhereFaultsInjectedWithImpact = new ArrayList<>(methodsWithFaultImpact);
+            Map.Entry<String, String> keysForExecutedRPC = generateKeysForExecutedRPCFromJSON(rpcsWhereFaultsInjectedWithImpact);
+
+            String methodsWithFaultImpactMethodKey = keysForExecutedRPC.getKey();
+            String methodsWithFaultImpactArgsKey = keysForExecutedRPC.getValue();
+
+            return performMultipleFaultChecking(rpcsWhereFaultsInjectedWithImpact, methodsWithFaultImpactMethodKey, methodsWithFaultImpactArgsKey);
         } else {
             throw new FilibusterGrpcTestRuntimeException(
                     "Compositional verification failed due to ambiguous failure handling: each fault introduced has different impact.",
                     "Please write an onFaultOnRequests(Array<MethodDescriptors, GeneratedMessageV3>, Runnable) for this fault combination with appropriate assertions.");
         }
-
-//        return shouldRunAssertionBlock;
     }
 }

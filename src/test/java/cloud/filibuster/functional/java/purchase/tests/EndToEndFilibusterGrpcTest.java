@@ -21,9 +21,7 @@ import org.grpcmock.junit5.GrpcMockExtension;
 import org.json.JSONObject;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
@@ -93,6 +91,22 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
                 () -> { assertTestBlock(9500); }
         );
 
+        onFaultOnRequest(
+                CartServiceGrpc.getGetDiscountOnCartMethod(),
+                Hello.GetDiscountRequest.newBuilder()
+                        .setCode("RETURNING")
+                        .build(),
+                this::assertTestBlock
+        );
+
+        onFaultOnRequest(
+                CartServiceGrpc.getGetDiscountOnCartMethod(),
+                Hello.GetDiscountRequest.newBuilder()
+                        .setCode("DAILY")
+                        .build(),
+                this::assertTestBlock
+        );
+
         onFaultOnMethodHasNoEffect(CartServiceGrpc.getNotifyDiscountAppliedMethod());
 
         // Multiple faults.
@@ -105,6 +119,17 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
         // TODO: Ideally come up with a better API.
         Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3> thirdCartRequest = Pair.of(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build());
         onFaultOnRequests(Arrays.asList(firstCartRequest, thirdCartRequest), () -> { assertTestBlock(9500); });
+
+        onFaultOnRequests(Arrays.asList(secondCartRequest, thirdCartRequest), () -> { assertTestBlock(9000); });
+
+//        onFaultOnRequests(Arrays.asList(firstCartRequest, secondCartRequest, thirdCartRequest), () -> { assertTestBlock(10000); });
+
+        onFaultOnRequests(
+                Arrays.asList(firstCartRequest, secondCartRequest, thirdCartRequest),
+                () -> {
+                    assertTestBlock(10000);
+                    GrpcMock.adjustExpectation(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
+                });
     }
 
     @Override
@@ -214,7 +239,6 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
             abortOnFirstFailure = true,
             maxIterations = 50,
             dataNondeterminism = true,
-            suppressCombinations = true,
             searchStrategy = FilibusterSearchStrategy.BFS
     )
     public void test() {

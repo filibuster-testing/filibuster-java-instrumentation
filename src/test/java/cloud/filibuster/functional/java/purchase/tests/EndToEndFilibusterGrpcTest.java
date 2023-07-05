@@ -42,6 +42,8 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
 
     @Override
     public void failureBlock() {
+        // Single faults.
+
         downstreamFailureResultsInException(
                 UserServiceGrpc.getGetUserFromSessionMethod(),
                 Status.Code.UNAVAILABLE,

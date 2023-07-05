@@ -67,23 +67,39 @@ public interface FilibusterGrpcTest {
             }
 
             if (rpcsWhereFaultsInjected.size() > 0) {
+                // Get description of faults injected.
+                Map.Entry<String, String> keysForExecutedRPC = generateKeysForExecutedRPCFromJSON(rpcsWhereFaultsInjected);
+
+                if (keysForExecutedRPC == null) {
+                    throw new FilibusterGrpcTestInternalRuntimeException("keysForExecutedRPC is null: this could indicate a problem!");
+                }
+
+                String methodKey = keysForExecutedRPC.getKey();
+                String argsKey = keysForExecutedRPC.getValue();
+
                 if (rpcsWhereFaultsInjected.size() > 1) {
+                    // Multiple faults.
+                    //
                     // TODO
+
+                    if (argsKey != null && modifiedAssertionsByRequest.containsKey(methodKey + argsKey)) {
+                        try {
+                            modifiedAssertionsByRequest.get(methodKey + argsKey).run();
+                        } catch (Throwable t) {
+                            throw new FilibusterGrpcTestRuntimeException(
+                                    "Assertions in onFaultOnRequest(" + methodKey + ", ReqT, Runnable) failed.",
+                                    "Please adjust assertions in onFaultOnRequests(Array<MethodDescriptors, GeneratedMessageV3>, Runnable) so that test passes.",
+                                    t);
+                        }
+
+                        shouldRunAssertionBlock = false;
+                    }
                 } else {
                     // Single fault.
                     //
                     // See if we have special error handling for this fault, then bypass the existing assertion block
                     // in favor of the fault-specific assertion block.
                     //
-                    Map.Entry<String, String> keysForExecutedRPC = generateKeysForExecutedRPC(rpcsWhereFaultsInjected);
-
-                    if (keysForExecutedRPC == null) {
-                        throw new FilibusterGrpcTestInternalRuntimeException("keysForExecutedRPC is null: this could indicate a problem!");
-                    }
-
-                    String methodKey = keysForExecutedRPC.getKey();
-                    String argsKey = keysForExecutedRPC.getValue();
-
                     if (argsKey != null && modifiedAssertionsByRequest.containsKey(methodKey + argsKey)) {
                         try {
                             modifiedAssertionsByRequest.get(methodKey + argsKey).run();
@@ -336,45 +352,45 @@ public interface FilibusterGrpcTest {
     }
 
     default void onFaultOnRequests(
-            Map<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3> rpcMap,
+            List<Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3>> rpcList,
             Runnable runnable
     ) {
-        Map.Entry<String, String> keysForExecutedRPC = generateKeysForExecutedRPC(rpcMap);
+        Map.Entry<String, String> keysForExecutedRPC = generateKeysForExecutedRPCFromMap(rpcList);
         String methodKey = keysForExecutedRPC.getKey();
         String argsKey = keysForExecutedRPC.getValue();
         modifiedAssertionsByRequest.put(methodKey + argsKey, runnable);
     }
 
-    default Map.Entry<String, String> generateKeysForExecutedRPC(
-            Map<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3> rpcMap
+    default Map.Entry<String, String> generateKeysForExecutedRPCFromMap(
+            List<Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3>> rpcList
     ) {
-        String methodKey = "";
-        String argsKey = "";
+        StringBuilder methodKey = new StringBuilder();
+        StringBuilder argsKey = new StringBuilder();
 
-        for (Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3> rpc : rpcMap.entrySet()) {
-            methodKey += rpc.getKey().getFullMethodName();
-            argsKey += rpc.getValue().toString();
+        for (Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3> rpc : rpcList) {
+            methodKey.append(rpc.getKey().getFullMethodName());
+            argsKey.append(rpc.getValue().toString());
         }
 
-        return Pair.of(methodKey, argsKey);
+        return Pair.of(methodKey.toString(), argsKey.toString());
     }
 
-    default Map.Entry<String, String> generateKeysForExecutedRPC(List<JSONObject> rpcsWhereFaultsInjected) {
-        String methodKey = "";
-        String argsKey = "";
+    default Map.Entry<String, String> generateKeysForExecutedRPCFromJSON(List<JSONObject> rpcsWhereFaultsInjected) {
+        StringBuilder methodKey = new StringBuilder();
+        StringBuilder argsKey = new StringBuilder();
 
         for (JSONObject rpcWhereFaultsInjected : rpcsWhereFaultsInjected) {
-            methodKey += rpcWhereFaultsInjected.getString("method");
+            methodKey.append(rpcWhereFaultsInjected.getString("method"));
 
             if (rpcWhereFaultsInjected.has("args")) {
                 JSONObject argsJsonObject = rpcWhereFaultsInjected.getJSONObject("args");
 
                 if (argsJsonObject.has("toString")) {
-                    argsKey += argsJsonObject.getString("toString");
+                    argsKey.append(argsJsonObject.getString("toString"));
                 }
             }
         }
 
-        return Pair.of(methodKey, argsKey);
+        return Pair.of(methodKey.toString(), argsKey.toString());
     }
 }

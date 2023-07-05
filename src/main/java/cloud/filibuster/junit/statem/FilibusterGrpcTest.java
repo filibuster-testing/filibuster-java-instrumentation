@@ -79,22 +79,7 @@ public interface FilibusterGrpcTest {
                 String argsKey = keysForExecutedRPC.getValue();
 
                 if (rpcsWhereFaultsInjected.size() > 1) {
-                    // Multiple faults.
-                    //
-                    // TODO
-
-                    if (argsKey != null && modifiedAssertionsByRequest.containsKey(methodKey + argsKey)) {
-                        try {
-                            modifiedAssertionsByRequest.get(methodKey + argsKey).run();
-                        } catch (Throwable t) {
-                            throw new FilibusterGrpcTestRuntimeException(
-                                    "Assertions in onFaultOnRequest(" + methodKey + ", ReqT, Runnable) failed.",
-                                    "Please adjust assertions in onFaultOnRequests(Array<MethodDescriptors, GeneratedMessageV3>, Runnable) so that test passes.",
-                                    t);
-                        }
-
-                        shouldRunAssertionBlock = false;
-                    }
+                    shouldRunAssertionBlock = performMultipleFaultChecking(rpcsWhereFaultsInjected, methodKey, argsKey);
                 } else {
                     shouldRunAssertionBlock = performSingleFaultChecking(methodKey, argsKey);
                 }
@@ -426,8 +411,50 @@ public interface FilibusterGrpcTest {
         return shouldRunAssertionBlock;
     }
 
+    // Multiple faults.
+    //
+    // TODO
+    default boolean performMultipleFaultChecking(List<JSONObject> rpcsWhereFaultsInjected, String methodKey, String argsKey) {
+        boolean shouldRunAssertionBlock = true;
+
+        // If the user specified an assertion block for this precise combination of faults.
+        if (argsKey != null && modifiedAssertionsByRequest.containsKey(methodKey + argsKey)) {
+            try {
+                modifiedAssertionsByRequest.get(methodKey + argsKey).run();
+            } catch (Throwable t) {
+                throw new FilibusterGrpcTestRuntimeException(
+                        "Assertions in onFaultOnRequest(" + methodKey + ", ReqT, Runnable) failed.",
+                        "Please adjust assertions in onFaultOnRequests(Array<MethodDescriptors, GeneratedMessageV3>, Runnable) so that test passes.",
+                        t);
+            }
+
+            return false;
         }
 
-        return Pair.of(methodKey.toString(), argsKey.toString());
+        // Otherwise, try to verify compositionally.
+        List<String> methodsWhereFaultInjected = new ArrayList<>();
+        List<String> methodsWhereFaultInjectedWithNoFaultImpact = new ArrayList<>();
+
+        for (JSONObject rpcWhereFaultInjected : rpcsWhereFaultsInjected) {
+            String method = rpcWhereFaultInjected.getString("method");
+            methodsWhereFaultInjected.add(method);
+
+            if (methodsWithNoFaultImpact.contains(method)) {
+                methodsWhereFaultInjectedWithNoFaultImpact.add(method);
+            }
+        }
+
+        if (methodsWhereFaultInjected.size() == methodsWhereFaultInjectedWithNoFaultImpact.size() + 1) {
+            // Only a single fault has impact.
+            throw new FilibusterGrpcTestRuntimeException(
+                    "Not working yet.",
+                    "Not working yet.");
+        } else {
+            throw new FilibusterGrpcTestRuntimeException(
+                    "Compositional verification failed due to ambiguous failure handling: each fault introduced has different impact.",
+                    "Please write an onFaultOnRequests(Array<MethodDescriptors, GeneratedMessageV3>, Runnable) for this fault combination with appropriate assertions.");
+        }
+
+//        return shouldRunAssertionBlock;
     }
 }

@@ -7,17 +7,23 @@ import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.functional.java.purchase.PurchaseBaseTest;
 
 import cloud.filibuster.functional.java.purchase.configurations.GRPCAnalysisConfigurationFile;
+import cloud.filibuster.instrumentation.datatypes.Pair;
 import cloud.filibuster.junit.statem.FilibusterGrpcTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.functional.java.purchase.PurchaseWorkflow;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.statem.GrpcMock;
+import com.google.protobuf.GeneratedMessageV3;
+import io.grpc.MethodDescriptor;
 import io.grpc.Status;
 import org.grpcmock.junit5.GrpcMockExtension;
 import org.json.JSONObject;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
@@ -92,6 +98,17 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
                 CartServiceGrpc.getNotifyDiscountAppliedMethod(),
                 this::assertTestBlock
         );
+
+        // Multiple faults.
+
+        // TODO: Ideally come up with a better API.
+        Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3> firstCartRequest = Pair.of(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("FIRST-TIME").build());
+        Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3> secondCartRequest = Pair.of(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build());
+        onFaultOnRequests(Arrays.asList(firstCartRequest, secondCartRequest), () -> { assertTestBlock(9900); });
+
+        // TODO: Ideally come up with a better API.
+        Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3> thirdCartRequest = Pair.of(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build());
+        onFaultOnRequests(Arrays.asList(firstCartRequest, thirdCartRequest), () -> { assertTestBlock(9500); });
     }
 
     @Override

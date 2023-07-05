@@ -122,9 +122,13 @@ public interface FilibusterGrpcTest {
                         }
                         shouldRunAssertionBlock = false;
                     } else {
-                        throw new FilibusterGrpcTestRuntimeException(
-                                "Test injected a fault, but no specification of failure behavior present.",
-                                "Please use onFaultOnMethod(MethodDescriptor, Runnable) or onFaultOnRequest(MethodDescriptor, ReqT, Runnable) to specify assertions under fault.");
+                        if (!methodsWithNoFaultImpact.contains(methodKey)) {
+                            throw new FilibusterGrpcTestRuntimeException(
+                                    "Test injected a fault, but no specification of failure behavior present.",
+                                    "Please use onFaultOnMethod(MethodDescriptor, Runnable), onFaultOnRequest(MethodDescriptor, ReqT, Runnable), or onFaultOnMethodHasNoEffect(MethodDescriptor) to specify assertions under fault.");
+                        }
+
+                        // Otherwise, pass through and run normal assertion blcok.
                     }
                 }
             }
@@ -359,6 +363,12 @@ public interface FilibusterGrpcTest {
         String methodKey = keysForExecutedRPC.getKey();
         String argsKey = keysForExecutedRPC.getValue();
         modifiedAssertionsByRequest.put(methodKey + argsKey, runnable);
+    }
+
+    List<String> methodsWithNoFaultImpact = new ArrayList<>();
+
+    default <ReqT, ResT> void onFaultOnMethodHasNoEffect(MethodDescriptor<ReqT, ResT> methodDescriptor) {
+        methodsWithNoFaultImpact.add(methodDescriptor.getFullMethodName());
     }
 
     default Map.Entry<String, String> generateKeysForExecutedRPCFromMap(

@@ -83,8 +83,7 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
 
         onFaultOnMethod(
                 CartServiceGrpc.getGetDiscountOnCartMethod(),
-                this::assertTestBlock
-        );
+                this::assertTestBlock);
 
         onFaultOnRequest(
                 CartServiceGrpc.getGetDiscountOnCartMethod(),
@@ -94,10 +93,7 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
                 () -> { assertTestBlock(9500); }
         );
 
-        onFaultOnMethod(
-                CartServiceGrpc.getNotifyDiscountAppliedMethod(),
-                this::assertTestBlock
-        );
+        onFaultOnMethodHasNoEffect(CartServiceGrpc.getNotifyDiscountAppliedMethod());
 
         // Multiple faults.
 

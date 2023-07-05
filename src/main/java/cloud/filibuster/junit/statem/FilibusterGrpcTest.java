@@ -312,26 +312,22 @@ public interface FilibusterGrpcTest {
         List<JSONObject> rpcsWhereFaultsInjected = new ArrayList<>();
 
         // Look up the RPCs that were executed and the faults that were injected.
-        HashMap<DistributedExecutionIndex, JSONObject> unsortedExecutedRPCs = getExecutedRPCs();
+        HashMap<DistributedExecutionIndex, JSONObject> executedRPCs = getExecutedRPCs();
 
-        if (unsortedExecutedRPCs == null) {
-            throw new FilibusterGrpcTestInternalRuntimeException("unsortedExecutedRPCs is null: this could indicate a problem!");
+        if (executedRPCs == null) {
+            throw new FilibusterGrpcTestInternalRuntimeException("executedRPCs is null: this could indicate a problem!");
         }
 
-        TreeMap<DistributedExecutionIndex, JSONObject> executedRPCs = new TreeMap<>(unsortedExecutedRPCs);
         HashMap<DistributedExecutionIndex, JSONObject> faultsInjected = getFaultsInjected();
 
         if (faultsInjected == null) {
             throw new FilibusterGrpcTestInternalRuntimeException("faultsInjected is null: this could indicate a problem!");
         }
 
-        // If no fault was injected, it's gotta be the reference execution, return null.
-        if (faultsInjected.size() == 0) {
-            return rpcsWhereFaultsInjected;
-        }
-
-        for (Map.Entry<DistributedExecutionIndex, JSONObject> faultInjected : faultsInjected.entrySet()) {
-            rpcsWhereFaultsInjected.add(executedRPCs.get(faultInjected.getKey()));
+        for (Map.Entry<DistributedExecutionIndex, JSONObject> executedRPC : executedRPCs.entrySet()) {
+            if (faultsInjected.containsKey(executedRPC.getKey())) {
+                rpcsWhereFaultsInjected.add(executedRPC.getValue());
+            }
         }
 
         return rpcsWhereFaultsInjected;

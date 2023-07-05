@@ -253,7 +253,7 @@
                     let plural = failures.length > 1  ? "s" : "";
                     $('#failedMessage').html(`❌&nbsp; Test failed because of assertion failure${plural}: `);
                     $('#failure').show();
-                    let options = failures.map((failure,index) => failure.assertion_failure_message.indexOf(".\n") != -1 ? `<option value="${index}">${failure.assertion_failure_message.substring(0, failure.assertion_failure_message.indexOf(".\n") + 1) + "..."}</option>` : `<option value="${index}">${failure.assertion_failure_message}</option>`).join();
+                    let options = failures.map((failure,index) => failure.assertion_failure_message.indexOf(".\n") != -1 ? `<option value="${index}">${failure.assertion_failure_message.substring(0, failure.assertion_failure_message.indexOf(".\n") + 1)}</option>` : `<option value="${index}">${failure.assertion_failure_message}</option>`).join();
                     console.log(options);
                     $("#failureSelection").append(options);
                 } else {

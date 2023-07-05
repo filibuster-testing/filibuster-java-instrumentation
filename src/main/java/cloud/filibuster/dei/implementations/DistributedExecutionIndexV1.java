@@ -8,6 +8,7 @@ import cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Key.Buil
 import cloud.filibuster.instrumentation.datatypes.Callsite;
 import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -35,6 +36,11 @@ import static cloud.filibuster.instrumentation.helpers.Hashing.createDigest;
 
 public class DistributedExecutionIndexV1 extends DistributedExecutionIndexBase implements DistributedExecutionIndex {
     public static final DistributedExecutionIndexType VERSION = V1;
+
+    @Override
+    public int compareTo(@NotNull DistributedExecutionIndex o) {
+        return this.toString().compareTo(o.toString());
+    }
 
     public static class Properties {
 

@@ -118,10 +118,18 @@ public interface FilibusterGrpcTest {
                 try {
                     Helpers.assertionBlock(this::assertTestBlock);
                 } catch (Throwable t) {
-                    throw new FilibusterGrpcTestRuntimeException(
-                            "Assertions in assertTestBlock() failed.",
-                            "Please adjust assertions in assertTestBlock() so that test passes.",
-                            t);
+                    if (rpcsWhereFaultsInjected.size() > 1) {
+                        throw new FilibusterGrpcTestRuntimeException(
+                                "Assertions in assertTestBlock() failed due to multiple faults being injected.",
+                                "Please use onFaultOnRequests(Array<MethodDescriptors, GeneratedMessageV3>, Runnable) to update assertions so that they hold under fault.",
+                                t
+                        );
+                    } else {
+                        throw new FilibusterGrpcTestRuntimeException(
+                                "Assertions in assertTestBlock() failed.",
+                                "Please adjust assertions in assertTestBlock() so that test passes.",
+                                t);
+                    }
                 }
             }
 

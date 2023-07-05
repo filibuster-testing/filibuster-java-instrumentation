@@ -6,7 +6,6 @@ import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.instrumentation.datatypes.Pair;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
-import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.BasicDAO;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.CockroachClientService;

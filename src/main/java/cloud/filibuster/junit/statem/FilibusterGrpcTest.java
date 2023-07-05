@@ -13,6 +13,7 @@ import io.grpc.StatusRuntimeException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -333,33 +334,55 @@ public interface FilibusterGrpcTest {
         methodsWithNoFaultImpact.add(methodDescriptor.getFullMethodName());
     }
 
-    default Map.Entry<String, String> generateKeysForExecutedRPCFromMap(
-            List<Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3>> rpcList
+    default Map.Entry<String, String> generateKeys(
+            List<Map.Entry<String, String>> keyData
     ) {
-        StringBuilder methodKey = new StringBuilder();
-        StringBuilder argsKey = new StringBuilder();
+        List<String> methodValues = new ArrayList<>();
+        List<String> argValues = new ArrayList<>();
 
-        for (Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3> rpc : rpcList) {
-            methodKey.append(rpc.getKey().getFullMethodName());
-            argsKey.append(rpc.getValue().toString());
+        for (Map.Entry<String, String> keyDataItem : keyData) {
+            methodValues.add(keyDataItem.getKey());
+            argValues.add(keyDataItem.getValue());
         }
 
-        return Pair.of(methodKey.toString(), argsKey.toString());
+        Collections.sort(methodValues);
+        Collections.sort(argValues);
+
+        String methodValue = String.join("", methodValues);
+        String argsValue = String.join("", argValues);
+
+        return Pair.of(methodValue, argsValue);
+    }
+
+    default Map.Entry<String, String> generateKeysForExecutedRPCFromMap(List<Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3>> rpcList) {
+        List<Map.Entry<String, String>> keyEntries = new ArrayList<>();
+
+        for (Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3> rpc : rpcList) {
+            keyEntries.add(Pair.of(rpc.getKey().getFullMethodName(), rpc.getValue().toString()));
+        }
+
+        return generateKeys(keyEntries);
     }
 
     default Map.Entry<String, String> generateKeysForExecutedRPCFromJSON(List<JSONObject> rpcsWhereFaultsInjected) {
-        StringBuilder methodKey = new StringBuilder();
-        StringBuilder argsKey = new StringBuilder();
+        List<Map.Entry<String, String>> keyEntries = new ArrayList<>();
 
         for (JSONObject rpcWhereFaultsInjected : rpcsWhereFaultsInjected) {
-            methodKey.append(rpcWhereFaultsInjected.getString("method"));
-
             if (rpcWhereFaultsInjected.has("args")) {
                 JSONObject argsJsonObject = rpcWhereFaultsInjected.getJSONObject("args");
 
                 if (argsJsonObject.has("toString")) {
-                    argsKey.append(argsJsonObject.getString("toString"));
+                    keyEntries.add(Pair.of(rpcWhereFaultsInjected.getString("method"), argsJsonObject.getString("toString")));
+                } else {
+                    keyEntries.add(Pair.of(rpcWhereFaultsInjected.getString("method"), ""));
                 }
+            } else {
+                keyEntries.add(Pair.of(rpcWhereFaultsInjected.getString("method"), ""));
+            }
+        }
+
+        return generateKeys(keyEntries);
+    }
 
     // Single fault.
     //

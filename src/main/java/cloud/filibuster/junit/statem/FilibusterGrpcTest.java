@@ -95,41 +95,7 @@ public interface FilibusterGrpcTest {
                         shouldRunAssertionBlock = false;
                     }
                 } else {
-                    // Single fault.
-                    //
-                    // See if we have special error handling for this fault, then bypass the existing assertion block
-                    // in favor of the fault-specific assertion block.
-                    //
-                    if (argsKey != null && modifiedAssertionsByRequest.containsKey(methodKey + argsKey)) {
-                        try {
-                            modifiedAssertionsByRequest.get(methodKey + argsKey).run();
-                        } catch (Throwable t) {
-                            throw new FilibusterGrpcTestRuntimeException(
-                                    "Assertions in onFaultOnRequest(" + methodKey + ", ReqT, Runnable) failed.",
-                                    "Please adjust assertions in onFaultOnRequest(" + methodKey + ", " + argsKey.replaceAll("\\n", "") + ", Runnable) so that test passes.",
-                                    t);
-                        }
-
-                        shouldRunAssertionBlock = false;
-                    } else if (modifiedAssertionsByMethod.containsKey(methodKey)) {
-                        try {
-                            modifiedAssertionsByMethod.get(methodKey).run();
-                        } catch (Throwable t) {
-                            throw new FilibusterGrpcTestRuntimeException(
-                                    "Assertions in onFaultOnMethod(" + methodKey + ", Runnable) failed.",
-                                    "Please adjust assertions in onFaultOnMethod(" + methodKey + ", Runnable) so that test passes.",
-                                    t);
-                        }
-                        shouldRunAssertionBlock = false;
-                    } else {
-                        if (!methodsWithNoFaultImpact.contains(methodKey)) {
-                            throw new FilibusterGrpcTestRuntimeException(
-                                    "Test injected a fault, but no specification of failure behavior present.",
-                                    "Please use onFaultOnMethod(MethodDescriptor, Runnable), onFaultOnRequest(MethodDescriptor, ReqT, Runnable), or onFaultOnMethodHasNoEffect(MethodDescriptor) to specify assertions under fault.");
-                        }
-
-                        // Otherwise, pass through and run normal assertion blcok.
-                    }
+                    shouldRunAssertionBlock = performSingleFaultChecking(methodKey, argsKey);
                 }
             }
 

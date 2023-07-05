@@ -107,7 +107,7 @@ public interface FilibusterGrpcTest {
                     } else {
                         throw new FilibusterGrpcTestRuntimeException(
                                 "Test injected a fault, but no specification of failure behavior present.",
-                                "Use onFaultOnMethod(MethodDescriptor, Runnable) or onFaultOnRequest(MethodDescriptor, ReqT, Runnable) to specify assertions under fault.");
+                                "Please use onFaultOnMethod(MethodDescriptor, Runnable) or onFaultOnRequest(MethodDescriptor, ReqT, Runnable) to specify assertions under fault.");
                     }
                 }
             }

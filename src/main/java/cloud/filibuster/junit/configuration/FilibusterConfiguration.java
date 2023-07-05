@@ -58,7 +58,7 @@ public class FilibusterConfiguration {
 
     private final boolean degradeWhenServerInitializationFails;
 
-    private boolean abortOnFirstFailure;
+    private final boolean abortOnFirstFailure;
 
     private final Class<? extends Throwable> expected;
 

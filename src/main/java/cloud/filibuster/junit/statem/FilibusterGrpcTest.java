@@ -307,10 +307,6 @@ public interface FilibusterGrpcTest {
             return rpcsWhereFaultsInjected;
         }
 
-        // At this point, there should be only a single injected fault.
-        // Therefore, find it and return the associated RPC where the fault was injected.
-        Map.Entry<DistributedExecutionIndex, JSONObject> lastFaultInjected = null;
-
         for (Map.Entry<DistributedExecutionIndex, JSONObject> faultInjected : faultsInjected.entrySet()) {
             rpcsWhereFaultsInjected.add(executedRPCs.get(faultInjected.getKey()));
         }

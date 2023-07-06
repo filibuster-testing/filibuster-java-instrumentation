@@ -58,10 +58,27 @@ public interface FilibusterGrpcTest {
      */
     void executeTestBlock();
 
+    /**
+     * Test authors should place test assertions here.  Use of this block inhibits fault injection, which is necessary
+     * when using the very API under test to perform assertions.  For example, if your test looks up the user to subscribe
+     * them to a service and looks up the user to verify they were subscribed, you only want to inject a fault on the
+     * user lookup that's part of subscribing -- not verifying that they did indeed get subscribed.
+     */
     void assertTestBlock();
 
+    /**
+     * Test authors should use this block for performing assertions on stub invocations.  This should be done using the
+     * Filibuster-provided {@link GrpcMock#verifyThat(MethodDescriptor, int)} method and NOT using GrpcMock directly, as
+     * Filibuster must interpose on these calls to automatically adjust the expected invocation count when faults are
+     * injected.
+     */
     void assertStubBlock();
 
+    /**
+     * Test authors should use this block for performing test teardown.  Similar to the {@link #setupBlock()} method,
+     * fault injection is inhibited for any downstream dependencies that are invoked as part of any method invoked in
+     * this block.
+     */
     void teardownBlock();
 
     default void execute() {

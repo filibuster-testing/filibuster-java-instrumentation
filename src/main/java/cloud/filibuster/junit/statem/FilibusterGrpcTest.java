@@ -26,8 +26,27 @@ import static cloud.filibuster.junit.Assertions.getFailedRPCs;
 import static cloud.filibuster.junit.Assertions.getFaultsInjected;
 
 public interface FilibusterGrpcTest {
+    /**
+     * Placeholder block for centrally locating failure specification.
+     * <p>
+     * Methods in Filibuster's failure API -- for example {@link #downstreamFailureResultsInException(MethodDescriptor, Status.Code, String)}
+     * and similar -- do not have to be explicitly placed in this block to function correctly.  This block is only
+     * there to provide a logical separation in the code between test code that is and is not not specific to fault
+     * injection testing.
+     */
     void failureBlock();
 
+    /**
+     * Setup block for tests.
+     * <p>
+     * Test authors should put code for setup of the test in here.  Use of this block inhibits fault injection for any
+     * RPCs issued in this block.  For example, if using the service-under-test's API to stage state for running a test,
+     * any downstream dependencies that are invoked as part of execution of the setup block will not be tested for
+     * faults.  Thereby, this ensures that faults do not prevent proper staging before execution of the actual test.
+     * <p>
+     * This block is also used to create a visual separation between RPCs executed as part of setup from RPCs that were
+     * executed as part of the test.
+     */
     void setupBlock();
 
     void stubBlock();
@@ -252,14 +271,49 @@ public interface FilibusterGrpcTest {
     }
 
     // *****************************************************************************************************************
-    // Helpers.
+    // Fault API
     // *****************************************************************************************************************
-
-    HashMap<String, Map.Entry<Status.Code, String>> expectedExceptions = new HashMap<>();
 
     default <ReqT, ResT> void downstreamFailureResultsInException(MethodDescriptor<ReqT, ResT> methodDescriptor, Status.Code code, String description) {
         expectedExceptions.put(methodDescriptor.getFullMethodName(), Pair.of(code, description));
     }
+
+    default void onException(Status.Code code, Runnable runnable) {
+        adjustedExpectationsAndAssertions.put(code, runnable);
+    }
+
+    default <ReqT, ResT> void onFaultOnMethod(MethodDescriptor<ReqT, ResT> methodDescriptor, Runnable runnable) {
+        modifiedAssertionsByMethod.put(methodDescriptor.getFullMethodName(), runnable);
+    }
+
+    default <ReqT, ResT> void onFaultOnMethodHasNoEffect(MethodDescriptor<ReqT, ResT> methodDescriptor) {
+        methodsWithNoFaultImpact.add(methodDescriptor.getFullMethodName());
+    }
+
+    default <ReqT, ResT> void onFaultOnRequest(MethodDescriptor<ReqT, ResT> methodDescriptor, ReqT request, Runnable runnable) {
+        modifiedAssertionsByRequest.put(methodDescriptor.getFullMethodName() + request.toString(), runnable);
+    }
+
+    default void onFaultOnRequests(List<Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3>> rpcList, Runnable runnable) {
+        Map.Entry<String, String> keysForExecutedRPC = generateKeysForExecutedRPCFromMap(rpcList);
+        String methodKey = keysForExecutedRPC.getKey();
+        String argsKey = keysForExecutedRPC.getValue();
+        modifiedAssertionsByRequest.put(methodKey + argsKey, runnable);
+    }
+
+    // *****************************************************************************************************************
+    // Internal
+    // *****************************************************************************************************************
+
+    HashMap<String, Map.Entry<Status.Code, String>> expectedExceptions = new HashMap<>();
+
+    HashMap<Status.Code, Runnable> adjustedExpectationsAndAssertions = new HashMap<>();
+
+    HashMap<String, Runnable> modifiedAssertionsByMethod = new HashMap<>();
+
+    HashMap<String, Runnable> modifiedAssertionsByRequest = new HashMap<>();
+
+    List<String> methodsWithNoFaultImpact = new ArrayList<>();
 
     default List<JSONObject> rpcsWhereFaultsInjected() {
         List<JSONObject> rpcsWhereFaultsInjected = new ArrayList<>();
@@ -286,43 +340,7 @@ public interface FilibusterGrpcTest {
         return rpcsWhereFaultsInjected;
     }
 
-    HashMap<Status.Code, Runnable> adjustedExpectationsAndAssertions = new HashMap<>();
-
-    default void onException(Status.Code code, Runnable runnable) {
-        adjustedExpectationsAndAssertions.put(code, runnable);
-    }
-
-    HashMap<String, Runnable> modifiedAssertionsByMethod = new HashMap<>();
-
-    default <ReqT, ResT> void onFaultOnMethod(MethodDescriptor<ReqT, ResT> methodDescriptor, Runnable runnable) {
-        modifiedAssertionsByMethod.put(methodDescriptor.getFullMethodName(), runnable);
-    }
-
-    HashMap<String, Runnable> modifiedAssertionsByRequest = new HashMap<>();
-
-    default <ReqT, ResT> void onFaultOnRequest(MethodDescriptor<ReqT, ResT> methodDescriptor, ReqT request, Runnable runnable) {
-        modifiedAssertionsByRequest.put(methodDescriptor.getFullMethodName() + request.toString(), runnable);
-    }
-
-    default void onFaultOnRequests(
-            List<Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3>> rpcList,
-            Runnable runnable
-    ) {
-        Map.Entry<String, String> keysForExecutedRPC = generateKeysForExecutedRPCFromMap(rpcList);
-        String methodKey = keysForExecutedRPC.getKey();
-        String argsKey = keysForExecutedRPC.getValue();
-        modifiedAssertionsByRequest.put(methodKey + argsKey, runnable);
-    }
-
-    List<String> methodsWithNoFaultImpact = new ArrayList<>();
-
-    default <ReqT, ResT> void onFaultOnMethodHasNoEffect(MethodDescriptor<ReqT, ResT> methodDescriptor) {
-        methodsWithNoFaultImpact.add(methodDescriptor.getFullMethodName());
-    }
-
-    default Map.Entry<String, String> generateKeys(
-            List<Map.Entry<String, String>> keyData
-    ) {
+    default Map.Entry<String, String> generateKeys(List<Map.Entry<String, String>> keyData) {
         List<String> methodValues = new ArrayList<>();
         List<String> argValues = new ArrayList<>();
 

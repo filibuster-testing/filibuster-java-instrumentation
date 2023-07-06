@@ -314,6 +314,16 @@ public interface FilibusterGrpcTest {
         adjustedExpectationsAndAssertions.put(code, runnable);
     }
 
+    /**
+     * Use of this method informs Filibuster that any faults injected to this GRPC endpoint will result in possibly
+     * different assertions being true (other than the default block.)  These assertions should be placed in the
+     * associated {@link Runnable}.
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param runnable assertion block.
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
     default <ReqT, ResT> void onFaultOnMethod(MethodDescriptor<ReqT, ResT> methodDescriptor, Runnable runnable) {
         modifiedAssertionsByMethod.put(methodDescriptor.getFullMethodName(), runnable);
     }

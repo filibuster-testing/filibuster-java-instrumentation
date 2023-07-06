@@ -27,30 +27,35 @@ import static cloud.filibuster.junit.Assertions.getFaultsInjected;
 
 public interface FilibusterGrpcTest {
     /**
-     * Placeholder block for centrally locating failure specification.
-     * <p>
-     * Methods in Filibuster's failure API -- for example {@link #downstreamFailureResultsInException(MethodDescriptor, Status.Code, String)}
-     * and similar -- do not have to be explicitly placed in this block to function correctly.  This block is only
-     * there to provide a logical separation in the code between test code that is and is not not specific to fault
-     * injection testing.
+     * Test authors should place failure specification in this method.  For example,
+     * {@link #downstreamFailureResultsInException(MethodDescriptor, Status.Code, String)} to indicate that a method,
+     * when failed, will cause the service to return an exception.
      */
     void failureBlock();
 
     /**
-     * Setup block for tests.
-     * <p>
      * Test authors should put code for setup of the test in here.  Use of this block inhibits fault injection for any
      * RPCs issued in this block.  For example, if using the service-under-test's API to stage state for running a test,
      * any downstream dependencies that are invoked as part of execution of the setup block will not be tested for
      * faults.  Thereby, this ensures that faults do not prevent proper staging before execution of the actual test.
-     * <p>
-     * This block is also used to create a visual separation between RPCs executed as part of setup from RPCs that were
-     * executed as part of the test.
      */
     void setupBlock();
 
+    /**
+     * Test authors should use this block for stubbing any downstream dependencies that need to be stubbed for the test
+     * to pass.  Stubbing of these dependencies should be performed using the Filibuster-provided
+     * {@link GrpcMock#stubFor(MethodDescriptor, Object, Object) GrpcMock.stubFor(MethodDescriptor, ReqT, ResT)}
+     * method and should NOT use GrpcMock directly as Filibuster needs to interpose on these mocks for fault injection
+     * testing.
+     */
     void stubBlock();
 
+    /**
+     * Test authors should place test execution code here.  Any downstream RPCs that are invoked as a result of a method
+     * invocation inside of this block will be subject to fault injection.  Test authors should store any responses
+     * that are required for assertions -- placed in the assertion block {@link #assertTestBlock()} -- in instance
+     * variables.
+     */
     void executeTestBlock();
 
     void assertTestBlock();

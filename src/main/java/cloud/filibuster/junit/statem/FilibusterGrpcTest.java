@@ -296,6 +296,16 @@ public interface FilibusterGrpcTest {
     // Fault API
     // *****************************************************************************************************************
 
+    /**
+     * Use of this method informs Filibuster that any faults injected to this GRPC endpoint will result in the service
+     * returning a {@link StatusRuntimeException} with the specified code and description.
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param code the thrown exception's status code when a fault is injected
+     * @param description he thrown exception's description that is returned when a fault is injected
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
     default <ReqT, ResT> void downstreamFailureResultsInException(MethodDescriptor<ReqT, ResT> methodDescriptor, Status.Code code, String description) {
         expectedExceptions.put(methodDescriptor.getFullMethodName(), Pair.of(code, description));
     }

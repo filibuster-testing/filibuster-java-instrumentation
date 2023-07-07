@@ -330,10 +330,35 @@ public interface FilibusterGrpcTest {
         modifiedAssertionsByMethod.put(methodDescriptor.getFullMethodName(), runnable);
     }
 
+    /**
+     * Use of this method informs Filibuster that any faults injected to this GRPC endpoint will result
+     * in the primary assertions, placed in the {@link #assertTestBlock()} continuing to hold true.
+     * Therefore, it has no effect on the test outcome when the fault is injected
+     * (except changing the stub invocation counts, which will be automatically adjusted
+     * when a fault is injected if the developer used the Filibuster-provided
+     * {@link GrpcMock#stubFor(MethodDescriptor, Object, Object) GrpcMock.stubFor} and
+     * {@link GrpcMock#verifyThat(MethodDescriptor, int) GrpcMock.verifyThat} methods.)
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
     default <ReqT, ResT> void onFaultOnMethodHasNoEffect(MethodDescriptor<ReqT, ResT> methodDescriptor) {
         methodsWithNoFaultImpact.add(methodDescriptor.getFullMethodName());
     }
 
+    /**
+     * Use of this method informs Filibuster that any faults injected to this GRPC endpoint, for a particular request,
+     * will result in possibly different assertions being true (other than the default block.)
+     * These assertions should be placed in the associated {@link Runnable}.
+     * This block will replace the assertions in {@link #assertTestBlock()}.
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param request the request
+     * @param runnable assertion block
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
     default <ReqT, ResT> void onFaultOnRequest(MethodDescriptor<ReqT, ResT> methodDescriptor, ReqT request, Runnable runnable) {
         modifiedAssertionsByRequest.put(methodDescriptor.getFullMethodName() + request.toString(), runnable);
     }

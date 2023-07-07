@@ -26,6 +26,19 @@ import static cloud.filibuster.junit.Assertions.getExecutedRPCs;
 import static cloud.filibuster.junit.Assertions.getFailedRPCs;
 import static cloud.filibuster.junit.Assertions.getFaultsInjected;
 
+
+/**
+ * Testing interface for writing tests of services that issue GRPCs.  Provides a number of features:
+ *
+ * <li>Ensures that setup, test, and teardown are logically separated, making fault injection only active when the test is in progress.</li>
+ * <li>Ensures that developers stub all dependencies and indicate precisely which dependencies will be invoked how many times.</li>
+ * <li>Forces developers to specifically indicate failure handling behavior for all RPCs issued by the application.</li>
+ * <li>Applies compositional reasoning to minimize the number of failure scenarios the user has to specify.</li>
+ *
+ * <p>Requires that developers implement this interface and create a test method annotated with
+ * {@link cloud.filibuster.junit.TestWithFilibuster @TestWithFilibuster}
+ * that just executes the interface function {@link #execute() super.execute()}.</p>
+ */
 public interface FilibusterGrpcTest {
     /**
      * Test authors should place failure specification in this method.  For example,
@@ -303,7 +316,7 @@ public interface FilibusterGrpcTest {
      *
      * @param methodDescriptor a GRPC method descriptor
      * @param code the thrown exception's status code when a fault is injected
-     * @param description he thrown exception's description that is returned when a fault is injected
+     * @param description the thrown exception's description that is returned when a fault is injected
      * @param <ReqT> the request type for this method
      * @param <ResT> the response type for this method
      */
@@ -311,6 +324,14 @@ public interface FilibusterGrpcTest {
         expectedExceptions.put(methodDescriptor.getFullMethodName(), Pair.of(code, description));
     }
 
+    /**
+     * Use of this method informs Filibuster that different assertions will hold true when this error code is
+     * returned to the user, as part of a {@link StatusRuntimeException}.  These assertions should be placed in the
+     * associated {@link Runnable}.  This block will replace the assertions in {@link #assertTestBlock()}.
+     *
+     * @param code the thrown exception's status code when a fault is injected
+     * @param runnable assertion block
+     */
     default void onException(Status.Code code, Runnable runnable) {
         adjustedExpectationsAndAssertions.put(code, runnable);
     }

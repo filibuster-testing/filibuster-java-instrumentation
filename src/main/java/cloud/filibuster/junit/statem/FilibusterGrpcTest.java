@@ -6,6 +6,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException
 import cloud.filibuster.instrumentation.datatypes.Pair;
 import cloud.filibuster.junit.assertions.Helpers;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.protobuf.GeneratedMessageV3;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;

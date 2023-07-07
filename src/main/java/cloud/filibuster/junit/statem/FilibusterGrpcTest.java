@@ -26,7 +26,6 @@ import static cloud.filibuster.junit.Assertions.getExecutedRPCs;
 import static cloud.filibuster.junit.Assertions.getFailedRPCs;
 import static cloud.filibuster.junit.Assertions.getFaultsInjected;
 
-
 /**
  * Testing interface for writing tests of services that issue GRPCs.  Provides a number of features:
  *

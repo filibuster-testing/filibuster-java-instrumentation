@@ -29,10 +29,12 @@ import static cloud.filibuster.junit.Assertions.getFaultsInjected;
 /**
  * Testing interface for writing tests of services that issue GRPCs.  Provides a number of features:
  *
+ * <ul>
  * <li>Ensures that setup, test, and teardown are logically separated, making fault injection only active when the test is in progress.</li>
  * <li>Ensures that developers stub all dependencies and indicate precisely which dependencies will be invoked how many times.</li>
  * <li>Forces developers to specifically indicate failure handling behavior for all RPCs issued by the application.</li>
  * <li>Applies compositional reasoning to minimize the number of failure scenarios the user has to specify.</li>
+ * </ul>
  *
  * <p>Requires that developers implement this interface and create a test method annotated with
  * {@link cloud.filibuster.junit.TestWithFilibuster @TestWithFilibuster}

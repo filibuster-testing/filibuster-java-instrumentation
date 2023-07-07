@@ -588,6 +588,10 @@ public interface FilibusterGrpcTest {
         }
     }
 
+    /**
+     * Create a specification for the Filibuster GRPC test interface for multiple faults that are injected simultaneously.
+     * This can be provided to the {@link #onFaultOnRequests(CombinedFaultSpecification, Runnable) onFaultOnRequests} method to create conditional behavior when multiple faults are injected.
+     */
     class CombinedFaultSpecification {
         private final List<Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3>> requestFaults;
 
@@ -599,9 +603,19 @@ public interface FilibusterGrpcTest {
             return this.requestFaults;
         }
 
+        /**
+         * Builder for creation of a {@link CombinedFaultSpecification} that can be used with {@link #onFaultOnRequests(CombinedFaultSpecification, Runnable) onFaultOnRequests} method.
+         */
         public static class Builder {
             List<Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3>> requestFaults = new ArrayList<>();
 
+            /**
+             * Add a specific request fault to the {@link CombinedFaultSpecification}.
+             *
+             * @param methodDescriptor a GRPC method descriptor
+             * @param request the request
+             * @return {@link Builder}
+             */
             @CanIgnoreReturnValue
             public Builder faultOnRequest(
                     MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3> methodDescriptor,

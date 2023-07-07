@@ -229,7 +229,7 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
                 filibusterClientInstrumentor.afterInvocationWithTransformerFault(sTransformerValue,
                         returnType.toString(), accumulator);
 
-                // Return the byzantine fault value.
+                // Return the transformer fault value.
                 return transformerFaultValue;
             } else {
                 String missingKey;

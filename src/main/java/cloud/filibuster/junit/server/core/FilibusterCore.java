@@ -292,7 +292,7 @@ public class FilibusterCore {
                 }
 
                 logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using transformer_fault: " + transformerFaultObject.toString(4));
-                transformerFaultObject.put("value", transformationResult.getResult());
+                transformerFaultObject.put("value", transformationResult.getResult() == null ? JSONObject.NULL : transformationResult.getResult());
                 response.put("transformer_fault", transformerFaultObject);
             } else if (faultObject.has("latency")) {
                 JSONObject latencyObject = faultObject.getJSONObject("latency");

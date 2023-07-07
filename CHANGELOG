@@ -1,4 +1,7 @@
+1.9.0:
+   - (cmeiklejohn) Improve test interface.
 1.8.0:
+   - (cmeiklejohn) New test interface style.
    - (cmeiklejohn) Fix bug in getAvoidInjectionsOnOrganicFailures.
    - (cmeiklejohn) Fix UX rendering issues.
    - (cmeiklejohn) Warn on bypassed executions.

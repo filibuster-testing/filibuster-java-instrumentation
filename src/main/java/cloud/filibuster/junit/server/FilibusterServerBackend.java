@@ -12,5 +12,7 @@ public interface FilibusterServerBackend {
 
     List<FilibusterSearchStrategy> supportedSearchStrategies();
 
+    FilibusterSearchStrategy defaultSearchStrategy();
+
     boolean latencyProfileSupported();
 }

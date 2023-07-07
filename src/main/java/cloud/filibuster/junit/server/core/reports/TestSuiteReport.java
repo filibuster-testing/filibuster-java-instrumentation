@@ -149,8 +149,8 @@ public class TestSuiteReport {
         }
 
         try {
-            Path constructionGifPath = Paths.get(directory + "/construction.gif");
-            byte[] constructionGifBytes = ReportUtilities.getResourceAsBytes(getClass().getClassLoader(), "html/test_suite_report/construction.gif");
+            Path constructionGifPath = Paths.get(directory + "/filibuster.png");
+            byte[] constructionGifBytes = ReportUtilities.getResourceAsBytes(getClass().getClassLoader(), "html/test_suite_report/filibuster.png");
             Files.write(constructionGifPath, constructionGifBytes);
         } catch (IOException e) {
             throw new FilibusterTestReportWriterException("Filibuster failed to write out the test suite report: ", e);

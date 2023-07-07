@@ -152,6 +152,11 @@
         .cached {
             display: none;
         }
+
+        .stacktrace {
+            height: 100px;
+            margin-bottom: 10px;
+        }
 	</style>
 </head>
 
@@ -164,9 +169,9 @@
     <!-- Assertion failure goes here. -->
     <div id="failure" style="display: none; margin: 0; padding: 0; width: 100%; font-size: 11px;">
         <span style="vertical-align: middle; text-align: left;" id ="failedMessage">️</span>
-        <select name="failureSelection" id="failureSelection" style="font-size: 11px;">
+        <select name="failureSelection" id="failureSelection" style="vertical-align: bottom; font-size: 11px;">
         </select>
-        <a style="text-decoration: none;" href="#" onClick="toggleStackTrace();">📚</a>
+        <a style="text-decoration: none; vertical-align: bottom; font-size: 11px;" href="#" onClick="toggleStackTrace();">⬇️</a>
     </div>
 
     <div id="failureStackTrace" style="display: none;margin: 0; padding: 0; width: 100%; font-size: 11px;">
@@ -235,7 +240,7 @@
             {
                 let selectedFailureIndex = parseInt($("#failureSelection").find(":selected").val());
                 let selectedFailure = analysis.failures[selectedFailureIndex];
-                $("#failureStackTrace").html(`<textarea>${selectedFailure.assertion_failure_stacktrace}</textarea>`)
+                $("#failureStackTrace").html(`<textarea class="stacktrace">${selectedFailure.assertion_failure_stacktrace}</textarea>`)
                 $("#failureStackTrace").toggle();
             }
 
@@ -248,7 +253,7 @@
                     let plural = failures.length > 1  ? "s" : "";
                     $('#failedMessage').html(`❌&nbsp; Test failed because of assertion failure${plural}: `);
                     $('#failure').show();
-                    let options = failures.map((failure,index) => `<option value="${index}">${failure.assertion_failure_message}</option>`).join();
+                    let options = failures.map((failure,index) => failure.assertion_failure_message.indexOf(".\n") != -1 ? `<option value="${index}">${failure.assertion_failure_message.substring(0, failure.assertion_failure_message.indexOf(".\n") + 1)}</option>` : `<option value="${index}">${failure.assertion_failure_message}</option>`).join();
                     console.log(options);
                     $("#failureSelection").append(options);
                 } else {

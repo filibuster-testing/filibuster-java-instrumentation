@@ -4,6 +4,7 @@ import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import org.json.JSONObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -46,4 +47,13 @@ public class PurchaseBaseTest {
             .forAddress(Networking.getHost("api_server"), Networking.getPort("api_server"))
             .usePlaintext()
             .build();
+
+    protected static JSONObject generateExpectedCacheObject(String consumerId, String cartId, String total) {
+        JSONObject expectedJsonObject = new JSONObject();
+        expectedJsonObject.put("cart_id", cartId);
+        expectedJsonObject.put("user_id", consumerId);
+        expectedJsonObject.put("purchased", true);
+        expectedJsonObject.put("total", total);
+        return expectedJsonObject;
+    }
 }

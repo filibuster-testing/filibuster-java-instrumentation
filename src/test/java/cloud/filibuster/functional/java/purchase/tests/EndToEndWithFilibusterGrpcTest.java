@@ -7,7 +7,7 @@ import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.functional.java.purchase.PurchaseBaseTest;
 import cloud.filibuster.functional.java.purchase.configurations.GRPCAnalysisConfigurationFile;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.PurchaseWorkflow;
+import cloud.filibuster.functional.java.purchase.PurchaseWorkflow;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.TestWithFilibuster;
 import org.grpcmock.junit5.GrpcMockExtension;
@@ -18,6 +18,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static cloud.filibuster.junit.assertions.Helpers.assertionBlock;
 import static cloud.filibuster.junit.assertions.Helpers.setupBlock;
@@ -33,25 +34,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class EndToEndWithFilibusterTest extends PurchaseBaseTest {
+public class EndToEndWithFilibusterGrpcTest extends PurchaseBaseTest {
     @RegisterExtension
     static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
             .withPort(Networking.getPort("mock"))
             .build();
 
-    private static JSONObject generateExpectedCacheObject(String consumerId, String cartId) {
-        JSONObject expectedJsonObject = new JSONObject();
-        expectedJsonObject.put("cart_id", cartId);
-        expectedJsonObject.put("user_id", consumerId);
-        expectedJsonObject.put("purchased", true);
-        expectedJsonObject.put("total", "9000");
-        return expectedJsonObject;
-    }
-
     @TestWithFilibuster(
             analysisConfigurationFile = GRPCAnalysisConfigurationFile.class,
             maxIterations = 1,
-            suppressCombinations = true,
             dataNondeterminism = true,
             searchStrategy = FilibusterSearchStrategy.BFS
     )
@@ -69,6 +60,9 @@ public class EndToEndWithFilibusterTest extends PurchaseBaseTest {
         UUID merchantId = UUID.randomUUID();
         UUID cartId = UUID.randomUUID();
 
+        // Response placeholder.
+        AtomicReference<Hello.PurchaseResponse> response = new AtomicReference<>();
+
         setupBlock(() -> {
             // Reset cache state.
             PurchaseWorkflow.resetCacheObjectForUser(consumerId);
@@ -77,6 +71,7 @@ public class EndToEndWithFilibusterTest extends PurchaseBaseTest {
             PurchaseWorkflow.depositFundsToAccount(consumerId, 20000);
             assertEquals(20000, PurchaseWorkflow.getAccountBalance(consumerId));
 
+            // Reset database state.
             PurchaseWorkflow.depositFundsToAccount(merchantId, 0);
             assertEquals(0, PurchaseWorkflow.getAccountBalance(merchantId));
         });
@@ -115,10 +110,7 @@ public class EndToEndWithFilibusterTest extends PurchaseBaseTest {
             Hello.PurchaseRequest request = Hello.PurchaseRequest.newBuilder()
                     .setSessionId(sessionId.toString())
                     .build();
-            Hello.PurchaseResponse response = blockingStub.purchase(request);
-            assertNotNull(response);
-            assertTrue(response.getSuccess());
-            assertEquals("9000", response.getTotal());
+            response.set(blockingStub.purchase(request));
         });
 
         // ****************************************************************
@@ -130,9 +122,14 @@ public class EndToEndWithFilibusterTest extends PurchaseBaseTest {
         // ****************************************************************
 
         assertionBlock(() -> {
+            // Verify response.
+            assertNotNull(response.get());
+            assertTrue(response.get().getSuccess());
+            assertEquals("9000", response.get().getTotal());
+
             // Verify cache writes.
             JSONObject cacheObject = PurchaseWorkflow.getCacheObjectForUser(consumerId);
-            assertTrue(generateExpectedCacheObject(consumerId.toString(), cartId.toString()).similar(cacheObject));
+            assertTrue(generateExpectedCacheObject(consumerId.toString(), cartId.toString(), "9000").similar(cacheObject));
 
             // Verify database writes.
             assertEquals(11000, PurchaseWorkflow.getAccountBalance(consumerId));
@@ -155,7 +152,7 @@ public class EndToEndWithFilibusterTest extends PurchaseBaseTest {
         }
 
         // ****************************************************************
-        // Assert stub invocations.
+        // Teardown block.
         // ****************************************************************
 
         teardownBlock(() -> {
@@ -164,6 +161,8 @@ public class EndToEndWithFilibusterTest extends PurchaseBaseTest {
 
             // Reset database state.
             PurchaseWorkflow.deleteAccount(consumerId);
+
+            // Reset database state.
             PurchaseWorkflow.deleteAccount(merchantId);
         });
     }

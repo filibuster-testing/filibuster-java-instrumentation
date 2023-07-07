@@ -1,4 +1,4 @@
-package cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql;
+package cloud.filibuster.functional.java.purchase;
 
 import cloud.filibuster.examples.CartServiceGrpc;
 import cloud.filibuster.examples.Hello;
@@ -6,8 +6,9 @@ import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.instrumentation.datatypes.Pair;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
-import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.BasicDAO;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.CockroachClientService;
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
 import io.grpc.ClientInterceptors;
@@ -30,7 +31,8 @@ public class PurchaseWorkflow {
         SUCCESS,
         INSUFFICIENT_FUNDS,
         UNPROCESSED,
-        UNAVAILABLE
+        USER_UNAVAILABLE,
+        CART_UNAVAILABLE
     }
 
     public static void depositFundsToAccount(UUID account, int amount) {
@@ -69,6 +71,7 @@ public class PurchaseWorkflow {
         ArrayList<Map.Entry<String, String>> discountCodes = new ArrayList<>();
         discountCodes.add(Pair.of("FIRST-TIME", "10"));
         discountCodes.add(Pair.of("RETURNING", "5"));
+        discountCodes.add(Pair.of("DAILY", "1"));
         return discountCodes;
     }
 
@@ -100,8 +103,8 @@ public class PurchaseWorkflow {
         // Make call to get the user.
         try {
             userId = getUserFromSession(channel, sessionId);
-        } catch (StatusRuntimeException e) {
-            return PurchaseWorkflowResponse.UNAVAILABLE;
+        } catch (StatusRuntimeException statusRuntimeException) {
+            return PurchaseWorkflowResponse.USER_UNAVAILABLE;
         }
 
         // Get cart.
@@ -110,8 +113,8 @@ public class PurchaseWorkflow {
             cartId = getCartResponse.getCartId();
             merchantId = getCartResponse.getMerchantId();
             cartTotal = Integer.parseInt(getCartResponse.getTotal());
-        } catch (StatusRuntimeException e) {
-            return PurchaseWorkflowResponse.UNAVAILABLE;
+        } catch (StatusRuntimeException statusRuntimeException) {
+            return PurchaseWorkflowResponse.CART_UNAVAILABLE;
         }
 
         // Get the maximum discount.
@@ -122,7 +125,7 @@ public class PurchaseWorkflow {
                 Hello.GetDiscountResponse getDiscountResponse = getDiscountOnCart(channel, discountCode.getKey());
                 int discountPercentage = Integer.parseInt(getDiscountResponse.getPercent());
                 maxDiscountPercentage = Integer.max(maxDiscountPercentage, discountPercentage);
-            } catch (StatusRuntimeException e) {
+            } catch (StatusRuntimeException statusRuntimeException) {
                 // Nothing, ignore discount failure.
             }
         }
@@ -131,6 +134,17 @@ public class PurchaseWorkflow {
         float discountPct = maxDiscountPercentage / 100.00F;
         float discountAmount = cartTotal * discountPct;
         cartTotal = cartTotal - (int) discountAmount;
+
+        // Notify of applied discount.
+        if (discountAmount > 0) {
+            CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
+            Hello.NotifyDiscountAppliedRequest notifyDiscountAppliedRequest = Hello.NotifyDiscountAppliedRequest.newBuilder().setCartId(cartId).build();
+            try {
+                cartServiceBlockingStub.notifyDiscountApplied(notifyDiscountAppliedRequest);
+            } catch (StatusRuntimeException statusRuntimeException) {
+                // Nothing, ignore the failure.
+            }
+        }
 
         // Verify the user has sufficient funds.
         int userAccountBalance = dao.getAccountBalance(UUID.fromString(userId));
@@ -191,8 +205,8 @@ public class PurchaseWorkflow {
         RedisClientService redisClient = RedisClientService.getInstance();
 
         if (getInstrumentationServerCommunicationEnabledProperty()) {
-            return new RedisInterceptorFactory<>(redisClient.redisClient.connect(), redisClient.connectionString)
-                    .getProxy(StatefulRedisConnection.class);
+            // incomplete, needs instrumentation.
+            return RedisClientService.getInstance().redisClient.connect();
         } else {
             return RedisClientService.getInstance().redisClient.connect();
         }
@@ -202,7 +216,7 @@ public class PurchaseWorkflow {
         CockroachClientService cockroachClientService = CockroachClientService.getInstance();
 
         if (getInstrumentationServerCommunicationEnabledProperty()) {
-            // TODO: incomplete, needs instrumentation.
+            // incomplete, needs instrumentation.
             return cockroachClientService.dao;
         } else {
             return cockroachClientService.dao;

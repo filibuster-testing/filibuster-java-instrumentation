@@ -9,7 +9,7 @@ import cloud.filibuster.exceptions.CircuitBreakerException;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
 import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
-import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.PurchaseWorkflow;
+import cloud.filibuster.functional.java.purchase.PurchaseWorkflow;
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
 import io.grpc.ClientInterceptors;
@@ -291,8 +291,12 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
                 status = Status.INTERNAL.withDescription("Purchase has not yet been completed.");
                 responseObserver.onError(status.asRuntimeException());
                 break;
-            case UNAVAILABLE:
-                status = Status.UNAVAILABLE.withDescription("Purchase could not be completed at this time, please retry the request.");
+            case USER_UNAVAILABLE:
+                status = Status.UNAVAILABLE.withDescription("Purchase could not be completed at this time, please retry the request: user could not be retrieved.");
+                responseObserver.onError(status.asRuntimeException());
+                break;
+            case CART_UNAVAILABLE:
+                status = Status.UNAVAILABLE.withDescription("Purchase could not be completed at this time, please retry the request: cart could not be retrieved.");
                 responseObserver.onError(status.asRuntimeException());
                 break;
         }

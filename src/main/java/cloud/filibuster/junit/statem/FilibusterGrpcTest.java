@@ -338,8 +338,17 @@ public interface FilibusterGrpcTest {
         modifiedAssertionsByRequest.put(methodDescriptor.getFullMethodName() + request.toString(), runnable);
     }
 
-    default void onFaultOnRequests(List<Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3>> rpcList, Runnable runnable) {
-        Map.Entry<String, String> keysForExecutedRPC = generateKeysForExecutedRPCFromMap(rpcList);
+    /**
+     * Use of this method informs Filibuster that any faults injected to the specified requests
+     * will result in possibly different assertions being true (other than the default block.)
+     * These assertions should be placed in the associated {@link Runnable}.
+     * This block will replace the assertions in {@link #assertTestBlock()}.
+     *
+     * @param combinedFaultSpecification the specification of the faults
+     * @param runnable assertion block
+     */
+    default void onFaultOnRequests(CombinedFaultSpecification combinedFaultSpecification, Runnable runnable) {
+        Map.Entry<String, String> keysForExecutedRPC = generateKeysForExecutedRPCFromMap(combinedFaultSpecification.getRequestFaults());
         String methodKey = keysForExecutedRPC.getKey();
         String argsKey = keysForExecutedRPC.getValue();
         modifiedAssertionsByRequest.put(methodKey + argsKey, runnable);

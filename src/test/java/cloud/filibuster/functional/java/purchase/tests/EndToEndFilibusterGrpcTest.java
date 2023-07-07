@@ -7,21 +7,18 @@ import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.functional.java.purchase.PurchaseBaseTest;
 
 import cloud.filibuster.functional.java.purchase.configurations.GRPCAnalysisConfigurationFile;
-import cloud.filibuster.instrumentation.datatypes.Pair;
 import cloud.filibuster.junit.statem.FilibusterGrpcTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.functional.java.purchase.PurchaseWorkflow;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.statem.GrpcMock;
-import com.google.protobuf.GeneratedMessageV3;
-import io.grpc.MethodDescriptor;
+
 import io.grpc.Status;
 import org.grpcmock.junit5.GrpcMockExtension;
 import org.json.JSONObject;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
@@ -111,21 +108,34 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
 
         // Multiple faults.
 
-        // TODO: Ideally come up with a better API.
-        Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3> firstCartRequest = Pair.of(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("FIRST-TIME").build());
-        Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3> secondCartRequest = Pair.of(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build());
-        onFaultOnRequests(Arrays.asList(firstCartRequest, secondCartRequest), () -> { assertTestBlock(9900); });
+        CombinedFaultSpecification firstTwoCartRequestsFaultSpecification = new CombinedFaultSpecification.Builder()
+                .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("FIRST-TIME").build())
+                .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build())
+                .build();
+        onFaultOnRequests(firstTwoCartRequestsFaultSpecification, () -> { assertTestBlock(9900); });
 
-        // TODO: Ideally come up with a better API.
-        Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3> thirdCartRequest = Pair.of(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build());
-        onFaultOnRequests(Arrays.asList(firstCartRequest, thirdCartRequest), () -> { assertTestBlock(9500); });
+        CombinedFaultSpecification firstAndThirdCartRequestsFaultSpecification = new CombinedFaultSpecification.Builder()
+                .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("FIRST-TIME").build())
+                .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build())
+                .build();
+        onFaultOnRequests(firstAndThirdCartRequestsFaultSpecification, () -> { assertTestBlock(9500); });
 
-        onFaultOnRequests(Arrays.asList(secondCartRequest, thirdCartRequest), () -> { assertTestBlock(9000); });
+        CombinedFaultSpecification secondAndThirdCartRequestsFaultSpecification = new CombinedFaultSpecification.Builder()
+                .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build())
+                .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build())
+                .build();
+        onFaultOnRequests(secondAndThirdCartRequestsFaultSpecification, () -> { assertTestBlock(9000); });
 
-//        onFaultOnRequests(Arrays.asList(firstCartRequest, secondCartRequest, thirdCartRequest), () -> { assertTestBlock(10000); });
+        CombinedFaultSpecification allCartRequestsFaultSpecification = new CombinedFaultSpecification.Builder()
+                .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("FIRST-TIME").build())
+                .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build())
+                .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build())
+                .build();
+
+//        onFaultOnRequests(allCartRequestsFaultSpecification, () -> { assertTestBlock(10000); });
 
         onFaultOnRequests(
-                Arrays.asList(firstCartRequest, secondCartRequest, thirdCartRequest),
+                allCartRequestsFaultSpecification,
                 () -> {
                     assertTestBlock(10000);
                     GrpcMock.adjustExpectation(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);

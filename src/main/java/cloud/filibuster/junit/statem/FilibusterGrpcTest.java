@@ -531,4 +531,33 @@ public interface FilibusterGrpcTest {
                     "Please write an onFaultOnRequests(Array<MethodDescriptors, GeneratedMessageV3>, Runnable) for this fault combination with appropriate assertions.");
         }
     }
+
+    class CombinedFaultSpecification {
+        private final List<Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3>> requestFaults;
+
+        public CombinedFaultSpecification(Builder builder){
+            this.requestFaults = builder.requestFaults;
+        }
+
+        public List<Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3>> getRequestFaults() {
+            return this.requestFaults;
+        }
+
+        public static class Builder {
+            List<Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3>> requestFaults = new ArrayList<>();
+
+            @CanIgnoreReturnValue
+            public Builder faultOnRequest(
+                    MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3> methodDescriptor,
+                    GeneratedMessageV3 request) {
+                Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3> fault = Pair.of(methodDescriptor, request);
+                requestFaults.add(fault);
+                return this;
+            }
+
+            public CombinedFaultSpecification build() {
+                return new CombinedFaultSpecification(this);
+            }
+        }
+    }
 }

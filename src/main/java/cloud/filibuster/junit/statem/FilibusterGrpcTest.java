@@ -319,9 +319,10 @@ public interface FilibusterGrpcTest {
      * Use of this method informs Filibuster that any faults injected to this GRPC endpoint will result in possibly
      * different assertions being true (other than the default block.)  These assertions should be placed in the
      * associated {@link Runnable}.
+     * This block will replace the assertions in {@link #assertTestBlock()}.
      *
      * @param methodDescriptor a GRPC method descriptor
-     * @param runnable assertion block.
+     * @param runnable assertion block
      * @param <ReqT> the request type for this method
      * @param <ResT> the response type for this method
      */

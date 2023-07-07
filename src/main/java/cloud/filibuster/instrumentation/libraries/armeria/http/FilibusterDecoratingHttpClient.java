@@ -18,7 +18,6 @@ import io.grpc.StatusRuntimeException;
 import io.netty.channel.ConnectTimeoutException;
 import org.json.JSONObject;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -331,9 +330,9 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
         logger.log(Level.INFO, logPrefix +"Issuing request!");
         HttpResponse response;
 
+        // Inject transformer fault, if necessary.
         if (transformerFault != null && filibusterClientInstrumentor.shouldAbort()) {
-            // Inject transformer fault, if necessary.
-            response = injectTransformerFault(filibusterClientInstrumentor, transformerFault);
+            response = injectTransformerFault(transformerFault);
         } else {
             // If there is no transformer fault, issue the request.
             response = delegateWithContext(ctx, req);
@@ -343,22 +342,20 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
         // Callback that fires if the request throws an exception.
         // ******************************************************************************************
 
-        if (response != null) {
-            response.whenComplete().handle((result, cause) -> {
-                // Only if this fires with an exception.
-                if (cause != null) {
-                    logger.log(Level.INFO, logPrefix + "cause: " + cause);
+        response.whenComplete().handle((result, cause) -> {
+            // Only if this fires with an exception.
+            if (cause != null) {
+                logger.log(Level.INFO, logPrefix + "cause: " + cause);
 
-                    // Notify Filibuster.
-                    if (!(cause instanceof CancelledSubscriptionException)) {
-                        filibusterClientInstrumentor.afterInvocationWithException(cause);
-                    }
-
+                // Notify Filibuster.
+                if (!(cause instanceof CancelledSubscriptionException)) {
+                    filibusterClientInstrumentor.afterInvocationWithException(cause);
                 }
 
-                return null;
-            });
-        }
+            }
+
+            return null;
+        });
 
         // ******************************************************************************************
         // Completion callback.
@@ -419,10 +416,22 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
                             HashMap<String, String> returnValueProperties = new HashMap<>();
                             returnValueProperties.put("status_code", statusCode);
 
-                            if (filibusterClientInstrumentor.getTransformerFault() == null) {
+                            JSONObject transformerFault = filibusterClientInstrumentor.getTransformerFault();
+                            if (transformerFault == null) {
                                 // Only communicate a successful invocation if there was no transformer fault.
                                 filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, statusCode);
-                            }  // In the case of transformer faults, we already call 'afterInvocationWithTransformerFault' in the 'injectTransformerFault' method.
+                            } else {
+                                // Extract the transformer fault value from the transformerFault JSONObject.
+                                Object transformerFaultValue = transformerFault.get("value");
+                                String sTransformerValue = transformerFaultValue.toString();
+
+                                // Extract the accumulator from the transformerFault JSONObject.
+                                Accumulator<?, ?> accumulator = new Gson().fromJson(transformerFault.get("accumulator").toString(), Accumulator.class);
+
+                                logger.log(Level.INFO, logPrefix + "Notifying Filibuster of the transformer fault with value: " + transformerFaultValue);
+                                filibusterClientInstrumentor.afterInvocationWithTransformerFault(sTransformerValue,
+                                        HttpResponse.class.toString(), accumulator);
+                            }
                         }
 
                     }
@@ -433,28 +442,20 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
         };
     }
 
-    @Nullable
-    private static HttpResponse injectTransformerFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject transformerFault) {
+    private static HttpResponse injectTransformerFault(JSONObject transformerFault) {
         try {
             if (transformerFault.has("value") && transformerFault.has("accumulator")) {
 
                 // Extract the transformer fault value from the transformerFault JSONObject.
                 Object transformerFaultValue = transformerFault.get("value");
-                String sTransformerValue = transformerFaultValue.toString();
-                logger.log(Level.INFO, logPrefix + "Injecting the transformed fault value: " + sTransformerValue);
-
-                // Extract the accumulator from the transformerFault JSONObject.
-                Accumulator<?, ?> accumulator = new Gson().fromJson(transformerFault.get("accumulator").toString(), Accumulator.class);
-
-                // Notify Filibuster.
-                filibusterClientInstrumentor.afterInvocationWithTransformerFault(sTransformerValue,
-                        HttpResponse.class.toString(), accumulator);
+                logger.log(Level.INFO, logPrefix + "Injecting the transformed fault value: " + transformerFaultValue);
 
                 // Return the transformer fault value.
                 if (transformerFaultValue == JSONObject.NULL) {
-                    return null;
+                    transformerFaultValue = null;
                 }
-                return (HttpResponse) transformerFaultValue;
+                return HttpResponse.of(HttpStatus.OK, MediaType.PLAIN_TEXT, String.valueOf(transformerFaultValue));
+
             } else {
                 String missingKey;
                 if (transformerFault.has("value")) {

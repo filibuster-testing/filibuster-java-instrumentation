@@ -18,20 +18,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Random;
 
 import static cloud.filibuster.integration.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.startWorldServerAndWaitUntilAvailable;
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class JUnitFilibusterTransformerHTTPTest {
-    private final static Set<String> testErrorCodesReceived = new HashSet<>();
-
     private static int numberOfTestsExecuted = 0;
 
     @BeforeAll
@@ -40,24 +36,28 @@ public class JUnitFilibusterTransformerHTTPTest {
         startWorldServerAndWaitUntilAvailable();
     }
 
-    @DisplayName("Test world route with Filibuster.")
+    @DisplayName("Test injecting 'null' as HTTP response using transformers.")
     @TestWithFilibuster(analysisConfigurationFile = FilibusterHTTPNullTransformerAnalysisConfigurationFile.class)
     @Order(1)
-    public void testHelloAndWorldServiceWithFilibuster() {
+    public void testInjectNullInHTTP() {
         numberOfTestsExecuted++;
+        String cookie = String.valueOf(new Random(0).nextInt());
 
         try {
             String baseURI = "http://" + Networking.getHost("hello") + ":" + Networking.getPort("hello") + "/";
-            WebClient webClient = TestHelper.getTestWebClient(baseURI);
-            RequestHeaders getHeaders = RequestHeaders.of(HttpMethod.GET, "/world", HttpHeaderNames.ACCEPT, "application/json");
+            WebClient webClient = TestHelper.getTestWebClient(baseURI, "test");
+            RequestHeaders getHeaders = RequestHeaders.of(HttpMethod.GET, "/echo-cookie", HttpHeaderNames.ACCEPT, "application/json");
+            getHeaders = getHeaders.toBuilder().add("cookie", cookie).build();
             AggregatedHttpResponse response = webClient.execute(getHeaders).aggregate().join();
             ResponseHeaders headers = response.headers();
             String statusCode = headers.get(HttpHeaderNames.STATUS);
 
+            assertEquals("200", statusCode);
+
             if (wasFaultInjected()) {
-                testErrorCodesReceived.add(statusCode);
+                assertEquals("null", response.content().toStringAscii());
             } else {
-                assertEquals("200", statusCode);
+                assertEquals(cookie, response.content().toStringAscii());
             }
         } catch (Throwable t) {
             fail(t);
@@ -72,14 +72,4 @@ public class JUnitFilibusterTransformerHTTPTest {
         assertEquals(2, numberOfTestsExecuted);
     }
 
-    @DisplayName("Verify correct faults number and status code.")
-    @Test
-    @Order(3)
-    public void testFaultsNumAndStatusCode() {
-        // 1 fault for the transformer value 'null'
-        assertEquals(1, testErrorCodesReceived.size());
-
-        // Injecting the transformer value 'null' leads to an error code of '503'
-        assertTrue(testErrorCodesReceived.contains("503"));
-    }
 }

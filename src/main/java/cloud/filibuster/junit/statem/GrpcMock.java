@@ -11,16 +11,33 @@ import static org.grpcmock.GrpcMock.calledMethod;
 import static org.grpcmock.GrpcMock.times;
 import static org.grpcmock.GrpcMock.unaryMethod;
 
+/**
+ * Filibuster wrapper for {@link org.grpcmock.GrpcMock Grpc} with a slightly different interface to allow
+ * for dynamically adjusting mocks when fault sare injected.  Designed for use with {@link FilibusterGrpcTest} and
+ * will not work in isolation (at the moment!)
+ */
 public class GrpcMock {
     private static HashMap<String, Integer> adjustedExpectationsForMethods = new HashMap<>();
 
     private static HashMap<Object, Integer> adjustedExpectationsForRequests = new HashMap<>();
 
+    /**
+     * Clear out expectations for stub invocations made using {@link #adjustExpectation(MethodDescriptor, int)}
+     * or {@link #adjustExpectation(MethodDescriptor, Object, int) adjustExpectation(MethodDescriptor, ReqT, int)}.
+     * Called implicitly by {@link FilibusterGrpcTest#execute()}.
+     */
     public static void resetAdjustedExpectations() {
         adjustedExpectationsForMethods = new HashMap<>();
         adjustedExpectationsForRequests = new HashMap<>();
     }
 
+    /**
+     * Adjust the expected number of invocations specified using {@link #verifyThat(MethodDescriptor, int) verifyThat}.
+     *
+     * @param method the GRPC method descriptor
+     * @param count the number of expected invocations
+     *
+     */
     public static <ReqT> void adjustExpectation(
             @Nonnull MethodDescriptor<ReqT, ?> method,
             @Nonnull int count

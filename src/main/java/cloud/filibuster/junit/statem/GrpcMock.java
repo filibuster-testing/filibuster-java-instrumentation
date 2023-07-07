@@ -64,6 +64,11 @@ public class GrpcMock {
 
     public static HashMap<String, Boolean> verifyThatMapping = new HashMap<>();
 
+    /**
+     * Clear out expectations for stub invocations made using {@link #verifyThat(MethodDescriptor, int)} or
+     * {@link #verifyThat(MethodDescriptor, Object, int) verifyThat(MethodDescriptor, ReqT, int)}.
+     * Called implicitly by {@link FilibusterGrpcTest#execute()}.
+     */
     public static void resetVerifyThatMapping() {
         verifyThatMapping = new HashMap<>();
     }

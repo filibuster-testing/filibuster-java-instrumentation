@@ -62,7 +62,18 @@ public class GrpcMock {
         adjustedExpectationsForRequests.put(request, count);
     }
 
-    public static HashMap<String, Boolean> verifyThatMapping = new HashMap<>();
+    private static HashMap<String, Boolean> verifyThatMapping = new HashMap<>();
+
+    /**
+     * Return the mapping containing whether all stubs have had either {@link #verifyThat(MethodDescriptor, int)} or
+     * {@link #verifyThat(MethodDescriptor, Object, int) verifyThat(MethodDescriptor, ReqT, int)} invoked on them.
+     *
+     * @return {@link #verifyThatMapping}
+     *
+     */
+    public static HashMap<String, Boolean> getVerifyThatMapping() {
+        return verifyThatMapping;
+    }
 
     /**
      * Clear out expectations for stub invocations made using {@link #verifyThat(MethodDescriptor, int)} or

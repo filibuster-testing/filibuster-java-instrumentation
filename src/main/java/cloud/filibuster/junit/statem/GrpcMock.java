@@ -19,7 +19,7 @@ import static org.grpcmock.GrpcMock.unaryMethod;
 public class GrpcMock {
     private static HashMap<String, Integer> adjustedExpectationsForMethods = new HashMap<>();
 
-    private static HashMap<Object, Integer> adjustedExpectationsForRequests = new HashMap<>();
+    private static HashMap<String, Integer> adjustedExpectationsForRequests = new HashMap<>();
 
     /**
      * Clear out expectations for stub invocations made using {@link #adjustExpectation(MethodDescriptor, int)}
@@ -59,7 +59,7 @@ public class GrpcMock {
             @Nonnull ReqT request,
             int count
     ) {
-        adjustedExpectationsForRequests.put(request, count);
+        adjustedExpectationsForRequests.put(method.getFullMethodName() + request, count);
     }
 
     private static HashMap<String, Boolean> verifyThatMapping = new HashMap<>();
@@ -155,8 +155,8 @@ public class GrpcMock {
             }
         }
 
-        for (Map.Entry<Object, Integer> adjustedExpectationsForRequest : adjustedExpectationsForRequests.entrySet()){
-            if (adjustedExpectationsForRequest.getKey().equals(request)) {
+        for (Map.Entry<String, Integer> adjustedExpectationsForRequest : adjustedExpectationsForRequests.entrySet()){
+            if (adjustedExpectationsForRequest.getKey().equals(method.getFullMethodName() + request)) {
                 count = adjustedExpectationsForRequest.getValue();
             }
         }

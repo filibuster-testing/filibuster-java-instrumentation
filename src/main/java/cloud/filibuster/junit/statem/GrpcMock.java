@@ -45,6 +45,15 @@ public class GrpcMock {
         adjustedExpectationsForMethods.put(method.getFullMethodName(), count);
     }
 
+    /**
+     * Adjust the expected number of invocations specified using {@link #verifyThat(MethodDescriptor, Object, int) verifyThat}.
+     *
+     * @param method the GRPC method descriptor
+     * @param request the request
+     * @param count the number of expected invocations
+     * @param <ReqT> the request type
+     *
+     */
     public static <ReqT> void adjustExpectation(
             @Nonnull MethodDescriptor<ReqT, ?> method,
             @Nonnull ReqT request,
@@ -59,6 +68,16 @@ public class GrpcMock {
         verifyThatMapping = new HashMap<>();
     }
 
+    /**
+     * Stub a GRPC method with a given request providing a particular response.
+     *
+     * @param method the GRPC method descriptor
+     * @param request the request
+     * @param response the response
+     * @param <ReqT> the request type
+     * @param <RespT> the response type
+     *
+     */
     public static <ReqT, RespT> void stubFor(
             @Nonnull MethodDescriptor<ReqT, RespT> method,
             @Nonnull ReqT request,
@@ -69,6 +88,15 @@ public class GrpcMock {
         org.grpcmock.GrpcMock.stubFor(unaryMethod(method).withRequest(request).willReturn(response));
     }
 
+    /**
+     * Set an expectation that a stub will be invoked a particular number of times.
+     * This function prohibits the developer stating "any times" and requires a precise invocation count.
+     *
+     * @param method the GRPC method descriptor
+     * @param count the number of expected invocations
+     * @param <ReqT> the request type
+     *
+     */
     public static <ReqT> void verifyThat(
             @Nonnull MethodDescriptor<ReqT, ?> method,
             int count
@@ -88,6 +116,16 @@ public class GrpcMock {
         org.grpcmock.GrpcMock.verifyThat(calledMethod(method), times(count));
     }
 
+    /**
+     * Set an expectation that a stub will be invoked, with a given request, a particular number of times.
+     * This function prohibits the developer stating "any times" and requires a precise invocation count.
+     *
+     * @param method the GRPC method descriptor
+     * @param request the request
+     * @param count the number of expected invocations
+     * @param <ReqT> the request type
+     *
+     */
     public static <ReqT> void verifyThat(
             @Nonnull MethodDescriptor<ReqT, ?> method,
             @Nonnull ReqT request,

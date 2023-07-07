@@ -40,7 +40,7 @@ public class GrpcMock {
      */
     public static <ReqT> void adjustExpectation(
             @Nonnull MethodDescriptor<ReqT, ?> method,
-            @Nonnull int count
+            int count
     ) {
         adjustedExpectationsForMethods.put(method.getFullMethodName(), count);
     }

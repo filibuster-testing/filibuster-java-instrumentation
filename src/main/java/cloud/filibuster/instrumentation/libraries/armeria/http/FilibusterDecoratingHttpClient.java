@@ -369,13 +369,16 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
 
         return new FilteredHttpResponse(response) {
 
+            String statusCode = "";
+            String response = "";
+
             @Override
             @CanIgnoreReturnValue
             protected HttpObject filter(HttpObject obj) {
 
                 // We were supposed to perform fault injection, but only after the request succeeds.
                 // abort == false
-                if (! filibusterClientInstrumentor.shouldAbort()) {
+                if (!filibusterClientInstrumentor.shouldAbort()) {
 
                     if (forcedException != null) {
                         generateAndThrowException(filibusterClientInstrumentor, forcedException, hostname, hostnameForExceptionBody, port);
@@ -403,23 +406,37 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
                                 filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties);
                             }
                         } else {
+                            logger.log(Level.INFO, logPrefix + "responseHeaders: " + responseHeaders);
+                            statusCode = responseHeaders.get(HttpHeaderNames.STATUS);
+                            logger.log(Level.INFO, logPrefix + "statusCode: " + statusCode);
+                        }
+                    } else if (obj instanceof HttpData) {
+                        HttpData responseData = (HttpData) obj;
+
+                        // Get response data.
+                        // Response might be sent over multiple chunks, so we need to append them all.
+                        if (!responseData.isEmpty()) {
+                            response = response + " " + responseData.toStringAscii();
+                        }
+
+                        if (responseData.isEndOfStream()) {
                             // This could be any subclass of HttpResponse: AggregatedHttpResponse, FilteredHttpResponse, etc.
                             // Therefore, take the super -- I don't think Filibuster really does anything with this anyway.
                             String className = "com.linecorp.armeria.common.HttpResponse";
-                            String statusCode = responseHeaders.get(HttpHeaderNames.STATUS);
-
-                            logger.log(Level.INFO, logPrefix +"responseHeaders: " + responseHeaders);
-                            logger.log(Level.INFO, logPrefix +"statusCode: " + statusCode);
 
                             // Notify Filibuster.
-                            logger.log(Level.INFO, logPrefix +"Notifying Filibuster!!!");
+                            logger.log(Level.INFO, logPrefix + "Notifying Filibuster!!!");
                             HashMap<String, String> returnValueProperties = new HashMap<>();
                             returnValueProperties.put("status_code", statusCode);
 
                             JSONObject transformerFault = filibusterClientInstrumentor.getTransformerFault();
                             if (transformerFault == null) {
                                 // Only communicate a successful invocation if there was no transformer fault.
-                                filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, statusCode);
+                                if (response.isEmpty()) {
+                                    filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, statusCode);
+                                } else {
+                                    filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, response);
+                                }
                             } else {
                                 // Extract the transformer fault value from the transformerFault JSONObject.
                                 Object transformerFaultValue = transformerFault.get("value");
@@ -433,7 +450,6 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
                                         HttpResponse.class.toString(), accumulator);
                             }
                         }
-
                     }
                 }
 

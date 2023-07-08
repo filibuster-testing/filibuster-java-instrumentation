@@ -1,5 +1,6 @@
 package cloud.filibuster.instrumentation.libraries.armeria.http;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterCoreLogicException;
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
 import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
@@ -369,7 +370,7 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
 
         return new FilteredHttpResponse(response) {
 
-            String statusCode = "";
+            ResponseHeaders responseHeaders;
             String response = "";
 
             @Override
@@ -386,30 +387,10 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
 
                 } else {
                     if (obj instanceof ResponseHeaders) {
-                        // Get response headers, extract class name and status.
-                        ResponseHeaders responseHeaders = (ResponseHeaders) obj;
+                        // Get response headers.
+                        responseHeaders = (ResponseHeaders) obj;
+                        logger.log(Level.INFO, logPrefix + "responseHeaders: " + responseHeaders);
 
-                        if (isResponseGrpcAsHttp(responseHeaders)) {
-                            // if it's a grpc-as-http request and throws exception, we record exception in filibuster
-                            if (responseHeaders.get("grpc-status") != null &&
-                                    !Objects.equals(responseHeaders.get("grpc-status"), "0")) {
-                                HashMap<String, String> additionalMetadata = new HashMap<>();
-                                int grpcErrorCode = Integer.parseInt(responseHeaders.get("grpc-status"));
-                                additionalMetadata.put("code", Status.Code.values()[grpcErrorCode].toString());
-                                String exceptionName = "io.grpc.StatusRuntimeException";
-                                // exception cause is always null, because it doesn't serialize and pass through even if provided.
-                                filibusterClientInstrumentor.afterInvocationWithException(exceptionName, null, additionalMetadata);
-                            } else { // a grpc request and with no failure
-                                // Notify Filibuster of complete invocation with the proper response.
-                                String className = "io.grpc.StatusRuntimeException"; // Assumed, we don't actually have it.
-                                HashMap<String, String> returnValueProperties = new HashMap<>();
-                                filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties);
-                            }
-                        } else {
-                            logger.log(Level.INFO, logPrefix + "responseHeaders: " + responseHeaders);
-                            statusCode = responseHeaders.get(HttpHeaderNames.STATUS);
-                            logger.log(Level.INFO, logPrefix + "statusCode: " + statusCode);
-                        }
                     } else if (obj instanceof HttpData) {
                         HttpData responseData = (HttpData) obj;
 
@@ -420,34 +401,59 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
                         }
 
                         if (responseData.isEndOfStream()) {
-                            // This could be any subclass of HttpResponse: AggregatedHttpResponse, FilteredHttpResponse, etc.
-                            // Therefore, take the super -- I don't think Filibuster really does anything with this anyway.
-                            String className = "com.linecorp.armeria.common.HttpResponse";
+                            if(responseHeaders == null) {
+                                throw new FilibusterCoreLogicException("responseHeaders should not be null at this point, something fatal occurred.");
+                            }
 
-                            // Notify Filibuster.
-                            logger.log(Level.INFO, logPrefix + "Notifying Filibuster!!!");
-                            HashMap<String, String> returnValueProperties = new HashMap<>();
-                            returnValueProperties.put("status_code", statusCode);
-
-                            JSONObject transformerFault = filibusterClientInstrumentor.getTransformerFault();
-                            if (transformerFault == null) {
-                                // Only communicate a successful invocation if there was no transformer fault.
-                                if (response.isEmpty()) {
-                                    filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, statusCode);
-                                } else {
-                                    filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, response);
+                            if (isResponseGrpcAsHttp(responseHeaders)) {
+                                // if it's a grpc-as-http request and throws exception, we record exception in filibuster
+                                if (responseHeaders.get("grpc-status") != null &&
+                                        !Objects.equals(responseHeaders.get("grpc-status"), "0")) {
+                                    HashMap<String, String> additionalMetadata = new HashMap<>();
+                                    int grpcErrorCode = Integer.parseInt(responseHeaders.get("grpc-status"));
+                                    additionalMetadata.put("code", Status.Code.values()[grpcErrorCode].toString());
+                                    String exceptionName = "io.grpc.StatusRuntimeException";
+                                    // exception cause is always null, because it doesn't serialize and pass through even if provided.
+                                    filibusterClientInstrumentor.afterInvocationWithException(exceptionName, null, additionalMetadata);
+                                } else { // a grpc request and with no failure
+                                    // Notify Filibuster of complete invocation with the proper response.
+                                    String className = "io.grpc.StatusRuntimeException"; // Assumed, we don't actually have it.
+                                    HashMap<String, String> returnValueProperties = new HashMap<>();
+                                    filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties);
                                 }
                             } else {
-                                // Extract the transformer fault value from the transformerFault JSONObject.
-                                Object transformerFaultValue = transformerFault.get("value");
-                                String sTransformerValue = transformerFaultValue.toString();
+                                // This could be any subclass of HttpResponse: AggregatedHttpResponse, FilteredHttpResponse, etc.
+                                // Therefore, take the super -- I don't think Filibuster really does anything with this anyway.
+                                String className = "com.linecorp.armeria.common.HttpResponse";
 
-                                // Extract the accumulator from the transformerFault JSONObject.
-                                Accumulator<?, ?> accumulator = new Gson().fromJson(transformerFault.get("accumulator").toString(), Accumulator.class);
+                                String statusCode = responseHeaders.get(HttpHeaderNames.STATUS);
+                                logger.log(Level.INFO, logPrefix + "statusCode: " + statusCode);
 
-                                logger.log(Level.INFO, logPrefix + "Notifying Filibuster of the transformer fault with value: " + transformerFaultValue);
-                                filibusterClientInstrumentor.afterInvocationWithTransformerFault(sTransformerValue,
-                                        HttpResponse.class.toString(), accumulator);
+                                // Notify Filibuster.
+                                logger.log(Level.INFO, logPrefix + "Notifying Filibuster!!!");
+                                HashMap<String, String> returnValueProperties = new HashMap<>();
+                                returnValueProperties.put("status_code", statusCode);
+
+                                JSONObject transformerFault = filibusterClientInstrumentor.getTransformerFault();
+                                if (transformerFault == null) {
+                                    // Only communicate a successful invocation if there was no transformer fault.
+                                    if (response.isEmpty()) {
+                                        filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, statusCode);
+                                    } else {
+                                        filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, response);
+                                    }
+                                } else {
+                                    // Extract the transformer fault value from the transformerFault JSONObject.
+                                    Object transformerFaultValue = transformerFault.get("value");
+                                    String sTransformerValue = transformerFaultValue.toString();
+
+                                    // Extract the accumulator from the transformerFault JSONObject.
+                                    Accumulator<?, ?> accumulator = new Gson().fromJson(transformerFault.get("accumulator").toString(), Accumulator.class);
+
+                                    logger.log(Level.INFO, logPrefix + "Notifying Filibuster of the transformer fault with value: " + transformerFaultValue);
+                                    filibusterClientInstrumentor.afterInvocationWithTransformerFault(sTransformerValue,
+                                            HttpResponse.class.toString(), accumulator);
+                                }
                             }
                         }
                     }

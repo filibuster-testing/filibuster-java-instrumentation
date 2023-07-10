@@ -1,7 +1,7 @@
 package cloud.filibuster.instrumentation.libraries.armeria.http;
 
-import cloud.filibuster.exceptions.filibuster.FilibusterCoreLogicException;
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
+import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
 import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
@@ -424,7 +424,7 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
                         // Therefore, we do not notify Filibuster about these requests again here.
                         if (responseData.isEndOfStream() && !isResponseGrpcAsHttp(responseHeaders)) {
                             if(responseHeaders == null) {
-                                throw new FilibusterCoreLogicException("responseHeaders should not be null at this point, something fatal occurred.");
+                                throw new FilibusterRuntimeException("responseHeaders should not be null at this point, something fatal occurred.");
                             }
 
                             // This could be any subclass of HttpResponse: AggregatedHttpResponse, FilteredHttpResponse, etc.

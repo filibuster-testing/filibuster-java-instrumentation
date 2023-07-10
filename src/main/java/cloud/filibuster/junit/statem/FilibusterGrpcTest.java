@@ -333,7 +333,7 @@ public interface FilibusterGrpcTest {
      * @param code the thrown exception's status code when a fault is injected
      * @param runnable assertion block
      */
-    default void onException(Status.Code code, Runnable runnable) {
+    default void onExceptionReturnedToUpstream(Status.Code code, Runnable runnable) {
         adjustedExpectationsAndAssertions.put(code, runnable);
     }
 

@@ -1,3 +1,5 @@
+1.9.2:
+   - (cmeiklejohn) Minor API cleanup and documentation.
 1.9.1:
    - (cmeiklejohn) Fix javadoc for proper publishing.
 1.9.0:

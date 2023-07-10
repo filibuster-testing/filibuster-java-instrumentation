@@ -1,6 +1,7 @@
 package cloud.filibuster.instrumentation.libraries.armeria.http;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
+import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
 import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
@@ -369,13 +370,16 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
 
         return new FilteredHttpResponse(response) {
 
+            ResponseHeaders responseHeaders;
+            String response = "";
+
             @Override
             @CanIgnoreReturnValue
             protected HttpObject filter(HttpObject obj) {
 
                 // We were supposed to perform fault injection, but only after the request succeeds.
                 // abort == false
-                if (! filibusterClientInstrumentor.shouldAbort()) {
+                if (!filibusterClientInstrumentor.shouldAbort()) {
 
                     if (forcedException != null) {
                         generateAndThrowException(filibusterClientInstrumentor, forcedException, hostname, hostnameForExceptionBody, port);
@@ -383,8 +387,9 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
 
                 } else {
                     if (obj instanceof ResponseHeaders) {
-                        // Get response headers, extract class name and status.
-                        ResponseHeaders responseHeaders = (ResponseHeaders) obj;
+                        // Get response headers.
+                        responseHeaders = (ResponseHeaders) obj;
+                        logger.log(Level.INFO, logPrefix + "responseHeaders: " + responseHeaders);
 
                         if (isResponseGrpcAsHttp(responseHeaders)) {
                             // if it's a grpc-as-http request and throws exception, we record exception in filibuster
@@ -402,24 +407,46 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
                                 HashMap<String, String> returnValueProperties = new HashMap<>();
                                 filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties);
                             }
-                        } else {
+                        }
+
+                    } else if (obj instanceof HttpData) {
+                        HttpData responseData = (HttpData) obj;
+
+                        // Get response data.
+                        // Response might be sent over multiple chunks, so we need to append them all.
+                        if (!responseData.isEmpty()) {
+                            response = response + " " + responseData.toStringAscii();
+                        }
+
+                        // If we have reached the end of the stream, we can notify Filibuster.
+                        // We have checked previously if obj is instance of ResponseHeaders.
+                        // In that if-block, we notify Filibuster about GRPC responses that were sent as HTTP.
+                        // Therefore, we do not notify Filibuster about these requests again here.
+                        if (responseData.isEndOfStream() && !isResponseGrpcAsHttp(responseHeaders)) {
+                            if(responseHeaders == null) {
+                                throw new FilibusterRuntimeException("responseHeaders should not be null at this point, something fatal occurred.");
+                            }
+
                             // This could be any subclass of HttpResponse: AggregatedHttpResponse, FilteredHttpResponse, etc.
                             // Therefore, take the super -- I don't think Filibuster really does anything with this anyway.
                             String className = "com.linecorp.armeria.common.HttpResponse";
-                            String statusCode = responseHeaders.get(HttpHeaderNames.STATUS);
 
-                            logger.log(Level.INFO, logPrefix +"responseHeaders: " + responseHeaders);
-                            logger.log(Level.INFO, logPrefix +"statusCode: " + statusCode);
+                            String statusCode = responseHeaders.get(HttpHeaderNames.STATUS);
+                            logger.log(Level.INFO, logPrefix + "statusCode: " + statusCode);
 
                             // Notify Filibuster.
-                            logger.log(Level.INFO, logPrefix +"Notifying Filibuster!!!");
+                            logger.log(Level.INFO, logPrefix + "Notifying Filibuster!!!");
                             HashMap<String, String> returnValueProperties = new HashMap<>();
                             returnValueProperties.put("status_code", statusCode);
 
                             JSONObject transformerFault = filibusterClientInstrumentor.getTransformerFault();
                             if (transformerFault == null) {
                                 // Only communicate a successful invocation if there was no transformer fault.
-                                filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, statusCode);
+                                if (response.isEmpty()) {
+                                    filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, statusCode);
+                                } else {
+                                    filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, response);
+                                }
                             } else {
                                 // Extract the transformer fault value from the transformerFault JSONObject.
                                 Object transformerFaultValue = transformerFault.get("value");
@@ -433,7 +460,6 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
                                         HttpResponse.class.toString(), accumulator);
                             }
                         }
-
                     }
                 }
 

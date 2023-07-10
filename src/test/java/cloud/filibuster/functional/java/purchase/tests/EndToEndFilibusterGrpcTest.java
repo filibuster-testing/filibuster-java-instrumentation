@@ -45,24 +45,24 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
     public void failureBlock() {
         // Single faults.
 
+        // Failure of the getUserFromSession call results in upstream receiving UNAVAILABLE exception.
         downstreamFailureResultsInException(
                 UserServiceGrpc.getGetUserFromSessionMethod(),
                 Status.Code.UNAVAILABLE,
                 "Purchase could not be completed at this time, please retry the request: user could not be retrieved.");
 
-        onException(Status.Code.UNAVAILABLE,
-                // If we return unavailable, we should never invoke any of these downstream dependencies.
+        // Updated list of assertions when UNAVAILABLE is returned to user.
+        onExceptionReturnedToUpstream(
+                Status.Code.UNAVAILABLE,
                 () -> {
+                    // If we return unavailable, we should never invoke any of these downstream dependencies.
                     GrpcMock.adjustExpectation(CartServiceGrpc.getGetCartForSessionMethod(), 0);
-
                     for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
                         Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
                                 .setCode(discountCode.getKey())
                                 .build();
-
                         GrpcMock.adjustExpectation(CartServiceGrpc.getGetDiscountOnCartMethod(), request, 0);
                     }
-
                     GrpcMock.adjustExpectation(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
 
                     // Verify transaction did not occur.
@@ -71,15 +71,13 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
                 }
         );
 
+        // Failure of the getCartFromSession call results in upstream receiving UNAVAILABLE exception.
         downstreamFailureResultsInException(
                 CartServiceGrpc.getGetCartForSessionMethod(),
                 Status.Code.UNAVAILABLE,
                 "Purchase could not be completed at this time, please retry the request: cart could not be retrieved.");
 
-        onFaultOnMethod(
-                CartServiceGrpc.getGetDiscountOnCartMethod(),
-                this::assertTestBlock);
-
+        // Failure of the first getDiscountOnCart call results in a 5% discount.
         onFaultOnRequest(
                 CartServiceGrpc.getGetDiscountOnCartMethod(),
                 Hello.GetDiscountRequest.newBuilder()
@@ -88,6 +86,7 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
                 () -> { assertTestBlock(9500); }
         );
 
+        // Failure of the second getDiscountOnCart call results in a 10% discount.
         onFaultOnRequest(
                 CartServiceGrpc.getGetDiscountOnCartMethod(),
                 Hello.GetDiscountRequest.newBuilder()
@@ -96,6 +95,7 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
                 this::assertTestBlock
         );
 
+        // Failure of the third getDiscountOnCart call results in a 10% discount.
         onFaultOnRequest(
                 CartServiceGrpc.getGetDiscountOnCartMethod(),
                 Hello.GetDiscountRequest.newBuilder()
@@ -104,36 +104,38 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
                 this::assertTestBlock
         );
 
+        // Failure of the getNotifyDiscountAppliedMethod has no effect.
         onFaultOnMethodHasNoEffect(CartServiceGrpc.getNotifyDiscountAppliedMethod());
 
         // Multiple faults.
 
+        // Failure of the first two getDiscountOnCart calls results in a 1% discount.
         CombinedFaultSpecification firstTwoCartRequestsFaultSpecification = new CombinedFaultSpecification.Builder()
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("FIRST-TIME").build())
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build())
                 .build();
         onFaultOnRequests(firstTwoCartRequestsFaultSpecification, () -> { assertTestBlock(9900); });
 
+        // Failure of the first and third getDiscountOnCart calls results in a 5% discount.
         CombinedFaultSpecification firstAndThirdCartRequestsFaultSpecification = new CombinedFaultSpecification.Builder()
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("FIRST-TIME").build())
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build())
                 .build();
         onFaultOnRequests(firstAndThirdCartRequestsFaultSpecification, () -> { assertTestBlock(9500); });
 
+        // Failure of the second and third getDiscountOnCart calls results in a 10% discount.
         CombinedFaultSpecification secondAndThirdCartRequestsFaultSpecification = new CombinedFaultSpecification.Builder()
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build())
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build())
                 .build();
         onFaultOnRequests(secondAndThirdCartRequestsFaultSpecification, () -> { assertTestBlock(9000); });
 
+        // Failure of all getDiscountOnCart calls results in no discount.
         CombinedFaultSpecification allCartRequestsFaultSpecification = new CombinedFaultSpecification.Builder()
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("FIRST-TIME").build())
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build())
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build())
                 .build();
-
-//        onFaultOnRequests(allCartRequestsFaultSpecification, () -> { assertTestBlock(10000); });
-
         onFaultOnRequests(
                 allCartRequestsFaultSpecification,
                 () -> {

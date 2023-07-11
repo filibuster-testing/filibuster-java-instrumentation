@@ -139,6 +139,12 @@
     <div style="float: left"><a href="#" onClick="toggleDebug();">Toggle Debugging Information</a></div>
     <br />
 
+    <table id='endpoints'>
+        <tr>
+            <th>RPC Method <span id="hitPercentage"></span></th>
+        </tr>
+    </table>
+
     <table id='invocations'>
         <tr>
             <th>RPC Method</th>
@@ -162,6 +168,35 @@
             var previousMethod = '';
 
             $(document).ready(function () {
+                var hitEndpoints = 0;
+                var totalEndpoints = 0;
+
+                for (key in accessedGrpcEndpoints) {
+                    console.log("key: " + key);
+                    console.log("result: " + accessedGrpcEndpoints[key]);
+
+                    var row = '';
+                    totalEndpoints = totalEndpoints + 1;
+
+                    if (accessedGrpcEndpoints[key] === true) {
+                        row += '<tr class="success">';
+                        hitEndpoints = hitEndpoints + 1;
+                    } else {
+                        row += '<tr class="fault">';
+                    }
+
+                    row += '<td class="args">';
+                    row += '<div class="class_name">' + key + '</div>';
+                    row += '</td>';
+                    row += '</tr>';
+
+                    $('#endpoints').append(row);
+                }
+
+                var hitPercentage = ((hitEndpoints / parseFloat(totalEndpoints)) * 100.00).toFixed(2);
+
+                $("#hitPercentage").html(hitEndpoints + "/" + totalEndpoints + " (" + hitPercentage + "%)");
+
                 for (i in serverInvocationReports.results) {
                     var report = serverInvocationReports.results[i];
                     console.log(report);

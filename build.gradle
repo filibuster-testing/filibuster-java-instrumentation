@@ -80,7 +80,7 @@ dependencies {
     implementation "org.dhatim:fastexcel-reader:0.15.3"
 
     // Reflections
-    implementation "org.reflections:reflections:0.9.12"
+    implementation "org.reflections:reflections:0.9.11"
 
     // Logging
     runtimeOnly 'ch.qos.logback:logback-classic:1.2.3'

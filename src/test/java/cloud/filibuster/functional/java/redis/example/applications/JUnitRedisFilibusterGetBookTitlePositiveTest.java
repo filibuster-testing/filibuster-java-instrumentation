@@ -115,7 +115,7 @@ public class JUnitRedisFilibusterGetBookTitlePositiveTest extends JUnitAnnotatio
         assertEquals(40, helloFaults);
     }
 
-    @DisplayName("Assert the fault at the hello service was not found")
+    @DisplayName("Assert the exception 'book not found' was not found")
     @Test
     @Order(4)
     public void testBookNotFound() {

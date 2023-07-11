@@ -139,6 +139,12 @@
     <div style="float: left"><a href="#" onClick="toggleDebug();">Toggle Debugging Information</a></div>
     <br />
 
+    <table id='endpoints'>
+        <tr>
+            <th>RPC Method</th>
+        </tr>
+    </table>
+
     <table id='invocations'>
         <tr>
             <th>RPC Method</th>
@@ -162,6 +168,26 @@
             var previousMethod = '';
 
             $(document).ready(function () {
+                for (key in accessedGrpcEndpoints) {
+                    console.log("key: " + key);
+                    console.log("result: " + accessedGrpcEndpoints[key]);
+
+                    var row = '';
+
+                    if (accessedGrpcEndpoints[key] === true) {
+                        row += '<tr class="success">';
+                    } else {
+                        row += '<tr class="fault">';
+                    }
+
+                    row += '<td class="args">';
+                    row += '<div class="class_name">' + key + '</div>';
+                    row += '</td>';
+                    row += '</tr>';
+
+                    $('#endpoints').append(row);
+                }
+
                 for (i in serverInvocationReports.results) {
                     var report = serverInvocationReports.results[i];
                     console.log(report);

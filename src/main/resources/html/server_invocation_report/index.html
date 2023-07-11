@@ -193,9 +193,9 @@
                     $('#endpoints').append(row);
                 }
 
-                var hitPercentage = (hitEndpoints / parseFloat(totalEndpoints)) * 100.00;
+                var hitPercentage = ((hitEndpoints / parseFloat(totalEndpoints)) * 100.00).toFixed(2);
 
-                $("#hitPercentage").html(hitEndpoints + "/" + totalEndpoints + "(" + hitPercentage + ")");
+                $("#hitPercentage").html(hitEndpoints + "/" + totalEndpoints + " (" + hitPercentage + "%)");
 
                 for (i in serverInvocationReports.results) {
                     var report = serverInvocationReports.results[i];

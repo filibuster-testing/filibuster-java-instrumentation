@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.redis;
+package cloud.filibuster.unit.databases;
 
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
@@ -15,7 +15,7 @@ import java.util.concurrent.ExecutionException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitRedisAccessTest extends JUnitAnnotationBaseTest {
+public class RedisAccessTest extends JUnitAnnotationBaseTest {
     final String key = "test";
     final String value = "example";
     static StatefulRedisConnection<String, String> redisConnection;

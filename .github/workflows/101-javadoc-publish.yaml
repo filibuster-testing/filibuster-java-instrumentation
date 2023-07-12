@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - main
+      - csm/javadoc-generation
 
 jobs:
   publish:

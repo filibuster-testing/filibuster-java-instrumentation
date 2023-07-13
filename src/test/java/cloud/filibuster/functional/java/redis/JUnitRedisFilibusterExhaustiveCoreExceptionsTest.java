@@ -75,7 +75,7 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
     static {
         allowedExceptions.put(RedisCommandTimeoutException.class,
                 new SimpleEntry<>(ImmutableMap.of("io.lettuce.core.api.sync.RedisStringCommands", Collections.singletonList("get"),
-                        "io.lettuce.core.api.async.RedisStringAsyncCommands", Collections.singletonList("get"),
+                        "io.lettuce.core.api.async.RedisStringAsyncCommands", ImmutableList.of("get", "set"),
                         "io.lettuce.core.api.sync.RedisHashCommands", ImmutableList.of("hgetall", "hset")), "Command timed out after 100 millisecond(s)"));
 
         allowedExceptions.put(RedisBusyException.class,
@@ -94,7 +94,7 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
 
     @DisplayName("Exhaustive Core Redis fault injections")
     @Order(1)
-    @TestWithFilibuster(analysisConfigurationFile = RedisExhaustiveAnalysisConfigurationFile.class)
+    @TestWithFilibuster(analysisConfigurationFile = RedisExhaustiveAnalysisConfigurationFile.class, suppressCombinations = true)
     public void testRedisExhaustiveCoreTests() {
         try {
             numberOfTestExecutions++;
@@ -118,6 +118,10 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
             // Test RedisCommandInterruptedException
             RedisAsyncCommands<String, String> myRedisAsyncCommands = myStatefulRedisConnection.async();
             myRedisAsyncCommands.get(key).await(10, java.util.concurrent.TimeUnit.SECONDS);
+
+            // Test RedisCommandTimeoutException
+            myRedisAsyncCommands.set(key, value);
+            myRedisAsyncCommands.get(key).get();
 
             assertFalse(wasFaultInjected());
         } catch (@SuppressWarnings("InterruptedExceptionSwallowed") Throwable t) {
@@ -161,7 +165,7 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
     @Test
     @Order(2)
     public void testNumExecutions() {
-        assertEquals(11, numberOfTestExecutions);
+        assertEquals(13, numberOfTestExecutions);
     }
 
     @DisplayName("Verify correct number of Filibuster exceptions.")

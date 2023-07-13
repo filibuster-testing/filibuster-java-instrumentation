@@ -451,6 +451,12 @@
                                 row += '\ndescription = ' + rpc.fault.forced_exception.metadata.description;
                             }
 
+                            if (rpc.fault.forced_exception.metadata.injectOn !== undefined) {
+                                row += '\ninject_on = ' + rpc.fault.forced_exception.metadata.injectOn;
+                            } else {
+                                // Do nothing.
+                            }
+
                             row += '</textarea>';
                             row += '</td>';
                         }

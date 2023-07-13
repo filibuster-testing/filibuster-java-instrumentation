@@ -48,8 +48,8 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
     private static final Logger logger = Logger.getLogger(DynamicProxyInterceptor.class.getName());
     private final T targetObject;
     public static final Boolean disableInstrumentation = false;
-    private String futureInvokeExceptionOnMethod;
-    private JSONObject futureExceptionMetadata;
+    private final String futureInvokeExceptionOnMethod;
+    private final JSONObject futureExceptionMetadata;
     private final ContextStorage contextStorage;
     public static final Boolean disableServerCommunication = false;
     private final String serviceName;
@@ -154,6 +154,9 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
             generateExceptionFromFailureMetadata();
         }
 
+        String futureInvokeExceptionOnMethod = null;
+        JSONObject futureExceptionMetadata = null;
+
         if (forcedException != null && filibusterClientInstrumentor.shouldAbort()) {
             boolean shouldInjectExceptionOnCurrentMethod = shouldInjectExceptionOnCurrentMethod(forcedException, fullMethodName);
 
@@ -163,8 +166,8 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
                 // If the forced exception should not be injected on the current method, we store the metadata of the exception
                 // and the name of the method on which it should be injected. This information will be used later, when the correct
                 // method is invoked, to throw the exception.
-                this.futureInvokeExceptionOnMethod = getExceptionMethodName(forcedException, fullMethodName);
-                this.futureExceptionMetadata = forcedException;
+                futureInvokeExceptionOnMethod = getExceptionMethodName(forcedException, fullMethodName);
+                futureExceptionMetadata = forcedException;
             }
         }
 

@@ -10,6 +10,7 @@ import io.lettuce.core.RedisBusyException;
 import io.lettuce.core.RedisCommandExecutionException;
 import io.lettuce.core.RedisCommandInterruptedException;
 import io.lettuce.core.RedisCommandTimeoutException;
+import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.sync.RedisCommands;
@@ -115,13 +116,17 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
             myRedisCommands.hset(key, key, value);
             myRedisCommands.hgetall(key);
 
-            // Test RedisCommandInterruptedException
             RedisAsyncCommands<String, String> myRedisAsyncCommands = myStatefulRedisConnection.async();
-            myRedisAsyncCommands.get(key).await(10, java.util.concurrent.TimeUnit.SECONDS);
+            RedisFuture<String> setResult = myRedisAsyncCommands.set(key, value);
+            RedisFuture<String> getResult = myRedisAsyncCommands.get(key);
+
+            // Test RedisCommandInterruptedException
+            setResult.await(10, java.util.concurrent.TimeUnit.SECONDS);
+            getResult.await(10, java.util.concurrent.TimeUnit.SECONDS);
 
             // Test RedisCommandTimeoutException
-            myRedisAsyncCommands.set(key, value);
-            myRedisAsyncCommands.get(key).get();
+            setResult.get();
+            getResult.get();
 
             assertFalse(wasFaultInjected());
         } catch (@SuppressWarnings("InterruptedExceptionSwallowed") Throwable t) {

@@ -26,7 +26,6 @@ import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -70,7 +69,12 @@ public class JUnitRedisFilibusterAsyncGetTest extends JUnitAnnotationBaseTest {
             String returnVal = returnFuture.get();
 
             assertEquals(value, returnVal);
-            assertFalse(wasFaultInjected());
+
+            if (wasFaultInjected()) {
+                // In this test, the set method is async. The fault injected on the async set should only reflect on a potential Future.get.
+                // Since Future.get is not called on the set method, the injected exception is swallowed and the catch block is not invoked.
+                assertTrue(wasFaultInjectedOnMethod("io.lettuce.core.api.async.RedisStringAsyncCommands/set"));
+            }
         } catch (@SuppressWarnings("InterruptedExceptionSwallowed") Throwable t) {
             testExceptionsThrown.add(t.getMessage());
 
@@ -86,7 +90,7 @@ public class JUnitRedisFilibusterAsyncGetTest extends JUnitAnnotationBaseTest {
     @Test
     @Order(2)
     public void testNumExecutions() {
-        assertEquals(2, numberOfTestExecutions);
+        assertEquals(3, numberOfTestExecutions);
     }
 
     @DisplayName("Verify correct number of generated Filibuster tests.")

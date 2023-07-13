@@ -54,7 +54,7 @@ public class JUnitRedisFilibusterAsyncGetTest extends JUnitAnnotationBaseTest {
     @DisplayName("Tests whether Redis async interceptor can read from existing key - Single fault injection")
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = RedisExhaustiveAnalysisConfigurationFile.class,
-            suppressCombinations = true)
+            suppressCombinations = true, failIfFaultNotInjected = true)
     public void testRedisAsyncGet() {
         try {
             numberOfTestExecutions++;

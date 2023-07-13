@@ -140,6 +140,7 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
                 .serviceProfileBehavior(testWithFilibuster.serviceProfileBehavior())
                 .testName(displayName)
                 .className(className)
+                .failIfFaultNotInjected(testWithFilibuster.failIfFaultNotInjected())
                 .build();
 
         validateSearchBackend(testWithFilibuster, filibusterConfiguration);

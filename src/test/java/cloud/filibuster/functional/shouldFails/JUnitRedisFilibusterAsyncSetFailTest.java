@@ -35,7 +35,7 @@ public class JUnitRedisFilibusterAsyncSetFailTest extends JUnitAnnotationBaseTes
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = RedisExhaustiveAnalysisConfigurationFile.class,
             failIfFaultNotInjected = true)
-    public void testRedisAsyncGet() {
+    public void testRedisAsyncSet() {
         numberOfTestExecutions++;
 
         StatefulRedisConnection<String, String> myStatefulRedisConnection = DynamicProxyInterceptor.createInterceptor(statefulRedisConnection, redisConnectionString);

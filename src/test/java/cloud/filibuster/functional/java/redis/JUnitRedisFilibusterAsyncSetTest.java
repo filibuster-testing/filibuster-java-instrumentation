@@ -35,13 +35,13 @@ public class JUnitRedisFilibusterAsyncSetTest extends JUnitAnnotationBaseTest {
         redisConnectionString = RedisClientService.getInstance().connectionString;
     }
 
-    @DisplayName("Tests whether Redis async interceptor can read from existing key - Single fault injection")
+    @DisplayName("Tests whether Redis async interceptor can set a specific value for a given key.")
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = RedisExhaustiveAnalysisConfigurationFile.class,
             suppressCombinations = true,
             failIfFaultNotInjected = true,
             expected = FilibusterFaultNotInjectedException.class)
-    public void testRedisAsyncGet() {
+    public void testRedisAsyncSet() {
         numberOfTestExecutions++;
 
         StatefulRedisConnection<String, String> myStatefulRedisConnection = DynamicProxyInterceptor.createInterceptor(statefulRedisConnection, redisConnectionString);

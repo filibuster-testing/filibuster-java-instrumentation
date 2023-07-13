@@ -1,0 +1,164 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Filibuster Test Execution Report</title>
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script type="text/javascript" src="./summary.js"></script>
+    <style>
+        body {
+			font-family: 'Gill Sans',
+				'Gill Sans MT', ' Calibri',
+				'Trebuchet MS', 'sans-serif';
+
+            background-color: white;
+        }
+
+		table {
+			margin: 0 auto;
+			font-size: large;
+            table-layout: fixed;
+		}
+
+		h1 {
+			color: black;
+			font-size: xx-large;
+		}
+
+        div {
+			text-align: center;
+            margin: 0 auto;
+            width: 500px;
+            padding-bottom: 10px;
+        }
+
+        .fail {
+            font-weight: bold;
+            color: red;
+        }
+
+        .pass {
+            font-weight: bold;
+            color: green;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 12px 20px;
+            box-sizing: border-box;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            background-color: #f8f8f8;
+            font-size: 16px;
+            resize: none;
+        }
+
+        th {
+            background-color: lightgrey;
+        }
+
+		th,
+		td {
+			font-weight: bold;
+			padding: 10px;
+            vertical-align: top;
+		}
+
+		td {
+            font-weight: lighter;
+		}
+
+        tr.pass {
+            background-color: lightgreen;
+        }
+
+        tr.fail {
+            background-color: lightyellow;
+        }
+
+        tr.fault {
+            background-color: lightcoral;
+        }
+
+        td.warning {
+            vertical-align: top;
+            font-weight: 400;
+        }
+
+        tr.warning {
+            font-size: 14px;
+            background-color: lightyellow;
+        }
+
+        td.right {
+            text-align: right;
+        }
+
+        span.verysmall {
+            font-size: 10px;
+        }
+
+        td.generated_id {
+			text-align: center;
+        }
+
+        td.method, td.generated_id {
+            padding: 12px 20px;
+            font-family: 'Inconsolata';
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .class_name {
+            padding: 0;
+            margin-bottom: 10px;
+            font-family: 'Inconsolata';
+            font-size: 18px;
+            font-weight: 500;
+            width: 100%;
+            text-align: left;
+        }
+
+        div.summary {
+            width: 5%;
+            float: left;
+        }
+
+        table.reports {
+            float: left;
+            width: 100px;
+        }
+
+        div.results {
+            width: 90%;
+            float: left;
+        }
+
+        div.container {
+            float: left;
+            width: 100%;
+        }
+
+        #filibuster {
+            height: 50%;
+            width: auto;
+        }
+	</style>
+</head>
+
+<body>
+<section>
+    <div style="text-align: center; margin-top: 100px;">
+        <img style="height: auto; width: 100px;" id="filibuster" src="filibuster.png">
+
+        <div style="margin-top: 50px;">
+            Filibuster is disabled.
+            <br />
+            To enable, run using the <span style="background-color: #cccccc;">testWithFaultInjection</span> target.
+        </div>
+    </div>
+</section>
+</body>
+
+</html>

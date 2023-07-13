@@ -1,5 +1,6 @@
 package cloud.filibuster.junit.interceptors;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterFaultNotInjectedException;
 import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.exceptions.filibuster.FilibusterNoopException;
@@ -57,7 +58,11 @@ public class FilibusterInvocationInterceptorHelpers {
             Class<? extends Throwable> expectedExceptionClass = filibusterConfiguration.getExpected();
 
             if (expectedExceptionClass != FilibusterNoopException.class && expectedExceptionClass.isInstance(t)) {
-                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */false, null, shouldPrintRPCSummary);
+                if (expectedExceptionClass.equals(FilibusterFaultNotInjectedException.class)) {
+                    FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */false, t, shouldPrintRPCSummary);
+                } else {
+                    FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */false, null, shouldPrintRPCSummary);
+                }
             } else {
                 FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */true, t, shouldPrintRPCSummary);
                 throw t;

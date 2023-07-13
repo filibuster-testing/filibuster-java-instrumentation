@@ -25,6 +25,8 @@ import cloud.filibuster.junit.server.core.test_executions.ConcreteTestExecution;
 import cloud.filibuster.junit.server.core.test_executions.AbstractTestExecution;
 import cloud.filibuster.junit.server.core.test_executions.TestExecution;
 import cloud.filibuster.junit.server.latency.FilibusterLatencyProfile;
+import com.google.common.collect.MapDifference;
+import com.google.common.collect.Maps;
 import io.grpc.Status;
 import io.grpc.Status.Code;
 import org.json.JSONArray;
@@ -493,6 +495,7 @@ public class FilibusterCore {
     public synchronized void completeIteration(int currentIteration, int exceptionOccurred, Throwable throwable, boolean shouldPrintRPCSummary) {
         logger.info("[FILIBUSTER-CORE]: completeIteration called, currentIteration: " + currentIteration + ", exceptionOccurred: " + exceptionOccurred);
 
+
         if (currentConcreteTestExecution != null) {
             if (shouldPrintRPCSummary) {
                 currentConcreteTestExecution.printRPCs();
@@ -503,6 +506,17 @@ public class FilibusterCore {
             } else {
                 currentConcreteTestExecution.writeTestExecutionReport(currentIteration, /* exceptionOccurred= */ exceptionOccurred != 0, /* throwable= */ null);
             }
+
+            if (filibusterConfiguration.getFailIfFaultNotInjected()) {
+                HashMap<DistributedExecutionIndex, JSONObject> faultsToInject = currentConcreteTestExecution.getFaultsToInject();
+                HashMap<DistributedExecutionIndex, JSONObject> failedRPCs = currentConcreteTestExecution.getFailedRPCs();
+                if (failedRPCs.size() != faultsToInject.size()) {
+                    MapDifference<DistributedExecutionIndex, JSONObject> diff = Maps.difference(faultsToInject, failedRPCs);
+                    throw new FilibusterCoreLogicException("One or more of the intended faults was not injected: " +
+                            diff.entriesOnlyOnLeft().values());
+                }
+            }
+
         } else {
             throw new FilibusterCoreLogicException("currentConcreteTestExecution should not be null at this point, something fatal occurred.");
         }

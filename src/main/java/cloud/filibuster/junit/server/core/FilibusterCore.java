@@ -508,17 +508,15 @@ public class FilibusterCore {
                 currentConcreteTestExecution.writeTestExecutionReport(currentIteration, /* exceptionOccurred= */ exceptionOccurred != 0, /* throwable= */ null);
             }
 
-            if (filibusterConfiguration.getFailIfFaultNotInjected()
-                    && throwable == null
-                    || (throwable != null
-                    && !throwable.getClass().equals(FilibusterFaultNotInjectedException.class))
-            ) {
-                HashMap<DistributedExecutionIndex, JSONObject> faultsToInject = currentConcreteTestExecution.getFaultsToInject();
-                HashMap<DistributedExecutionIndex, JSONObject> failedRPCs = currentConcreteTestExecution.getFailedRPCs();
-                if (failedRPCs.size() != faultsToInject.size()) {
-                    MapDifference<DistributedExecutionIndex, JSONObject> diff = Maps.difference(faultsToInject, failedRPCs);
-                    throw new FilibusterFaultNotInjectedException("One or more of the intended faults was not injected: " +
-                            diff.entriesOnlyOnLeft().values());
+            if (filibusterConfiguration.getFailIfFaultNotInjected()) {
+                if (throwable == null || !throwable.getClass().equals(FilibusterFaultNotInjectedException.class)) {
+                    HashMap<DistributedExecutionIndex, JSONObject> faultsToInject = currentConcreteTestExecution.getFaultsToInject();
+                    HashMap<DistributedExecutionIndex, JSONObject> failedRPCs = currentConcreteTestExecution.getFailedRPCs();
+                    if (failedRPCs.size() != faultsToInject.size()) {
+                        MapDifference<DistributedExecutionIndex, JSONObject> diff = Maps.difference(faultsToInject, failedRPCs);
+                        throw new FilibusterFaultNotInjectedException("One or more of the intended faults was not injected: "
+                                + diff.entriesOnlyOnLeft().values());
+                    }
                 }
             }
 

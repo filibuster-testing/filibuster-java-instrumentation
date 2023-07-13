@@ -17,7 +17,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitRedisFilibusterAsyncSetFailTest extends JUnitAnnotationBaseTest {
+public class FilibusterRedisAsyncSetFailTest extends JUnitAnnotationBaseTest {
     static final String key = "test";
     static final String value = "example";
     static StatefulRedisConnection<String, String> statefulRedisConnection;

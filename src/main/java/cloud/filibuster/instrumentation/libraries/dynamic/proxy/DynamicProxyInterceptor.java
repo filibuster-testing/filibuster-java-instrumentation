@@ -57,7 +57,11 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
     private static final String logPrefix = "[FILIBUSTER-PROXY_INTERCEPTOR]: ";
     private FilibusterClientInstrumentor filibusterClientInstrumentor;
 
-    private DynamicProxyInterceptor(T targetObject, String connectionString, String futureInvokeExceptionOnMethod, JSONObject futureExceptionMetadata) {
+    private DynamicProxyInterceptor(T targetObject, String connectionString) {
+        this(targetObject, connectionString, null, null);
+    }
+
+    private DynamicProxyInterceptor(T targetObject, String connectionString, @Nullable String futureInvokeExceptionOnMethod, @Nullable JSONObject futureExceptionMetadata) {
         logger.log(Level.INFO, logPrefix + "Constructor was called");
         this.targetObject = targetObject;
         this.contextStorage = new ThreadLocalContextStorage();
@@ -388,16 +392,21 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> T createInterceptor(T target, String connectionString, String futureInvokeExceptionOnMethod, JSONObject futureExceptionMetadata) {
-        logger.log(Level.INFO, logPrefix + "createInterceptor was called");
+    private static <T> T createProxy(T target, DynamicProxyInterceptor<?> dynamicProxyInterceptor) {
+        logger.log(Level.INFO, logPrefix + "createProxy was called");
         return (T) Proxy.newProxyInstance(
                 target.getClass().getClassLoader(),
                 target.getClass().getInterfaces(),
-                new DynamicProxyInterceptor<>(target, connectionString, futureInvokeExceptionOnMethod, futureExceptionMetadata)
-        );
+                dynamicProxyInterceptor);
+    }
+
+    private static <T> T createInterceptor(T target, String connectionString, String futureInvokeExceptionOnMethod, JSONObject futureExceptionMetadata) {
+        logger.log(Level.INFO, logPrefix + "createInterceptor was called");
+        return createProxy(target, new DynamicProxyInterceptor<>(target, connectionString, futureInvokeExceptionOnMethod, futureExceptionMetadata));
     }
 
     public static <T> T createInterceptor(T target, String connectionString) {
-        return createInterceptor(target, connectionString, null, null);
+        logger.log(Level.INFO, logPrefix + "createInterceptor was called");
+        return createProxy(target, new DynamicProxyInterceptor<>(target, connectionString));
     }
 }

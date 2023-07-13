@@ -43,30 +43,35 @@ public class JUnitRedisFilibusterAsyncGetTest extends JUnitAnnotationBaseTest {
     private static final List<String> allowedExceptionMessages = new ArrayList<>();
 
     @BeforeAll
-    public static void primeCache() {
+    public static void beforeAll() {
         statefulRedisConnection = RedisClientService.getInstance().redisClient.connect();
         redisConnectionString = RedisClientService.getInstance().connectionString;
-        statefulRedisConnection.sync().set(key, value);
     }
 
     static {
         allowedExceptionMessages.add("Command timed out after 100 millisecond(s)");
     }
 
-    @DisplayName("Tests whether Redis sync interceptor can read from existing key - Single fault injection")
+    @DisplayName("Tests whether Redis async interceptor can read from existing key - Single fault injection")
     @Order(1)
-    @TestWithFilibuster(analysisConfigurationFile = RedisExhaustiveAnalysisConfigurationFile.class)
-    public void testRedisSyncGet() {
+    @TestWithFilibuster(analysisConfigurationFile = RedisExhaustiveAnalysisConfigurationFile.class,
+            suppressCombinations = true)
+    public void testRedisAsyncGet() {
         try {
             numberOfTestExecutions++;
 
             StatefulRedisConnection<String, String> myStatefulRedisConnection = DynamicProxyInterceptor.createInterceptor(statefulRedisConnection, redisConnectionString);
             RedisAsyncCommands<String, String> myRedisCommands = myStatefulRedisConnection.async();
+
+            myRedisCommands.set(key, value);
+
             RedisFuture<String> returnFuture = myRedisCommands.get(key);
+
             String returnVal = returnFuture.get();
+
             assertEquals(value, returnVal);
             assertFalse(wasFaultInjected());
-        } catch (Throwable t) {
+        } catch (@SuppressWarnings("InterruptedExceptionSwallowed") Throwable t) {
             testExceptionsThrown.add(t.getMessage());
 
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);

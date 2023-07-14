@@ -145,6 +145,11 @@ public class SingleFaultKey<ReqT, ResT> implements FaultKey {
         return listOfFaultKeys;
     }
 
+    @Override
+    public int size() {
+        return 1;
+    }
+
     static class Builder {
         private FaultKeyType faultKeyType;
         private String method = "";

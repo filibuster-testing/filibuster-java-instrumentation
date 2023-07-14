@@ -6,6 +6,7 @@ import com.google.protobuf.GeneratedMessageV3;
 import io.grpc.Status;
 import org.json.JSONObject;
 
+import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -175,6 +176,7 @@ public class ServerInvocationAndResponseReport {
                 .collect(Collectors.toSet());
     }
 
+    @Nullable
     private static Class getClass(String className, String packageName) {
         try {
             return Class.forName(packageName + "."

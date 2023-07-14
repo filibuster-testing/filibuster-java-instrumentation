@@ -259,7 +259,6 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
             abortOnFirstFailure = true,
             maxIterations = 50,
             dataNondeterminism = true,
-            suppressCombinations = true,
             searchStrategy = FilibusterSearchStrategy.BFS
     )
     public void test() {

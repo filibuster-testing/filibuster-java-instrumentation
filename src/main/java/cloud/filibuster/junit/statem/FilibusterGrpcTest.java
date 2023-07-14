@@ -6,7 +6,9 @@ import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException
 import cloud.filibuster.instrumentation.datatypes.Pair;
 import cloud.filibuster.junit.assertions.Helpers;
 
+import cloud.filibuster.junit.statem.keys.CompositeFaultKey;
 import cloud.filibuster.junit.statem.keys.FaultKey;
+import cloud.filibuster.junit.statem.keys.SingleFaultKey;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
@@ -131,7 +133,7 @@ public interface FilibusterGrpcTest {
             Status.Code thrownCode,
             String thrownMessage
     ) {
-        faultKeysThatThrow.put(new FaultKey<>(methodDescriptor), Pair.of(thrownCode, thrownMessage));
+        faultKeysThatThrow.put(new SingleFaultKey<>(methodDescriptor), Pair.of(thrownCode, thrownMessage));
     }
 
     /**
@@ -151,7 +153,7 @@ public interface FilibusterGrpcTest {
             Status.Code thrownCode,
             String thrownMessage
     ) {
-        faultKeysThatThrow.put(new FaultKey<>(methodDescriptor, code), Pair.of(thrownCode, thrownMessage));
+        faultKeysThatThrow.put(new SingleFaultKey<>(methodDescriptor, code), Pair.of(thrownCode, thrownMessage));
     }
 
     /**
@@ -171,7 +173,7 @@ public interface FilibusterGrpcTest {
             Status.Code thrownCode,
             String thrownMessage
     ) {
-        faultKeysThatThrow.put(new FaultKey<>(methodDescriptor, request), Pair.of(thrownCode, thrownMessage));
+        faultKeysThatThrow.put(new SingleFaultKey<>(methodDescriptor, request), Pair.of(thrownCode, thrownMessage));
     }
 
     /**
@@ -193,7 +195,7 @@ public interface FilibusterGrpcTest {
             Status.Code thrownCode,
             String thrownMessage
     ) {
-        faultKeysThatThrow.put(new FaultKey<>(methodDescriptor, code, request), Pair.of(thrownCode, thrownMessage));
+        faultKeysThatThrow.put(new SingleFaultKey<>(methodDescriptor, code, request), Pair.of(thrownCode, thrownMessage));
     }
 
     // *****************************************************************************************************************
@@ -218,7 +220,7 @@ public interface FilibusterGrpcTest {
     default <ReqT, ResT> void assertFaultHasNoImpact(
             MethodDescriptor<ReqT, ResT> methodDescriptor
     ) {
-        faultKeysWithNoImpact.add(new FaultKey<>(methodDescriptor));
+        faultKeysWithNoImpact.add(new SingleFaultKey<>(methodDescriptor));
     }
 
     /**
@@ -240,7 +242,7 @@ public interface FilibusterGrpcTest {
             MethodDescriptor<ReqT, ResT> methodDescriptor,
             Status.Code code
     ) {
-        faultKeysWithNoImpact.add(new FaultKey<>(methodDescriptor, code));
+        faultKeysWithNoImpact.add(new SingleFaultKey<>(methodDescriptor, code));
     }
 
     /**
@@ -262,7 +264,7 @@ public interface FilibusterGrpcTest {
             MethodDescriptor<ReqT, ResT> methodDescriptor,
             ReqT request
     ) {
-        faultKeysWithNoImpact.add(new FaultKey<>(methodDescriptor, request));
+        faultKeysWithNoImpact.add(new SingleFaultKey<>(methodDescriptor, request));
     }
 
     /**
@@ -286,7 +288,7 @@ public interface FilibusterGrpcTest {
             Status.Code code,
             ReqT request
     ) {
-        faultKeysWithNoImpact.add(new FaultKey<>(methodDescriptor, code, request));
+        faultKeysWithNoImpact.add(new SingleFaultKey<>(methodDescriptor, code, request));
     }
 
     // *****************************************************************************************************************
@@ -310,7 +312,7 @@ public interface FilibusterGrpcTest {
             MethodDescriptor<ReqT, ResT> methodDescriptor,
             Runnable runnable
     ) {
-        assertionsByFaultKey.put(new FaultKey<>(methodDescriptor), runnable);
+        assertionsByFaultKey.put(new SingleFaultKey<>(methodDescriptor), runnable);
     }
 
     /**
@@ -330,7 +332,7 @@ public interface FilibusterGrpcTest {
             Status.Code code,
             Runnable runnable
     ) {
-        assertionsByFaultKey.put(new FaultKey<>(methodDescriptor, code), runnable);
+        assertionsByFaultKey.put(new SingleFaultKey<>(methodDescriptor, code), runnable);
     }
 
     /**
@@ -350,7 +352,7 @@ public interface FilibusterGrpcTest {
             ReqT request,
             Runnable runnable
     ) {
-        assertionsByFaultKey.put(new FaultKey<>(methodDescriptor, request), runnable);
+        assertionsByFaultKey.put(new SingleFaultKey<>(methodDescriptor, request), runnable);
     }
 
     /**
@@ -372,7 +374,24 @@ public interface FilibusterGrpcTest {
             ReqT request,
             Runnable runnable
     ) {
-        assertionsByFaultKey.put(new FaultKey<>(methodDescriptor, code, request), runnable);
+        assertionsByFaultKey.put(new SingleFaultKey<>(methodDescriptor, code, request), runnable);
+    }
+
+    // *****************************************************************************************************************
+    // Fault API: specify faults that contain different assertions for composite faults
+    // *****************************************************************************************************************
+
+    /**
+     * Use of this method informs Filibuster that these combined faults will result in possibly
+     * different assertions being true (other than the default block.)  These assertions should be placed in the
+     * associated {@link Runnable}.
+     * This block will replace the assertions in {@link #assertTestBlock()}.
+     * *
+     * @param compositeFaultSpecification {@link CompositeFaultSpecification}
+     * @param runnable assertion block
+     */
+    default void assertOnFaults(CompositeFaultSpecification compositeFaultSpecification, Runnable runnable) {
+        assertionsByFaultKey.put(new CompositeFaultKey(compositeFaultSpecification), runnable);
     }
 
     // *****************************************************************************************************************
@@ -415,7 +434,7 @@ public interface FilibusterGrpcTest {
         boolean searchComplete = false;
 
         // Find matching keys.
-        for (FaultKey faultKey : FaultKey.generateFaultKeysInDecreasingGranularity(rpcWhereFaultInjected)) {
+        for (SingleFaultKey faultKey : SingleFaultKey.generateFaultKeysInDecreasingGranularity(rpcWhereFaultInjected)) {
             if (!searchComplete) {
                 // Iterate each key and see if the user specified something for it.
                 if (assertionsByFaultKey.containsKey(faultKey)) {
@@ -458,74 +477,6 @@ public interface FilibusterGrpcTest {
     default boolean performMultipleFaultChecking(List<JSONObject> rpcsWhereFaultsInjected) {
         return true;
     }
-
-//
-//        // If the user specified an assertion block for this precise combination of faults.
-//        boolean searchComplete = false;
-//
-//        for (FaultKey faultKey : FaultKey.generateFaultKeysInDecreasingGranularity(rpcsWhereFaultsInjected)) {
-//            if (!searchComplete) {
-//                if (assertionsByFaultKey.containsKey(faultKey)) {
-//                    // We want to exit on the first find.
-//                    searchComplete = true;
-//
-//                    // Try to run the runnable and abort if it throws.
-//                    try {
-//                        // Run the updated assertions.
-//                        Runnable runnable = assertionsByFaultKey.get(faultKey);
-//                        runnable.run();
-//                    } catch (Throwable t) {
-//                        throw new FilibusterGrpcTestRuntimeException(
-//                                "Assertions in onFaultOnRequest(...) failed.",
-//                                "Please adjust assertions in onFaultOnRequests(...) so that test passes.",
-//                                t);
-//                    }
-//                }
-//            }
-//        }
-//
-//        if (searchComplete) {
-//            return false;
-//        }
-//
-//        // Otherwise, try to verify compositional-ly.
-//        Set<JSONObject> methodsWithFaultImpact = new HashSet<>();
-//
-//        for (JSONObject rpcWhereFaultInjected : rpcsWhereFaultsInjected) {
-//            String method = rpcWhereFaultInjected.getString("method");
-//
-//            if (!methodsWithNoFaultImpact.contains(method)) {
-//                methodsWithFaultImpact.add(rpcWhereFaultInjected);
-//            }
-//        }
-//
-//        if (methodsWithFaultImpact.size() == 0) {
-//            return true;
-//        } else if (methodsWithFaultImpact.size() == 1) {
-//            ArrayList<JSONObject> rpcsWhereFaultsInjectedWithImpact = new ArrayList<>(methodsWithFaultImpact);
-//            Map.Entry<String, String> keysForExecutedRPC = generateKeysForExecutedRPCFromJSON(rpcsWhereFaultsInjectedWithImpact);
-//
-//            if (keysForExecutedRPC == null) {
-//                throw new FilibusterGrpcTestInternalRuntimeException("keysForExecutedRPC is null: this could indicate a problem!");
-//            }
-//
-//            String singleFaultMethodKey = keysForExecutedRPC.getKey();
-//            String singleFaultArgsKey = keysForExecutedRPC.getValue();
-//
-//            return performSingleFaultChecking(singleFaultMethodKey, singleFaultArgsKey);
-//        } else if (methodsWithFaultImpact.size() < rpcsWhereFaultsInjected.size()) {
-//            List<JSONObject> rpcsWhereFaultsInjectedWithImpact = new ArrayList<>(methodsWithFaultImpact);
-//            Map.Entry<String, String> keysForExecutedRPC = generateKeysForExecutedRPCFromJSON(rpcsWhereFaultsInjectedWithImpact);
-//
-//            String methodsWithFaultImpactMethodKey = keysForExecutedRPC.getKey();
-//            String methodsWithFaultImpactArgsKey = keysForExecutedRPC.getValue();
-//
-//            return performMultipleFaultChecking(rpcsWhereFaultsInjectedWithImpact, methodsWithFaultImpactMethodKey, methodsWithFaultImpactArgsKey);
-//        } else {
-//            throw new FilibusterGrpcTestRuntimeException(
-//                    "Compositional verification failed due to ambiguous failure handling: each fault introduced has different impact.",
-//                    "Please write an onFaultOnRequests(Array<MethodDescriptors, GeneratedMessageV3>, Runnable) for this fault combination with appropriate assertions.");
-//        }
 
     default void execute() {
         // For each test execution, clear out the adjusted test expectations.
@@ -602,8 +553,9 @@ public interface FilibusterGrpcTest {
             // Verify that at least one of the injected faults is expected to result in an exception.
             List<FaultKey> matchingFaultKeys = new ArrayList<>();
 
+            // TODO: this is probably broken.
             for (JSONObject rpcWhereFaultInjected : rpcsWhereFaultsInjected) {
-                for (FaultKey faultKey : FaultKey.generateFaultKeysInDecreasingGranularity(rpcWhereFaultInjected)) {
+                for (FaultKey faultKey : SingleFaultKey.generateFaultKeysInDecreasingGranularity(rpcWhereFaultInjected)) {
                     if (faultKeysThatThrow.containsKey(faultKey)) {
                         matchingFaultKeys.add(faultKey);
                         break;

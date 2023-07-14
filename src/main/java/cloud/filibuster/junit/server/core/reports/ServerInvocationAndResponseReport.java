@@ -43,8 +43,6 @@ public class ServerInvocationAndResponseReport {
             }
         }
 
-        Set<String> grpcEndpoints = new HashSet<>();
-
         for (Class c : grpcClasses) {
             Method[] methods = c.getDeclaredMethods();
             for (Method method : methods) {
@@ -53,7 +51,6 @@ public class ServerInvocationAndResponseReport {
                 if (matcher.find()) {
                     String strippedMethodName = matcher.group(1);
                     String fullMethodName = c.getName().replace("Grpc", "") + "/" + strippedMethodName;
-                    grpcEndpoints.add(fullMethodName);
                     grpcMethodsInvoked.put(fullMethodName, false);
                 }
             }

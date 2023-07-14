@@ -4,6 +4,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestInternalRuntimeE
 import cloud.filibuster.junit.statem.CompositeFaultSpecification;
 import org.json.JSONObject;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,7 +13,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class CompositeFaultKey implements FaultKey {
-    private List<SingleFaultKey> faultKeys;
+    private final List<SingleFaultKey> faultKeys;
 
     public CompositeFaultKey(CompositeFaultSpecification compositeFaultSpecification) {
         this.faultKeys = compositeFaultSpecification.getFaultKeys();
@@ -60,6 +61,7 @@ public class CompositeFaultKey implements FaultKey {
         return this.faultKeys.size();
     }
 
+    @Nullable
     public static FaultKey findMatchingFaultKey(
             HashMap<FaultKey, Runnable> assertionsByFaultKey,
             List<JSONObject> rpcsWhereFaultsInjected

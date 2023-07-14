@@ -11,7 +11,6 @@ import java.util.Map;
 
 /**
  * Create a specification for the Filibuster GRPC test interface for multiple faults that are injected simultaneously.
- * This can be provided to the {@link FilibusterGrpcTest#onFaultOnRequests(CombinedFaultSpecification, Runnable) onFaultOnRequests} method to create conditional behavior when multiple faults are injected.
  */
 public class CombinedFaultSpecification {
     private final List<Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3>> requestFaults;
@@ -25,7 +24,7 @@ public class CombinedFaultSpecification {
     }
 
     /**
-     * Builder for creation of a {@link CombinedFaultSpecification} that can be used with {@link FilibusterGrpcTest#onFaultOnRequests(CombinedFaultSpecification, Runnable) onFaultOnRequests} method.
+     * Builder for creation of a {@link CombinedFaultSpecification}.
      */
     public static class Builder {
         List<Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3>> requestFaults = new ArrayList<>();

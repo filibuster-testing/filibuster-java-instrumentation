@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class ServerInvocationAndResponseReport {
-    private static HashMap<String, Boolean> grpcMethodsInvoked = new HashMap<>();
+    private static final HashMap<String, Boolean> grpcMethodsInvoked = new HashMap<>();
 
     static {
         // TODO: fix hardcoding

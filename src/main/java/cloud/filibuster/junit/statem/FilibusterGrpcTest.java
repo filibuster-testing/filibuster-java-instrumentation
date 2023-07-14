@@ -16,13 +16,16 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import static cloud.filibuster.junit.Assertions.getExecutedRPCs;
 import static cloud.filibuster.junit.Assertions.getFailedRPCs;
 import static cloud.filibuster.junit.Assertions.getFaultsInjected;
+import static cloud.filibuster.junit.statem.keys.CompositeFaultKey.findMatchingFaultKey;
 
 /**
  * Testing interface for writing tests of services that issue GRPCs.  Provides a number of features:
@@ -475,7 +478,58 @@ public interface FilibusterGrpcTest {
     }
 
     default boolean performMultipleFaultChecking(List<JSONObject> rpcsWhereFaultsInjected) {
-        return true;
+
+        // Try to see if the user said something about this particular set of failures.
+        FaultKey faultKey = findMatchingFaultKey(assertionsByFaultKey, rpcsWhereFaultsInjected);
+
+        if (faultKey != null) {
+            // Try to run the runnable and abort if it throws.
+            try {
+                // Run the updated assertions.
+                Runnable runnable = assertionsByFaultKey.get(faultKey);
+                runnable.run();
+            } catch (Throwable t) {
+                throw new FilibusterGrpcTestRuntimeException(
+                        "Assertions in assertOnFaults(...) failed.",
+                        "Please adjust assertions in assertOnFaults(...) so that test passes.",
+                        t);
+            }
+
+            // Don't run the normal assertions.
+            return false;
+        }
+
+        // Otherwise, try to verify compositional-ly.
+        Set<JSONObject> methodsWithFaultImpact = new HashSet<>();
+
+        for (JSONObject rpcWhereFaultInjected : rpcsWhereFaultsInjected) {
+            boolean found = false;
+
+            for (SingleFaultKey singleFaultKey : SingleFaultKey.generateFaultKeysInDecreasingGranularity(rpcWhereFaultInjected)) {
+                if (faultKeysWithNoImpact.contains(singleFaultKey)) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                methodsWithFaultImpact.add(rpcWhereFaultInjected);
+            }
+        }
+
+        if (methodsWithFaultImpact.size() == 0) {
+            return true;
+        } else if (methodsWithFaultImpact.size() == 1) {
+            List<JSONObject> rpcsWhereFaultsInjectedWithImpact = new ArrayList<>(methodsWithFaultImpact);
+            return performSingleFaultChecking(rpcsWhereFaultsInjectedWithImpact.get(0));
+        } else if (methodsWithFaultImpact.size() < rpcsWhereFaultsInjected.size()) {
+            List<JSONObject> rpcsWhereFaultsInjectedWithImpact = new ArrayList<>(methodsWithFaultImpact);
+            return performMultipleFaultChecking(rpcsWhereFaultsInjectedWithImpact);
+        } else {
+            throw new FilibusterGrpcTestRuntimeException(
+                    "Compositional verification failed due to ambiguous failure handling: each fault introduced has different impact.",
+                    "Please write an assertOnFaults(...) for this fault combination with appropriate assertions.");
+        }
     }
 
     default void execute() {

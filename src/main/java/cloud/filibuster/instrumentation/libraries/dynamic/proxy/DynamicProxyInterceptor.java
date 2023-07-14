@@ -48,6 +48,8 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
     private static final Logger logger = Logger.getLogger(DynamicProxyInterceptor.class.getName());
     private final T targetObject;
     public static final Boolean disableInstrumentation = false;
+    private final String futureInvokeExceptionOnMethod;
+    private final JSONObject futureExceptionMetadata;
     private final ContextStorage contextStorage;
     public static final Boolean disableServerCommunication = false;
     private final String serviceName;
@@ -56,11 +58,17 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
     private FilibusterClientInstrumentor filibusterClientInstrumentor;
 
     private DynamicProxyInterceptor(T targetObject, String connectionString) {
+        this(targetObject, connectionString, null, null);
+    }
+
+    private DynamicProxyInterceptor(T targetObject, String connectionString, @Nullable String futureInvokeExceptionOnMethod, @Nullable JSONObject futureExceptionMetadata) {
         logger.log(Level.INFO, logPrefix + "Constructor was called");
         this.targetObject = targetObject;
         this.contextStorage = new ThreadLocalContextStorage();
         this.connectionString = connectionString;
         this.serviceName = extractServiceFromConnection(connectionString);
+        this.futureInvokeExceptionOnMethod = futureInvokeExceptionOnMethod;
+        this.futureExceptionMetadata = futureExceptionMetadata;
     }
 
     private static String extractServiceFromConnection(String connectionString) {
@@ -146,8 +154,25 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
             generateExceptionFromFailureMetadata();
         }
 
+        String futureInvokeExceptionOnMethod = null;
+        JSONObject futureExceptionMetadata = null;
+
         if (forcedException != null && filibusterClientInstrumentor.shouldAbort()) {
-            generateAndThrowException(filibusterClientInstrumentor, forcedException);
+            boolean shouldInjectExceptionOnCurrentMethod = shouldInjectExceptionOnCurrentMethod(forcedException, fullMethodName);
+
+            if (shouldInjectExceptionOnCurrentMethod) {
+                generateAndThrowException(filibusterClientInstrumentor, forcedException);
+            } else {
+                // If the forced exception should not be injected on the current method, we store the metadata of the exception
+                // and the name of the method on which it should be injected. This information will be used later, when the correct
+                // method is invoked, to throw the exception.
+                futureInvokeExceptionOnMethod = getExceptionMethodName(forcedException, fullMethodName);
+                futureExceptionMetadata = forcedException;
+            }
+        }
+
+        if (this.futureInvokeExceptionOnMethod != null && this.futureInvokeExceptionOnMethod.equals(fullMethodName) && filibusterClientInstrumentor.shouldAbort()) {
+            generateAndThrowException(filibusterClientInstrumentor, this.futureExceptionMetadata);
         }
 
         if (byzantineFault != null && filibusterClientInstrumentor.shouldAbort()) {
@@ -188,7 +213,7 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
             // the returned RedisCommands object should also be an intercepted proxy)
             if (method.getReturnType().isInterface() &&
                     method.getReturnType().getClassLoader() != null) {
-                invocationResult = DynamicProxyInterceptor.createInterceptor(invocationResult, connectionString);
+                invocationResult = DynamicProxyInterceptor.createInterceptor(invocationResult, connectionString, futureInvokeExceptionOnMethod, futureExceptionMetadata);
                 filibusterClientInstrumentor.afterInvocationComplete(method.getReturnType().getName(), returnValueProperties);
             } else {
                 filibusterClientInstrumentor.afterInvocationComplete(method.getReturnType().getName(), returnValueProperties, invocationResult);
@@ -282,48 +307,72 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
         }
     }
 
+    // Return true if exception should be injected on current method, otherwise false
+    private static boolean shouldInjectExceptionOnCurrentMethod(JSONObject forcedException, String currentMethodName) {
+        JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
+
+        if (forcedExceptionMetadata.has("injectOn")) {
+            String injectOn = forcedExceptionMetadata.getString("injectOn");
+            return injectOn.equals(currentMethodName);
+        }
+        return true;
+    }
+
+    private static String getExceptionMethodName(JSONObject forcedException, String currentMethodName) {
+        JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
+
+        if (forcedExceptionMetadata.has("injectOn")) {
+            return forcedExceptionMetadata.getString("injectOn");
+        }
+        return currentMethodName;
+    }
+
     private static void generateAndThrowException(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject forcedException) throws Exception {
         String sExceptionName = forcedException.getString("name");
         JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
         String sCause = forcedExceptionMetadata.getString("cause");
         String sCode = forcedExceptionMetadata.getString("code");
 
+        throwExceptionAndNotifyFilibuster(filibusterClientInstrumentor, sExceptionName, sCause, sCode);
+    }
+
+    private static void throwExceptionAndNotifyFilibuster(FilibusterClientInstrumentor filibusterClientInstrumentor, String exceptionName, String cause, String code) throws Exception {
         Exception exceptionToThrow;
 
-        switch (sExceptionName) {  // TODO: Refactor the switch to an interface
+        switch (exceptionName) {  // TODO: Refactor the switch to an interface
             case "org.postgresql.util.PSQLException":
-                exceptionToThrow = new PSQLException(new ServerErrorMessage(sCause));
+                exceptionToThrow = new PSQLException(new ServerErrorMessage(cause));
                 break;
             case "com.datastax.oss.driver.api.core.servererrors.OverloadedException":
                 exceptionToThrow = new OverloadedException(null);
                 break;
             case "software.amazon.awssdk.services.dynamodb.model.RequestLimitExceededException":
-                exceptionToThrow = RequestLimitExceededException.builder().message(sCause).statusCode(Integer.parseInt(sCode))
+                exceptionToThrow = RequestLimitExceededException.builder().message(cause).statusCode(Integer.parseInt(code))
                         .requestId(UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT)).build();
                 break;
             case "io.lettuce.core.RedisCommandTimeoutException":
-                exceptionToThrow = new RedisCommandTimeoutException(sCause);
+                exceptionToThrow = new RedisCommandTimeoutException(cause);
                 break;
             case "io.lettuce.core.RedisBusyException":
-                exceptionToThrow = new RedisBusyException(sCause);
+                exceptionToThrow = new RedisBusyException(cause);
                 break;
             case "io.lettuce.core.RedisCommandExecutionException":
-                exceptionToThrow = new RedisCommandExecutionException(sCause);
+                exceptionToThrow = new RedisCommandExecutionException(cause);
                 break;
             case "io.lettuce.core.RedisCommandInterruptedException":
-                exceptionToThrow = new RedisCommandInterruptedException(new Throwable(sCause));
+                exceptionToThrow = new RedisCommandInterruptedException(new Throwable(cause));
                 break;
             case "io.lettuce.core.cluster.UnknownPartitionException":
-                exceptionToThrow = new UnknownPartitionException(sCause);
+                exceptionToThrow = new UnknownPartitionException(cause);
                 break;
             case "io.lettuce.core.cluster.PartitionSelectorException":
-                exceptionToThrow = new PartitionSelectorException(sCause, new Partitions());
+                exceptionToThrow = new PartitionSelectorException(cause, new Partitions());
                 break;
             case "io.lettuce.core.dynamic.batch.BatchException":
                 exceptionToThrow = new BatchException(new ArrayList<>());
                 break;
             default:
-                throw new FilibusterFaultInjectionException("Cannot determine the execution cause to throw: " + sCause);
+                throw new FilibusterFaultInjectionException("Cannot determine the execution cause to throw: " + cause);
         }
 
         // Notify Filibuster.
@@ -346,13 +395,21 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T createInterceptor(T target, String connectionString) {
-        logger.log(Level.INFO, logPrefix + "createInterceptor was called");
+    private static <T> T createProxy(T target, DynamicProxyInterceptor<?> dynamicProxyInterceptor) {
+        logger.log(Level.INFO, logPrefix + "createProxy was called");
         return (T) Proxy.newProxyInstance(
                 target.getClass().getClassLoader(),
                 target.getClass().getInterfaces(),
-                new DynamicProxyInterceptor<>(target, connectionString)
-        );
+                dynamicProxyInterceptor);
     }
 
+    private static <T> T createInterceptor(T target, String connectionString, String futureInvokeExceptionOnMethod, JSONObject futureExceptionMetadata) {
+        logger.log(Level.INFO, logPrefix + "createInterceptor was called");
+        return createProxy(target, new DynamicProxyInterceptor<>(target, connectionString, futureInvokeExceptionOnMethod, futureExceptionMetadata));
+    }
+
+    public static <T> T createInterceptor(T target, String connectionString) {
+        logger.log(Level.INFO, logPrefix + "createInterceptor was called");
+        return createProxy(target, new DynamicProxyInterceptor<>(target, connectionString));
+    }
 }

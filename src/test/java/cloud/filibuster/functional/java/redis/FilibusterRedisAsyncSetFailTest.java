@@ -1,5 +1,6 @@
-package cloud.filibuster.functional.shouldFails;
+package cloud.filibuster.functional.java.redis;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterFaultNotInjectedException;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
@@ -34,7 +35,8 @@ public class FilibusterRedisAsyncSetFailTest extends JUnitAnnotationBaseTest {
     @DisplayName("This test should fail: Tests whether Redis async interceptor can set a value for a key")
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = RedisExhaustiveAnalysisConfigurationFile.class,
-            failIfFaultNotInjected = true)
+            failIfFaultNotInjected = true,
+            expected = FilibusterFaultNotInjectedException.class)
     public void testRedisAsyncSet() {
         numberOfTestExecutions++;
 

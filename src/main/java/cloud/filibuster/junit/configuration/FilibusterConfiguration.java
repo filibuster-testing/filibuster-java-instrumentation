@@ -22,6 +22,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import static cloud.filibuster.instrumentation.helpers.Property.FAIL_IF_FAULT_NOT_INJECTED_DEFAULT;
+import static cloud.filibuster.instrumentation.helpers.Property.getFailIfFaultNotInjectedProperty;
+
 public class FilibusterConfiguration {
     private static final String filibusterExecutable = "/usr/local/bin/filibuster";
 
@@ -187,7 +190,12 @@ public class FilibusterConfiguration {
      * @return whether service should fail.
      */
     public boolean getFailIfFaultNotInjected() {
-        return this.failIfFaultNotInjected;
+        if (failIfFaultNotInjected == FAIL_IF_FAULT_NOT_INJECTED_DEFAULT) {
+            // Check the property to see if it was set.
+            return getFailIfFaultNotInjectedProperty();
+        }
+
+        return failIfFaultNotInjected;
     }
 
     /**

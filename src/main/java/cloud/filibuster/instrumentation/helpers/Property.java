@@ -467,4 +467,26 @@ public class Property {
             return Integer.parseInt(propertyValue);
         }
     }
+
+    /***********************************************************************************
+     ** filibuster.test.fail_if_fault_not_injected
+     ***********************************************************************************/
+
+    public static final boolean FAIL_IF_FAULT_NOT_INJECTED_DEFAULT = false;
+
+    private final static String FAIL_IF_FAULT_NOT_INJECTED = "filibuster.test.fail_if_fault_not_injected";
+
+    public static void setFailIfFaultNotInjectedProperty(boolean value) {
+        System.setProperty(FAIL_IF_FAULT_NOT_INJECTED, String.valueOf(value));
+    }
+
+    public static boolean getFailIfFaultNotInjectedProperty() {
+        String propertyValue = System.getProperty(FAIL_IF_FAULT_NOT_INJECTED);
+
+        if (isPropertyNull(propertyValue)) {
+            return FAIL_IF_FAULT_NOT_INJECTED_DEFAULT;
+        } else {
+            return Boolean.parseBoolean(propertyValue);
+        }
+    }
 }

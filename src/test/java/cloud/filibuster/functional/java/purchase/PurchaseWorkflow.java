@@ -137,13 +137,7 @@ public class PurchaseWorkflow {
 
         // Notify of applied discount.
         if (discountAmount > 0) {
-            CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
-            Hello.NotifyDiscountAppliedRequest notifyDiscountAppliedRequest = Hello.NotifyDiscountAppliedRequest.newBuilder().setCartId(cartId).build();
-            try {
-                cartServiceBlockingStub.notifyDiscountApplied(notifyDiscountAppliedRequest);
-            } catch (StatusRuntimeException statusRuntimeException) {
-                // Nothing, ignore the failure.
-            }
+            notifyOfDiscountApplied(channel, cartId);
         }
 
         // Verify the user has sufficient funds.
@@ -237,5 +231,24 @@ public class PurchaseWorkflow {
         CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
         Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder().setCode(discountCode).build();
         return cartServiceBlockingStub.getDiscountOnCart(request);
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private static void notifyOfDiscountApplied(Channel channel, String cartId) {
+        CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
+        Hello.NotifyDiscountAppliedRequest notifyDiscountAppliedRequest = Hello.NotifyDiscountAppliedRequest.newBuilder().setCartId(cartId).build();
+        try {
+            cartServiceBlockingStub.notifyDiscountApplied(notifyDiscountAppliedRequest);
+        } catch (StatusRuntimeException statusRuntimeException) {
+            // Nothing, ignore the failure.
+        }
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private static boolean validateSession(Channel channel, String sessionId) {
+        UserServiceGrpc.UserServiceBlockingStub userServiceBlockingStub = UserServiceGrpc.newBlockingStub(channel);
+        Hello.ValidateSessionRequest request = Hello.ValidateSessionRequest.newBuilder().setSessionId(sessionId).build();
+        userServiceBlockingStub.validateSession(request);
+        return true;
     }
 }

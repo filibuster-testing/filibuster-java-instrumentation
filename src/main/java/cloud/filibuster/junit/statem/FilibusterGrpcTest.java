@@ -819,6 +819,11 @@ public interface FilibusterGrpcTest {
 
         for (FaultKey matchingFaultKey : matchingFaultKeys) {
             Map.Entry<Status.Code, String> expectedException = faultKeysThatThrow.get(matchingFaultKey);
+
+            if (expectedException == null) {
+                throw new FilibusterGrpcTestInternalRuntimeException("expectedException is null; this could indicate a problem!");
+            }
+
             Status expectedStatus = Status.fromCode(expectedException.getKey()).withDescription(expectedException.getValue());
             boolean codeMatches = expectedStatus.getCode().equals(actualStatus.getCode());
             boolean descriptionMatches = Objects.equals(expectedStatus.getDescription(), actualStatus.getDescription());

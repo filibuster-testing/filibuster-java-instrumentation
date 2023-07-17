@@ -21,6 +21,7 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -44,6 +45,10 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
 
     @Override
     public void failureBlock() {
+        // Generate random so we can sample different variations of this API across
+        // the different Filibuster executions.
+        Random random = new Random();
+
         // Single faults.
 
         // Failure of the getUserFromSession call results in upstream receiving UNAVAILABLE exception.
@@ -54,24 +59,21 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
         );
 
         // Updated list of assertions when UNAVAILABLE is returned to user.
-        assertOnException(
-                Status.Code.UNAVAILABLE,
-                () -> {
-                    // If we return unavailable, we should never invoke any of these downstream dependencies.
-                    GrpcMock.adjustExpectation(CartServiceGrpc.getGetCartForSessionMethod(), 0);
-                    for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
-                        Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
-                                .setCode(discountCode.getKey())
-                                .build();
-                        GrpcMock.adjustExpectation(CartServiceGrpc.getGetDiscountOnCartMethod(), request, 0);
-                    }
-                    GrpcMock.adjustExpectation(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
+        assertOnException(Status.Code.UNAVAILABLE, () -> {
+            // If we return unavailable, we should never invoke any of these downstream dependencies.
+            GrpcMock.adjustExpectation(CartServiceGrpc.getGetCartForSessionMethod(), 0);
+            for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
+                Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
+                        .setCode(discountCode.getKey())
+                        .build();
+                GrpcMock.adjustExpectation(CartServiceGrpc.getGetDiscountOnCartMethod(), request, 0);
+            }
+            GrpcMock.adjustExpectation(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
 
-                    // Verify transaction did not occur.
-                    assertEquals(20000, PurchaseWorkflow.getAccountBalance(consumerId));
-                    assertEquals(0, PurchaseWorkflow.getAccountBalance(merchantId));
-                }
-        );
+            // Verify transaction did not occur.
+            assertEquals(20000, PurchaseWorkflow.getAccountBalance(consumerId));
+            assertEquals(0, PurchaseWorkflow.getAccountBalance(merchantId));
+        });
 
         // Failure of the getCartFromSession call results in upstream receiving UNAVAILABLE exception.
         assertFaultThrows(
@@ -81,12 +83,28 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
                 "Purchase could not be completed at this time, please retry the request: cart could not be retrieved."
         );
 
-        assertFaultThrows(
-                CartServiceGrpc.getGetCartForSessionMethod(),
-                Status.Code.DEADLINE_EXCEEDED,
-                Status.Code.UNAVAILABLE,
-                "Purchase could not be completed at this time, please retry the request: cart could not be retrieved."
-        );
+        // We can use two different variations for the DEADLINE_EXCEEDED exception.
+        // The first, will catch all exceptions because it's by request, the second by error code.
+        //
+        // Randomly sample the two different APIs across Filibuster just as a form of
+        // regression test.
+        //
+        if (random.nextBoolean()) {
+            assertFaultThrows(
+                    CartServiceGrpc.getGetCartForSessionMethod(),
+                    Hello.GetCartRequest.newBuilder().setSessionId(sessionId.toString()).build(),
+                    Status.Code.UNAVAILABLE,
+                    "Purchase could not be completed at this time, please retry the request: cart could not be retrieved."
+            );
+        } else {
+            assertFaultThrows(
+                    CartServiceGrpc.getGetCartForSessionMethod(),
+                    Status.Code.DEADLINE_EXCEEDED,
+                    Hello.GetCartRequest.newBuilder().setSessionId(sessionId.toString()).build(),
+                    Status.Code.UNAVAILABLE,
+                    "Purchase could not be completed at this time, please retry the request: cart could not be retrieved."
+            );
+        }
 
         // Failure of the first getDiscountOnCart call results in a 5% discount.
         assertOnFault(
@@ -97,31 +115,55 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
                 () -> { assertTestBlock(9500); }
         );
 
-        // Failure of the second getDiscountOnCart call results in a 10% discount.
-        assertOnFault(
-                CartServiceGrpc.getGetDiscountOnCartMethod(),
-                Hello.GetDiscountRequest.newBuilder()
-                        .setCode("RETURNING")
-                        .build(),
-                this::assertTestBlock
-        );
+        // Failure of the second or third getDiscountOnCart call results in a 10% discount.
+        // We can write this several different ways too.
+        //
+        // Randomly sample the two different APIs across Filibuster just as a form of
+        // regression test.
+        //
+        if (random.nextBoolean()) {
+            assertOnFault(
+                    CartServiceGrpc.getGetDiscountOnCartMethod(),
+                    this::assertTestBlock
+            );
+        } else {
+            assertOnFault(
+                    CartServiceGrpc.getGetDiscountOnCartMethod(),
+                    Status.Code.UNAVAILABLE,
+                    this::assertTestBlock
+            );
 
-        // Failure of the third getDiscountOnCart call results in a 10% discount.
-        assertOnFault(
-                CartServiceGrpc.getGetDiscountOnCartMethod(),
-                Hello.GetDiscountRequest.newBuilder()
-                        .setCode("DAILY")
-                        .build(),
-                this::assertTestBlock
-        );
+            assertOnFault(
+                    CartServiceGrpc.getGetDiscountOnCartMethod(),
+                    Status.Code.DEADLINE_EXCEEDED,
+                    this::assertTestBlock
+            );
+        }
 
         // Failure of the getNotifyDiscountAppliedMethod has no effect.
-        assertFaultHasNoImpact(
-                CartServiceGrpc.getNotifyDiscountAppliedMethod(),
-                Status.Code.UNAVAILABLE);
-        assertFaultHasNoImpact(
-                CartServiceGrpc.getNotifyDiscountAppliedMethod(),
-                Status.Code.DEADLINE_EXCEEDED);
+        // We can write this several different ways too.
+        //
+        // Randomly sample the two different APIs across Filibuster just as a form of
+        // regression test.
+        //
+        boolean bool1 = random.nextBoolean();
+        boolean bool2 = random.nextBoolean();
+
+        if (bool1 && bool2) {
+            assertFaultHasNoImpact(
+                    CartServiceGrpc.getNotifyDiscountAppliedMethod(),
+                    Status.Code.UNAVAILABLE,
+                    Hello.NotifyDiscountAppliedRequest.newBuilder().setCartId(cartId.toString()).build());
+            assertFaultHasNoImpact(
+                    CartServiceGrpc.getNotifyDiscountAppliedMethod(),
+                    Status.Code.DEADLINE_EXCEEDED);
+        } else if (bool1 || bool2) {
+            assertFaultHasNoImpact(
+                    CartServiceGrpc.getNotifyDiscountAppliedMethod(),
+                    Hello.NotifyDiscountAppliedRequest.newBuilder().setCartId(cartId.toString()).build());
+        } else {
+            assertFaultHasNoImpact(CartServiceGrpc.getNotifyDiscountAppliedMethod());
+        }
 
         // Multiple faults.
 

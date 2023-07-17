@@ -14,6 +14,7 @@ import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import org.json.JSONObject;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -199,6 +200,19 @@ public interface FilibusterGrpcTest {
             String thrownMessage
     ) {
         faultKeysThatThrow.put(new SingleFaultKey<>(methodDescriptor, code, request), Pair.of(thrownCode, thrownMessage));
+    }
+
+    // *****************************************************************************************************************
+    // Fault API: no error handling, should propagate upstream.
+    // *****************************************************************************************************************
+
+    List<FaultKey> faultKeysThatPropagate = new ArrayList<>();
+
+    // TODO
+    default <ReqT, ResT> void assertFaultPropagates(
+            MethodDescriptor<ReqT, ResT> methodDescriptor
+    ) {
+        faultKeysThatPropagate.add(new SingleFaultKey<>(methodDescriptor));
     }
 
     // *****************************************************************************************************************
@@ -543,6 +557,13 @@ public interface FilibusterGrpcTest {
         // For each test execution, clear out verifyThat mapping.
         GrpcMock.resetVerifyThatMapping();
 
+        // TODO
+        adjustedExpectationsAndAssertions.clear();
+        faultKeysThatThrow.clear();
+        faultKeysThatPropagate.clear();
+        faultKeysWithNoImpact.clear();
+        assertionsByFaultKey.clear();
+
         // Execute setup blocks.
         Helpers.setupBlock(this::setupBlock);
 
@@ -608,59 +629,48 @@ public interface FilibusterGrpcTest {
                 throw statusRuntimeException;
             }
 
-            // Verify that at least one of the injected faults is expected to result in an exception.
-            List<FaultKey> matchingFaultKeys = new ArrayList<>();
-
-            // TODO: this is probably broken.
-            for (JSONObject rpcWhereFaultInjected : rpcsWhereFaultsInjected) {
-                for (FaultKey faultKey : SingleFaultKey.generateFaultKeysInDecreasingGranularity(rpcWhereFaultInjected)) {
-                    if (faultKeysThatThrow.containsKey(faultKey)) {
-                        matchingFaultKeys.add(faultKey);
-                        break;
-                    }
-                }
-            }
-
-            // See if the developer told us what would happen when this fault was injected.
-            if (matchingFaultKeys.size() == 0) {
-                // If the user didn't tell us what should happen when this fault was injected,
-                // throw an error.
-                throw new FilibusterGrpcTestRuntimeException(
-                        "Test threw an exception, but no specification of failure behavior present.",
-                        "Use assertFaultThrows(...) to specify failure is expected when fault injected on this method, request or code.",
-                        statusRuntimeException);
+            // If we are not in the reference execution.
+            if (rpcsWhereFaultsInjected.size() > 1) {
+                // TODO: We do not have an example for this yet.
+                throw new FilibusterGrpcTestInternalRuntimeException("NOT IMPLEMENTED.");
             } else {
+                // Get the only fault injected.
+                JSONObject rpcWhereFaultInjected = rpcsWhereFaultsInjected.get(0);
+
                 // Get actual status.
                 Status actualStatus = statusRuntimeException.getStatus();
 
-                // Find a status that matches the error code and description.
-                boolean foundMatchingExpectedStatus = false;
+                // Did the user indicate propagation of faults?
+                FaultKey faultKeyIndicatingPropagationOfFaults = didUserIndicatePropagationOfFault(rpcWhereFaultInjected);
 
-                for (FaultKey matchingFaultKey : matchingFaultKeys) {
-                    Map.Entry<Status.Code, String> expectedException = faultKeysThatThrow.get(matchingFaultKey);
-                    Status expectedStatus = Status.fromCode(expectedException.getKey()).withDescription(expectedException.getValue());
-                    boolean codeMatches = expectedStatus.getCode().equals(actualStatus.getCode());
-                    boolean descriptionMatches = Objects.equals(expectedStatus.getDescription(), actualStatus.getDescription());
-
-                    if (codeMatches && descriptionMatches) {
-                        foundMatchingExpectedStatus = true;
-                        break;
-                    }
+                if (faultKeyIndicatingPropagationOfFaults != null) {
+                    validatePropagationOfFault(faultKeyIndicatingPropagationOfFaults, rpcWhereFaultInjected, actualStatus);
                 }
 
-                // If not found, throw error.
-                if (! foundMatchingExpectedStatus) {
+                // Did the user indicate that this fault will result in exception?
+                List<FaultKey> faultKeysIndicatingThrownExceptionFromFault = didUserIndicateThrownExceptionForFault(rpcWhereFaultInjected);
+
+                if (faultKeysIndicatingThrownExceptionFromFault.size() > 0) {
+                    validateThrownException(faultKeysIndicatingThrownExceptionFromFault, rpcWhereFaultInjected, actualStatus);
+                }
+
+                if (faultKeyIndicatingPropagationOfFaults == null && faultKeysIndicatingThrownExceptionFromFault.size() == 0) {
                     throw new FilibusterGrpcTestRuntimeException(
-                            "Failed RPC resulted in exception, but error codes and descriptions did not match.",
-                            "Verify assertFaultThrows and thrown exception match.");
+                            "Test threw an exception, but no specification of failure behavior present.",
+                            "Use assertFaultThrows(...) to specify failure is expected when fault injected on this method, request or code.",
+                            statusRuntimeException);
                 }
 
+                // TODO: what if both are set?
+
+                // Verify that we have assertion block for thrown exception.
                 if (! adjustedExpectationsAndAssertions.containsKey(statusRuntimeException.getStatus().getCode())) {
                     throw new FilibusterGrpcTestRuntimeException(
                             "Missing assertion block for Status.Code." + actualStatus.getCode() + " response.",
                             "Please write assertOnException(Status.Code." + actualStatus.getCode() + ", Runnable) for the assertions that should hold under this status code.");
                 }
 
+                // Verify that assertion block runs successfully.
                 for (Map.Entry<Status.Code, Runnable> adjustedExpectation : adjustedExpectationsAndAssertions.entrySet()) {
                     if (adjustedExpectation.getKey().equals(statusRuntimeException.getStatus().getCode())) {
                         try {
@@ -674,8 +684,8 @@ public interface FilibusterGrpcTest {
                     }
                 }
 
+                // Verify stub invocations.
                 try {
-                    // Verify stub invocations.
                     Helpers.assertionBlock(this::assertStubBlock);
                 } catch (Throwable t) {
                     throw new FilibusterGrpcTestRuntimeException(
@@ -706,6 +716,7 @@ public interface FilibusterGrpcTest {
             DistributedExecutionIndex distributedExecutionIndex = failedRPC.getKey();
             JSONObject jsonObject = failedRPC.getValue();
 
+            // TODO: else clauses? use new helper
             if (jsonObject.has("exception")) {
                 JSONObject exceptionJsonObject = jsonObject.getJSONObject("exception");
 
@@ -736,6 +747,91 @@ public interface FilibusterGrpcTest {
                         "Stubbed RPC " + verifyThat.getKey() + " has no assertions on invocation count.",
                         "Use verifyThat to specify expected invocation count.");
             }
+        }
+    }
+
+    @Nullable
+    default Status.Code getForcedExceptionStatusCode(String exceptionFieldName, JSONObject jsonObject) {
+        if (jsonObject.has(exceptionFieldName)) {
+            JSONObject exceptionJsonObject = jsonObject.getJSONObject(exceptionFieldName);
+
+            if (exceptionJsonObject.has("metadata")) {
+                JSONObject metadataExceptionJsonObject = exceptionJsonObject.getJSONObject("metadata");
+
+                if (metadataExceptionJsonObject.has("code")) {
+                    return Status.Code.valueOf(metadataExceptionJsonObject.getString("code"));
+                } else {
+                    return null;
+                }
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    default FaultKey didUserIndicatePropagationOfFault(JSONObject rpcWhereFaultInjected) {
+        FaultKey foundFaultKey = null;
+
+        for (FaultKey faultKey : SingleFaultKey.generateFaultKeysInDecreasingGranularity(rpcWhereFaultInjected)) {
+            if (faultKeysThatPropagate.contains(faultKey)) {
+                foundFaultKey = faultKey;
+                break;
+            }
+        }
+
+        return foundFaultKey;
+    }
+
+    default List<FaultKey> didUserIndicateThrownExceptionForFault(JSONObject rpcWhereFaultInjected) {
+        List<FaultKey> matchingFaultKeys = new ArrayList<>();
+
+        for (FaultKey faultKey : SingleFaultKey.generateFaultKeysInDecreasingGranularity(rpcWhereFaultInjected)) {
+            if (faultKeysThatThrow.containsKey(faultKey)) {
+                matchingFaultKeys.add(faultKey);
+                break;
+            }
+        }
+
+        return matchingFaultKeys;
+    }
+
+    default void validatePropagationOfFault(FaultKey faultKey, JSONObject rpcWhereFaultInjected, Status actualStatus) {
+        Status.Code injectedFaultStatusCode = getForcedExceptionStatusCode("forced_exception", rpcWhereFaultInjected);
+
+        if (injectedFaultStatusCode != null) {
+            if (!actualStatus.getCode().equals(injectedFaultStatusCode)) {
+                throw new FilibusterGrpcTestRuntimeException(
+                        "Injected fault's status code was suppressed, but test indicates this should propagate directly upstream.",
+                        "Ensure that use of assertFaultPropagates(...) is correct.");
+            }
+        } else {
+            throw new FilibusterGrpcTestInternalRuntimeException("injectedFaultStatusCode is null; this could indicate a problem!");
+        }
+    }
+
+    default void validateThrownException(List<FaultKey> matchingFaultKeys, JSONObject rpcWhereFaultInjected, Status actualStatus) {
+        // Find a status that matches the error code and description.
+        boolean foundMatchingExpectedStatus = false;
+
+        for (FaultKey matchingFaultKey : matchingFaultKeys) {
+            Map.Entry<Status.Code, String> expectedException = faultKeysThatThrow.get(matchingFaultKey);
+            Status expectedStatus = Status.fromCode(expectedException.getKey()).withDescription(expectedException.getValue());
+            boolean codeMatches = expectedStatus.getCode().equals(actualStatus.getCode());
+            boolean descriptionMatches = Objects.equals(expectedStatus.getDescription(), actualStatus.getDescription());
+
+            if (codeMatches && descriptionMatches) {
+                foundMatchingExpectedStatus = true;
+                break;
+            }
+        }
+
+        // If not found, throw error.
+        if (!foundMatchingExpectedStatus) {
+            throw new FilibusterGrpcTestRuntimeException(
+                    "Failed RPC resulted in exception, but error codes and descriptions did not match.",
+                    "Verify assertFaultThrows(...) and thrown exception match.");
         }
     }
 }

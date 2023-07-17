@@ -451,7 +451,7 @@ public interface FilibusterGrpcTest {
         boolean searchComplete = false;
 
         // Find matching keys.
-        for (SingleFaultKey faultKey : SingleFaultKey.generateFaultKeysInDecreasingGranularity(rpcWhereFaultInjected)) {
+        for (FaultKey faultKey : SingleFaultKey.generateFaultKeysInDecreasingGranularity(rpcWhereFaultInjected)) {
             if (!searchComplete) {
                 // Iterate each key and see if the user specified something for it.
                 if (assertionsByFaultKey.containsKey(faultKey)) {
@@ -523,7 +523,7 @@ public interface FilibusterGrpcTest {
         for (JSONObject rpcWhereFaultInjected : rpcsWhereFaultsInjected) {
             boolean found = false;
 
-            for (SingleFaultKey singleFaultKey : SingleFaultKey.generateFaultKeysInDecreasingGranularity(rpcWhereFaultInjected)) {
+            for (FaultKey singleFaultKey : SingleFaultKey.generateFaultKeysInDecreasingGranularity(rpcWhereFaultInjected)) {
                 if (faultKeysWithNoImpact.contains(singleFaultKey)) {
                     found = true;
                     break;
@@ -557,7 +557,9 @@ public interface FilibusterGrpcTest {
         // For each test execution, clear out verifyThat mapping.
         GrpcMock.resetVerifyThatMapping();
 
-        // TODO
+        // Clear out any user-provided failure handling logic before starting the next execution,
+        // as we will set all of this up again when we execute the failureBlock().
+        //
         adjustedExpectationsAndAssertions.clear();
         faultKeysThatThrow.clear();
         faultKeysThatPropagate.clear();
@@ -644,14 +646,14 @@ public interface FilibusterGrpcTest {
                 FaultKey faultKeyIndicatingPropagationOfFaults = didUserIndicatePropagationOfFault(rpcWhereFaultInjected);
 
                 if (faultKeyIndicatingPropagationOfFaults != null) {
-                    validatePropagationOfFault(faultKeyIndicatingPropagationOfFaults, rpcWhereFaultInjected, actualStatus);
+                    validatePropagationOfFault(rpcWhereFaultInjected, actualStatus);
                 }
 
                 // Did the user indicate that this fault will result in exception?
                 List<FaultKey> faultKeysIndicatingThrownExceptionFromFault = didUserIndicateThrownExceptionForFault(rpcWhereFaultInjected);
 
                 if (faultKeysIndicatingThrownExceptionFromFault.size() > 0) {
-                    validateThrownException(faultKeysIndicatingThrownExceptionFromFault, rpcWhereFaultInjected, actualStatus);
+                    validateThrownException(faultKeysIndicatingThrownExceptionFromFault, actualStatus);
                 }
 
                 if (faultKeyIndicatingPropagationOfFaults == null && faultKeysIndicatingThrownExceptionFromFault.size() == 0) {
@@ -797,7 +799,7 @@ public interface FilibusterGrpcTest {
         return matchingFaultKeys;
     }
 
-    default void validatePropagationOfFault(FaultKey faultKey, JSONObject rpcWhereFaultInjected, Status actualStatus) {
+    default void validatePropagationOfFault(JSONObject rpcWhereFaultInjected, Status actualStatus) {
         Status.Code injectedFaultStatusCode = getForcedExceptionStatusCode("forced_exception", rpcWhereFaultInjected);
 
         if (injectedFaultStatusCode != null) {
@@ -811,7 +813,7 @@ public interface FilibusterGrpcTest {
         }
     }
 
-    default void validateThrownException(List<FaultKey> matchingFaultKeys, JSONObject rpcWhereFaultInjected, Status actualStatus) {
+    default void validateThrownException(List<FaultKey> matchingFaultKeys, Status actualStatus) {
         // Find a status that matches the error code and description.
         boolean foundMatchingExpectedStatus = false;
 

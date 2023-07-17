@@ -673,7 +673,7 @@ public interface FilibusterGrpcTest {
                             "Test indicates both throw and error propagation: too ambiguous.",
                             "Please verify you are only using either assertOnException(...) or assertFaultPropagates(...).");
                 }
-                
+
                 // Verify that we have assertion block for thrown exception.
                 if (! adjustedExpectationsAndAssertions.containsKey(statusRuntimeException.getStatus().getCode())) {
                     throw new FilibusterGrpcTestRuntimeException(
@@ -727,26 +727,21 @@ public interface FilibusterGrpcTest {
             DistributedExecutionIndex distributedExecutionIndex = failedRPC.getKey();
             JSONObject jsonObject = failedRPC.getValue();
 
-            // TODO: else clauses? use new helper
-            if (jsonObject.has("exception")) {
-                JSONObject exceptionJsonObject = jsonObject.getJSONObject("exception");
+            Status.Code statusCode = getStatusCode("exception", jsonObject);
 
-                if (exceptionJsonObject.has("metadata")) {
-                    JSONObject metadataExceptionJsonObject = exceptionJsonObject.getJSONObject("metadata");
+            if (statusCode == null) {
+                throw new FilibusterGrpcTestInternalRuntimeException("statusCode is null: this could indicate a problem!");
+            }
 
-                    if (metadataExceptionJsonObject.has("code")) {
-                        String code = metadataExceptionJsonObject.getString("code");
+            String code = statusCode.toString();
 
-                        if (code.equals("UNIMPLEMENTED")) {
-                            boolean faultInjected = faultsInjected.containsKey(distributedExecutionIndex);
+            if (code.equals("UNIMPLEMENTED")) {
+                boolean faultInjected = faultsInjected.containsKey(distributedExecutionIndex);
 
-                            if (!faultInjected) {
-                                throw new FilibusterGrpcTestRuntimeException(
-                                        "Invoked RPCs was left UNIMPLEMENTED.",
-                                        "Use stubFor to implement stub.");
-                            }
-                        }
-                    }
+                if (!faultInjected) {
+                    throw new FilibusterGrpcTestRuntimeException(
+                            "Invoked RPCs was left UNIMPLEMENTED.",
+                            "Use stubFor to implement stub.");
                 }
             }
         }
@@ -762,7 +757,7 @@ public interface FilibusterGrpcTest {
     }
 
     @Nullable
-    default Status.Code getForcedExceptionStatusCode(String exceptionFieldName, JSONObject jsonObject) {
+    default Status.Code getStatusCode(String exceptionFieldName, JSONObject jsonObject) {
         if (jsonObject.has(exceptionFieldName)) {
             JSONObject exceptionJsonObject = jsonObject.getJSONObject(exceptionFieldName);
 
@@ -809,7 +804,7 @@ public interface FilibusterGrpcTest {
     }
 
     default void validatePropagationOfFault(JSONObject rpcWhereFaultInjected, Status actualStatus) {
-        Status.Code injectedFaultStatusCode = getForcedExceptionStatusCode("forced_exception", rpcWhereFaultInjected);
+        Status.Code injectedFaultStatusCode = getStatusCode("forced_exception", rpcWhereFaultInjected);
 
         if (injectedFaultStatusCode != null) {
             if (!actualStatus.getCode().equals(injectedFaultStatusCode)) {

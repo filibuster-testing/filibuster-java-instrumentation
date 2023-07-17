@@ -465,7 +465,12 @@ public interface FilibusterGrpcTest {
                     try {
                         // Run the updated assertions.
                         Runnable runnable = assertionsByFaultKey.get(faultKey);
-                        runnable.run();
+
+                        if (runnable != null) {
+                            runnable.run();
+                        } else {
+                            throw new FilibusterGrpcTestInternalRuntimeException("runnable is null: this could indicate a problem!");
+                        }
                     } catch (Throwable t) {
                         throw new FilibusterGrpcTestRuntimeException(
                                 "Assertions in assertOnFault(...) failed.",

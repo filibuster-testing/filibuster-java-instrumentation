@@ -29,7 +29,16 @@ message GetUserResponse {
 }
 
 service UserService {
+  rpc ValidateSession (ValidateSessionRequest) returns (ValidateSessionResponse) {}
   rpc GetUserFromSession (GetUserRequest) returns (GetUserResponse) {}
+}
+
+message ValidateSessionRequest {
+  string session_id = 1;
+}
+
+message ValidateSessionResponse {
+
 }
 
 message GetCartRequest {

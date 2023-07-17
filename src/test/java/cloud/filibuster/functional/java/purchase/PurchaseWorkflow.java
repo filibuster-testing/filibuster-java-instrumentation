@@ -201,8 +201,6 @@ public class PurchaseWorkflow {
     }
 
     private static StatefulRedisConnection<String, String> getRedisConnection() {
-        RedisClientService redisClient = RedisClientService.getInstance();
-
         if (getInstrumentationServerCommunicationEnabledProperty()) {
             // incomplete, needs instrumentation.
             return RedisClientService.getInstance().redisClient.connect();

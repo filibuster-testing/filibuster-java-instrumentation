@@ -668,8 +668,12 @@ public interface FilibusterGrpcTest {
                             statusRuntimeException);
                 }
 
-                // TODO: what if both are set?
-
+                if (faultKeyIndicatingPropagationOfFaults != null && faultKeysIndicatingThrownExceptionFromFault.size() > 0) {
+                    throw new FilibusterGrpcTestRuntimeException(
+                            "Test indicates both throw and error propagation: too ambiguous.",
+                            "Please verify you are only using either assertOnException(...) or assertFaultPropagates(...).");
+                }
+                
                 // Verify that we have assertion block for thrown exception.
                 if (! adjustedExpectationsAndAssertions.containsKey(statusRuntimeException.getStatus().getCode())) {
                     throw new FilibusterGrpcTestRuntimeException(

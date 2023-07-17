@@ -596,7 +596,7 @@ public interface FilibusterGrpcTest {
             // Verify stub invocations.
             Helpers.assertionBlock(this::assertStubBlock);
         } catch (StatusRuntimeException statusRuntimeException) {
-            // Look up the first RPC where a fault was injected.
+            // Look up the faults that were injected.
             List<JSONObject> rpcsWhereFaultsInjected = rpcsWhereFaultsInjected();
 
             if (rpcsWhereFaultsInjected == null) {

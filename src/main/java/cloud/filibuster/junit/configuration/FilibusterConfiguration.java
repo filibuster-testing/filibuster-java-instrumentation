@@ -56,6 +56,8 @@ public class FilibusterConfiguration {
 
     private final ServiceProfileBehavior serviceProfileBehavior;
 
+    private final boolean failIfFaultNotInjected;
+
     private FilibusterConfiguration(Builder builder) {
         this.dynamicReduction = builder.dynamicReduction;
         this.suppressCombinations = builder.suppressCombinations;
@@ -73,6 +75,7 @@ public class FilibusterConfiguration {
         this.serviceProfiles = builder.serviceProfiles;
         this.serviceProfileBehavior = builder.serviceProfileBehavior;
         this.className = builder.className;
+        this.failIfFaultNotInjected = builder.failIfFaultNotInjected;
     }
 
     /**
@@ -179,6 +182,15 @@ public class FilibusterConfiguration {
     }
 
     /**
+     * Fail the test if a fault is not injected.
+     *
+     * @return whether service should fail.
+     */
+    public boolean getFailIfFaultNotInjected() {
+        return this.failIfFaultNotInjected;
+    }
+
+    /**
      * How should service profiles be used?
      *
      * @return service profile behavior
@@ -271,6 +283,8 @@ public class FilibusterConfiguration {
         private List<ServiceProfile> serviceProfiles;
 
         private ServiceProfileBehavior serviceProfileBehavior;
+
+        private boolean failIfFaultNotInjected;
 
         /**
          * Should this configuration use dynamic reduction?
@@ -457,6 +471,12 @@ public class FilibusterConfiguration {
         @CanIgnoreReturnValue
         public Builder className(String className) {
             this.className = className;
+            return this;
+        }
+
+        @CanIgnoreReturnValue
+        public Builder failIfFaultNotInjected(boolean failIfFaultNotInjected) {
+            this.failIfFaultNotInjected = failIfFaultNotInjected;
             return this;
         }
 

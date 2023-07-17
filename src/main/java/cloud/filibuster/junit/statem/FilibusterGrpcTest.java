@@ -478,7 +478,6 @@ public interface FilibusterGrpcTest {
     }
 
     default boolean performMultipleFaultChecking(List<JSONObject> rpcsWhereFaultsInjected) {
-
         // Try to see if the user said something about this particular set of failures.
         FaultKey faultKey = findMatchingFaultKey(assertionsByFaultKey, rpcsWhereFaultsInjected);
 
@@ -487,7 +486,12 @@ public interface FilibusterGrpcTest {
             try {
                 // Run the updated assertions.
                 Runnable runnable = assertionsByFaultKey.get(faultKey);
-                runnable.run();
+
+                if (runnable != null) {
+                    runnable.run();
+                } else {
+                    throw new FilibusterGrpcTestInternalRuntimeException("runnable is null: this could indicate a problem!");
+                }
             } catch (Throwable t) {
                 throw new FilibusterGrpcTestRuntimeException(
                         "Assertions in assertOnFaults(...) failed.",

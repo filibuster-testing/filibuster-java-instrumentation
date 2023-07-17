@@ -8,6 +8,7 @@ import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.db.redis.RedisExhaustiveAnalysisConfigurationFile;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -28,8 +29,15 @@ public class FailIfFaultNotInjectedTrueTest extends JUnitAnnotationBaseTest {
 
     @BeforeAll
     public static void beforeAll() {
+        setFailIfFaultNotInjectedProperty(true);
+
         statefulRedisConnection = RedisClientService.getInstance().redisClient.connect();
         redisConnectionString = RedisClientService.getInstance().connectionString;
+    }
+
+    @AfterAll
+    public static void afterAll() {
+        setFailIfFaultNotInjectedProperty(false);
     }
 
     @DisplayName("This test should fail: Tests whether Redis async interceptor can set a value for a key")
@@ -37,8 +45,6 @@ public class FailIfFaultNotInjectedTrueTest extends JUnitAnnotationBaseTest {
     @TestWithFilibuster(analysisConfigurationFile = RedisExhaustiveAnalysisConfigurationFile.class,
             expected = FilibusterFaultNotInjectedException.class)
     public void testRedisAsyncSetFail() {
-        setFailIfFaultNotInjectedProperty(true);
-
         numberOfTestExecutions++;
 
         StatefulRedisConnection<String, String> myStatefulRedisConnection = DynamicProxyInterceptor.createInterceptor(statefulRedisConnection, redisConnectionString);

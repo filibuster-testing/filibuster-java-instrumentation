@@ -27,6 +27,8 @@ public class FailIfFaultNotInjectedFalseTest extends JUnitAnnotationBaseTest {
 
     @BeforeAll
     public static void beforeAll() {
+        setFailIfFaultNotInjectedProperty(false);
+
         statefulRedisConnection = RedisClientService.getInstance().redisClient.connect();
         redisConnectionString = RedisClientService.getInstance().connectionString;
     }
@@ -35,8 +37,6 @@ public class FailIfFaultNotInjectedFalseTest extends JUnitAnnotationBaseTest {
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = RedisExhaustiveAnalysisConfigurationFile.class)
     public void testRedisAsyncSetNotFail() {
-        setFailIfFaultNotInjectedProperty(false);
-
         numberOfTestExecutions++;
 
         StatefulRedisConnection<String, String> myStatefulRedisConnection = DynamicProxyInterceptor.createInterceptor(statefulRedisConnection, redisConnectionString);

@@ -265,7 +265,7 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
     @TestWithFilibuster(
             analysisConfigurationFile = GRPCAnalysisConfigurationFile.class,
             abortOnFirstFailure = true,
-            maxIterations = 50,
+            maxIterations = 100,
             dataNondeterminism = true,
             searchStrategy = FilibusterSearchStrategy.BFS
     )

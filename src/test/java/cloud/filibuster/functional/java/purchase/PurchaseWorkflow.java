@@ -200,7 +200,6 @@ public class PurchaseWorkflow {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private static StatefulRedisConnection<String, String> getRedisConnection() {
         RedisClientService redisClient = RedisClientService.getInstance();
 

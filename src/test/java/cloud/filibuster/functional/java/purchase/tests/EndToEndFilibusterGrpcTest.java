@@ -130,6 +130,14 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
             assertOnFault(
                     CartServiceGrpc.getGetDiscountOnCartMethod(),
                     Status.Code.UNAVAILABLE,
+                    Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build(),
+                    this::assertTestBlock
+            );
+
+            assertOnFault(
+                    CartServiceGrpc.getGetDiscountOnCartMethod(),
+                    Status.Code.UNAVAILABLE,
+                    Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build(),
                     this::assertTestBlock
             );
 

@@ -241,4 +241,11 @@ public class PurchaseWorkflow {
         Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder().setCode(discountCode).build();
         return cartServiceBlockingStub.getDiscountOnCart(request);
     }
+
+    private static boolean validateSession(Channel channel, String sessionId) {
+        UserServiceGrpc.UserServiceBlockingStub userServiceBlockingStub = UserServiceGrpc.newBlockingStub(channel);
+        Hello.ValidateSessionRequest request = Hello.ValidateSessionRequest.newBuilder().setSessionId(sessionId).build();
+        Hello.ValidateSessionResponse response = userServiceBlockingStub.validateSession(request);
+        return true;
+    }
 }

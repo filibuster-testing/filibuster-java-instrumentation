@@ -13,6 +13,8 @@ import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcInvokedRPCUnimplementedException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcMissingAssertionForStatusCodeException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcMultipleFaultsInjectedException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcStubbedRPCHasNoAssertionsException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcSuppressedStatusCodeException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcThrownExceptionHasUnspecifiedFailureBehaviorException;
@@ -454,9 +456,7 @@ public interface FilibusterGrpcTest {
         if (insideOfErrorAssertionBlock.get()) {
             GrpcMock.adjustExpectation(methodDescriptor, -1);
         } else {
-            throw new FilibusterGrpcTestRuntimeException(
-                    "Use of readOnlyRPC not allowed outside of assertOnException(...) block.",
-                    "Please rewrite code to specify precise assertions on mock invocations.");
+            throw new FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionException();
         }
     }
 
@@ -473,9 +473,7 @@ public interface FilibusterGrpcTest {
         if (insideOfErrorAssertionBlock.get()) {
             GrpcMock.adjustExpectation(methodDescriptor, request, -1);
         } else {
-            throw new FilibusterGrpcTestRuntimeException(
-                    "Use of readOnlyRPC not allowed outside of assertOnException(...) block.",
-                    "Please rewrite code to specify precise assertions on mock invocations.");
+            throw new FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionException();
         }
     }
 
@@ -491,9 +489,7 @@ public interface FilibusterGrpcTest {
         if (insideOfErrorAssertionBlock.get()) {
             GrpcMock.adjustExpectation(methodDescriptor, count);
         } else {
-            throw new FilibusterGrpcTestRuntimeException(
-                    "Use of sideEffectingRPC not allowed outside of assertOnException(...) block.",
-                    "Please rewrite code to specify precise assertions on mock invocations.");
+            throw new FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionException();
         }
     }
 
@@ -510,9 +506,7 @@ public interface FilibusterGrpcTest {
         if (insideOfErrorAssertionBlock.get()) {
             GrpcMock.adjustExpectation(methodDescriptor, request, count);
         } else {
-            throw new FilibusterGrpcTestRuntimeException(
-                    "Use of sideEffectingRPC not allowed outside of assertOnException(...) block.",
-                    "Please rewrite code to specify precise assertions on mock invocations.");
+            throw new FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionException();
         }
     }
 

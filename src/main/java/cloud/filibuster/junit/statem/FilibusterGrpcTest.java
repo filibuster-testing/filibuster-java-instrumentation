@@ -50,7 +50,7 @@ public interface FilibusterGrpcTest {
     /**
      * Set the GRPc response.  For use in {@link #executeTestBlock()}.
      *
-     * @param response GRPC response.
+     * @param response GRPC response
      */
     default void setResponse(GeneratedMessageV3 response) {
         this.response.set(response);
@@ -485,6 +485,8 @@ public interface FilibusterGrpcTest {
     }
 
     /**
+     * Indicates that an RPC has side effects and therefore needs explicit invocation counts.
+     *
      * @param methodDescriptor a GRPC method descriptor
      * @param request the request
      * @param count the number of times invoked

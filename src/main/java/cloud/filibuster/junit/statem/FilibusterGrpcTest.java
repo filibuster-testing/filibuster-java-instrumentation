@@ -53,7 +53,7 @@ public interface FilibusterGrpcTest {
      * @param response GRPC response
      */
     default void setResponse(GeneratedMessageV3 response) {
-        this.response.set(response);
+        FilibusterGrpcTest.response.set(response);
     }
 
     /**
@@ -62,7 +62,7 @@ public interface FilibusterGrpcTest {
      * @return the GRPC response
      */
     default GeneratedMessageV3 getResponse() {
-        return this.response.get();
+        return FilibusterGrpcTest.response.get();
     }
 
     /**
@@ -673,6 +673,7 @@ public interface FilibusterGrpcTest {
 
         // Clear out any user-provided failure handling logic before starting the next execution,
         // as we will set all of this up again when we execute the failureBlock().
+        response.set(null);
         errorAssertions.clear();
         faultKeysThatThrow.clear();
         faultKeysThatPropagate.clear();

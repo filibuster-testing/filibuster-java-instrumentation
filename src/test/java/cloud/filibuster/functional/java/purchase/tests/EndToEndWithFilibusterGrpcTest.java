@@ -84,6 +84,9 @@ public class EndToEndWithFilibusterGrpcTest extends PurchaseBaseTest {
                 .willReturn(Hello.GetUserResponse.newBuilder()
                         .setUserId(consumerId.toString())
                         .build()));
+        stubFor(unaryMethod(UserServiceGrpc.getValidateSessionMethod())
+                .willReturn(Hello.ValidateSessionResponse.newBuilder()
+                        .build()));
         stubFor(unaryMethod(CartServiceGrpc.getGetCartForSessionMethod())
                 .willReturn(Hello.GetCartResponse.newBuilder()
                         .setCartId(cartId.toString())

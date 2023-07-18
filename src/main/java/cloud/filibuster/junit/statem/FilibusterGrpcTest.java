@@ -747,75 +747,10 @@ public interface FilibusterGrpcTest {
 
             // If we are not in the reference execution.
             if (rpcsWhereFaultsInjected.size() > 1) {
-                // TODO: We do not have an example for this yet.
-                throw new FilibusterGrpcTestInternalRuntimeException("NOT IMPLEMENTED: " + statusRuntimeException);
+                performMultipleExceptionChecking(rpcsWhereFaultsInjected, statusRuntimeException);
             } else {
                 // Get the only fault injected.
-                JSONObject rpcWhereFaultInjected = rpcsWhereFaultsInjected.get(0);
-
-                // Get actual status.
-                Status actualStatus = statusRuntimeException.getStatus();
-
-                // Did the user indicate propagation of faults?
-                FaultKey faultKeyIndicatingPropagationOfFaults = didUserIndicatePropagationOfFault(rpcWhereFaultInjected);
-
-                if (faultKeyIndicatingPropagationOfFaults != null) {
-                    validatePropagationOfFault(rpcWhereFaultInjected, actualStatus);
-                }
-
-                // Did the user indicate that this fault will result in exception?
-                List<FaultKey> faultKeysIndicatingThrownExceptionFromFault = didUserIndicateThrownExceptionForFault(rpcWhereFaultInjected);
-
-                if (faultKeysIndicatingThrownExceptionFromFault.size() > 0) {
-                    validateThrownException(faultKeysIndicatingThrownExceptionFromFault, actualStatus);
-                }
-
-                if (faultKeyIndicatingPropagationOfFaults == null && faultKeysIndicatingThrownExceptionFromFault.size() == 0) {
-                    throw new FilibusterGrpcTestRuntimeException(
-                            "Test threw an exception, but no specification of failure behavior present.",
-                            "Use assertFaultThrows(...) to specify failure is expected when fault injected on this method, request or code.",
-                            statusRuntimeException);
-                }
-
-                if (faultKeyIndicatingPropagationOfFaults != null && faultKeysIndicatingThrownExceptionFromFault.size() > 0) {
-                    throw new FilibusterGrpcTestRuntimeException(
-                            "Test indicates both throw and error propagation: too ambiguous.",
-                            "Please verify you are only using either assertOnException(...) or assertFaultPropagates(...).");
-                }
-
-                // Verify that we have assertion block for thrown exception.
-                if (! errorAssertions.containsKey(statusRuntimeException.getStatus().getCode())) {
-                    throw new FilibusterGrpcTestRuntimeException(
-                            "Missing assertion block for Status.Code." + actualStatus.getCode() + " response.",
-                            "Please write assertOnException(Status.Code." + actualStatus.getCode() + ", Runnable) for the assertions that should hold under this status code.");
-                }
-
-                // Verify that assertion block runs successfully.
-                for (Map.Entry<Status.Code, Runnable> errorAssertion : errorAssertions.entrySet()) {
-                    if (errorAssertion.getKey().equals(statusRuntimeException.getStatus().getCode())) {
-                        try {
-                            insideOfErrorAssertionBlock.set(true);
-                            errorAssertion.getValue().run();
-                        } catch (Throwable t) {
-                            throw new FilibusterGrpcTestRuntimeException(
-                                    "Assertions for assertOnException failed.",
-                                    "Please adjust assertOnException(Status.Code." + actualStatus.getCode() + ", Runnable) for the assertions that should hold under this status code.",
-                                    t);
-                        } finally {
-                            insideOfErrorAssertionBlock.set(false);
-                        }
-                    }
-                }
-
-                // Verify stub invocations.
-                try {
-                    Helpers.assertionBlock(this::assertStubBlock);
-                } catch (Throwable t) {
-                    throw new FilibusterGrpcTestRuntimeException(
-                            "Assertions did not hold under error response.",
-                            "Please adjust assertOnException(Status.Code." + actualStatus.getCode() + ", Runnable) for the assertions that should hold under this status code.",
-                            t);
-                }
+                performSingleExceptionChecking(rpcsWhereFaultsInjected.get(0), statusRuntimeException);
             }
         } finally {
             // Execute teardown.
@@ -955,6 +890,84 @@ public interface FilibusterGrpcTest {
             throw new FilibusterGrpcTestRuntimeException(
                     "Failed RPC resulted in exception, but error codes and descriptions did not match.",
                     "Verify assertFaultThrows(...) and thrown exception match.");
+        }
+    }
+
+    default void performMultipleExceptionChecking(List<JSONObject> rpcsWhereFaultsInjected, StatusRuntimeException statusRuntimeException) {
+        // TODO: We do not have an example for this yet.
+        throw new FilibusterGrpcTestInternalRuntimeException("NOT IMPLEMENTED: " + statusRuntimeException);
+    }
+
+    default void performSingleExceptionChecking(JSONObject rpcWhereFaultInjected, StatusRuntimeException statusRuntimeException) {
+        // Get actual status.
+        Status actualStatus = statusRuntimeException.getStatus();
+
+        // Did the user indicate propagation of faults?
+        FaultKey faultKeyIndicatingPropagationOfFaults = didUserIndicatePropagationOfFault(rpcWhereFaultInjected);
+
+        if (faultKeyIndicatingPropagationOfFaults != null) {
+            validatePropagationOfFault(rpcWhereFaultInjected, actualStatus);
+        }
+
+        // Did the user indicate that this fault will result in exception?
+        List<FaultKey> faultKeysIndicatingThrownExceptionFromFault = didUserIndicateThrownExceptionForFault(rpcWhereFaultInjected);
+
+        if (faultKeysIndicatingThrownExceptionFromFault.size() > 0) {
+            validateThrownException(faultKeysIndicatingThrownExceptionFromFault, actualStatus);
+        }
+
+        if (faultKeyIndicatingPropagationOfFaults == null && faultKeysIndicatingThrownExceptionFromFault.size() == 0) {
+            throw new FilibusterGrpcTestRuntimeException(
+                    "Test threw an exception, but no specification of failure behavior present.",
+                    "Use assertFaultThrows(...) to specify failure is expected when fault injected on this method, request or code.",
+                    statusRuntimeException);
+        }
+
+        if (faultKeyIndicatingPropagationOfFaults != null && faultKeysIndicatingThrownExceptionFromFault.size() > 0) {
+            throw new FilibusterGrpcTestRuntimeException(
+                    "Test indicates both throw and error propagation: too ambiguous.",
+                    "Please verify you are only using either assertOnException(...) or assertFaultPropagates(...).");
+        }
+
+        // Verify that we have assertion block for thrown exception.
+        verifyAssertionBlockForThrownException(statusRuntimeException);
+    }
+
+    default void verifyAssertionBlockForThrownException(StatusRuntimeException statusRuntimeException) {
+        // Get actual status.
+        Status actualStatus = statusRuntimeException.getStatus();
+
+        if (! errorAssertions.containsKey(statusRuntimeException.getStatus().getCode())) {
+            throw new FilibusterGrpcTestRuntimeException(
+                    "Missing assertion block for Status.Code." + actualStatus.getCode() + " response.",
+                    "Please write assertOnException(Status.Code." + actualStatus.getCode() + ", Runnable) for the assertions that should hold under this status code.");
+        }
+
+        // Verify that assertion block runs successfully.
+        for (Map.Entry<Status.Code, Runnable> errorAssertion : errorAssertions.entrySet()) {
+            if (errorAssertion.getKey().equals(statusRuntimeException.getStatus().getCode())) {
+                try {
+                    insideOfErrorAssertionBlock.set(true);
+                    errorAssertion.getValue().run();
+                } catch (Throwable t) {
+                    throw new FilibusterGrpcTestRuntimeException(
+                            "Assertions for assertOnException failed.",
+                            "Please adjust assertOnException(Status.Code." + actualStatus.getCode() + ", Runnable) for the assertions that should hold under this status code.",
+                            t);
+                } finally {
+                    insideOfErrorAssertionBlock.set(false);
+                }
+            }
+        }
+
+        // Verify stub invocations.
+        try {
+            Helpers.assertionBlock(this::assertStubBlock);
+        } catch (Throwable t) {
+            throw new FilibusterGrpcTestRuntimeException(
+                    "Assertions did not hold under error response.",
+                    "Please adjust assertOnException(Status.Code." + actualStatus.getCode() + ", Runnable) for the assertions that should hold under this status code.",
+                    t);
         }
     }
 }

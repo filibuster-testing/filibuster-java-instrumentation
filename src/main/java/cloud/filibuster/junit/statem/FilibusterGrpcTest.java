@@ -2,7 +2,22 @@ package cloud.filibuster.junit.statem;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestInternalRuntimeException;
-import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcAmbiguousThrowAndErrorPropagationException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcAmbiguousFailureHandlingException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcAssertionsDidNotHoldUnderErrorResponseException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcAssertionsForAssertOnExceptionFailedException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcAssertOnFaultException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcAssertTestBlockFailedException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcFailedRPCException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcInjectedFaultHasUnspecifiedFailureBehaviorException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcInvokedRPCUnimplementedException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcMissingAssertionForStatusCodeException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcMultipleFaultsInjectedException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcStubbedRPCHasNoAssertionsException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcSuppressedStatusCodeException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcThrownExceptionHasUnspecifiedFailureBehaviorException;
 import cloud.filibuster.instrumentation.datatypes.Pair;
 import cloud.filibuster.junit.assertions.Helpers;
 
@@ -458,9 +473,7 @@ public interface FilibusterGrpcTest {
         if (insideOfErrorAssertionBlock.get()) {
             GrpcMock.adjustExpectation(methodDescriptor, -1);
         } else {
-            throw new FilibusterGrpcTestRuntimeException(
-                    "Use of readOnlyRPC not allowed outside of assertOnException(...) block.",
-                    "Please rewrite code to specify precise assertions on mock invocations.");
+            throw new FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionException();
         }
     }
 
@@ -477,9 +490,7 @@ public interface FilibusterGrpcTest {
         if (insideOfErrorAssertionBlock.get()) {
             GrpcMock.adjustExpectation(methodDescriptor, request, -1);
         } else {
-            throw new FilibusterGrpcTestRuntimeException(
-                    "Use of readOnlyRPC not allowed outside of assertOnException(...) block.",
-                    "Please rewrite code to specify precise assertions on mock invocations.");
+            throw new FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionException();
         }
     }
 
@@ -495,9 +506,7 @@ public interface FilibusterGrpcTest {
         if (insideOfErrorAssertionBlock.get()) {
             GrpcMock.adjustExpectation(methodDescriptor, count);
         } else {
-            throw new FilibusterGrpcTestRuntimeException(
-                    "Use of sideEffectingRPC not allowed outside of assertOnException(...) block.",
-                    "Please rewrite code to specify precise assertions on mock invocations.");
+            throw new FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionException();
         }
     }
 
@@ -514,9 +523,7 @@ public interface FilibusterGrpcTest {
         if (insideOfErrorAssertionBlock.get()) {
             GrpcMock.adjustExpectation(methodDescriptor, request, count);
         } else {
-            throw new FilibusterGrpcTestRuntimeException(
-                    "Use of sideEffectingRPC not allowed outside of assertOnException(...) block.",
-                    "Please rewrite code to specify precise assertions on mock invocations.");
+            throw new FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionException();
         }
     }
 
@@ -598,10 +605,7 @@ public interface FilibusterGrpcTest {
                             throw new FilibusterGrpcTestInternalRuntimeException("runnable is null: this could indicate a problem!");
                         }
                     } catch (Throwable t) {
-                        throw new FilibusterGrpcTestRuntimeException(
-                                "Assertions in assertOnFault(...) failed.",
-                                "Please adjust assertions in so that the passes.",
-                                t);
+                        throw new FilibusterGrpcAssertOnFaultException(t);
                     }
                 }
 
@@ -614,9 +618,7 @@ public interface FilibusterGrpcTest {
         }
 
         if (!searchComplete) {
-            throw new FilibusterGrpcTestRuntimeException(
-                    "Test injected a fault, but no specification of failure behavior present.",
-                    "Please use assertOnFault(...) or assertFaultHasNoImpact(...) to specify assertions under fault.");
+            throw new FilibusterGrpcInjectedFaultHasUnspecifiedFailureBehaviorException();
         }
 
         return shouldRunAssertionBlock;
@@ -638,10 +640,7 @@ public interface FilibusterGrpcTest {
                     throw new FilibusterGrpcTestInternalRuntimeException("runnable is null: this could indicate a problem!");
                 }
             } catch (Throwable t) {
-                throw new FilibusterGrpcTestRuntimeException(
-                        "Assertions in assertOnFaults(...) failed.",
-                        "Please adjust assertions in assertOnFaults(...) so that test passes.",
-                        t);
+                throw new FilibusterGrpcAssertOnFaultException(t);
             }
 
             // Don't run the normal assertions.
@@ -675,9 +674,7 @@ public interface FilibusterGrpcTest {
             List<JSONObject> rpcsWhereFaultsInjectedWithImpact = new ArrayList<>(methodsWithFaultImpact);
             return performMultipleFaultChecking(rpcsWhereFaultsInjectedWithImpact);
         } else {
-            throw new FilibusterGrpcTestRuntimeException(
-                    "Compositional verification failed due to ambiguous failure handling: each fault introduced has different impact.",
-                    "Please write an assertOnFaults(...) for this fault combination with appropriate assertions.");
+            throw new FilibusterGrpcAmbiguousFailureHandlingException();
         }
     }
 
@@ -733,16 +730,9 @@ public interface FilibusterGrpcTest {
                     Helpers.assertionBlock(this::assertTestBlock);
                 } catch (Throwable t) {
                     if (rpcsWhereFaultsInjected.size() > 1) {
-                        throw new FilibusterGrpcTestRuntimeException(
-                                "Assertions in assertTestBlock failed due to multiple faults being injected.",
-                                "Please use assertOnFault to update assertions so that they hold under fault.",
-                                t
-                        );
+                        throw new FilibusterGrpcMultipleFaultsInjectedException(t);
                     } else {
-                        throw new FilibusterGrpcTestRuntimeException(
-                                "Assertions in assertTestBlock failed.",
-                                "Please adjust assertions in assertTestBlock so that test passes.",
-                                t);
+                        throw new FilibusterGrpcAssertTestBlockFailedException(t);
                     }
                 }
             }
@@ -767,6 +757,58 @@ public interface FilibusterGrpcTest {
                 performMultipleExceptionChecking(rpcsWhereFaultsInjected, statusRuntimeException);
             } else {
                 // Get the only fault injected.
+                JSONObject rpcWhereFaultInjected = rpcsWhereFaultsInjected.get(0);
+
+                // Get actual status.
+                Status actualStatus = statusRuntimeException.getStatus();
+
+                // Did the user indicate propagation of faults?
+                FaultKey faultKeyIndicatingPropagationOfFaults = didUserIndicatePropagationOfFault(rpcWhereFaultInjected);
+
+                if (faultKeyIndicatingPropagationOfFaults != null) {
+                    validatePropagationOfFault(rpcWhereFaultInjected, actualStatus);
+                }
+
+                // Did the user indicate that this fault will result in exception?
+                List<FaultKey> faultKeysIndicatingThrownExceptionFromFault = didUserIndicateThrownExceptionForFault(rpcWhereFaultInjected);
+
+                if (faultKeysIndicatingThrownExceptionFromFault.size() > 0) {
+                    validateThrownException(faultKeysIndicatingThrownExceptionFromFault, actualStatus);
+                }
+
+                if (faultKeyIndicatingPropagationOfFaults == null && faultKeysIndicatingThrownExceptionFromFault.size() == 0) {
+                    throw new FilibusterGrpcThrownExceptionHasUnspecifiedFailureBehaviorException(statusRuntimeException);
+                }
+
+                if (faultKeyIndicatingPropagationOfFaults != null && faultKeysIndicatingThrownExceptionFromFault.size() > 0) {
+                    throw new FilibusterGrpcAmbiguousThrowAndErrorPropagationException();
+                }
+
+                // Verify that we have assertion block for thrown exception.
+                if (! errorAssertions.containsKey(statusRuntimeException.getStatus().getCode())) {
+                    throw new FilibusterGrpcMissingAssertionForStatusCodeException(actualStatus.getCode());
+                }
+
+                // Verify that assertion block runs successfully.
+                for (Map.Entry<Status.Code, Runnable> errorAssertion : errorAssertions.entrySet()) {
+                    if (errorAssertion.getKey().equals(statusRuntimeException.getStatus().getCode())) {
+                        try {
+                            insideOfErrorAssertionBlock.set(true);
+                            errorAssertion.getValue().run();
+                        } catch (Throwable t) {
+                            throw new FilibusterGrpcAssertionsForAssertOnExceptionFailedException(actualStatus.getCode(), t);
+                        } finally {
+                            insideOfErrorAssertionBlock.set(false);
+                        }
+                    }
+                }
+
+                // Verify stub invocations.
+                try {
+                    Helpers.assertionBlock(this::assertStubBlock);
+                } catch (Throwable t) {
+                    throw new FilibusterGrpcAssertionsDidNotHoldUnderErrorResponseException(actualStatus.getCode(), t);
+                }
                 performSingleExceptionChecking(rpcsWhereFaultsInjected.get(0), statusRuntimeException);
             }
         } finally {
@@ -803,9 +845,7 @@ public interface FilibusterGrpcTest {
                 boolean faultInjected = faultsInjected.containsKey(distributedExecutionIndex);
 
                 if (!faultInjected) {
-                    throw new FilibusterGrpcTestRuntimeException(
-                            "Invoked RPCs was left UNIMPLEMENTED.",
-                            "Use stubFor to implement stub.");
+                    throw new FilibusterGrpcInvokedRPCUnimplementedException();
                 }
             }
         }
@@ -813,9 +853,7 @@ public interface FilibusterGrpcTest {
         // Fail the test if something hasn't had a verifyThat called on it.
         for (Map.Entry<String, Boolean> verifyThat : GrpcMock.getVerifyThatMapping().entrySet()) {
             if (!verifyThat.getValue()) {
-                throw new FilibusterGrpcTestRuntimeException(
-                        "Stubbed RPC " + verifyThat.getKey() + " has no assertions on invocation count.",
-                        "Use verifyThat to specify expected invocation count.");
+                throw new FilibusterGrpcStubbedRPCHasNoAssertionsException(verifyThat.getKey());
             }
         }
     }
@@ -872,9 +910,7 @@ public interface FilibusterGrpcTest {
 
         if (injectedFaultStatusCode != null) {
             if (!actualStatus.getCode().equals(injectedFaultStatusCode)) {
-                throw new FilibusterGrpcTestRuntimeException(
-                        "Injected fault's status code was suppressed, but test indicates this should propagate directly upstream.",
-                        "Ensure that use of assertFaultPropagates(...) is correct.");
+                throw new FilibusterGrpcSuppressedStatusCodeException();
             }
         } else {
             throw new FilibusterGrpcTestInternalRuntimeException("injectedFaultStatusCode is null; this could indicate a problem!");
@@ -904,9 +940,7 @@ public interface FilibusterGrpcTest {
 
         // If not found, throw error.
         if (!foundMatchingExpectedStatus) {
-            throw new FilibusterGrpcTestRuntimeException(
-                    "Failed RPC resulted in exception, but error codes and descriptions did not match.",
-                    "Verify assertFaultThrows(...) and thrown exception match.");
+            throw new FilibusterGrpcFailedRPCException();
         }
     }
 
@@ -954,9 +988,7 @@ public interface FilibusterGrpcTest {
             List<JSONObject> rpcsWhereFaultsInjectedWithImpact = new ArrayList<>(methodsWithFaultImpact);
             performMultipleExceptionChecking(rpcsWhereFaultsInjectedWithImpact, statusRuntimeException);
         } else {
-            throw new FilibusterGrpcTestRuntimeException(
-                    "Compositional verification failed due to ambiguous failure handling: each fault introduced has different impact.",
-                    "Please write an assertOnFaults(...) for this fault combination with appropriate assertions.");
+            throw new FilibusterGrpcAmbiguousFailureHandlingException();
         }
     }
 
@@ -979,16 +1011,11 @@ public interface FilibusterGrpcTest {
         }
 
         if (faultKeyIndicatingPropagationOfFaults == null && faultKeysIndicatingThrownExceptionFromFault.size() == 0) {
-            throw new FilibusterGrpcTestRuntimeException(
-                    "Test threw an exception, but no specification of failure behavior present.",
-                    "Use assertFaultThrows(...) to specify failure is expected when fault injected on this method, request or code.",
-                    statusRuntimeException);
+            throw new FilibusterGrpcThrownExceptionHasUnspecifiedFailureBehaviorException(statusRuntimeException);
         }
 
         if (faultKeyIndicatingPropagationOfFaults != null && faultKeysIndicatingThrownExceptionFromFault.size() > 0) {
-            throw new FilibusterGrpcTestRuntimeException(
-                    "Test indicates both throw and error propagation: too ambiguous.",
-                    "Please verify you are only using either assertOnException(...) or assertFaultPropagates(...).");
+            throw new FilibusterGrpcAmbiguousThrowAndErrorPropagationException();
         }
 
         // Verify that we have assertion block for thrown exception.
@@ -1000,9 +1027,7 @@ public interface FilibusterGrpcTest {
         Status actualStatus = statusRuntimeException.getStatus();
 
         if (! errorAssertions.containsKey(statusRuntimeException.getStatus().getCode())) {
-            throw new FilibusterGrpcTestRuntimeException(
-                    "Missing assertion block for Status.Code." + actualStatus.getCode() + " response.",
-                    "Please write assertOnException(Status.Code." + actualStatus.getCode() + ", Runnable) for the assertions that should hold under this status code.");
+            throw new FilibusterGrpcMissingAssertionForStatusCodeException(actualStatus.getCode());
         }
 
         // Verify that assertion block runs successfully.
@@ -1012,10 +1037,7 @@ public interface FilibusterGrpcTest {
                     insideOfErrorAssertionBlock.set(true);
                     errorAssertion.getValue().run();
                 } catch (Throwable t) {
-                    throw new FilibusterGrpcTestRuntimeException(
-                            "Assertions for assertOnException failed.",
-                            "Please adjust assertOnException(Status.Code." + actualStatus.getCode() + ", Runnable) for the assertions that should hold under this status code.",
-                            t);
+                    throw new FilibusterGrpcAssertionsForAssertOnExceptionFailedException(actualStatus.getCode(), t);
                 } finally {
                     insideOfErrorAssertionBlock.set(false);
                 }
@@ -1026,10 +1048,7 @@ public interface FilibusterGrpcTest {
         try {
             Helpers.assertionBlock(this::assertStubBlock);
         } catch (Throwable t) {
-            throw new FilibusterGrpcTestRuntimeException(
-                    "Assertions did not hold under error response.",
-                    "Please adjust assertOnException(Status.Code." + actualStatus.getCode() + ", Runnable) for the assertions that should hold under this status code.",
-                    t);
+            throw new FilibusterGrpcAssertionsDidNotHoldUnderErrorResponseException(actualStatus.getCode(), t);
         }
     }
 }

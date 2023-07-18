@@ -251,7 +251,6 @@
                 if ("assertion_failure_fix_message" in selectedFailure) {
                     $("#failureStackTrace").append(`<p>Possible ways to fix that failure:</p>`)
                     $("#failureStackTrace").append(`<textarea class="fixMessage" readonly>${selectedFailure.assertion_failure_fix_message}</textarea>`)
-
                 }
                 $("#failureStackTrace").toggle();
             }

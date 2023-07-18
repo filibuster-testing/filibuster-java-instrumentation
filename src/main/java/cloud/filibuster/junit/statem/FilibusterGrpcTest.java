@@ -984,9 +984,7 @@ public interface FilibusterGrpcTest {
             List<JSONObject> rpcsWhereFaultsInjectedWithImpact = new ArrayList<>(methodsWithFaultImpact);
             performMultipleExceptionChecking(rpcsWhereFaultsInjectedWithImpact, statusRuntimeException);
         } else {
-            throw new FilibusterGrpcTestRuntimeException(
-                    "Compositional verification failed due to ambiguous failure handling: each fault introduced has different impact.",
-                    "Please write an assertOnFaults(...) for this fault combination with appropriate assertions.");
+            throw new FilibusterGrpcAmbiguousFailureHandlingException();
         }
     }
 

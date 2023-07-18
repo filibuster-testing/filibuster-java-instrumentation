@@ -44,6 +44,7 @@ import static cloud.filibuster.junit.Assertions.getExecutedRPCs;
 import static cloud.filibuster.junit.Assertions.getFailedRPCs;
 import static cloud.filibuster.junit.Assertions.getFaultsInjected;
 import static cloud.filibuster.junit.statem.keys.CompositeFaultKey.findMatchingFaultKey;
+import static cloud.filibuster.junit.statem.keys.CompositeFaultKey.findMatchingFaultKeys;
 
 /**
  * Testing interface for writing tests of services that issue GRPCs.  Provides a number of features:
@@ -158,6 +159,22 @@ public interface FilibusterGrpcTest {
     // *****************************************************************************************************************
 
     HashMap<FaultKey, Map.Entry<Status.Code, String>> faultKeysThatThrow = new HashMap<>();
+
+    /**
+     * Use of this method informs Filibuster that any faults injected to this GRPC endpoint will result in the service
+     * returning a {@link StatusRuntimeException} with the specified code and message.
+     *
+     * @param compositeFaultSpecification {@link CompositeFaultSpecification}
+     * @param thrownCode the thrown exception's status code when a fault is injected
+     * @param thrownMessage the thrown exception's message that is returned when a fault is injected
+     */
+    default void assertFaultThrows(
+            CompositeFaultSpecification compositeFaultSpecification,
+            Status.Code thrownCode,
+            String thrownMessage
+    ) {
+        faultKeysThatThrow.put(new CompositeFaultKey(compositeFaultSpecification), Pair.of(thrownCode, thrownMessage));
+    }
 
     /**
      * Use of this method informs Filibuster that any faults injected to this GRPC endpoint will result in the service
@@ -928,8 +945,49 @@ public interface FilibusterGrpcTest {
     }
 
     default void performMultipleExceptionChecking(List<JSONObject> rpcsWhereFaultsInjected, StatusRuntimeException statusRuntimeException) {
-        // TODO: We do not have an example for this yet.
-        throw new FilibusterGrpcTestInternalRuntimeException("NOT IMPLEMENTED: " + statusRuntimeException);
+        // Get actual status.
+        Status actualStatus = statusRuntimeException.getStatus();
+
+        // Try to see if the user said something about this particular set of failures.
+        List<FaultKey> faultKeysIndicatingThrownExceptionFromFault = findMatchingFaultKeys(faultKeysThatThrow, rpcsWhereFaultsInjected, actualStatus.getCode());
+
+        if (faultKeysIndicatingThrownExceptionFromFault.size() > 0) {
+            validateThrownException(faultKeysIndicatingThrownExceptionFromFault, actualStatus);
+            verifyAssertionBlockForThrownException(statusRuntimeException);
+            return;
+        }
+
+        // Otherwise, try to verify compositional-ly.
+        Set<JSONObject> methodsWithFaultImpact = new HashSet<>();
+
+        for (JSONObject rpcWhereFaultInjected : rpcsWhereFaultsInjected) {
+            boolean found = false;
+
+            for (FaultKey singleFaultKey : SingleFaultKey.generateFaultKeysInDecreasingGranularity(rpcWhereFaultInjected)) {
+                if (faultKeysWithNoImpact.contains(singleFaultKey)) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                methodsWithFaultImpact.add(rpcWhereFaultInjected);
+            }
+        }
+
+        if (methodsWithFaultImpact.size() == 0) {
+            return;
+        } else if (methodsWithFaultImpact.size() == 1) {
+            List<JSONObject> rpcsWhereFaultsInjectedWithImpact = new ArrayList<>(methodsWithFaultImpact);
+            performSingleExceptionChecking(rpcsWhereFaultsInjectedWithImpact.get(0), statusRuntimeException);
+        } else if (methodsWithFaultImpact.size() < rpcsWhereFaultsInjected.size()) {
+            List<JSONObject> rpcsWhereFaultsInjectedWithImpact = new ArrayList<>(methodsWithFaultImpact);
+            performMultipleExceptionChecking(rpcsWhereFaultsInjectedWithImpact, statusRuntimeException);
+        } else {
+            throw new FilibusterGrpcTestRuntimeException(
+                    "Compositional verification failed due to ambiguous failure handling: each fault introduced has different impact.",
+                    "Please write an assertOnFaults(...) for this fault combination with appropriate assertions.");
+        }
     }
 
     default void performSingleExceptionChecking(JSONObject rpcWhereFaultInjected, StatusRuntimeException statusRuntimeException) {

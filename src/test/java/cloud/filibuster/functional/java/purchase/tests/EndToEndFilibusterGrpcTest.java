@@ -339,11 +339,12 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
         APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(API_CHANNEL);
         Hello.PurchaseRequest request = Hello.PurchaseRequest.newBuilder()
                 .setSessionId(sessionId.toString())
+                .setAbortOnNoDiscount(false)
                 .build();
         response.set(blockingStub.purchase(request));
     }
 
-    private void assertTestBlock(int total) {
+    public void assertTestBlock(int total) {
         Hello.PurchaseResponse response = (Hello.PurchaseResponse) getResponse();
 
         // Verify response.

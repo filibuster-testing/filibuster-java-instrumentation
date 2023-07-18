@@ -31,11 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements FilibusterGrpcTest {
-    @RegisterExtension
-    static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
-            .withPort(Networking.getPort("mock"))
-            .build();
-
     public final UUID sessionId = UUID.randomUUID();
     protected final UUID consumerId = UUID.randomUUID();
     protected final UUID merchantId = UUID.randomUUID();

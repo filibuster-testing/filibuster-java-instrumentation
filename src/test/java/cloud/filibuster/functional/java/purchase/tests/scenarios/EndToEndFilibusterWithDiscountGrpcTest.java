@@ -11,7 +11,7 @@ import org.grpcmock.junit5.GrpcMockExtension;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class EndToEndFilibusterWithDiscountGrpcTest extends EndToEndFilibusterGrpcTest {
-    // You cannot use this in a superclass because the stupid library doesn't know when to shutdown.
+    // You cannot use this in a superclass because the stupid library doesn't know when to shut down.
     @RegisterExtension
     static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
             .withPort(Networking.getPort("mock"))

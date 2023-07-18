@@ -20,7 +20,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class EndToEndFilibusterNoDiscountGrpcTest extends EndToEndFilibusterGrpcTest {
-    // You cannot use this in a superclass because the stupid library doesn't know when to shutdown.
+    // You cannot use this in a superclass because the stupid library doesn't know when to shut down.
     @RegisterExtension
     static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
             .withPort(Networking.getPort("mock"))

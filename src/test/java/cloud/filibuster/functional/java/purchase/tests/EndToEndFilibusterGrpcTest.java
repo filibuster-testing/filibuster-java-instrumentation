@@ -23,7 +23,6 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static cloud.filibuster.junit.statem.GrpcMock.stubFor;
 import static cloud.filibuster.junit.statem.GrpcMock.verifyThat;

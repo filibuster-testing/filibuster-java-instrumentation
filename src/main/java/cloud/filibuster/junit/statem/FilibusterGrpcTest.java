@@ -9,6 +9,7 @@ import cloud.filibuster.junit.assertions.Helpers;
 import cloud.filibuster.junit.statem.keys.CompositeFaultKey;
 import cloud.filibuster.junit.statem.keys.FaultKey;
 import cloud.filibuster.junit.statem.keys.SingleFaultKey;
+import com.google.protobuf.GeneratedMessageV3;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
@@ -44,6 +45,26 @@ import static cloud.filibuster.junit.statem.keys.CompositeFaultKey.findMatchingF
  * that just executes the interface function {@link #execute() super.execute()}.</p>
  */
 public interface FilibusterGrpcTest {
+    AtomicReference<GeneratedMessageV3> response = new AtomicReference<GeneratedMessageV3>();
+
+    /**
+     * Set the GRPc response.  For use in {@link #executeTestBlock()}.
+     *
+     * @param response GRPC response.
+     */
+    default void setResponse(GeneratedMessageV3 response) {
+        this.response.set(response);
+    }
+
+    /**
+     * Get the GRPC response.  For use in {@link #assertTestBlock()}.
+     *
+     * @return the GRPC response
+     */
+    default GeneratedMessageV3 getResponse() {
+        return this.response.get();
+    }
+
     /**
      * Test authors should place failure specification in this method.  For example,
      * {@link #assertFaultThrows} to indicate that a method,

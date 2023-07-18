@@ -16,7 +16,6 @@ import cloud.filibuster.junit.TestWithFilibuster;
 
 import cloud.filibuster.junit.statem.GrpcMock;
 import io.grpc.Status;
-import org.apache.catalina.User;
 import org.grpcmock.junit5.GrpcMockExtension;
 import org.json.JSONObject;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -42,7 +41,6 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
     private final UUID consumerId = UUID.randomUUID();
     private final UUID merchantId = UUID.randomUUID();
     private final UUID cartId = UUID.randomUUID();
-    private final AtomicReference<Hello.PurchaseResponse> response = new AtomicReference<>();
 
     @Override
     public void failureBlock() {
@@ -347,10 +345,12 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
     }
 
     private void assertTestBlock(int total) {
+        Hello.PurchaseResponse response = (Hello.PurchaseResponse) getResponse();
+
         // Verify response.
-        assertNotNull(response.get());
-        assertTrue(response.get().getSuccess());
-        assertEquals(String.valueOf(total), response.get().getTotal());
+        assertNotNull(response);
+        assertTrue(response.getSuccess());
+        assertEquals(String.valueOf(total), response.getTotal());
 
         // Verify cache writes.
         JSONObject cacheObject = PurchaseWorkflow.getCacheObjectForUser(consumerId);

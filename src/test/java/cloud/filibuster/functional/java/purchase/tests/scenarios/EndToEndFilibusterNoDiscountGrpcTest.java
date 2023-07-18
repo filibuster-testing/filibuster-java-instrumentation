@@ -7,16 +7,25 @@ import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.functional.java.purchase.PurchaseWorkflow;
 import cloud.filibuster.functional.java.purchase.configurations.GRPCAnalysisConfigurationFile;
 import cloud.filibuster.functional.java.purchase.tests.EndToEndFilibusterGrpcTest;
+import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.statem.CompositeFaultSpecification;
 import io.grpc.Status;
+import org.grpcmock.junit5.GrpcMockExtension;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class EndToEndFilibusterNoDiscountGrpcTest extends EndToEndFilibusterGrpcTest {
+    // You cannot use this in a superclass because the stupid library doesn't know when to shutdown.
+    @RegisterExtension
+    static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
+            .withPort(Networking.getPort("mock"))
+            .build();
+
     @Override
     public void failureBlock() {
         super.failureBlock();
@@ -71,7 +80,6 @@ public class EndToEndFilibusterNoDiscountGrpcTest extends EndToEndFilibusterGrpc
             dataNondeterminism = true,
             searchStrategy = FilibusterSearchStrategy.BFS
     )
-    @Override
     public void test() {
         execute();
     }

@@ -6,19 +6,13 @@ import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.functional.java.purchase.PurchaseBaseTest;
 
-import cloud.filibuster.functional.java.purchase.configurations.GRPCAnalysisConfigurationFile;
 import cloud.filibuster.junit.statem.CompositeFaultSpecification;
 import cloud.filibuster.junit.statem.FilibusterGrpcTest;
-import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.functional.java.purchase.PurchaseWorkflow;
-import cloud.filibuster.junit.FilibusterSearchStrategy;
-import cloud.filibuster.junit.TestWithFilibuster;
 
 import cloud.filibuster.junit.statem.GrpcMock;
 import io.grpc.Status;
-import org.grpcmock.junit5.GrpcMockExtension;
 import org.json.JSONObject;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Map;
 import java.util.Random;
@@ -31,11 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements FilibusterGrpcTest {
-    @RegisterExtension
-    static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
-            .withPort(Networking.getPort("mock"))
-            .build();
-
     public final UUID sessionId = UUID.randomUUID();
     protected final UUID consumerId = UUID.randomUUID();
     protected final UUID merchantId = UUID.randomUUID();
@@ -393,16 +382,5 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
 
         // Reset database state.
         PurchaseWorkflow.deleteAccount(merchantId);
-    }
-
-    @TestWithFilibuster(
-            analysisConfigurationFile = GRPCAnalysisConfigurationFile.class,
-            abortOnFirstFailure = true,
-            maxIterations = 100,
-            dataNondeterminism = true,
-            searchStrategy = FilibusterSearchStrategy.BFS
-    )
-    public void test() {
-        execute();
     }
 }

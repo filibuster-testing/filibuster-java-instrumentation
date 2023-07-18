@@ -80,7 +80,6 @@ public class EndToEndFilibusterNoDiscountGrpcTest extends EndToEndFilibusterGrpc
             dataNondeterminism = true,
             searchStrategy = FilibusterSearchStrategy.BFS
     )
-    @Override
     public void test() {
         execute();
     }

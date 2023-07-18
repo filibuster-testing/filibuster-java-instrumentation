@@ -270,7 +270,7 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
 
     @Override
     public void purchase(Hello.PurchaseRequest req, StreamObserver<Hello.PurchaseResponse> responseObserver) {
-        PurchaseWorkflow purchaseWorkflow = new PurchaseWorkflow(req.getSessionId(), req.getAbortOnNoDiscount(), req.getAbortIfNotFullDiscount());
+        PurchaseWorkflow purchaseWorkflow = new PurchaseWorkflow(req.getSessionId(), req.getAbortOnNoDiscount());
         PurchaseWorkflow.PurchaseWorkflowResponse workflowResponse = purchaseWorkflow.execute();
         Status status;
 
@@ -285,10 +285,6 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
                 break;
             case NO_DISCOUNT:
                 status = Status.FAILED_PRECONDITION.withDescription("Consumer did not get a discount.");
-                responseObserver.onError(status.asRuntimeException());
-                break;
-            case INSUFFICIENT_DISCOUNT:
-                status = Status.FAILED_PRECONDITION.withDescription("Consumer did not get full discount.");
                 responseObserver.onError(status.asRuntimeException());
                 break;
             case INSUFFICIENT_FUNDS:

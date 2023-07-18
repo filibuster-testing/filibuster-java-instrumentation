@@ -36,10 +36,10 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
             .withPort(Networking.getPort("mock"))
             .build();
 
-    private final UUID sessionId = UUID.randomUUID();
-    private final UUID consumerId = UUID.randomUUID();
-    private final UUID merchantId = UUID.randomUUID();
-    private final UUID cartId = UUID.randomUUID();
+    public final UUID sessionId = UUID.randomUUID();
+    protected final UUID consumerId = UUID.randomUUID();
+    protected final UUID merchantId = UUID.randomUUID();
+    public final UUID cartId = UUID.randomUUID();
 
     @Override
     public void failureBlock() {

@@ -773,7 +773,7 @@ public interface FilibusterGrpcTest {
                 List<FaultKey> faultKeysIndicatingThrownExceptionFromFault = didUserIndicateThrownExceptionForFault(rpcWhereFaultInjected);
 
                 if (faultKeysIndicatingThrownExceptionFromFault.size() > 0) {
-                    validateThrownException(faultKeysIndicatingThrownExceptionFromFault, actualStatus);
+                    validateThrownException(faultKeysIndicatingThrownExceptionFromFault, statusRuntimeException);
                 }
 
                 if (faultKeyIndicatingPropagationOfFaults == null && faultKeysIndicatingThrownExceptionFromFault.size() == 0) {

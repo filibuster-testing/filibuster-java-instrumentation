@@ -748,7 +748,7 @@ public interface FilibusterGrpcTest {
             // If we are not in the reference execution.
             if (rpcsWhereFaultsInjected.size() > 1) {
                 // TODO: We do not have an example for this yet.
-                throw new FilibusterGrpcTestInternalRuntimeException("NOT IMPLEMENTED.");
+                throw new FilibusterGrpcTestInternalRuntimeException("NOT IMPLEMENTED: " + statusRuntimeException);
             } else {
                 // Get the only fault injected.
                 JSONObject rpcWhereFaultInjected = rpcsWhereFaultsInjected.get(0);

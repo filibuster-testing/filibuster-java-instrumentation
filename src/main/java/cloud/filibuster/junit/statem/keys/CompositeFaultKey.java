@@ -2,6 +2,7 @@ package cloud.filibuster.junit.statem.keys;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestInternalRuntimeException;
 import cloud.filibuster.junit.statem.CompositeFaultSpecification;
+import io.grpc.Status;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
@@ -71,12 +72,53 @@ public class CompositeFaultKey implements FaultKey {
                 .collect(Collectors.toList());
 
         // Populate starting list of keys that match.
-        List<FaultKey> iterationMatching;
         List<FaultKey> previousIterationMatching = new ArrayList<>();
 
         for (Map.Entry<FaultKey, Runnable> assertionByFaultKey : assertionsByFaultKey.entrySet()) {
             previousIterationMatching.add(assertionByFaultKey.getKey());
         }
+
+        List<FaultKey> iterationMatching = performIterableMatching(previousIterationMatching, rpcsWhereFaultsInjectedFaultKeys, rpcsWhereFaultsInjected);
+
+        // Return the key or null.
+        // (Throw if there are too many found, which is probably a bug.)
+        if (iterationMatching.size() == 1) {
+            return iterationMatching.get(0);
+        } else if (iterationMatching.size() > 1) {
+            throw new FilibusterGrpcTestInternalRuntimeException("iterationMatching.size() > 1; this indicates there is a problem!");
+        } else {
+            return null;
+        }
+    }
+
+    @Nullable
+    public static List<FaultKey> findMatchingFaultKeys(
+            HashMap<FaultKey, Map.Entry<Status.Code, String>> assertionsByFaultKey,
+            List<JSONObject> rpcsWhereFaultsInjected,
+            Status.Code code
+    ) {
+        List<List<SingleFaultKey>> rpcsWhereFaultsInjectedFaultKeys = rpcsWhereFaultsInjected.stream()
+                .map(SingleFaultKey::generateFaultKeysInDecreasingGranularity)
+                .collect(Collectors.toList());
+
+        // Populate starting list of keys that match.
+        List<FaultKey> previousIterationMatching = new ArrayList<>();
+
+        for (Map.Entry<FaultKey, Map.Entry<Status.Code, String>> assertionByFaultKey : assertionsByFaultKey.entrySet()) {
+            if (assertionByFaultKey.getValue().getKey().equals(code)) {
+                previousIterationMatching.add(assertionByFaultKey.getKey());
+            }
+        }
+
+        return performIterableMatching(previousIterationMatching, rpcsWhereFaultsInjectedFaultKeys, rpcsWhereFaultsInjected);
+    }
+
+    public static List<FaultKey> performIterableMatching(
+            List<FaultKey> previousIterationMatching,
+            List<List<SingleFaultKey>> rpcsWhereFaultsInjectedFaultKeys,
+            List<JSONObject> rpcsWhereFaultsInjected
+    ) {
+        List<FaultKey> iterationMatching;
 
         // These are each component of the composite key -- each fault and all the ways it can be represented.
         for (List<SingleFaultKey> singleFaultKeys : rpcsWhereFaultsInjectedFaultKeys) {
@@ -106,14 +148,6 @@ public class CompositeFaultKey implements FaultKey {
             }
         }
 
-        // Return the key or null.
-        // (Throw if there are too many found, which is probably a bug.)
-        if (iterationMatching.size() == 1) {
-            return iterationMatching.get(0);
-        } else if (iterationMatching.size() > 1) {
-            throw new FilibusterGrpcTestInternalRuntimeException("iterationMatching.size() > 1; this indicates there is a problem!");
-        } else {
-            return null;
-        }
+        return iterationMatching;
     }
 }

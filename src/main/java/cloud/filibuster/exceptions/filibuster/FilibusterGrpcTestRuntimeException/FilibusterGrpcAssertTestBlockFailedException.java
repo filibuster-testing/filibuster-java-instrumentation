@@ -1,5 +1,9 @@
 package cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException;
 
+/**
+ * {@code FilibusterGrpcAssertTestBlockFailedException} is invoked when assertions in assertTestBlock fail.
+ * Please adjust assertions in assertTestBlock so that test passes.
+ */
 public class FilibusterGrpcAssertTestBlockFailedException extends FilibusterGrpcTestRuntimeException {
 
     public FilibusterGrpcAssertTestBlockFailedException() {

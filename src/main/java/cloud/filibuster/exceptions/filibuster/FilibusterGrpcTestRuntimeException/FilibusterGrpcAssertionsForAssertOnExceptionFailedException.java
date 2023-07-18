@@ -2,6 +2,10 @@ package cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeExceptio
 
 import io.grpc.Status.Code;
 
+/**
+ * {@code FilibusterGrpcAssertionsForAssertOnExceptionFailedException} is invoked when assertions for assertOnException fail for a specific status code.
+ * Please adjust assertOnException(...) for the assertions that should hold under this status code.
+ */
 public class FilibusterGrpcAssertionsForAssertOnExceptionFailedException extends FilibusterGrpcTestRuntimeException {
 
     public FilibusterGrpcAssertionsForAssertOnExceptionFailedException(Code code) {

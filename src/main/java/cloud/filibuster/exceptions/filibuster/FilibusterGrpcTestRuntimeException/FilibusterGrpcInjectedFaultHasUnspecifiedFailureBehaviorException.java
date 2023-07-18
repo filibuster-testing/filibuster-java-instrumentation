@@ -1,5 +1,9 @@
 package cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException;
 
+/**
+ * {@code FilibusterGrpcInjectedFaultHasUnspecifiedFailureBehaviorException} is invoked when a test injects a fault, but no specification of failure behavior is present.
+ * Please use assertOnFault(...) or assertFaultHasNoImpact(...) to specify assertions under fault.
+ */
 public class FilibusterGrpcInjectedFaultHasUnspecifiedFailureBehaviorException extends FilibusterGrpcTestRuntimeException {
 
     public FilibusterGrpcInjectedFaultHasUnspecifiedFailureBehaviorException() {

@@ -2,6 +2,11 @@ package cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeExceptio
 
 import io.grpc.Status.Code;
 
+/**
+ * {@code FilibusterGrpcAssertionsDidNotHoldUnderErrorResponseException} is invoked when the assertions do not hold under
+ * error response of a specific status code.
+ * To fix this exception, please adjust assertOnException(...) for the assertions that should hold under this status code.
+ */
 public class FilibusterGrpcAssertionsDidNotHoldUnderErrorResponseException extends FilibusterGrpcTestRuntimeException {
 
     public FilibusterGrpcAssertionsDidNotHoldUnderErrorResponseException(Code code) {
@@ -14,6 +19,6 @@ public class FilibusterGrpcAssertionsDidNotHoldUnderErrorResponseException exten
 
     private static String getErrorMessage(Code code) {
         return "Assertions did not hold under error response." +
-        "Please adjust assertOnException(Status.Code." + code + ", Runnable) for the assertions that should hold under this status code.";
+                "Please adjust assertOnException(Status.Code." + code + ", Runnable) for the assertions that should hold under this status code.";
     }
 }

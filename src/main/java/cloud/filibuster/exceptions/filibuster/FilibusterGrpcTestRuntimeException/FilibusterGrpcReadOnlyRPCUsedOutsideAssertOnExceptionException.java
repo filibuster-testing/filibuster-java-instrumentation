@@ -1,5 +1,9 @@
 package cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException;
 
+/**
+ * {@code FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionException} is thrown when readOnlyRPC is used outside assertOnException(...) block. " +
+ * Please rewrite code to specify precise assertions on mock invocations.
+ */
 public class FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionException extends FilibusterGrpcTestRuntimeException {
 
     public FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionException() {

@@ -1,5 +1,9 @@
 package cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException;
 
+/**
+ * {@code FilibusterGrpcMultipleFaultsInjectedException} is thrown when assertions in assertTestBlock fail due to multiple faults being injected.
+ * Please use assertOnFault to update assertions so that they hold under fault.
+ */
 public class FilibusterGrpcMultipleFaultsInjectedException extends FilibusterGrpcTestRuntimeException {
 
     public FilibusterGrpcMultipleFaultsInjectedException() {

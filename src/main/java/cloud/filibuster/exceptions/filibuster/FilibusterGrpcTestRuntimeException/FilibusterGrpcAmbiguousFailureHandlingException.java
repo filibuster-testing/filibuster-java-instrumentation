@@ -1,5 +1,10 @@
 package cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException;
 
+/**
+ * {@code FilibusterGrpcAmbiguousFailureHandlingException} indicates that the compositional verification failed due to ambiguous failure handling.
+ * Each fault introduced has different impact.
+ * To fix this exception, write an assertOnFaults(...) for this fault combination with appropriate assertions.
+ */
 public class FilibusterGrpcAmbiguousFailureHandlingException extends FilibusterGrpcTestRuntimeException {
 
     public FilibusterGrpcAmbiguousFailureHandlingException() {

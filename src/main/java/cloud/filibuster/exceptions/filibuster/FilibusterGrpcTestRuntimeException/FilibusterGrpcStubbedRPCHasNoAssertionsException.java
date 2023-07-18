@@ -18,4 +18,9 @@ public class FilibusterGrpcStubbedRPCHasNoAssertionsException extends Filibuster
         return "Stubbed RPC " + key + " has no assertions on invocation count. " +
                 "Use verifyThat to specify expected invocation count.";
     }
+
+    @Override
+    protected String getFixMessage() {
+        return null;
+    }
 }

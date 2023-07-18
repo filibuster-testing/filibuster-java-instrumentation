@@ -4,7 +4,7 @@ package cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeExceptio
  * {@code FilibusterGrpcInvokedRPCUnimplementedException} is thrown when an invoked RPCs was left UNIMPLEMENTED.
  * Use stubFor to implement stub.
  */
-public class FilibusterGrpcInvokedRPCUnimplementedException extends FilibusterGrpcTestRuntimeException {
+public final class FilibusterGrpcInvokedRPCUnimplementedException extends FilibusterGrpcTestRuntimeException {
 
     public FilibusterGrpcInvokedRPCUnimplementedException() {
         super(getErrorMessage());
@@ -16,5 +16,10 @@ public class FilibusterGrpcInvokedRPCUnimplementedException extends FilibusterGr
 
     private static String getErrorMessage() {
         return "Invoked RPCs was left UNIMPLEMENTED. Use stubFor to implement stub.";
+    }
+
+    @Override
+    protected String getFixMessage() {
+        return null;
     }
 }

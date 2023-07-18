@@ -19,4 +19,9 @@ public class FilibusterGrpcAmbiguousFailureHandlingException extends FilibusterG
         return "Compositional verification failed due to ambiguous failure handling: each fault introduced has different impact. " +
                 "Please write an assertOnFaults(...) for this fault combination with appropriate assertions.";
     }
+
+    @Override
+    protected String getFixMessage() {
+        return null;
+    }
 }

@@ -21,4 +21,9 @@ public class FilibusterGrpcAssertionsDidNotHoldUnderErrorResponseException exten
         return "Assertions did not hold under error response." +
                 "Please adjust assertOnException(Status.Code." + code + ", Runnable) for the assertions that should hold under this status code.";
     }
+
+    @Override
+    protected String getFixMessage() {
+        return null;
+    }
 }

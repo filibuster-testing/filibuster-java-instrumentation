@@ -17,4 +17,9 @@ public class FilibusterGrpcFailedRPCException extends FilibusterGrpcTestRuntimeE
     private static String getErrorMessage() {
         return "Failed RPC resulted in exception, but error codes and descriptions did not match. Verify assertFaultThrows(...) and thrown exception match.";
     }
+
+    @Override
+    protected String getFixMessage() {
+        return null;
+    }
 }

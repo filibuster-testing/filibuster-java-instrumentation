@@ -31,4 +31,9 @@ public abstract class FilibusterGrpcTestRuntimeException extends FilibusterRunti
     protected FilibusterGrpcTestRuntimeException(String message, Throwable cause) {
         super(message, cause);
     }
+
+    /**
+     * Returns the fix message for the exception.
+     */
+    abstract protected String getFixMessage();
 }

@@ -18,4 +18,9 @@ public class FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionException exte
         return "Use of readOnlyRPC not allowed outside of assertOnException(...) block. " +
                 "Please rewrite code to specify precise assertions on mock invocations.";
     }
+
+    @Override
+    protected String getFixMessage() {
+        return null;
+    }
 }

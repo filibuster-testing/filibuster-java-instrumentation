@@ -21,4 +21,9 @@ public class FilibusterGrpcMissingAssertionForStatusCodeException extends Filibu
                 "Please write assertOnException(Status.Code." +
                 code + ", Runnable) for the assertions that should hold under this status code.";
     }
+
+    @Override
+    protected String getFixMessage() {
+        return null;
+    }
 }

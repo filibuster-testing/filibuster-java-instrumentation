@@ -18,4 +18,9 @@ public class FilibusterGrpcThrownExceptionHasUnspecifiedFailureBehaviorException
         return "Test threw an exception, but no specification of failure behavior present. Use assertFaultThrows(...) " +
                 "to specify failure is expected when fault injected on this method, request or code.";
     }
+
+    @Override
+    protected String getFixMessage() {
+        return null;
+    }
 }

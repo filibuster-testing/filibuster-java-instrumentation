@@ -17,4 +17,9 @@ public class FilibusterGrpcAssertTestBlockFailedException extends FilibusterGrpc
     private static String getErrorMessage() {
         return "Assertions in assertTestBlock failed. Please adjust assertions in assertTestBlock so that test passes.";
     }
+
+    @Override
+    protected String getFixMessage() {
+        return null;
+    }
 }

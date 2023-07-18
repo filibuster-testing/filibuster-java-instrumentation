@@ -20,4 +20,9 @@ public class FilibusterGrpcAssertionsForAssertOnExceptionFailedException extends
         return "Assertions for assertOnException failed. Please adjust assertOnException(Status.Code." + code +
                 ", Runnable) for the assertions that should hold under this status code.";
     }
+
+    @Override
+    protected String getFixMessage() {
+        return null;
+    }
 }

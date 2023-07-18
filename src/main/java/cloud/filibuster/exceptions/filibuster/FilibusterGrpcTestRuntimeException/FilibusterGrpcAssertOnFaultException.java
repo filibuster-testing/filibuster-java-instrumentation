@@ -17,4 +17,9 @@ public class FilibusterGrpcAssertOnFaultException extends FilibusterGrpcTestRunt
     private static String getErrorMessage() {
         return "Assertions in assertOnFault(...) failed. Please adjust assertions in so that the test passes.";
     }
+
+    @Override
+    protected String getFixMessage() {
+        return null;
+    }
 }

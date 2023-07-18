@@ -157,6 +157,12 @@
             height: 100px;
             margin-bottom: 10px;
         }
+
+        .fixMessage {
+            height: 100px;
+            margin-bottom: 10px;
+            background: #84bb7b;
+        }
 	</style>
 </head>
 
@@ -240,7 +246,9 @@
             {
                 let selectedFailureIndex = parseInt($("#failureSelection").find(":selected").val());
                 let selectedFailure = analysis.failures[selectedFailureIndex];
-                $("#failureStackTrace").html(`<textarea class="stacktrace">${selectedFailure.assertion_failure_stacktrace}</textarea>`)
+                $("#failureStackTrace").html(`<textarea class="stacktrace" readonly>${selectedFailure.assertion_failure_stacktrace}</textarea>`)
+                $("#failureStackTrace").append(`<p>Possible ways to fix that failure:</p>`)
+                $("#failureStackTrace").append(`<textarea class="fixMessage" readonly>${selectedFailure.assertion_failure_stacktrace}</textarea>`)
                 $("#failureStackTrace").toggle();
             }
 

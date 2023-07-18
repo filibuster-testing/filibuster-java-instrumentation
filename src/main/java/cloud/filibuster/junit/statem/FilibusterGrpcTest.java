@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static cloud.filibuster.junit.Assertions.getExecutedRPCs;
 import static cloud.filibuster.junit.Assertions.getFailedRPCs;
@@ -405,24 +406,78 @@ public interface FilibusterGrpcTest {
     // Fault API: adjusted expectations for GRPC endpoints.
     // *****************************************************************************************************************
 
-    // TODO
+    AtomicReference<Boolean> insideOfErrorAssertionBlock = new AtomicReference<>(false);
+
+    /**
+     * Indicates that this RPC has no side effects and therefore may be called 0 or more times.
+     * Can only be used inside an {@link #assertOnException assertOnException} block.
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
     default <ReqT, ResT> void readOnlyRPC(MethodDescriptor<ReqT, ResT> methodDescriptor) {
-        GrpcMock.adjustExpectation(methodDescriptor, -1);
+        if (insideOfErrorAssertionBlock.get()) {
+            GrpcMock.adjustExpectation(methodDescriptor, -1);
+        } else {
+            throw new FilibusterGrpcTestRuntimeException(
+                    "Use of readOnlyRPC not allowed outside of assertOnException(...) block.",
+                    "Please rewrite code to specify precise assertions on mock invocations.");
+        }
     }
 
-    // TODO
+    /**
+     * Indicates that this RPC has no side effects and therefore may be called 0 or more times.
+     * Can only be used inside an {@link #assertOnException assertOnException} block.
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param request the request
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
     default <ReqT, ResT> void readOnlyRPC(MethodDescriptor<ReqT, ResT> methodDescriptor, ReqT request) {
-        GrpcMock.adjustExpectation(methodDescriptor, request, -1);
+        if (insideOfErrorAssertionBlock.get()) {
+            GrpcMock.adjustExpectation(methodDescriptor, request, -1);
+        } else {
+            throw new FilibusterGrpcTestRuntimeException(
+                    "Use of readOnlyRPC not allowed outside of assertOnException(...) block.",
+                    "Please rewrite code to specify precise assertions on mock invocations.");
+        }
     }
 
-    // TODO
+    /**
+     * Indicates that an RPC has side effects and therefore needs explicit invocation counts.
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param count the number of times invoked
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
     default <ReqT, ResT> void sideEffectingRPC(MethodDescriptor<ReqT, ResT> methodDescriptor, int count) {
-        GrpcMock.adjustExpectation(methodDescriptor, count);
+        if (insideOfErrorAssertionBlock.get()) {
+            GrpcMock.adjustExpectation(methodDescriptor, count);
+        } else {
+            throw new FilibusterGrpcTestRuntimeException(
+                    "Use of sideEffectingRPC not allowed outside of assertOnException(...) block.",
+                    "Please rewrite code to specify precise assertions on mock invocations.");
+        }
     }
 
-    // TODO
+    /**
+     * @param methodDescriptor a GRPC method descriptor
+     * @param request the request
+     * @param count the number of times invoked
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
     default <ReqT, ResT> void sideEffectingRPC(MethodDescriptor<ReqT, ResT> methodDescriptor, ReqT request, int count) {
-        GrpcMock.adjustExpectation(methodDescriptor, request, count);
+        if (insideOfErrorAssertionBlock.get()) {
+            GrpcMock.adjustExpectation(methodDescriptor, request, count);
+        } else {
+            throw new FilibusterGrpcTestRuntimeException(
+                    "Use of sideEffectingRPC not allowed outside of assertOnException(...) block.",
+                    "Please rewrite code to specify precise assertions on mock invocations.");
+        }
     }
 
     // *****************************************************************************************************************
@@ -715,12 +770,15 @@ public interface FilibusterGrpcTest {
                 for (Map.Entry<Status.Code, Runnable> errorAssertion : errorAssertions.entrySet()) {
                     if (errorAssertion.getKey().equals(statusRuntimeException.getStatus().getCode())) {
                         try {
+                            insideOfErrorAssertionBlock.set(true);
                             errorAssertion.getValue().run();
                         } catch (Throwable t) {
                             throw new FilibusterGrpcTestRuntimeException(
                                     "Assertions for assertOnException failed.",
                                     "Please adjust assertOnException(Status.Code." + actualStatus.getCode() + ", Runnable) for the assertions that should hold under this status code.",
                                     t);
+                        } finally {
+                            insideOfErrorAssertionBlock.set(false);
                         }
                     }
                 }

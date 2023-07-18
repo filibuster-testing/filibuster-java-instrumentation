@@ -1,0 +1,78 @@
+package cloud.filibuster.functional.java.purchase.tests.scenarios;
+
+import cloud.filibuster.examples.APIServiceGrpc;
+import cloud.filibuster.examples.CartServiceGrpc;
+import cloud.filibuster.examples.Hello;
+import cloud.filibuster.examples.UserServiceGrpc;
+import cloud.filibuster.functional.java.purchase.PurchaseWorkflow;
+import cloud.filibuster.functional.java.purchase.configurations.GRPCAnalysisConfigurationFile;
+import cloud.filibuster.functional.java.purchase.tests.EndToEndFilibusterGrpcTest;
+import cloud.filibuster.junit.FilibusterSearchStrategy;
+import cloud.filibuster.junit.TestWithFilibuster;
+import cloud.filibuster.junit.statem.CompositeFaultSpecification;
+import io.grpc.Status;
+
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class EndToEndFilibusterNoDiscountGrpcTest extends EndToEndFilibusterGrpcTest {
+    @Override
+    public void failureBlock() {
+        super.failureBlock();
+
+        // Combination of three failures using if forces exception.
+        CompositeFaultSpecification allCartRequestsFaultSpecification = new CompositeFaultSpecification.Builder()
+                .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("FIRST-TIME").build())
+                .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build())
+                .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build())
+                .build();
+        assertFaultThrows(
+                allCartRequestsFaultSpecification,
+                Status.Code.FAILED_PRECONDITION,
+                "Consumer did not get a discount.");
+
+        // State what the state of the system was on UNAVAILABLE.
+        assertOnException(Status.Code.FAILED_PRECONDITION, () -> {
+            // Verify transaction did not occur.
+            assertEquals(20000, PurchaseWorkflow.getAccountBalance(consumerId));
+            assertEquals(0, PurchaseWorkflow.getAccountBalance(merchantId));
+
+            // Notify the system some endpoints are read-only and therefore OK to skip
+            // when we return a failure.
+            readOnlyRPC(UserServiceGrpc.getValidateSessionMethod());
+            readOnlyRPC(CartServiceGrpc.getGetCartForSessionMethod());
+
+            for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
+                Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
+                        .setCode(discountCode.getKey())
+                        .build();
+                readOnlyRPC(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
+            }
+
+            sideEffectingRPC(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
+        });
+    }
+
+    @Override
+    public void executeTestBlock() {
+        APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(API_CHANNEL);
+        Hello.PurchaseRequest request = Hello.PurchaseRequest.newBuilder()
+                .setSessionId(sessionId.toString())
+                .setAbortOnNoDiscount(true)
+                .build();
+        response.set(blockingStub.purchase(request));
+    }
+
+    @TestWithFilibuster(
+            analysisConfigurationFile = GRPCAnalysisConfigurationFile.class,
+            abortOnFirstFailure = true,
+            maxIterations = 100,
+            dataNondeterminism = true,
+            searchStrategy = FilibusterSearchStrategy.BFS
+    )
+    @Override
+    public void test() {
+        execute();
+    }
+}

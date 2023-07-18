@@ -22,6 +22,7 @@ import cloud.filibuster.junit.assertions.Helpers;
 import cloud.filibuster.junit.statem.keys.CompositeFaultKey;
 import cloud.filibuster.junit.statem.keys.FaultKey;
 import cloud.filibuster.junit.statem.keys.SingleFaultKey;
+import com.google.protobuf.GeneratedMessageV3;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
@@ -35,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static cloud.filibuster.junit.Assertions.getExecutedRPCs;
 import static cloud.filibuster.junit.Assertions.getFailedRPCs;
@@ -56,6 +58,26 @@ import static cloud.filibuster.junit.statem.keys.CompositeFaultKey.findMatchingF
  * that just executes the interface function {@link #execute() super.execute()}.</p>
  */
 public interface FilibusterGrpcTest {
+    AtomicReference<GeneratedMessageV3> response = new AtomicReference<GeneratedMessageV3>();
+
+    /**
+     * Set the GRPc response.  For use in {@link #executeTestBlock()}.
+     *
+     * @param response GRPC response
+     */
+    default void setResponse(GeneratedMessageV3 response) {
+        this.response.set(response);
+    }
+
+    /**
+     * Get the GRPC response.  For use in {@link #assertTestBlock()}.
+     *
+     * @return the GRPC response
+     */
+    default GeneratedMessageV3 getResponse() {
+        return this.response.get();
+    }
+
     /**
      * Test authors should place failure specification in this method.  For example,
      * {@link #assertFaultThrows} to indicate that a method,
@@ -115,7 +137,7 @@ public interface FilibusterGrpcTest {
     // Fault API: specify state of the system when exception is thrown.
     // *****************************************************************************************************************
 
-    HashMap<Status.Code, Runnable> adjustedExpectationsAndAssertions = new HashMap<>();
+    HashMap<Status.Code, Runnable> errorAssertions = new HashMap<>();
 
     /**
      * Use of this method informs Filibuster that different assertions will hold true when this error code is
@@ -126,7 +148,7 @@ public interface FilibusterGrpcTest {
      * @param runnable assertion block
      */
     default void assertOnException(Status.Code code, Runnable runnable) {
-        adjustedExpectationsAndAssertions.put(code, runnable);
+        errorAssertions.put(code, runnable);
     }
 
     // *****************************************************************************************************************
@@ -221,7 +243,14 @@ public interface FilibusterGrpcTest {
 
     List<FaultKey> faultKeysThatPropagate = new ArrayList<>();
 
-    // TODO
+    /**
+     * Indicate that this RPC endpoint has no error handling, or an error handler that logs and rethrows, and that
+     * any faults injected will be propagated directly back to the upstream.
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
     default <ReqT, ResT> void assertFaultPropagates(
             MethodDescriptor<ReqT, ResT> methodDescriptor
     ) {
@@ -408,6 +437,86 @@ public interface FilibusterGrpcTest {
     }
 
     // *****************************************************************************************************************
+    // Fault API: adjusted expectations for GRPC endpoints.
+    // *****************************************************************************************************************
+
+    AtomicReference<Boolean> insideOfErrorAssertionBlock = new AtomicReference<>(false);
+
+    /**
+     * Indicates that this RPC has no side effects and therefore may be called 0 or more times.
+     * Can only be used inside an {@link #assertOnException assertOnException} block.
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
+    default <ReqT, ResT> void readOnlyRPC(MethodDescriptor<ReqT, ResT> methodDescriptor) {
+        if (insideOfErrorAssertionBlock.get()) {
+            GrpcMock.adjustExpectation(methodDescriptor, -1);
+        } else {
+            throw new FilibusterGrpcTestRuntimeException(
+                    "Use of readOnlyRPC not allowed outside of assertOnException(...) block.",
+                    "Please rewrite code to specify precise assertions on mock invocations.");
+        }
+    }
+
+    /**
+     * Indicates that this RPC has no side effects and therefore may be called 0 or more times.
+     * Can only be used inside an {@link #assertOnException assertOnException} block.
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param request the request
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
+    default <ReqT, ResT> void readOnlyRPC(MethodDescriptor<ReqT, ResT> methodDescriptor, ReqT request) {
+        if (insideOfErrorAssertionBlock.get()) {
+            GrpcMock.adjustExpectation(methodDescriptor, request, -1);
+        } else {
+            throw new FilibusterGrpcTestRuntimeException(
+                    "Use of readOnlyRPC not allowed outside of assertOnException(...) block.",
+                    "Please rewrite code to specify precise assertions on mock invocations.");
+        }
+    }
+
+    /**
+     * Indicates that an RPC has side effects and therefore needs explicit invocation counts.
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param count the number of times invoked
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
+    default <ReqT, ResT> void sideEffectingRPC(MethodDescriptor<ReqT, ResT> methodDescriptor, int count) {
+        if (insideOfErrorAssertionBlock.get()) {
+            GrpcMock.adjustExpectation(methodDescriptor, count);
+        } else {
+            throw new FilibusterGrpcTestRuntimeException(
+                    "Use of sideEffectingRPC not allowed outside of assertOnException(...) block.",
+                    "Please rewrite code to specify precise assertions on mock invocations.");
+        }
+    }
+
+    /**
+     * Indicates that an RPC has side effects and therefore needs explicit invocation counts.
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param request the request
+     * @param count the number of times invoked
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
+    default <ReqT, ResT> void sideEffectingRPC(MethodDescriptor<ReqT, ResT> methodDescriptor, ReqT request, int count) {
+        if (insideOfErrorAssertionBlock.get()) {
+            GrpcMock.adjustExpectation(methodDescriptor, request, count);
+        } else {
+            throw new FilibusterGrpcTestRuntimeException(
+                    "Use of sideEffectingRPC not allowed outside of assertOnException(...) block.",
+                    "Please rewrite code to specify precise assertions on mock invocations.");
+        }
+    }
+
+    // *****************************************************************************************************************
     // Fault API: specify faults that contain different assertions for composite faults
     // *****************************************************************************************************************
 
@@ -567,8 +676,7 @@ public interface FilibusterGrpcTest {
 
         // Clear out any user-provided failure handling logic before starting the next execution,
         // as we will set all of this up again when we execute the failureBlock().
-        //
-        adjustedExpectationsAndAssertions.clear();
+        errorAssertions.clear();
         faultKeysThatThrow.clear();
         faultKeysThatPropagate.clear();
         faultKeysWithNoImpact.clear();
@@ -666,17 +774,20 @@ public interface FilibusterGrpcTest {
                 }
 
                 // Verify that we have assertion block for thrown exception.
-                if (! adjustedExpectationsAndAssertions.containsKey(statusRuntimeException.getStatus().getCode())) {
+                if (! errorAssertions.containsKey(statusRuntimeException.getStatus().getCode())) {
                     throw new FilibusterGrpcMissingAssertionForStatusCodeException(actualStatus.getCode());
                 }
 
                 // Verify that assertion block runs successfully.
-                for (Map.Entry<Status.Code, Runnable> adjustedExpectation : adjustedExpectationsAndAssertions.entrySet()) {
-                    if (adjustedExpectation.getKey().equals(statusRuntimeException.getStatus().getCode())) {
+                for (Map.Entry<Status.Code, Runnable> errorAssertion : errorAssertions.entrySet()) {
+                    if (errorAssertion.getKey().equals(statusRuntimeException.getStatus().getCode())) {
                         try {
-                            adjustedExpectation.getValue().run();
+                            insideOfErrorAssertionBlock.set(true);
+                            errorAssertion.getValue().run();
                         } catch (Throwable t) {
                             throw new FilibusterGrpcAssertionsForAssertOnExceptionFailedException(actualStatus.getCode(), t);
+                        } finally {
+                            insideOfErrorAssertionBlock.set(false);
                         }
                     }
                 }

@@ -107,6 +107,9 @@ public class PurchaseWorkflow {
             return PurchaseWorkflowResponse.USER_UNAVAILABLE;
         }
 
+        // Validate session, let any errors propagate back to the caller.
+        validateSession(channel, sessionId);
+
         // Get cart.
         try {
             Hello.GetCartResponse getCartResponse = getCartFromSession(channel, sessionId);

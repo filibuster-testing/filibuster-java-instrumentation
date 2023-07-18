@@ -9,6 +9,7 @@ import java.util.Map;
 
 import static org.grpcmock.GrpcMock.calledMethod;
 import static org.grpcmock.GrpcMock.times;
+import static org.grpcmock.GrpcMock.atLeast;
 import static org.grpcmock.GrpcMock.unaryMethod;
 
 /**
@@ -129,7 +130,11 @@ public class GrpcMock {
             count = adjustedExpectationsForMethods.get(method.getFullMethodName());
         }
 
-        org.grpcmock.GrpcMock.verifyThat(calledMethod(method), times(count));
+        if (count == -1) {
+            org.grpcmock.GrpcMock.verifyThat(calledMethod(method), atLeast(0));
+        } else {
+            org.grpcmock.GrpcMock.verifyThat(calledMethod(method), times(count));
+        }
     }
 
     /**
@@ -161,6 +166,10 @@ public class GrpcMock {
             }
         }
 
-        org.grpcmock.GrpcMock.verifyThat(calledMethod(method).withRequest(request), times(count));
+        if (count == -1) {
+            org.grpcmock.GrpcMock.verifyThat(calledMethod(method).withRequest(request), atLeast(0));
+        } else {
+            org.grpcmock.GrpcMock.verifyThat(calledMethod(method).withRequest(request), times(count));
+        }
     }
 }

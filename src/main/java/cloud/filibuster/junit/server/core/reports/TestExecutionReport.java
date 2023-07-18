@@ -258,7 +258,7 @@ public class TestExecutionReport {
             JSONObject failure = new JSONObject();
             failure.put(Keys.FailureKeys.ASSERTION_FAILURE_MESSAGE, toEscapeForHtml.apply(f.assertionFailureMessage));
             failure.put(Keys.FailureKeys.ASSERTION_FAILURE_STACKTRACE, toEscapeForHtml.apply(f.assertionFailureStackTrace));
-            failure.put(Keys.FailureKeys.ASSERTION_FAILURE_FIX_MESSAGE, toEscapeForHtml.apply(f.assertionFailureFixMessage));
+            failure.put(Keys.FailureKeys.ASSERTION_FAILURE_FIX_MESSAGE, f.assertionFailureFixMessage);
             return failure;
         }).collect(Collectors.toList()));
 

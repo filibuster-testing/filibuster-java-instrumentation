@@ -160,11 +160,16 @@
 
         .fixMessage {
             height: auto;
+            width: inherit;
+            padding: 10px 10px;
             overflow: auto;
             margin-bottom: 10px;
             background: #a3d298;
+            box-sizing: border-box;
+            border: 2px solid #ccc;
+            border-radius: 4px;
         }
-	</style>
+    </style>
 </head>
 
 <body>
@@ -250,7 +255,7 @@
                 $("#failureStackTrace").html(`<textarea class="stacktrace" readonly>${selectedFailure.assertion_failure_stacktrace}</textarea>`)
                 if ("assertion_failure_fix_message" in selectedFailure) {
                     $("#failureStackTrace").append(`<p>Possible ways to fix that failure:</p>`)
-                    $("#failureStackTrace").append(`<textarea class="fixMessage" readonly>${selectedFailure.assertion_failure_fix_message}</textarea>`)
+                    $("#failureStackTrace").append(`<div class="fixMessage">${selectedFailure.assertion_failure_fix_message}</div>`)
                 }
                 $("#failureStackTrace").toggle();
             }

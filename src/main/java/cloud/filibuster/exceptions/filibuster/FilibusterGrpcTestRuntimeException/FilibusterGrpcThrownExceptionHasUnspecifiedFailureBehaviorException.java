@@ -21,6 +21,6 @@ public class FilibusterGrpcThrownExceptionHasUnspecifiedFailureBehaviorException
 
     @Override
     public String getFixMessage() {
-        return null;
+        return "<p>This is a point</p>";
     }
 }

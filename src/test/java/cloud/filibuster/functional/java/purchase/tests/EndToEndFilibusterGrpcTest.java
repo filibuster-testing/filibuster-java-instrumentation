@@ -16,6 +16,7 @@ import cloud.filibuster.junit.TestWithFilibuster;
 
 import cloud.filibuster.junit.statem.GrpcMock;
 import io.grpc.Status;
+import org.apache.catalina.User;
 import org.grpcmock.junit5.GrpcMockExtension;
 import org.json.JSONObject;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -58,21 +59,98 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
                 "Purchase could not be completed at this time, please retry the request: user could not be retrieved."
         );
 
-        // Updated list of assertions when UNAVAILABLE is returned to user.
+        // State what the state of the system was on UNAVAILABLE.
         assertOnException(Status.Code.UNAVAILABLE, () -> {
-            // If we return unavailable, we should never invoke any of these downstream dependencies.
-            GrpcMock.adjustExpectation(CartServiceGrpc.getGetCartForSessionMethod(), 0);
+            // Verify transaction did not occur.
+            assertEquals(20000, PurchaseWorkflow.getAccountBalance(consumerId));
+            assertEquals(0, PurchaseWorkflow.getAccountBalance(merchantId));
+        });
+
+        // State what the state of the system was on UNAVAILABLE.
+        assertOnException(Status.Code.UNAVAILABLE, () -> {
+            // Verify transaction did not occur.
+            assertEquals(20000, PurchaseWorkflow.getAccountBalance(consumerId));
+            assertEquals(0, PurchaseWorkflow.getAccountBalance(merchantId));
+
+            // Notify the system some endpoints are read-only and therefore OK to skip
+            // when we return a failure.
+            readOnlyRPC(UserServiceGrpc.getValidateSessionMethod());
+        });
+
+        // State what the state of the system was on UNAVAILABLE.
+        assertOnException(Status.Code.UNAVAILABLE, () -> {
+            // Verify transaction did not occur.
+            assertEquals(20000, PurchaseWorkflow.getAccountBalance(consumerId));
+            assertEquals(0, PurchaseWorkflow.getAccountBalance(merchantId));
+
+            // Notify the system some endpoints are read-only and therefore OK to skip
+            // when we return a failure.
+            readOnlyRPC(UserServiceGrpc.getValidateSessionMethod());
+            readOnlyRPC(CartServiceGrpc.getGetCartForSessionMethod());
+        });
+
+        // State what the state of the system was on UNAVAILABLE.
+        assertOnException(Status.Code.UNAVAILABLE, () -> {
+            // Verify transaction did not occur.
+            assertEquals(20000, PurchaseWorkflow.getAccountBalance(consumerId));
+            assertEquals(0, PurchaseWorkflow.getAccountBalance(merchantId));
+
+            // Notify the system some endpoints are read-only and therefore OK to skip
+            // when we return a failure.
+            readOnlyRPC(UserServiceGrpc.getValidateSessionMethod());
+            readOnlyRPC(CartServiceGrpc.getGetCartForSessionMethod());
+
             for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
                 Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
                         .setCode(discountCode.getKey())
                         .build();
-                GrpcMock.adjustExpectation(CartServiceGrpc.getGetDiscountOnCartMethod(), request, 0);
+                readOnlyRPC(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
             }
-            GrpcMock.adjustExpectation(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
+        });
 
+        // State what the state of the system was on UNAVAILABLE.
+        assertOnException(Status.Code.UNAVAILABLE, () -> {
             // Verify transaction did not occur.
             assertEquals(20000, PurchaseWorkflow.getAccountBalance(consumerId));
             assertEquals(0, PurchaseWorkflow.getAccountBalance(merchantId));
+
+            // Notify the system some endpoints are read-only and therefore OK to skip
+            // when we return a failure.
+            readOnlyRPC(UserServiceGrpc.getValidateSessionMethod());
+            readOnlyRPC(CartServiceGrpc.getGetCartForSessionMethod());
+
+            for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
+                Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
+                        .setCode(discountCode.getKey())
+                        .build();
+                readOnlyRPC(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
+            }
+
+            sideEffectingRPC(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
+        });
+
+        // No error handling, propagate back to the upstream.
+        assertFaultPropagates(UserServiceGrpc.getValidateSessionMethod());
+
+        // State what the state of the system was on DEADLINE_EXCEEDED.
+        assertOnException(Status.Code.DEADLINE_EXCEEDED, () -> {
+            // Verify transaction did not occur.
+            assertEquals(20000, PurchaseWorkflow.getAccountBalance(consumerId));
+            assertEquals(0, PurchaseWorkflow.getAccountBalance(merchantId));
+
+            // Notify the system some endpoints are read-only and therefore OK to skip
+            // when we return a failure.
+            readOnlyRPC(UserServiceGrpc.getValidateSessionMethod());
+            readOnlyRPC(CartServiceGrpc.getGetCartForSessionMethod());
+
+            for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
+                Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
+                        .setCode(discountCode.getKey())
+                        .build();
+                readOnlyRPC(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
+            }
+
+            sideEffectingRPC(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
         });
 
         // Failure of the getCartFromSession call results in upstream receiving UNAVAILABLE exception.
@@ -226,6 +304,10 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
 
     @Override
     public void stubBlock() {
+        stubFor(UserServiceGrpc.getValidateSessionMethod(),
+                Hello.ValidateSessionRequest.newBuilder().setSessionId(sessionId.toString()).build(),
+                Hello.ValidateSessionResponse.newBuilder().build());
+
         stubFor(UserServiceGrpc.getGetUserFromSessionMethod(),
                 Hello.GetUserRequest.newBuilder().setSessionId(sessionId.toString()).build(),
                 Hello.GetUserResponse.newBuilder().setUserId(consumerId.toString()).build());
@@ -286,6 +368,7 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
 
     @Override
     public void assertStubBlock() {
+        verifyThat(UserServiceGrpc.getValidateSessionMethod(), 1);
         verifyThat(UserServiceGrpc.getGetUserFromSessionMethod(), 1);
         verifyThat(CartServiceGrpc.getGetCartForSessionMethod(), 1);
 

@@ -102,7 +102,7 @@ public interface FilibusterGrpcTest {
     // Fault API: specify state of the system when exception is thrown.
     // *****************************************************************************************************************
 
-    HashMap<Status.Code, Runnable> adjustedExpectationsAndAssertions = new HashMap<>();
+    HashMap<Status.Code, Runnable> errorAssertions = new HashMap<>();
 
     /**
      * Use of this method informs Filibuster that different assertions will hold true when this error code is
@@ -113,7 +113,7 @@ public interface FilibusterGrpcTest {
      * @param runnable assertion block
      */
     default void assertOnException(Status.Code code, Runnable runnable) {
-        adjustedExpectationsAndAssertions.put(code, runnable);
+        errorAssertions.put(code, runnable);
     }
 
     // *****************************************************************************************************************
@@ -208,7 +208,14 @@ public interface FilibusterGrpcTest {
 
     List<FaultKey> faultKeysThatPropagate = new ArrayList<>();
 
-    // TODO
+    /**
+     * Indicate that this RPC endpoint has no error handling, or an error handler that logs and rethrows, and that
+     * any faults injected will be propagated directly back to the upstream.
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
     default <ReqT, ResT> void assertFaultPropagates(
             MethodDescriptor<ReqT, ResT> methodDescriptor
     ) {
@@ -395,6 +402,30 @@ public interface FilibusterGrpcTest {
     }
 
     // *****************************************************************************************************************
+    // Fault API: adjusted expectations for GRPC endpoints.
+    // *****************************************************************************************************************
+
+    // TODO
+    default <ReqT, ResT> void readOnlyRPC(MethodDescriptor<ReqT, ResT> methodDescriptor) {
+        GrpcMock.adjustExpectation(methodDescriptor, -1);
+    }
+
+    // TODO
+    default <ReqT, ResT> void readOnlyRPC(MethodDescriptor<ReqT, ResT> methodDescriptor, ReqT request) {
+        GrpcMock.adjustExpectation(methodDescriptor, request, -1);
+    }
+
+    // TODO
+    default <ReqT, ResT> void sideEffectingRPC(MethodDescriptor<ReqT, ResT> methodDescriptor, int count) {
+        GrpcMock.adjustExpectation(methodDescriptor, count);
+    }
+
+    // TODO
+    default <ReqT, ResT> void sideEffectingRPC(MethodDescriptor<ReqT, ResT> methodDescriptor, ReqT request, int count) {
+        GrpcMock.adjustExpectation(methodDescriptor, request, count);
+    }
+
+    // *****************************************************************************************************************
     // Fault API: specify faults that contain different assertions for composite faults
     // *****************************************************************************************************************
 
@@ -564,8 +595,7 @@ public interface FilibusterGrpcTest {
 
         // Clear out any user-provided failure handling logic before starting the next execution,
         // as we will set all of this up again when we execute the failureBlock().
-        //
-        adjustedExpectationsAndAssertions.clear();
+        errorAssertions.clear();
         faultKeysThatThrow.clear();
         faultKeysThatPropagate.clear();
         faultKeysWithNoImpact.clear();
@@ -675,17 +705,17 @@ public interface FilibusterGrpcTest {
                 }
 
                 // Verify that we have assertion block for thrown exception.
-                if (! adjustedExpectationsAndAssertions.containsKey(statusRuntimeException.getStatus().getCode())) {
+                if (! errorAssertions.containsKey(statusRuntimeException.getStatus().getCode())) {
                     throw new FilibusterGrpcTestRuntimeException(
                             "Missing assertion block for Status.Code." + actualStatus.getCode() + " response.",
                             "Please write assertOnException(Status.Code." + actualStatus.getCode() + ", Runnable) for the assertions that should hold under this status code.");
                 }
 
                 // Verify that assertion block runs successfully.
-                for (Map.Entry<Status.Code, Runnable> adjustedExpectation : adjustedExpectationsAndAssertions.entrySet()) {
-                    if (adjustedExpectation.getKey().equals(statusRuntimeException.getStatus().getCode())) {
+                for (Map.Entry<Status.Code, Runnable> errorAssertion : errorAssertions.entrySet()) {
+                    if (errorAssertion.getKey().equals(statusRuntimeException.getStatus().getCode())) {
                         try {
-                            adjustedExpectation.getValue().run();
+                            errorAssertion.getValue().run();
                         } catch (Throwable t) {
                             throw new FilibusterGrpcTestRuntimeException(
                                     "Assertions for assertOnException failed.",

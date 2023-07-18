@@ -33,7 +33,8 @@ public class PurchaseWorkflow {
         UNPROCESSED,
         USER_UNAVAILABLE,
         CART_UNAVAILABLE,
-        NO_DISCOUNT
+        NO_DISCOUNT,
+        INSUFFICIENT_DISCOUNT
     }
 
     public static void depositFundsToAccount(UUID account, int amount) {
@@ -80,6 +81,8 @@ public class PurchaseWorkflow {
 
     private final boolean abortOnNoDiscount;
 
+    private final boolean abortIfNotFullDiscount;
+
     private final Channel channel;
 
     private final StatefulRedisConnection<String, String> connection;
@@ -90,9 +93,10 @@ public class PurchaseWorkflow {
 
     private PurchaseWorkflowResponse purchaseWorkflowResponse = PurchaseWorkflowResponse.UNPROCESSED;
 
-    public PurchaseWorkflow(String sessionId, boolean abortOnNoDiscount) {
+    public PurchaseWorkflow(String sessionId, boolean abortOnNoDiscount, boolean abortIfNotFullDiscount) {
         this.sessionId = sessionId;
         this.abortOnNoDiscount = abortOnNoDiscount;
+        this.abortIfNotFullDiscount = abortIfNotFullDiscount;
         this.channel = getRpcChannel();
         this.connection = getRedisConnection();
         this.dao = getCockroachDAO();
@@ -144,6 +148,9 @@ public class PurchaseWorkflow {
 
         // Notify of applied discount.
         if (discountAmount > 0) {
+            if (discountAmount < 1000F && abortIfNotFullDiscount) {
+                return PurchaseWorkflowResponse.INSUFFICIENT_DISCOUNT;
+            }
             notifyOfDiscountApplied(channel, cartId);
         } else {
             if (abortOnNoDiscount) {

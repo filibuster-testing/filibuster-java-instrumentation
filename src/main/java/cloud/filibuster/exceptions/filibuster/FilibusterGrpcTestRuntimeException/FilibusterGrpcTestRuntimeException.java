@@ -21,7 +21,7 @@ public abstract class FilibusterGrpcTestRuntimeException extends FilibusterRunti
     }
 
     /**
-     * Constructs a new Filibuster GRPC runtime exception with the specified detail message.
+     * Constructs a new Filibuster GRPC runtime exception with the specified detail message and cause.
      *
      * @param message the detail message.
      * @param cause   the cause.  (A {@code null} value is

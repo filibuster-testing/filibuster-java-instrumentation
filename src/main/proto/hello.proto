@@ -4,6 +4,8 @@ package cloud.filibuster.examples;
 
 message PurchaseRequest {
   string session_id = 1;
+  bool abortOnNoDiscount = 2;
+  bool abortIfNotFullDiscount = 3;
 }
 
 message PurchaseResponse {

@@ -256,10 +256,9 @@ public class PurchaseWorkflow {
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    private static boolean validateSession(Channel channel, String sessionId) {
+    private static void validateSession(Channel channel, String sessionId) {
         UserServiceGrpc.UserServiceBlockingStub userServiceBlockingStub = UserServiceGrpc.newBlockingStub(channel);
         Hello.ValidateSessionRequest request = Hello.ValidateSessionRequest.newBuilder().setSessionId(sessionId).build();
         userServiceBlockingStub.validateSession(request);
-        return true;
     }
 }

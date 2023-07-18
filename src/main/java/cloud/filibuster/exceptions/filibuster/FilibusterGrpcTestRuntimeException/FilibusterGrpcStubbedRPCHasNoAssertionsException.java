@@ -1,0 +1,17 @@
+package cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException;
+
+public class FilibusterGrpcStubbedRPCHasNoAssertionsException extends FilibusterGrpcTestRuntimeException {
+
+    public FilibusterGrpcStubbedRPCHasNoAssertionsException(String key) {
+        super(getErrorMessage(key));
+    }
+
+    public FilibusterGrpcStubbedRPCHasNoAssertionsException(String key, Throwable cause) {
+        super(getErrorMessage(key), cause);
+    }
+
+    private static String getErrorMessage(String key) {
+        return "Stubbed RPC " + key + " has no assertions on invocation count. " +
+                "Use verifyThat to specify expected invocation count.";
+    }
+}

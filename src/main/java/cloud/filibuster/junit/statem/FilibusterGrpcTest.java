@@ -2,29 +2,49 @@ package cloud.filibuster.junit.statem;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestInternalRuntimeException;
-import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcAmbiguousThrowAndErrorPropagationException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcAmbiguousFailureHandlingException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcAssertionsDidNotHoldUnderErrorResponseException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcAssertionsForAssertOnExceptionFailedException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcAssertOnFaultException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcAssertTestBlockFailedException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcFailedRPCException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcInjectedFaultHasUnspecifiedFailureBehaviorException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcInvokedRPCUnimplementedException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcMissingAssertionForStatusCodeException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcMultipleFaultsInjectedException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcStubbedRPCHasNoAssertionsException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcSuppressedStatusCodeException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcThrownExceptionHasUnspecifiedFailureBehaviorException;
 import cloud.filibuster.instrumentation.datatypes.Pair;
 import cloud.filibuster.junit.assertions.Helpers;
 
-import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import cloud.filibuster.junit.statem.keys.CompositeFaultKey;
+import cloud.filibuster.junit.statem.keys.FaultKey;
+import cloud.filibuster.junit.statem.keys.SingleFaultKey;
 import com.google.protobuf.GeneratedMessageV3;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import org.json.JSONObject;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static cloud.filibuster.junit.Assertions.getExecutedRPCs;
 import static cloud.filibuster.junit.Assertions.getFailedRPCs;
 import static cloud.filibuster.junit.Assertions.getFaultsInjected;
+import static cloud.filibuster.junit.statem.keys.CompositeFaultKey.findMatchingFaultKey;
+import static cloud.filibuster.junit.statem.keys.CompositeFaultKey.findMatchingFaultKeys;
 
 /**
  * Testing interface for writing tests of services that issue GRPCs.  Provides a number of features:
@@ -41,9 +61,29 @@ import static cloud.filibuster.junit.Assertions.getFaultsInjected;
  * that just executes the interface function {@link #execute() super.execute()}.</p>
  */
 public interface FilibusterGrpcTest {
+    AtomicReference<GeneratedMessageV3> response = new AtomicReference<GeneratedMessageV3>();
+
+    /**
+     * Set the GRPc response.  For use in {@link #executeTestBlock()}.
+     *
+     * @param response GRPC response
+     */
+    default void setResponse(GeneratedMessageV3 response) {
+        FilibusterGrpcTest.response.set(response);
+    }
+
+    /**
+     * Get the GRPC response.  For use in {@link #assertTestBlock()}.
+     *
+     * @return the GRPC response
+     */
+    default GeneratedMessageV3 getResponse() {
+        return FilibusterGrpcTest.response.get();
+    }
+
     /**
      * Test authors should place failure specification in this method.  For example,
-     * {@link #downstreamFailureResultsInException(MethodDescriptor, Status.Code, String)} to indicate that a method,
+     * {@link #assertFaultThrows} to indicate that a method,
      * when failed, will cause the service to return an exception.
      */
     void failureBlock();
@@ -96,12 +136,563 @@ public interface FilibusterGrpcTest {
      */
     void teardownBlock();
 
+    // *****************************************************************************************************************
+    // Fault API: specify state of the system when exception is thrown.
+    // *****************************************************************************************************************
+
+    HashMap<Status.Code, Runnable> errorAssertions = new HashMap<>();
+
+    /**
+     * Use of this method informs Filibuster that different assertions will hold true when this error code is
+     * returned to the user, as part of a {@link StatusRuntimeException}.  These assertions should be placed in the
+     * associated {@link Runnable}.  This block will replace the assertions in {@link #assertTestBlock()}.
+     *
+     * @param code the thrown exception's status code when a fault is injected
+     * @param runnable assertion block
+     */
+    default void assertOnException(Status.Code code, Runnable runnable) {
+        errorAssertions.put(code, runnable);
+    }
+
+    // *****************************************************************************************************************
+    // Fault API: specify faults that throw.
+    // *****************************************************************************************************************
+
+    HashMap<FaultKey, Map.Entry<Status.Code, String>> faultKeysThatThrow = new HashMap<>();
+
+    /**
+     * Use of this method informs Filibuster that any faults injected to this GRPC endpoint will result in the service
+     * returning a {@link StatusRuntimeException} with the specified code and message.
+     *
+     * @param compositeFaultSpecification {@link CompositeFaultSpecification}
+     * @param thrownCode the thrown exception's status code when a fault is injected
+     * @param thrownMessage the thrown exception's message that is returned when a fault is injected
+     */
+    default void assertFaultThrows(
+            CompositeFaultSpecification compositeFaultSpecification,
+            Status.Code thrownCode,
+            String thrownMessage
+    ) {
+        faultKeysThatThrow.put(new CompositeFaultKey(compositeFaultSpecification), Pair.of(thrownCode, thrownMessage));
+    }
+
+    /**
+     * Use of this method informs Filibuster that any faults injected to this GRPC endpoint will result in the service
+     * returning a {@link StatusRuntimeException} with the specified code and message.
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param thrownCode the thrown exception's status code when a fault is injected
+     * @param thrownMessage the thrown exception's message that is returned when a fault is injected
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
+    default <ReqT, ResT> void assertFaultThrows(
+            MethodDescriptor<ReqT, ResT> methodDescriptor,
+            Status.Code thrownCode,
+            String thrownMessage
+    ) {
+        faultKeysThatThrow.put(new SingleFaultKey<>(methodDescriptor), Pair.of(thrownCode, thrownMessage));
+    }
+
+    /**
+     * Use of this method informs Filibuster that any faults injected to this GRPC endpoint will result in the service
+     * returning a {@link StatusRuntimeException} with the specified code and message.
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param code the status code of the fault injected
+     * @param thrownCode the thrown exception's status code when a fault is injected
+     * @param thrownMessage the thrown exception's message that is returned when a fault is injected
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
+    default <ReqT, ResT> void assertFaultThrows(
+            MethodDescriptor<ReqT, ResT> methodDescriptor,
+            Status.Code code,
+            Status.Code thrownCode,
+            String thrownMessage
+    ) {
+        faultKeysThatThrow.put(new SingleFaultKey<>(methodDescriptor, code), Pair.of(thrownCode, thrownMessage));
+    }
+
+    /**
+     * Use of this method informs Filibuster that any faults injected to this GRPC endpoint will result in the service
+     * returning a {@link StatusRuntimeException} with the specified code and message.
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param request the request the fault was injected on
+     * @param thrownCode the thrown exception's status code when a fault is injected
+     * @param thrownMessage the thrown exception's message that is returned when a fault is injected
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
+    default <ReqT, ResT> void assertFaultThrows(
+            MethodDescriptor<ReqT, ResT> methodDescriptor,
+            ReqT request,
+            Status.Code thrownCode,
+            String thrownMessage
+    ) {
+        faultKeysThatThrow.put(new SingleFaultKey<>(methodDescriptor, request), Pair.of(thrownCode, thrownMessage));
+    }
+
+    /**
+     * Use of this method informs Filibuster that any faults injected to this GRPC endpoint will result in the service
+     * returning a {@link StatusRuntimeException} with the specified code and message.
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param code the status code of the fault injected
+     * @param request the request the fault was injected on
+     * @param thrownCode the thrown exception's status code when a fault is injected
+     * @param thrownMessage the thrown exception's message that is returned when a fault is injected
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
+    default <ReqT, ResT> void assertFaultThrows(
+            MethodDescriptor<ReqT, ResT> methodDescriptor,
+            Status.Code code,
+            ReqT request,
+            Status.Code thrownCode,
+            String thrownMessage
+    ) {
+        faultKeysThatThrow.put(new SingleFaultKey<>(methodDescriptor, code, request), Pair.of(thrownCode, thrownMessage));
+    }
+
+    // *****************************************************************************************************************
+    // Fault API: no error handling, should propagate upstream.
+    // *****************************************************************************************************************
+
+    List<FaultKey> faultKeysThatPropagate = new ArrayList<>();
+
+    /**
+     * Indicate that this RPC endpoint has no error handling, or an error handler that logs and rethrows, and that
+     * any faults injected will be propagated directly back to the upstream.
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
+    default <ReqT, ResT> void assertFaultPropagates(
+            MethodDescriptor<ReqT, ResT> methodDescriptor
+    ) {
+        faultKeysThatPropagate.add(new SingleFaultKey<>(methodDescriptor));
+    }
+
+    // *****************************************************************************************************************
+    // Fault API: specify faults that have no impact.
+    // *****************************************************************************************************************
+
+    List<FaultKey> faultKeysWithNoImpact = new ArrayList<>();
+
+    /**
+     * Use of this method informs Filibuster that any faults injected to this GRPC method will result
+     * in the primary assertions, placed in the {@link #assertTestBlock()} continuing to hold true.
+     * Therefore, it has no effect on the test outcome when the fault is injected
+     * (except changing the stub invocation counts, which will be automatically adjusted
+     * when a fault is injected if the developer used the Filibuster-provided
+     * {@link GrpcMock#stubFor(MethodDescriptor, Object, Object) GrpcMock.stubFor} and
+     * {@link GrpcMock#verifyThat(MethodDescriptor, int) GrpcMock.verifyThat} methods.)
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
+    default <ReqT, ResT> void assertFaultHasNoImpact(
+            MethodDescriptor<ReqT, ResT> methodDescriptor
+    ) {
+        faultKeysWithNoImpact.add(new SingleFaultKey<>(methodDescriptor));
+    }
+
+    /**
+     * Use of this method informs Filibuster that any faults injected to this GRPC method
+     * with this status code will result in the primary assertions, placed in the {@link #assertTestBlock()}
+     * continuing to hold true.
+     * Therefore, it has no effect on the test outcome when the fault is injected
+     * (except changing the stub invocation counts, which will be automatically adjusted
+     * when a fault is injected if the developer used the Filibuster-provided
+     * {@link GrpcMock#stubFor(MethodDescriptor, Object, Object) GrpcMock.stubFor} and
+     * {@link GrpcMock#verifyThat(MethodDescriptor, int) GrpcMock.verifyThat} methods.)
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param code the status code
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
+    default <ReqT, ResT> void assertFaultHasNoImpact(
+            MethodDescriptor<ReqT, ResT> methodDescriptor,
+            Status.Code code
+    ) {
+        faultKeysWithNoImpact.add(new SingleFaultKey<>(methodDescriptor, code));
+    }
+
+    /**
+     * Use of this method informs Filibuster that any faults injected to this GRPC method
+     * with this request will result in the primary assertions, placed in the {@link #assertTestBlock()}
+     * continuing to hold true.
+     * Therefore, it has no effect on the test outcome when the fault is injected
+     * (except changing the stub invocation counts, which will be automatically adjusted
+     * when a fault is injected if the developer used the Filibuster-provided
+     * {@link GrpcMock#stubFor(MethodDescriptor, Object, Object) GrpcMock.stubFor} and
+     * {@link GrpcMock#verifyThat(MethodDescriptor, int) GrpcMock.verifyThat} methods.)
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param request the request
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
+    default <ReqT, ResT> void assertFaultHasNoImpact(
+            MethodDescriptor<ReqT, ResT> methodDescriptor,
+            ReqT request
+    ) {
+        faultKeysWithNoImpact.add(new SingleFaultKey<>(methodDescriptor, request));
+    }
+
+    /**
+     * Use of this method informs Filibuster that any faults injected to this GRPC method
+     * with this status code and request will result in the primary assertions, placed in
+     * the {@link #assertTestBlock()} continuing to hold true.
+     * Therefore, it has no effect on the test outcome when the fault is injected
+     * (except changing the stub invocation counts, which will be automatically adjusted
+     * when a fault is injected if the developer used the Filibuster-provided
+     * {@link GrpcMock#stubFor(MethodDescriptor, Object, Object) GrpcMock.stubFor} and
+     * {@link GrpcMock#verifyThat(MethodDescriptor, int) GrpcMock.verifyThat} methods.)
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param code the status code
+     * @param request the request
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
+    default <ReqT, ResT> void assertFaultHasNoImpact(
+            MethodDescriptor<ReqT, ResT> methodDescriptor,
+            Status.Code code,
+            ReqT request
+    ) {
+        faultKeysWithNoImpact.add(new SingleFaultKey<>(methodDescriptor, code, request));
+    }
+
+    // *****************************************************************************************************************
+    // Fault API: specify faults that contain different assertions.
+    // *****************************************************************************************************************
+
+    HashMap<FaultKey, Runnable> assertionsByFaultKey = new HashMap<>();
+
+    /**
+     * Use of this method informs Filibuster that any faults injected to this GRPC endpoint will result in possibly
+     * different assertions being true (other than the default block.)  These assertions should be placed in the
+     * associated {@link Runnable}.
+     * This block will replace the assertions in {@link #assertTestBlock()}.
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param runnable assertion block
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
+    default <ReqT, ResT> void assertOnFault(
+            MethodDescriptor<ReqT, ResT> methodDescriptor,
+            Runnable runnable
+    ) {
+        assertionsByFaultKey.put(new SingleFaultKey<>(methodDescriptor), runnable);
+    }
+
+    /**
+     * Use of this method informs Filibuster that any faults injected to this GRPC endpoint will result in possibly
+     * different assertions being true (other than the default block.)  These assertions should be placed in the
+     * associated {@link Runnable}.
+     * This block will replace the assertions in {@link #assertTestBlock()}.
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param code the status code of the injected fault
+     * @param runnable assertion block
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
+    default <ReqT, ResT> void assertOnFault(
+            MethodDescriptor<ReqT, ResT> methodDescriptor,
+            Status.Code code,
+            Runnable runnable
+    ) {
+        assertionsByFaultKey.put(new SingleFaultKey<>(methodDescriptor, code), runnable);
+    }
+
+    /**
+     * Use of this method informs Filibuster that any faults injected to this GRPC endpoint will result in possibly
+     * different assertions being true (other than the default block.)  These assertions should be placed in the
+     * associated {@link Runnable}.
+     * This block will replace the assertions in {@link #assertTestBlock()}.
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param request the request that the fault was injected on
+     * @param runnable assertion block
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
+    default <ReqT, ResT> void assertOnFault(
+            MethodDescriptor<ReqT, ResT> methodDescriptor,
+            ReqT request,
+            Runnable runnable
+    ) {
+        assertionsByFaultKey.put(new SingleFaultKey<>(methodDescriptor, request), runnable);
+    }
+
+    /**
+     * Use of this method informs Filibuster that any faults injected to this GRPC endpoint will result in possibly
+     * different assertions being true (other than the default block.)  These assertions should be placed in the
+     * associated {@link Runnable}.
+     * This block will replace the assertions in {@link #assertTestBlock()}.
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param code the status code of the injected fault
+     * @param request the request that the fault was injected on
+     * @param runnable assertion block
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
+    default <ReqT, ResT> void assertOnFault(
+            MethodDescriptor<ReqT, ResT> methodDescriptor,
+            Status.Code code,
+            ReqT request,
+            Runnable runnable
+    ) {
+        assertionsByFaultKey.put(new SingleFaultKey<>(methodDescriptor, code, request), runnable);
+    }
+
+    // *****************************************************************************************************************
+    // Fault API: adjusted expectations for GRPC endpoints.
+    // *****************************************************************************************************************
+
+    AtomicReference<Boolean> insideOfErrorAssertionBlock = new AtomicReference<>(false);
+
+    /**
+     * Indicates that this RPC has no side effects and therefore may be called 0 or more times.
+     * Can only be used inside an {@link #assertOnException assertOnException} block.
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
+    default <ReqT, ResT> void readOnlyRPC(MethodDescriptor<ReqT, ResT> methodDescriptor) {
+        if (insideOfErrorAssertionBlock.get()) {
+            GrpcMock.adjustExpectation(methodDescriptor, -1);
+        } else {
+            throw new FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionException();
+        }
+    }
+
+    /**
+     * Indicates that this RPC has no side effects and therefore may be called 0 or more times.
+     * Can only be used inside an {@link #assertOnException assertOnException} block.
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param request the request
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
+    default <ReqT, ResT> void readOnlyRPC(MethodDescriptor<ReqT, ResT> methodDescriptor, ReqT request) {
+        if (insideOfErrorAssertionBlock.get()) {
+            GrpcMock.adjustExpectation(methodDescriptor, request, -1);
+        } else {
+            throw new FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionException();
+        }
+    }
+
+    /**
+     * Indicates that an RPC has side effects and therefore needs explicit invocation counts.
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param count the number of times invoked
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
+    default <ReqT, ResT> void sideEffectingRPC(MethodDescriptor<ReqT, ResT> methodDescriptor, int count) {
+        if (insideOfErrorAssertionBlock.get()) {
+            GrpcMock.adjustExpectation(methodDescriptor, count);
+        } else {
+            throw new FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionException();
+        }
+    }
+
+    /**
+     * Indicates that an RPC has side effects and therefore needs explicit invocation counts.
+     *
+     * @param methodDescriptor a GRPC method descriptor
+     * @param request the request
+     * @param count the number of times invoked
+     * @param <ReqT> the request type for this method
+     * @param <ResT> the response type for this method
+     */
+    default <ReqT, ResT> void sideEffectingRPC(MethodDescriptor<ReqT, ResT> methodDescriptor, ReqT request, int count) {
+        if (insideOfErrorAssertionBlock.get()) {
+            GrpcMock.adjustExpectation(methodDescriptor, request, count);
+        } else {
+            throw new FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionException();
+        }
+    }
+
+    // *****************************************************************************************************************
+    // Fault API: specify faults that contain different assertions for composite faults
+    // *****************************************************************************************************************
+
+    /**
+     * Use of this method informs Filibuster that these combined faults will result in possibly
+     * different assertions being true (other than the default block.)  These assertions should be placed in the
+     * associated {@link Runnable}.
+     * This block will replace the assertions in {@link #assertTestBlock()}.
+     * *
+     * @param compositeFaultSpecification {@link CompositeFaultSpecification}
+     * @param runnable assertion block
+     */
+    default void assertOnFaults(CompositeFaultSpecification compositeFaultSpecification, Runnable runnable) {
+        assertionsByFaultKey.put(new CompositeFaultKey(compositeFaultSpecification), runnable);
+    }
+
+    // *****************************************************************************************************************
+    // Internal
+    // *****************************************************************************************************************
+
+    default List<JSONObject> rpcsWhereFaultsInjected() {
+        List<JSONObject> rpcsWhereFaultsInjected = new ArrayList<>();
+
+        // Look up the RPCs that were executed and the faults that were injected.
+        HashMap<DistributedExecutionIndex, JSONObject> executedRPCs = getExecutedRPCs();
+
+        if (executedRPCs == null) {
+            throw new FilibusterGrpcTestInternalRuntimeException("executedRPCs is null: this could indicate a problem!");
+        }
+
+        HashMap<DistributedExecutionIndex, JSONObject> faultsInjected = getFaultsInjected();
+
+        if (faultsInjected == null) {
+            throw new FilibusterGrpcTestInternalRuntimeException("faultsInjected is null: this could indicate a problem!");
+        }
+
+        for (Map.Entry<DistributedExecutionIndex, JSONObject> executedRPC : executedRPCs.entrySet()) {
+            if (faultsInjected.containsKey(executedRPC.getKey())) {
+                JSONObject faultInjected = faultsInjected.get(executedRPC.getKey());
+                JSONObject finalExecutedRPC = executedRPC.getValue();
+                if (faultInjected.has("forced_exception")) {
+                    JSONObject forcedExceptionObject = faultInjected.getJSONObject("forced_exception");
+                    finalExecutedRPC.put("forced_exception", forcedExceptionObject);
+                }
+                rpcsWhereFaultsInjected.add(finalExecutedRPC);
+            }
+        }
+
+        return rpcsWhereFaultsInjected;
+    }
+
+    default boolean performSingleFaultChecking(JSONObject rpcWhereFaultInjected) {
+        boolean shouldRunAssertionBlock = true;
+        boolean searchComplete = false;
+
+        // Find matching keys.
+        for (FaultKey faultKey : SingleFaultKey.generateFaultKeysInDecreasingGranularity(rpcWhereFaultInjected)) {
+            if (!searchComplete) {
+                // Iterate each key and see if the user specified something for it.
+                if (assertionsByFaultKey.containsKey(faultKey)) {
+                    // We want to exit on the first find.
+                    searchComplete = true;
+
+                    // As long as we have a match, we skip the normal assertions.
+                    shouldRunAssertionBlock = false;
+
+                    // Try to run the runnable and abort if it throws.
+                    try {
+                        // Run the updated assertions.
+                        Runnable runnable = assertionsByFaultKey.get(faultKey);
+
+                        if (runnable != null) {
+                            runnable.run();
+                        } else {
+                            throw new FilibusterGrpcTestInternalRuntimeException("runnable is null: this could indicate a problem!");
+                        }
+                    } catch (Throwable t) {
+                        throw new FilibusterGrpcAssertOnFaultException(t);
+                    }
+                }
+
+                // Otherwise, find out if we should ignore the fault.
+                if (faultKeysWithNoImpact.contains(faultKey)) {
+                    searchComplete = true;
+                    shouldRunAssertionBlock = true;
+                }
+            }
+        }
+
+        if (!searchComplete) {
+            throw new FilibusterGrpcInjectedFaultHasUnspecifiedFailureBehaviorException();
+        }
+
+        return shouldRunAssertionBlock;
+    }
+
+    default boolean performMultipleFaultChecking(List<JSONObject> rpcsWhereFaultsInjected) {
+        // Try to see if the user said something about this particular set of failures.
+        FaultKey faultKey = findMatchingFaultKey(assertionsByFaultKey, rpcsWhereFaultsInjected);
+
+        if (faultKey != null) {
+            // Try to run the runnable and abort if it throws.
+            try {
+                // Run the updated assertions.
+                Runnable runnable = assertionsByFaultKey.get(faultKey);
+
+                if (runnable != null) {
+                    runnable.run();
+                } else {
+                    throw new FilibusterGrpcTestInternalRuntimeException("runnable is null: this could indicate a problem!");
+                }
+            } catch (Throwable t) {
+                throw new FilibusterGrpcAssertOnFaultException(t);
+            }
+
+            // Don't run the normal assertions.
+            return false;
+        }
+
+        // Otherwise, try to verify compositional-ly.
+        Set<JSONObject> methodsWithFaultImpact = new HashSet<>();
+
+        for (JSONObject rpcWhereFaultInjected : rpcsWhereFaultsInjected) {
+            boolean found = false;
+
+            for (FaultKey singleFaultKey : SingleFaultKey.generateFaultKeysInDecreasingGranularity(rpcWhereFaultInjected)) {
+                if (faultKeysWithNoImpact.contains(singleFaultKey)) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                methodsWithFaultImpact.add(rpcWhereFaultInjected);
+            }
+        }
+
+        if (methodsWithFaultImpact.size() == 0) {
+            return true;
+        } else if (methodsWithFaultImpact.size() == 1) {
+            List<JSONObject> rpcsWhereFaultsInjectedWithImpact = new ArrayList<>(methodsWithFaultImpact);
+            return performSingleFaultChecking(rpcsWhereFaultsInjectedWithImpact.get(0));
+        } else if (methodsWithFaultImpact.size() < rpcsWhereFaultsInjected.size()) {
+            List<JSONObject> rpcsWhereFaultsInjectedWithImpact = new ArrayList<>(methodsWithFaultImpact);
+            return performMultipleFaultChecking(rpcsWhereFaultsInjectedWithImpact);
+        } else {
+            throw new FilibusterGrpcAmbiguousFailureHandlingException();
+        }
+    }
+
     default void execute() {
         // For each test execution, clear out the adjusted test expectations.
         GrpcMock.resetAdjustedExpectations();
 
         // For each test execution, clear out verifyThat mapping.
         GrpcMock.resetVerifyThatMapping();
+
+        // Clear out any user-provided failure handling logic before starting the next execution,
+        // as we will set all of this up again when we execute the failureBlock().
+        response.set(null);
+        errorAssertions.clear();
+        faultKeysThatThrow.clear();
+        faultKeysThatPropagate.clear();
+        faultKeysWithNoImpact.clear();
+        assertionsByFaultKey.clear();
 
         // Execute setup blocks.
         Helpers.setupBlock(this::setupBlock);
@@ -125,20 +716,10 @@ public interface FilibusterGrpcTest {
             }
 
             if (rpcsWhereFaultsInjected.size() > 0) {
-                // Get description of faults injected.
-                Map.Entry<String, String> keysForExecutedRPC = generateKeysForExecutedRPCFromJSON(rpcsWhereFaultsInjected);
-
-                if (keysForExecutedRPC == null) {
-                    throw new FilibusterGrpcTestInternalRuntimeException("keysForExecutedRPC is null: this could indicate a problem!");
-                }
-
-                String methodKey = keysForExecutedRPC.getKey();
-                String argsKey = keysForExecutedRPC.getValue();
-
                 if (rpcsWhereFaultsInjected.size() > 1) {
-                    shouldRunAssertionBlock = performMultipleFaultChecking(rpcsWhereFaultsInjected, methodKey, argsKey);
+                    shouldRunAssertionBlock = performMultipleFaultChecking(rpcsWhereFaultsInjected);
                 } else {
-                    shouldRunAssertionBlock = performSingleFaultChecking(methodKey, argsKey);
+                    shouldRunAssertionBlock = performSingleFaultChecking(rpcsWhereFaultsInjected.get(0));
                 }
             }
 
@@ -149,16 +730,9 @@ public interface FilibusterGrpcTest {
                     Helpers.assertionBlock(this::assertTestBlock);
                 } catch (Throwable t) {
                     if (rpcsWhereFaultsInjected.size() > 1) {
-                        throw new FilibusterGrpcTestRuntimeException(
-                                "Assertions in assertTestBlock() failed due to multiple faults being injected.",
-                                "Please use onFaultOnRequests(Array<MethodDescriptors, GeneratedMessageV3>, Runnable) to update assertions so that they hold under fault.",
-                                t
-                        );
+                        throw new FilibusterGrpcMultipleFaultsInjectedException(t);
                     } else {
-                        throw new FilibusterGrpcTestRuntimeException(
-                                "Assertions in assertTestBlock() failed.",
-                                "Please adjust assertions in assertTestBlock() so that test passes.",
-                                t);
+                        throw new FilibusterGrpcAssertTestBlockFailedException(t);
                     }
                 }
             }
@@ -166,7 +740,7 @@ public interface FilibusterGrpcTest {
             // Verify stub invocations.
             Helpers.assertionBlock(this::assertStubBlock);
         } catch (StatusRuntimeException statusRuntimeException) {
-            // Look up the first RPC where a fault was injected.
+            // Look up the faults that were injected.
             List<JSONObject> rpcsWhereFaultsInjected = rpcsWhereFaultsInjected();
 
             if (rpcsWhereFaultsInjected == null) {
@@ -178,79 +752,64 @@ public interface FilibusterGrpcTest {
                 throw statusRuntimeException;
             }
 
-            // Verify that at least one of the injected faults is expected to result in an exception.
-            List<JSONObject> matchingRPCsWhereFaultsInjected = new ArrayList<>();
-
-            for (JSONObject rpcWhereFaultInjected : rpcsWhereFaultsInjected) {
-                String method = rpcWhereFaultInjected.getString("method");
-                if (expectedExceptions.containsKey(method)) {
-                    matchingRPCsWhereFaultsInjected.add(rpcWhereFaultInjected);
-                }
-            }
-
-            // See if the developer told us what would happen when this fault was injected.
-            if (matchingRPCsWhereFaultsInjected.size() == 0) {
-                // If the user didn't tell us what should happen when this fault was injected,
-                // throw an error.
-                throw new FilibusterGrpcTestRuntimeException(
-                        "Test threw an exception, but no specification of failure behavior present.",
-                        "Use downstreamFailureResultsInException(MethodDescriptor, Status.Code, String) to specify failure is expected when fault injected.",
-                        statusRuntimeException);
+            // If we are not in the reference execution.
+            if (rpcsWhereFaultsInjected.size() > 1) {
+                performMultipleExceptionChecking(rpcsWhereFaultsInjected, statusRuntimeException);
             } else {
+                // Get the only fault injected.
+                JSONObject rpcWhereFaultInjected = rpcsWhereFaultsInjected.get(0);
+
                 // Get actual status.
                 Status actualStatus = statusRuntimeException.getStatus();
 
-                // Find a status that matches the error code and description.
-                JSONObject foundMatchingExpectedStatus = null;
+                // Did the user indicate propagation of faults?
+                FaultKey faultKeyIndicatingPropagationOfFaults = didUserIndicatePropagationOfFault(rpcWhereFaultInjected);
 
-                for (JSONObject matchingRPCWhereFaultsInjected : matchingRPCsWhereFaultsInjected) {
-                    String method = matchingRPCWhereFaultsInjected.getString("method");
-                    Map.Entry<Status.Code, String> expectedException = expectedExceptions.get(method);
-                    Status expectedStatus = Status.fromCode(expectedException.getKey()).withDescription(expectedException.getValue());
-                    boolean codeMatches = expectedStatus.getCode().equals(actualStatus.getCode());
-                    boolean descriptionMatches = Objects.equals(expectedStatus.getDescription(), actualStatus.getDescription());
-
-                    if (codeMatches && descriptionMatches) {
-                        foundMatchingExpectedStatus = matchingRPCWhereFaultsInjected;
-                        break;
-                    }
+                if (faultKeyIndicatingPropagationOfFaults != null) {
+                    validatePropagationOfFault(rpcWhereFaultInjected, actualStatus);
                 }
 
-                // If not found, throw error.
-                if (foundMatchingExpectedStatus == null) {
-                    throw new FilibusterGrpcTestRuntimeException(
-                            "Failed RPC resulted in exception, but error codes and descriptions did not match.",
-                            "Verify downstreamFailureResultsInException(MethodDescriptor, Status.Code, String) and thrown exception match.");
+                // Did the user indicate that this fault will result in exception?
+                List<FaultKey> faultKeysIndicatingThrownExceptionFromFault = didUserIndicateThrownExceptionForFault(rpcWhereFaultInjected);
+
+                if (faultKeysIndicatingThrownExceptionFromFault.size() > 0) {
+                    validateThrownException(faultKeysIndicatingThrownExceptionFromFault, actualStatus);
                 }
 
-                if (! adjustedExpectationsAndAssertions.containsKey(statusRuntimeException.getStatus().getCode())) {
-                    throw new FilibusterGrpcTestRuntimeException(
-                            "Missing assertion block for Status.Code." + actualStatus.getCode() + " response.",
-                            "Please write onException(Status.Code." + actualStatus.getCode() + ", Runnable) for the assertions that should hold under this status code.");
+                if (faultKeyIndicatingPropagationOfFaults == null && faultKeysIndicatingThrownExceptionFromFault.size() == 0) {
+                    throw new FilibusterGrpcThrownExceptionHasUnspecifiedFailureBehaviorException(statusRuntimeException);
                 }
 
-                for (Map.Entry<Status.Code, Runnable> adjustedExpectation : adjustedExpectationsAndAssertions.entrySet()) {
-                    if (adjustedExpectation.getKey().equals(statusRuntimeException.getStatus().getCode())) {
+                if (faultKeyIndicatingPropagationOfFaults != null && faultKeysIndicatingThrownExceptionFromFault.size() > 0) {
+                    throw new FilibusterGrpcAmbiguousThrowAndErrorPropagationException();
+                }
+
+                // Verify that we have assertion block for thrown exception.
+                if (! errorAssertions.containsKey(statusRuntimeException.getStatus().getCode())) {
+                    throw new FilibusterGrpcMissingAssertionForStatusCodeException(actualStatus.getCode());
+                }
+
+                // Verify that assertion block runs successfully.
+                for (Map.Entry<Status.Code, Runnable> errorAssertion : errorAssertions.entrySet()) {
+                    if (errorAssertion.getKey().equals(statusRuntimeException.getStatus().getCode())) {
                         try {
-                            adjustedExpectation.getValue().run();
+                            insideOfErrorAssertionBlock.set(true);
+                            errorAssertion.getValue().run();
                         } catch (Throwable t) {
-                            throw new FilibusterGrpcTestRuntimeException(
-                                    "Assertions for onException(Status.Code." + adjustedExpectation.getKey() + ", Runnable) failed.",
-                                    "Please adjust onException(Status.Code." + adjustedExpectation.getKey() + ", Runnable) for the assertions that should hold under this status code.",
-                                    t);
+                            throw new FilibusterGrpcAssertionsForAssertOnExceptionFailedException(actualStatus.getCode(), t);
+                        } finally {
+                            insideOfErrorAssertionBlock.set(false);
                         }
                     }
                 }
 
+                // Verify stub invocations.
                 try {
-                    // Verify stub invocations.
                     Helpers.assertionBlock(this::assertStubBlock);
                 } catch (Throwable t) {
-                    throw new FilibusterGrpcTestRuntimeException(
-                            "Assertions did not hold under error response.",
-                            "Please write onException(Status.Code." + actualStatus.getCode() + ", Runnable) for the assertions that should hold under this status code.",
-                            t);
+                    throw new FilibusterGrpcAssertionsDidNotHoldUnderErrorResponseException(actualStatus.getCode(), t);
                 }
+                performSingleExceptionChecking(rpcsWhereFaultsInjected.get(0), statusRuntimeException);
             }
         } finally {
             // Execute teardown.
@@ -274,25 +833,19 @@ public interface FilibusterGrpcTest {
             DistributedExecutionIndex distributedExecutionIndex = failedRPC.getKey();
             JSONObject jsonObject = failedRPC.getValue();
 
-            if (jsonObject.has("exception")) {
-                JSONObject exceptionJsonObject = jsonObject.getJSONObject("exception");
+            Status.Code statusCode = getStatusCode("exception", jsonObject);
 
-                if (exceptionJsonObject.has("metadata")) {
-                    JSONObject metadataExceptionJsonObject = exceptionJsonObject.getJSONObject("metadata");
+            if (statusCode == null) {
+                throw new FilibusterGrpcTestInternalRuntimeException("statusCode is null: this could indicate a problem!");
+            }
 
-                    if (metadataExceptionJsonObject.has("code")) {
-                        String code = metadataExceptionJsonObject.getString("code");
+            String code = statusCode.toString();
 
-                        if (code.equals("UNIMPLEMENTED")) {
-                            boolean faultInjected = faultsInjected.containsKey(distributedExecutionIndex);
+            if (code.equals("UNIMPLEMENTED")) {
+                boolean faultInjected = faultsInjected.containsKey(distributedExecutionIndex);
 
-                            if (!faultInjected) {
-                                throw new FilibusterGrpcTestRuntimeException(
-                                        "Invoked RPCs was left UNIMPLEMENTED.",
-                                        "Use stubFor(MethodDescriptor, ReqT, ResT) to implement stub.");
-                            }
-                        }
-                    }
+                if (!faultInjected) {
+                    throw new FilibusterGrpcInvokedRPCUnimplementedException();
                 }
             }
         }
@@ -300,336 +853,202 @@ public interface FilibusterGrpcTest {
         // Fail the test if something hasn't had a verifyThat called on it.
         for (Map.Entry<String, Boolean> verifyThat : GrpcMock.getVerifyThatMapping().entrySet()) {
             if (!verifyThat.getValue()) {
-                throw new FilibusterGrpcTestRuntimeException(
-                        "Stubbed RPC " + verifyThat.getKey() + " has no assertions on invocation count.",
-                        "Use verifyThat(MethodDescriptor, ReqT, Count) to specify expected invocation count.");
+                throw new FilibusterGrpcStubbedRPCHasNoAssertionsException(verifyThat.getKey());
             }
         }
     }
 
-    // *****************************************************************************************************************
-    // Fault API
-    // *****************************************************************************************************************
+    @Nullable
+    default Status.Code getStatusCode(String exceptionFieldName, JSONObject jsonObject) {
+        if (jsonObject.has(exceptionFieldName)) {
+            JSONObject exceptionJsonObject = jsonObject.getJSONObject(exceptionFieldName);
 
-    /**
-     * Use of this method informs Filibuster that any faults injected to this GRPC endpoint will result in the service
-     * returning a {@link StatusRuntimeException} with the specified code and description.
-     *
-     * @param methodDescriptor a GRPC method descriptor
-     * @param code the thrown exception's status code when a fault is injected
-     * @param description the thrown exception's description that is returned when a fault is injected
-     * @param <ReqT> the request type for this method
-     * @param <ResT> the response type for this method
-     */
-    default <ReqT, ResT> void downstreamFailureResultsInException(MethodDescriptor<ReqT, ResT> methodDescriptor, Status.Code code, String description) {
-        expectedExceptions.put(methodDescriptor.getFullMethodName(), Pair.of(code, description));
-    }
+            if (exceptionJsonObject.has("metadata")) {
+                JSONObject metadataExceptionJsonObject = exceptionJsonObject.getJSONObject("metadata");
 
-    /**
-     * Use of this method informs Filibuster that different assertions will hold true when this error code is
-     * returned to the user, as part of a {@link StatusRuntimeException}.  These assertions should be placed in the
-     * associated {@link Runnable}.  This block will replace the assertions in {@link #assertTestBlock()}.
-     *
-     * @param code the thrown exception's status code when a fault is injected
-     * @param runnable assertion block
-     */
-    default void onExceptionReturnedToUpstream(Status.Code code, Runnable runnable) {
-        adjustedExpectationsAndAssertions.put(code, runnable);
-    }
-
-    /**
-     * Use of this method informs Filibuster that any faults injected to this GRPC endpoint will result in possibly
-     * different assertions being true (other than the default block.)  These assertions should be placed in the
-     * associated {@link Runnable}.
-     * This block will replace the assertions in {@link #assertTestBlock()}.
-     *
-     * @param methodDescriptor a GRPC method descriptor
-     * @param runnable assertion block
-     * @param <ReqT> the request type for this method
-     * @param <ResT> the response type for this method
-     */
-    default <ReqT, ResT> void onFaultOnMethod(MethodDescriptor<ReqT, ResT> methodDescriptor, Runnable runnable) {
-        modifiedAssertionsByMethod.put(methodDescriptor.getFullMethodName(), runnable);
-    }
-
-    /**
-     * Use of this method informs Filibuster that any faults injected to this GRPC endpoint will result
-     * in the primary assertions, placed in the {@link #assertTestBlock()} continuing to hold true.
-     * Therefore, it has no effect on the test outcome when the fault is injected
-     * (except changing the stub invocation counts, which will be automatically adjusted
-     * when a fault is injected if the developer used the Filibuster-provided
-     * {@link GrpcMock#stubFor(MethodDescriptor, Object, Object) GrpcMock.stubFor} and
-     * {@link GrpcMock#verifyThat(MethodDescriptor, int) GrpcMock.verifyThat} methods.)
-     *
-     * @param methodDescriptor a GRPC method descriptor
-     * @param <ReqT> the request type for this method
-     * @param <ResT> the response type for this method
-     */
-    default <ReqT, ResT> void onFaultOnMethodHasNoEffect(MethodDescriptor<ReqT, ResT> methodDescriptor) {
-        methodsWithNoFaultImpact.add(methodDescriptor.getFullMethodName());
-    }
-
-    /**
-     * Use of this method informs Filibuster that any faults injected to this GRPC endpoint, for a particular request,
-     * will result in possibly different assertions being true (other than the default block.)
-     * These assertions should be placed in the associated {@link Runnable}.
-     * This block will replace the assertions in {@link #assertTestBlock()}.
-     *
-     * @param methodDescriptor a GRPC method descriptor
-     * @param request the request
-     * @param runnable assertion block
-     * @param <ReqT> the request type for this method
-     * @param <ResT> the response type for this method
-     */
-    default <ReqT, ResT> void onFaultOnRequest(MethodDescriptor<ReqT, ResT> methodDescriptor, ReqT request, Runnable runnable) {
-        modifiedAssertionsByRequest.put(methodDescriptor.getFullMethodName() + request.toString(), runnable);
-    }
-
-    /**
-     * Use of this method informs Filibuster that any faults injected to the specified requests
-     * will result in possibly different assertions being true (other than the default block.)
-     * These assertions should be placed in the associated {@link Runnable}.
-     * This block will replace the assertions in {@link #assertTestBlock()}.
-     *
-     * @param combinedFaultSpecification the specification of the faults
-     * @param runnable assertion block
-     */
-    default void onFaultOnRequests(CombinedFaultSpecification combinedFaultSpecification, Runnable runnable) {
-        Map.Entry<String, String> keysForExecutedRPC = generateKeysForExecutedRPCFromMap(combinedFaultSpecification.getRequestFaults());
-        String methodKey = keysForExecutedRPC.getKey();
-        String argsKey = keysForExecutedRPC.getValue();
-        modifiedAssertionsByRequest.put(methodKey + argsKey, runnable);
-    }
-
-    // *****************************************************************************************************************
-    // Internal
-    // *****************************************************************************************************************
-
-    HashMap<String, Map.Entry<Status.Code, String>> expectedExceptions = new HashMap<>();
-
-    HashMap<Status.Code, Runnable> adjustedExpectationsAndAssertions = new HashMap<>();
-
-    HashMap<String, Runnable> modifiedAssertionsByMethod = new HashMap<>();
-
-    HashMap<String, Runnable> modifiedAssertionsByRequest = new HashMap<>();
-
-    List<String> methodsWithNoFaultImpact = new ArrayList<>();
-
-    default List<JSONObject> rpcsWhereFaultsInjected() {
-        List<JSONObject> rpcsWhereFaultsInjected = new ArrayList<>();
-
-        // Look up the RPCs that were executed and the faults that were injected.
-        HashMap<DistributedExecutionIndex, JSONObject> executedRPCs = getExecutedRPCs();
-
-        if (executedRPCs == null) {
-            throw new FilibusterGrpcTestInternalRuntimeException("executedRPCs is null: this could indicate a problem!");
-        }
-
-        HashMap<DistributedExecutionIndex, JSONObject> faultsInjected = getFaultsInjected();
-
-        if (faultsInjected == null) {
-            throw new FilibusterGrpcTestInternalRuntimeException("faultsInjected is null: this could indicate a problem!");
-        }
-
-        for (Map.Entry<DistributedExecutionIndex, JSONObject> executedRPC : executedRPCs.entrySet()) {
-            if (faultsInjected.containsKey(executedRPC.getKey())) {
-                rpcsWhereFaultsInjected.add(executedRPC.getValue());
-            }
-        }
-
-        return rpcsWhereFaultsInjected;
-    }
-
-    default Map.Entry<String, String> generateKeys(List<Map.Entry<String, String>> keyData) {
-        List<String> methodValues = new ArrayList<>();
-        List<String> argValues = new ArrayList<>();
-
-        for (Map.Entry<String, String> keyDataItem : keyData) {
-            methodValues.add(keyDataItem.getKey());
-            argValues.add(keyDataItem.getValue());
-        }
-
-        Collections.sort(methodValues);
-        Collections.sort(argValues);
-
-        String methodValue = String.join("", methodValues);
-        String argsValue = String.join("", argValues);
-
-        return Pair.of(methodValue, argsValue);
-    }
-
-    default Map.Entry<String, String> generateKeysForExecutedRPCFromMap(List<Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3>> rpcList) {
-        List<Map.Entry<String, String>> keyEntries = new ArrayList<>();
-
-        for (Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3> rpc : rpcList) {
-            keyEntries.add(Pair.of(rpc.getKey().getFullMethodName(), rpc.getValue().toString()));
-        }
-
-        return generateKeys(keyEntries);
-    }
-
-    default Map.Entry<String, String> generateKeysForExecutedRPCFromJSON(List<JSONObject> rpcsWhereFaultsInjected) {
-        List<Map.Entry<String, String>> keyEntries = new ArrayList<>();
-
-        for (JSONObject rpcWhereFaultsInjected : rpcsWhereFaultsInjected) {
-            if (rpcWhereFaultsInjected.has("args")) {
-                JSONObject argsJsonObject = rpcWhereFaultsInjected.getJSONObject("args");
-
-                if (argsJsonObject.has("toString")) {
-                    keyEntries.add(Pair.of(rpcWhereFaultsInjected.getString("method"), argsJsonObject.getString("toString")));
+                if (metadataExceptionJsonObject.has("code")) {
+                    return Status.Code.valueOf(metadataExceptionJsonObject.getString("code"));
                 } else {
-                    keyEntries.add(Pair.of(rpcWhereFaultsInjected.getString("method"), ""));
+                    return null;
                 }
             } else {
-                keyEntries.add(Pair.of(rpcWhereFaultsInjected.getString("method"), ""));
+                return null;
             }
-        }
-
-        return generateKeys(keyEntries);
-    }
-
-    // Single fault.
-    //
-    // See if we have special error handling for this fault, then bypass the existing assertion block
-    // in favor of the fault-specific assertion block.
-    //
-    default boolean performSingleFaultChecking(String methodKey, String argsKey) {
-        boolean shouldRunAssertionBlock = true;
-
-        if (argsKey != null && modifiedAssertionsByRequest.containsKey(methodKey + argsKey)) {
-            try {
-                modifiedAssertionsByRequest.get(methodKey + argsKey).run();
-            } catch (Throwable t) {
-                throw new FilibusterGrpcTestRuntimeException(
-                        "Assertions in onFaultOnRequest(" + methodKey + ", ReqT, Runnable) failed.",
-                        "Please adjust assertions in onFaultOnRequest(" + methodKey + ", " + argsKey.replaceAll("\\n", "") + ", Runnable) so that test passes.",
-                        t);
-            }
-
-            shouldRunAssertionBlock = false;
-        } else if (modifiedAssertionsByMethod.containsKey(methodKey)) {
-            try {
-                modifiedAssertionsByMethod.get(methodKey).run();
-            } catch (Throwable t) {
-                throw new FilibusterGrpcTestRuntimeException(
-                        "Assertions in onFaultOnMethod(" + methodKey + ", Runnable) failed.",
-                        "Please adjust assertions in onFaultOnMethod(" + methodKey + ", Runnable) so that test passes.",
-                        t);
-            }
-            shouldRunAssertionBlock = false;
         } else {
-            if (!methodsWithNoFaultImpact.contains(methodKey)) {
-                throw new FilibusterGrpcTestRuntimeException(
-                        "Test injected a fault, but no specification of failure behavior present.",
-                        "Please use onFaultOnMethod(MethodDescriptor, Runnable), onFaultOnRequest(MethodDescriptor, ReqT, Runnable), or onFaultOnMethodHasNoEffect(MethodDescriptor) to specify assertions under fault.");
-            }
-
-            // Otherwise, pass through and run normal assertion block.
+            return null;
         }
-
-        return shouldRunAssertionBlock;
     }
 
-    // Multiple faults.
-    //
-    // Look to see if the user specified behavior for that precise combination of faults.
-    // If they didn't, try to verify compositionally using the information that they have provided.
-    //
-    default boolean performMultipleFaultChecking(List<JSONObject> rpcsWhereFaultsInjected, String methodKey, String argsKey) {
-        // If the user specified an assertion block for this precise combination of faults.
-        if (argsKey != null && modifiedAssertionsByRequest.containsKey(methodKey + argsKey)) {
-            try {
-                modifiedAssertionsByRequest.get(methodKey + argsKey).run();
-            } catch (Throwable t) {
-                throw new FilibusterGrpcTestRuntimeException(
-                        "Assertions in onFaultOnRequest(Array<MethodDescriptors, GeneratedMessageV3>, ReqT, Runnable) failed.",
-                        "Please adjust assertions in onFaultOnRequests(Array<MethodDescriptors, GeneratedMessageV3>, Runnable) so that test passes.",
-                        t);
+    default FaultKey didUserIndicatePropagationOfFault(JSONObject rpcWhereFaultInjected) {
+        FaultKey foundFaultKey = null;
+
+        for (FaultKey faultKey : SingleFaultKey.generateFaultKeysInDecreasingGranularity(rpcWhereFaultInjected)) {
+            if (faultKeysThatPropagate.contains(faultKey)) {
+                foundFaultKey = faultKey;
+                break;
+            }
+        }
+
+        return foundFaultKey;
+    }
+
+    default List<FaultKey> didUserIndicateThrownExceptionForFault(JSONObject rpcWhereFaultInjected) {
+        List<FaultKey> matchingFaultKeys = new ArrayList<>();
+
+        for (FaultKey faultKey : SingleFaultKey.generateFaultKeysInDecreasingGranularity(rpcWhereFaultInjected)) {
+            if (faultKeysThatThrow.containsKey(faultKey)) {
+                matchingFaultKeys.add(faultKey);
+                break;
+            }
+        }
+
+        return matchingFaultKeys;
+    }
+
+    default void validatePropagationOfFault(JSONObject rpcWhereFaultInjected, Status actualStatus) {
+        Status.Code injectedFaultStatusCode = getStatusCode("forced_exception", rpcWhereFaultInjected);
+
+        if (injectedFaultStatusCode != null) {
+            if (!actualStatus.getCode().equals(injectedFaultStatusCode)) {
+                throw new FilibusterGrpcSuppressedStatusCodeException();
+            }
+        } else {
+            throw new FilibusterGrpcTestInternalRuntimeException("injectedFaultStatusCode is null; this could indicate a problem!");
+        }
+    }
+
+    default void validateThrownException(List<FaultKey> matchingFaultKeys, Status actualStatus) {
+        // Find a status that matches the error code and description.
+        boolean foundMatchingExpectedStatus = false;
+
+        for (FaultKey matchingFaultKey : matchingFaultKeys) {
+            Map.Entry<Status.Code, String> expectedException = faultKeysThatThrow.get(matchingFaultKey);
+
+            if (expectedException == null) {
+                throw new FilibusterGrpcTestInternalRuntimeException("expectedException is null; this could indicate a problem!");
             }
 
-            return false;
+            Status expectedStatus = Status.fromCode(expectedException.getKey()).withDescription(expectedException.getValue());
+            boolean codeMatches = expectedStatus.getCode().equals(actualStatus.getCode());
+            boolean descriptionMatches = Objects.equals(expectedStatus.getDescription(), actualStatus.getDescription());
+
+            if (codeMatches && descriptionMatches) {
+                foundMatchingExpectedStatus = true;
+                break;
+            }
+        }
+
+        // If not found, throw error.
+        if (!foundMatchingExpectedStatus) {
+            throw new FilibusterGrpcFailedRPCException();
+        }
+    }
+
+    default void performMultipleExceptionChecking(List<JSONObject> rpcsWhereFaultsInjected, StatusRuntimeException statusRuntimeException) {
+        // Get actual status.
+        Status actualStatus = statusRuntimeException.getStatus();
+
+        // Try to see if the user said something about this particular set of failures.
+        List<FaultKey> faultKeysIndicatingThrownExceptionFromFault = findMatchingFaultKeys(faultKeysThatThrow, rpcsWhereFaultsInjected, actualStatus.getCode());
+
+        if (faultKeysIndicatingThrownExceptionFromFault == null) {
+            throw new FilibusterGrpcTestInternalRuntimeException("faultKeysIndicatingThrownExceptionFromFault is null: this could indicate a problem!");
+        }
+
+        if (faultKeysIndicatingThrownExceptionFromFault.size() > 0) {
+            validateThrownException(faultKeysIndicatingThrownExceptionFromFault, actualStatus);
+            verifyAssertionBlockForThrownException(statusRuntimeException);
+            return;
         }
 
         // Otherwise, try to verify compositional-ly.
         Set<JSONObject> methodsWithFaultImpact = new HashSet<>();
 
         for (JSONObject rpcWhereFaultInjected : rpcsWhereFaultsInjected) {
-            String method = rpcWhereFaultInjected.getString("method");
+            boolean found = false;
 
-            if (!methodsWithNoFaultImpact.contains(method)) {
+            for (FaultKey singleFaultKey : SingleFaultKey.generateFaultKeysInDecreasingGranularity(rpcWhereFaultInjected)) {
+                if (faultKeysWithNoImpact.contains(singleFaultKey)) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
                 methodsWithFaultImpact.add(rpcWhereFaultInjected);
             }
         }
 
         if (methodsWithFaultImpact.size() == 0) {
-            return true;
+            return;
         } else if (methodsWithFaultImpact.size() == 1) {
-            ArrayList<JSONObject> rpcsWhereFaultsInjectedWithImpact = new ArrayList<>(methodsWithFaultImpact);
-            Map.Entry<String, String> keysForExecutedRPC = generateKeysForExecutedRPCFromJSON(rpcsWhereFaultsInjectedWithImpact);
-
-            if (keysForExecutedRPC == null) {
-                throw new FilibusterGrpcTestInternalRuntimeException("keysForExecutedRPC is null: this could indicate a problem!");
-            }
-
-            String singleFaultMethodKey = keysForExecutedRPC.getKey();
-            String singleFaultArgsKey = keysForExecutedRPC.getValue();
-
-            return performSingleFaultChecking(singleFaultMethodKey, singleFaultArgsKey);
+            List<JSONObject> rpcsWhereFaultsInjectedWithImpact = new ArrayList<>(methodsWithFaultImpact);
+            performSingleExceptionChecking(rpcsWhereFaultsInjectedWithImpact.get(0), statusRuntimeException);
         } else if (methodsWithFaultImpact.size() < rpcsWhereFaultsInjected.size()) {
             List<JSONObject> rpcsWhereFaultsInjectedWithImpact = new ArrayList<>(methodsWithFaultImpact);
-            Map.Entry<String, String> keysForExecutedRPC = generateKeysForExecutedRPCFromJSON(rpcsWhereFaultsInjectedWithImpact);
-
-            String methodsWithFaultImpactMethodKey = keysForExecutedRPC.getKey();
-            String methodsWithFaultImpactArgsKey = keysForExecutedRPC.getValue();
-
-            return performMultipleFaultChecking(rpcsWhereFaultsInjectedWithImpact, methodsWithFaultImpactMethodKey, methodsWithFaultImpactArgsKey);
+            performMultipleExceptionChecking(rpcsWhereFaultsInjectedWithImpact, statusRuntimeException);
         } else {
-            throw new FilibusterGrpcTestRuntimeException(
-                    "Compositional verification failed due to ambiguous failure handling: each fault introduced has different impact.",
-                    "Please write an onFaultOnRequests(Array<MethodDescriptors, GeneratedMessageV3>, Runnable) for this fault combination with appropriate assertions.");
+            throw new FilibusterGrpcAmbiguousFailureHandlingException();
         }
     }
 
-    /**
-     * Create a specification for the Filibuster GRPC test interface for multiple faults that are injected simultaneously.
-     * This can be provided to the {@link #onFaultOnRequests(CombinedFaultSpecification, Runnable) onFaultOnRequests} method to create conditional behavior when multiple faults are injected.
-     */
-    class CombinedFaultSpecification {
-        private final List<Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3>> requestFaults;
+    default void performSingleExceptionChecking(JSONObject rpcWhereFaultInjected, StatusRuntimeException statusRuntimeException) {
+        // Get actual status.
+        Status actualStatus = statusRuntimeException.getStatus();
 
-        public CombinedFaultSpecification(Builder builder){
-            this.requestFaults = builder.requestFaults;
+        // Did the user indicate propagation of faults?
+        FaultKey faultKeyIndicatingPropagationOfFaults = didUserIndicatePropagationOfFault(rpcWhereFaultInjected);
+
+        if (faultKeyIndicatingPropagationOfFaults != null) {
+            validatePropagationOfFault(rpcWhereFaultInjected, actualStatus);
         }
 
-        public List<Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3>> getRequestFaults() {
-            return this.requestFaults;
+        // Did the user indicate that this fault will result in exception?
+        List<FaultKey> faultKeysIndicatingThrownExceptionFromFault = didUserIndicateThrownExceptionForFault(rpcWhereFaultInjected);
+
+        if (faultKeysIndicatingThrownExceptionFromFault.size() > 0) {
+            validateThrownException(faultKeysIndicatingThrownExceptionFromFault, actualStatus);
         }
 
-        /**
-         * Builder for creation of a {@link CombinedFaultSpecification} that can be used with {@link #onFaultOnRequests(CombinedFaultSpecification, Runnable) onFaultOnRequests} method.
-         */
-        public static class Builder {
-            List<Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3>> requestFaults = new ArrayList<>();
+        if (faultKeyIndicatingPropagationOfFaults == null && faultKeysIndicatingThrownExceptionFromFault.size() == 0) {
+            throw new FilibusterGrpcThrownExceptionHasUnspecifiedFailureBehaviorException(statusRuntimeException);
+        }
 
-            /**
-             * Add a specific request fault to the {@link CombinedFaultSpecification}.
-             *
-             * @param methodDescriptor a GRPC method descriptor
-             * @param request the request
-             * @return {@link Builder}
-             */
-            @CanIgnoreReturnValue
-            public Builder faultOnRequest(
-                    MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3> methodDescriptor,
-                    GeneratedMessageV3 request) {
-                Map.Entry<MethodDescriptor<? extends GeneratedMessageV3, ? extends GeneratedMessageV3>, ? extends GeneratedMessageV3> fault = Pair.of(methodDescriptor, request);
-                requestFaults.add(fault);
-                return this;
-            }
+        if (faultKeyIndicatingPropagationOfFaults != null && faultKeysIndicatingThrownExceptionFromFault.size() > 0) {
+            throw new FilibusterGrpcAmbiguousThrowAndErrorPropagationException();
+        }
 
-            public CombinedFaultSpecification build() {
-                return new CombinedFaultSpecification(this);
+        // Verify that we have assertion block for thrown exception.
+        verifyAssertionBlockForThrownException(statusRuntimeException);
+    }
+
+    default void verifyAssertionBlockForThrownException(StatusRuntimeException statusRuntimeException) {
+        // Get actual status.
+        Status actualStatus = statusRuntimeException.getStatus();
+
+        if (! errorAssertions.containsKey(statusRuntimeException.getStatus().getCode())) {
+            throw new FilibusterGrpcMissingAssertionForStatusCodeException(actualStatus.getCode());
+        }
+
+        // Verify that assertion block runs successfully.
+        for (Map.Entry<Status.Code, Runnable> errorAssertion : errorAssertions.entrySet()) {
+            if (errorAssertion.getKey().equals(statusRuntimeException.getStatus().getCode())) {
+                try {
+                    insideOfErrorAssertionBlock.set(true);
+                    errorAssertion.getValue().run();
+                } catch (Throwable t) {
+                    throw new FilibusterGrpcAssertionsForAssertOnExceptionFailedException(actualStatus.getCode(), t);
+                } finally {
+                    insideOfErrorAssertionBlock.set(false);
+                }
             }
+        }
+
+        // Verify stub invocations.
+        try {
+            Helpers.assertionBlock(this::assertStubBlock);
+        } catch (Throwable t) {
+            throw new FilibusterGrpcAssertionsDidNotHoldUnderErrorResponseException(actualStatus.getCode(), t);
         }
     }
 }

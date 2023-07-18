@@ -4,6 +4,7 @@ package cloud.filibuster.examples;
 
 message PurchaseRequest {
   string session_id = 1;
+  bool abortOnNoDiscount = 2;
 }
 
 message PurchaseResponse {
@@ -29,7 +30,16 @@ message GetUserResponse {
 }
 
 service UserService {
+  rpc ValidateSession (ValidateSessionRequest) returns (ValidateSessionResponse) {}
   rpc GetUserFromSession (GetUserRequest) returns (GetUserResponse) {}
+}
+
+message ValidateSessionRequest {
+  string session_id = 1;
+}
+
+message ValidateSessionResponse {
+
 }
 
 message GetCartRequest {

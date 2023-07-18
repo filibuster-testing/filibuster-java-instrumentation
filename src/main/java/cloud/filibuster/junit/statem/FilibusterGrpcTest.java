@@ -951,16 +951,11 @@ public interface FilibusterGrpcTest {
         }
 
         if (faultKeyIndicatingPropagationOfFaults == null && faultKeysIndicatingThrownExceptionFromFault.size() == 0) {
-            throw new FilibusterGrpcTestRuntimeException(
-                    "Test threw an exception, but no specification of failure behavior present.",
-                    "Use assertFaultThrows(...) to specify failure is expected when fault injected on this method, request or code.",
-                    statusRuntimeException);
+            throw new FilibusterGrpcThrownExceptionHasUnspecifiedFailureBehaviorException(statusRuntimeException);
         }
 
         if (faultKeyIndicatingPropagationOfFaults != null && faultKeysIndicatingThrownExceptionFromFault.size() > 0) {
-            throw new FilibusterGrpcTestRuntimeException(
-                    "Test indicates both throw and error propagation: too ambiguous.",
-                    "Please verify you are only using either assertOnException(...) or assertFaultPropagates(...).");
+            throw new FilibusterGrpcAmbiguousThrowAndErrorPropagationException();
         }
 
         // Verify that we have assertion block for thrown exception.
@@ -972,9 +967,7 @@ public interface FilibusterGrpcTest {
         Status actualStatus = statusRuntimeException.getStatus();
 
         if (! errorAssertions.containsKey(statusRuntimeException.getStatus().getCode())) {
-            throw new FilibusterGrpcTestRuntimeException(
-                    "Missing assertion block for Status.Code." + actualStatus.getCode() + " response.",
-                    "Please write assertOnException(Status.Code." + actualStatus.getCode() + ", Runnable) for the assertions that should hold under this status code.");
+            throw new FilibusterGrpcMissingAssertionForStatusCodeException(actualStatus.getCode());
         }
 
         // Verify that assertion block runs successfully.
@@ -984,10 +977,7 @@ public interface FilibusterGrpcTest {
                     insideOfErrorAssertionBlock.set(true);
                     errorAssertion.getValue().run();
                 } catch (Throwable t) {
-                    throw new FilibusterGrpcTestRuntimeException(
-                            "Assertions for assertOnException failed.",
-                            "Please adjust assertOnException(Status.Code." + actualStatus.getCode() + ", Runnable) for the assertions that should hold under this status code.",
-                            t);
+                    throw new FilibusterGrpcAssertionsForAssertOnExceptionFailedException(actualStatus.getCode(), t);
                 } finally {
                     insideOfErrorAssertionBlock.set(false);
                 }
@@ -998,10 +988,7 @@ public interface FilibusterGrpcTest {
         try {
             Helpers.assertionBlock(this::assertStubBlock);
         } catch (Throwable t) {
-            throw new FilibusterGrpcTestRuntimeException(
-                    "Assertions did not hold under error response.",
-                    "Please adjust assertOnException(Status.Code." + actualStatus.getCode() + ", Runnable) for the assertions that should hold under this status code.",
-                    t);
+            throw new FilibusterGrpcAssertionsDidNotHoldUnderErrorResponseException(actualStatus.getCode(), t);
         }
     }
 }

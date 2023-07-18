@@ -951,6 +951,10 @@ public interface FilibusterGrpcTest {
         // Try to see if the user said something about this particular set of failures.
         List<FaultKey> faultKeysIndicatingThrownExceptionFromFault = findMatchingFaultKeys(faultKeysThatThrow, rpcsWhereFaultsInjected, actualStatus.getCode());
 
+        if (faultKeysIndicatingThrownExceptionFromFault == null) {
+            throw new FilibusterGrpcTestInternalRuntimeException("faultKeysIndicatingThrownExceptionFromFault is null: this could indicate a problem!");
+        }
+
         if (faultKeysIndicatingThrownExceptionFromFault.size() > 0) {
             validateThrownException(faultKeysIndicatingThrownExceptionFromFault, actualStatus);
             verifyAssertionBlockForThrownException(statusRuntimeException);

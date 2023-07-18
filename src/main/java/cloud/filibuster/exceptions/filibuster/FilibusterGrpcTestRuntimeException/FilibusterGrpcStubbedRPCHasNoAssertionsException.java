@@ -20,7 +20,7 @@ public class FilibusterGrpcStubbedRPCHasNoAssertionsException extends Filibuster
     }
 
     @Override
-    protected String getFixMessage() {
+    public String getFixMessage() {
         return null;
     }
 }

@@ -19,7 +19,7 @@ public class FilibusterGrpcFailedRPCException extends FilibusterGrpcTestRuntimeE
     }
 
     @Override
-    protected String getFixMessage() {
+    public String getFixMessage() {
         return null;
     }
 }

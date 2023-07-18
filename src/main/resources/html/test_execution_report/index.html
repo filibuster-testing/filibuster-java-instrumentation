@@ -159,9 +159,10 @@
         }
 
         .fixMessage {
-            height: 100px;
+            height: auto;
+            overflow: auto;
             margin-bottom: 10px;
-            background: #84bb7b;
+            background: #a3d298;
         }
 	</style>
 </head>
@@ -248,7 +249,7 @@
                 let selectedFailure = analysis.failures[selectedFailureIndex];
                 $("#failureStackTrace").html(`<textarea class="stacktrace" readonly>${selectedFailure.assertion_failure_stacktrace}</textarea>`)
                 $("#failureStackTrace").append(`<p>Possible ways to fix that failure:</p>`)
-                $("#failureStackTrace").append(`<textarea class="fixMessage" readonly>${selectedFailure.assertion_failure_stacktrace}</textarea>`)
+                $("#failureStackTrace").append(`<textarea class="fixMessage" readonly>${selectedFailure.assertion_failure_fix_message}</textarea>`)
                 $("#failureStackTrace").toggle();
             }
 

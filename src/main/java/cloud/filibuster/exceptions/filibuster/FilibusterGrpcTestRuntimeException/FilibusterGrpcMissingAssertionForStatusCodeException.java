@@ -23,7 +23,7 @@ public class FilibusterGrpcMissingAssertionForStatusCodeException extends Filibu
     }
 
     @Override
-    protected String getFixMessage() {
+    public String getFixMessage() {
         return null;
     }
 }

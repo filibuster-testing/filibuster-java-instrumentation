@@ -35,5 +35,5 @@ public abstract class FilibusterGrpcTestRuntimeException extends FilibusterRunti
     /**
      * Returns the fix message for the exception.
      */
-    abstract protected String getFixMessage();
+    abstract public String getFixMessage();
 }

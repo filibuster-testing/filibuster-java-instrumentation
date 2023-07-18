@@ -21,7 +21,7 @@ public class FilibusterGrpcAmbiguousFailureHandlingException extends FilibusterG
     }
 
     @Override
-    protected String getFixMessage() {
+    public String getFixMessage() {
         return null;
     }
 }

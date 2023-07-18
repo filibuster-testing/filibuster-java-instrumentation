@@ -20,7 +20,7 @@ public class FilibusterGrpcThrownExceptionHasUnspecifiedFailureBehaviorException
     }
 
     @Override
-    protected String getFixMessage() {
-        return null;
+    public String getFixMessage() {
+        return "THIS IS A FIX MESSAGE";
     }
 }

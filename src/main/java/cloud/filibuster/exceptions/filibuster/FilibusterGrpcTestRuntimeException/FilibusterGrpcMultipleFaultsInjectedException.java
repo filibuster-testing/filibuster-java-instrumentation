@@ -19,7 +19,7 @@ public class FilibusterGrpcMultipleFaultsInjectedException extends FilibusterGrp
     }
 
     @Override
-    protected String getFixMessage() {
+    public String getFixMessage() {
         return null;
     }
 }

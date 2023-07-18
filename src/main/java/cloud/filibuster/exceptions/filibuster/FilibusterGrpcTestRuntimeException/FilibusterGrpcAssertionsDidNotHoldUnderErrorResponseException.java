@@ -23,7 +23,7 @@ public class FilibusterGrpcAssertionsDidNotHoldUnderErrorResponseException exten
     }
 
     @Override
-    protected String getFixMessage() {
+    public String getFixMessage() {
         return null;
     }
 }

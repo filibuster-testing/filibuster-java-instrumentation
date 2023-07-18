@@ -20,7 +20,7 @@ public class FilibusterGrpcSuppressedStatusCodeException extends FilibusterGrpcT
     }
 
     @Override
-    protected String getFixMessage() {
+    public String getFixMessage() {
         return null;
     }
 }

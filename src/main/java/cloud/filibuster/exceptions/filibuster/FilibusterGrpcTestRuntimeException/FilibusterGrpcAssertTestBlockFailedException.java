@@ -19,7 +19,7 @@ public class FilibusterGrpcAssertTestBlockFailedException extends FilibusterGrpc
     }
 
     @Override
-    protected String getFixMessage() {
+    public String getFixMessage() {
         return null;
     }
 }

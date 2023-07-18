@@ -20,7 +20,7 @@ public class FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionException exte
     }
 
     @Override
-    protected String getFixMessage() {
+    public String getFixMessage() {
         return null;
     }
 }

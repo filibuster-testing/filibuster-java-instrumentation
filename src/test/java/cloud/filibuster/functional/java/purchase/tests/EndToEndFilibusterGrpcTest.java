@@ -39,11 +39,11 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
         // Single faults.
 
         // Failure of the getUserFromSession call results in upstream receiving UNAVAILABLE exception.
-//        assertFaultThrows(
-//                UserServiceGrpc.getGetUserFromSessionMethod(),
-//                Status.Code.UNAVAILABLE,
-//                "Purchase could not be completed at this time, please retry the request: user could not be retrieved."
-//        );
+        assertFaultThrows(
+                UserServiceGrpc.getGetUserFromSessionMethod(),
+                Status.Code.UNAVAILABLE,
+                "Purchase could not be completed at this time, please retry the request: user could not be retrieved."
+        );
 
         // State what the state of the system was on UNAVAILABLE.
         assertOnException(Status.Code.UNAVAILABLE, () -> {

@@ -30,4 +30,9 @@ public class FilibusterGrpcAmbiguousFailureHandlingException extends FilibusterG
                     "</li>" +
                 "</ul>";
     }
+
+    @Override
+    protected String getFixMessage() {
+        return null;
+    }
 }

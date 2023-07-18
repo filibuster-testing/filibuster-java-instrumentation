@@ -881,7 +881,10 @@ public interface FilibusterGrpcTest {
         }
     }
 
-    default void validateThrownException(List<FaultKey> matchingFaultKeys, Status actualStatus) {
+    default void validateThrownException(List<FaultKey> matchingFaultKeys, StatusRuntimeException statusRuntimeException) {
+        // Get status.
+        Status actualStatus = statusRuntimeException.getStatus();
+
         // Find a status that matches the error code and description.
         boolean foundMatchingExpectedStatus = false;
 
@@ -906,7 +909,8 @@ public interface FilibusterGrpcTest {
         if (!foundMatchingExpectedStatus) {
             throw new FilibusterGrpcTestRuntimeException(
                     "Failed RPC resulted in exception, but error codes and descriptions did not match.",
-                    "Verify assertFaultThrows(...) and thrown exception match.");
+                    "Verify assertFaultThrows(...) and thrown exception match.",
+                    statusRuntimeException);
         }
     }
 
@@ -922,7 +926,7 @@ public interface FilibusterGrpcTest {
         }
 
         if (faultKeysIndicatingThrownExceptionFromFault.size() > 0) {
-            validateThrownException(faultKeysIndicatingThrownExceptionFromFault, actualStatus);
+            validateThrownException(faultKeysIndicatingThrownExceptionFromFault, statusRuntimeException);
             verifyAssertionBlockForThrownException(statusRuntimeException);
             return;
         }
@@ -956,7 +960,8 @@ public interface FilibusterGrpcTest {
         } else {
             throw new FilibusterGrpcTestRuntimeException(
                     "Compositional verification failed due to ambiguous failure handling: each fault introduced has different impact.",
-                    "Please write an assertOnFaults(...) for this fault combination with appropriate assertions.");
+                    "Please write an assertOnFaults(...) for this fault combination with appropriate assertions.",
+                    statusRuntimeException);
         }
     }
 
@@ -975,7 +980,7 @@ public interface FilibusterGrpcTest {
         List<FaultKey> faultKeysIndicatingThrownExceptionFromFault = didUserIndicateThrownExceptionForFault(rpcWhereFaultInjected);
 
         if (faultKeysIndicatingThrownExceptionFromFault.size() > 0) {
-            validateThrownException(faultKeysIndicatingThrownExceptionFromFault, actualStatus);
+            validateThrownException(faultKeysIndicatingThrownExceptionFromFault, statusRuntimeException);
         }
 
         if (faultKeyIndicatingPropagationOfFaults == null && faultKeysIndicatingThrownExceptionFromFault.size() == 0) {

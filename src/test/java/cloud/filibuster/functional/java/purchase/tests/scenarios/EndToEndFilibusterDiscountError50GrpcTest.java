@@ -19,7 +19,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class EndToEndFilibusterNoDiscountGrpcTest extends EndToEndFilibusterGrpcTest {
+public class EndToEndFilibusterDiscountError50GrpcTest extends EndToEndFilibusterGrpcTest {
     // You cannot use this in a superclass because the stupid library doesn't know when to shut down.
     @RegisterExtension
     static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
@@ -69,7 +69,7 @@ public class EndToEndFilibusterNoDiscountGrpcTest extends EndToEndFilibusterGrpc
         Hello.PurchaseRequest request = Hello.PurchaseRequest.newBuilder()
                 .setSessionId(sessionId.toString())
                 .setAbortOnNoDiscount(true)
-                .setAbortOnLessThanDiscountAmount(0)
+                .setAbortOnLessThanDiscountAmount(50)
                 .build();
         response.set(blockingStub.purchase(request));
     }

@@ -455,6 +455,19 @@ public interface FilibusterGrpcTest {
         assertionsByFaultKey.put(new SingleFaultKey<>(methodDescriptor, code, request), runnable);
     }
 
+    /**
+     * Use of this method informs Filibuster that these combined faults will result in possibly
+     * different assertions being true (other than the default block.)  These assertions should be placed in the
+     * associated {@link Runnable}.
+     * This block will replace the assertions in {@link #assertTestBlock()}.
+     * *
+     * @param compositeFaultSpecification {@link CompositeFaultSpecification}
+     * @param runnable assertion block
+     */
+    default void assertOnFault(CompositeFaultSpecification compositeFaultSpecification, Runnable runnable) {
+        assertionsByFaultKey.put(new CompositeFaultKey(compositeFaultSpecification), runnable);
+    }
+
     // *****************************************************************************************************************
     // Fault API: adjusted expectations for GRPC endpoints.
     // *****************************************************************************************************************
@@ -525,23 +538,6 @@ public interface FilibusterGrpcTest {
         } else {
             throw new FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionException();
         }
-    }
-
-    // *****************************************************************************************************************
-    // Fault API: specify faults that contain different assertions for composite faults
-    // *****************************************************************************************************************
-
-    /**
-     * Use of this method informs Filibuster that these combined faults will result in possibly
-     * different assertions being true (other than the default block.)  These assertions should be placed in the
-     * associated {@link Runnable}.
-     * This block will replace the assertions in {@link #assertTestBlock()}.
-     * *
-     * @param compositeFaultSpecification {@link CompositeFaultSpecification}
-     * @param runnable assertion block
-     */
-    default void assertOnFaults(CompositeFaultSpecification compositeFaultSpecification, Runnable runnable) {
-        assertionsByFaultKey.put(new CompositeFaultKey(compositeFaultSpecification), runnable);
     }
 
     // *****************************************************************************************************************

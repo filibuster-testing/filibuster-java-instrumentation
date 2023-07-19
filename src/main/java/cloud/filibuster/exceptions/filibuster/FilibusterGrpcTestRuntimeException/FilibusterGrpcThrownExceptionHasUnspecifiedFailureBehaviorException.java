@@ -21,6 +21,12 @@ public class FilibusterGrpcThrownExceptionHasUnspecifiedFailureBehaviorException
 
     @Override
     public String getFixMessage() {
-        return null;
+        return "<ul>" +
+                    "<li>" +
+                        "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#failureBlock()\">" +
+                            "Place failure specification in failureBlock." +
+                        "</a>" +
+                    "</li>" +
+                "</ul>";
     }
 }

@@ -23,8 +23,18 @@ public class FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionException
     public String getFixMessage() {
         return "<ul>" +
                     "<li>" +
-                        "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#assertTestBlock()\">" +
-                            "Potentially place assertions in assertTestBlock instead of assertOnException." +
+                        "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#assertOnException(io.grpc.Status.Code,java.lang.Runnable)\">" +
+                            "assertOnException(io.grpc.Status.Code code, java.lang.Runnable runnable)" +
+                        "</a>" +
+                    "</li>" +
+                    "<li>" +
+                        "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#sideEffectingRPC(io.grpc.MethodDescriptor,int)\">" +
+                            "sideEffectingRPC(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, int count)" +
+                        "</a>" +
+                    "</li>" +
+                    "<li>" +
+                        "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#sideEffectingRPC(io.grpc.MethodDescriptor,ReqT,int)\">" +
+                            "sideEffectingRPC(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, ReqT request, int count)" +
                         "</a>" +
                     "</li>" +
                 "</ul>";

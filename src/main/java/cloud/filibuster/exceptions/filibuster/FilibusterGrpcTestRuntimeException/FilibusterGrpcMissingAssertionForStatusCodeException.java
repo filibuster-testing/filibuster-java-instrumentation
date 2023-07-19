@@ -25,8 +25,8 @@ public class FilibusterGrpcMissingAssertionForStatusCodeException extends Filibu
     public String getFixMessage() {
         return "<ul>" +
                     "<li>" +
-                        "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#failureBlock()\">" +
-                            "Place failure specification in failureBlock." +
+                        "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#assertOnException(io.grpc.Status.Code,java.lang.Runnable)\">" +
+                            "assertOnException(io.grpc.Status.Code code, java.lang.Runnable runnable)" +
                         "</a>" +
                     "</li>" +
                 "</ul>";

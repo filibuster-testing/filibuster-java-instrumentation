@@ -32,10 +32,5 @@ public class FilibusterGrpcStubbedRPCHasNoAssertionsException extends Filibuster
                             "Set an expectation that a stub will be invoked, with a given request, a particular number of times." +
                         "</a>" +
                     "</li>" +
-                    "<li>" +
-                        "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/GrpcMock.html#stubFor(io.grpc.MethodDescriptor,ReqT,RespT)\">" +
-                            "Stub a GRPC method with a given request providing a particular response." +
-                        "</a>" +
-                    "</li>" +
                 "</ul>";    }
 }

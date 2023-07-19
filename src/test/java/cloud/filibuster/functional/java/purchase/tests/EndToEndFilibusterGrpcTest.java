@@ -244,21 +244,21 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("FIRST-TIME").build())
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build())
                 .build();
-        assertOnFaults(firstTwoCartRequestsFaultSpecification, () -> { assertTestBlock(9900); });
+        assertOnFault(firstTwoCartRequestsFaultSpecification, () -> { assertTestBlock(9900); });
 
         // Failure of the first and third getDiscountOnCart calls results in a 5% discount.
         CompositeFaultSpecification firstAndThirdCartRequestsFaultSpecification = new CompositeFaultSpecification.Builder()
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("FIRST-TIME").build())
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build())
                 .build();
-        assertOnFaults(firstAndThirdCartRequestsFaultSpecification, () -> { assertTestBlock(9500); });
+        assertOnFault(firstAndThirdCartRequestsFaultSpecification, () -> { assertTestBlock(9500); });
 
         // Failure of the second and third getDiscountOnCart calls results in a 10% discount.
         CompositeFaultSpecification secondAndThirdCartRequestsFaultSpecification = new CompositeFaultSpecification.Builder()
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build())
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build())
                 .build();
-        assertOnFaults(secondAndThirdCartRequestsFaultSpecification, () -> { assertTestBlock(9000); });
+        assertOnFault(secondAndThirdCartRequestsFaultSpecification, () -> { assertTestBlock(9000); });
 
         // Failure of all getDiscountOnCart calls results in no discount.
         CompositeFaultSpecification allCartRequestsFaultSpecification = new CompositeFaultSpecification.Builder()
@@ -266,7 +266,7 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build())
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build())
                 .build();
-        assertOnFaults(
+        assertOnFault(
                 allCartRequestsFaultSpecification,
                 () -> {
                     assertTestBlock(10000);

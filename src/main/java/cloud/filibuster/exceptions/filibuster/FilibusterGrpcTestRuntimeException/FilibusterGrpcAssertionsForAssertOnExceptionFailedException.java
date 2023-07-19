@@ -23,6 +23,12 @@ public class FilibusterGrpcAssertionsForAssertOnExceptionFailedException extends
 
     @Override
     public String getFixMessage() {
-        return null;
+        return "<ul>" +
+                    "<li>" +
+                        "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#assertTestBlock()\">" +
+                            "Place test assertions in assertTestBlock.\n." +
+                        "</a>" +
+                    "</li>" +
+                "</ul>";
     }
 }

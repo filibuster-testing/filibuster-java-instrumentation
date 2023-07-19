@@ -20,6 +20,17 @@ public class FilibusterGrpcAssertOnFaultException extends FilibusterGrpcTestRunt
 
     @Override
     public String getFixMessage() {
-        return null;
+        return "<ul>" +
+                    "<li>" +
+                        "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#assertStubBlock()\">" +
+                            "Use the test assertStubBlock for performing assertions on stub invocations." +
+                        "</a>" +
+                    "</li>" +
+                    "<li>" +
+                        "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#assertTestBlock()\">" +
+                            "Place test assertion in assertTestBlock." +
+                        "</a>" +
+                    "</li>" +
+                "</ul>";
     }
 }

@@ -30,5 +30,4 @@ public class FilibusterGrpcAmbiguousFailureHandlingException extends FilibusterG
                     "</li>" +
                 "</ul>";
     }
-
 }

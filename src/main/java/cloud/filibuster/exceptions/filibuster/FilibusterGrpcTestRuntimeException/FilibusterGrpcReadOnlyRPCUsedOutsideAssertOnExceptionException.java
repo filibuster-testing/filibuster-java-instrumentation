@@ -24,17 +24,17 @@ public class FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionException exte
         return "<ul>" +
                     "<li>" +
                         "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#assertOnException(io.grpc.Status.Code,java.lang.Runnable)\">" +
-                            "assertOnException(io.grpc.Status.Code code, java.lang.Runnable runnable)" +
+                            "Rewrite your code to use readOnlyRPC in assertOnException(io.grpc.Status.Code code, java.lang.Runnable runnable)." +
                         "</a>" +
                     "</li>" +
                     "<li>" +
                         "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#readOnlyRPC(io.grpc.MethodDescriptor)\">" +
-                            "readOnlyRPC(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor)" +
+                            "Use readOnlyRPC(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor) only inside assertOnException." +
                         "</a>" +
                     "</li>" +
                     "<li>" +
                         "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#readOnlyRPC(io.grpc.MethodDescriptor,ReqT)\">" +
-                            "readOnlyRPC(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, ReqT request)" +
+                            "Use readOnlyRPC(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, ReqT request) only inside assertOnException." +
                         "</a>" +
                     "</li>" +
                 "</ul>";

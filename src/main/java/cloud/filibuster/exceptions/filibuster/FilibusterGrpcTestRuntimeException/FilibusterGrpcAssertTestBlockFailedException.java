@@ -23,7 +23,7 @@ public class FilibusterGrpcAssertTestBlockFailedException extends FilibusterGrpc
         return "<ul>" +
                     "<li>" +
                         "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#assertTestBlock()\">" +
-                            "Place test assertion in assertTestBlock." +
+                            "Adjust assertions in assertTestBlock." +
                         "</a>" +
                     "</li>" +
                 "</ul>";

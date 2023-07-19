@@ -26,7 +26,7 @@ public class FilibusterGrpcAssertionsDidNotHoldUnderErrorResponseException exten
         return "<ul>" +
                     "<li>" +
                         "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#assertOnException(io.grpc.Status.Code,java.lang.Runnable)\">" +
-                            "assertOnException(io.grpc.Status.Code code, java.lang.Runnable runnable)" +
+                            "Adjust assertOnException for the current status code." +
                         "</a>" +
                     "</li>" +
                 "</ul>";

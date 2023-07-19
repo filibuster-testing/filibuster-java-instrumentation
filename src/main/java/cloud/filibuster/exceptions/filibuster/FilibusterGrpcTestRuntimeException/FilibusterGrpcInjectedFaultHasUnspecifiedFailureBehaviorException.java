@@ -23,42 +23,42 @@ public class FilibusterGrpcInjectedFaultHasUnspecifiedFailureBehaviorException e
         return "<ul>" +
                     "<li>" +
                         "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#assertOnFault(io.grpc.MethodDescriptor,io.grpc.Status.Code,java.lang.Runnable)\">" +
-                            "assertOnFault(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, io.grpc.Status.Code code, java.lang.Runnable runnable)" +
+                            "Specify assertions under fault using assertOnFault(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, io.grpc.Status.Code code, java.lang.Runnable runnable)." +
                         "</a>" +
                     "</li>" +
                     "<li>" +
                         "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#assertOnFault(io.grpc.MethodDescriptor,io.grpc.Status.Code,ReqT,java.lang.Runnable)\">" +
-                            "assertOnFault(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, io.grpc.Status.Code code, ReqT request, java.lang.Runnable runnable)" +
+                            "Specify assertions under fault using assertOnFault(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, io.grpc.Status.Code code, ReqT request, java.lang.Runnable runnable)." +
                         "</a>" +
                     "</li>" +
                     "<li>" +
                         "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#assertOnFault(io.grpc.MethodDescriptor,java.lang.Runnable)\">" +
-                            "assertOnFault(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, java.lang.Runnable runnable)" +
+                            "Specify assertions under fault using assertOnFault(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, java.lang.Runnable runnable)." +
                         "</a>" +
                     "</li>" +
                     "<li>" +
                         "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#assertOnFault(io.grpc.MethodDescriptor,ReqT,java.lang.Runnable)\">" +
-                            "assertOnFault(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, ReqT request, java.lang.Runnable runnable)" +
+                            "Specify assertions under fault using assertOnFault(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, ReqT request, java.lang.Runnable runnable)." +
                         "</a>" +
                     "</li>" +
                     "<li>" +
                         "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#assertFaultHasNoImpact(io.grpc.MethodDescriptor)\">" +
-                            "assertFaultHasNoImpact(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor)" +
+                            "Specify assertions under fault using assertFaultHasNoImpact(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor)." +
                         "</a>" +
                     "</li>" +
                     "<li>" +
                         "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#assertFaultHasNoImpact(io.grpc.MethodDescriptor,io.grpc.Status.Code)\">" +
-                            "assertFaultHasNoImpact(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, io.grpc.Status.Code code)" +
+                            "Specify assertions under fault using assertFaultHasNoImpact(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, io.grpc.Status.Code code)." +
                         "</a>" +
                     "</li>" +
                     "<li>" +
                         "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#assertFaultHasNoImpact(io.grpc.MethodDescriptor,io.grpc.Status.Code,ReqT)\">" +
-                            "assertFaultHasNoImpact(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, io.grpc.Status.Code code, ReqT request)" +
+                            "Specify assertions under fault using assertFaultHasNoImpact(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, io.grpc.Status.Code code, ReqT request)." +
                         "</a>" +
                     "</li>" +
                     "<li>" +
                         "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#assertFaultHasNoImpact(io.grpc.MethodDescriptor,ReqT)\">" +
-                            "assertFaultHasNoImpact(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, ReqT request)" +
+                            "Specify assertions under fault using assertFaultHasNoImpact(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, ReqT request)." +
                         "</a>" +
                     "</li>" +
                 "</ul>";

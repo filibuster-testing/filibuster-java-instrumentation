@@ -24,7 +24,7 @@ public class FilibusterGrpcSuppressedStatusCodeException extends FilibusterGrpcT
         return "<ul>" +
                     "<li>" +
                         "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#assertFaultPropagates(io.grpc.MethodDescriptor)\">" +
-                            "assertFaultPropagates(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor)." +
+                            "Ensure correct use of assertFaultPropagates." +
                         "</a>" +
                     "</li>" +
                 "</ul>";

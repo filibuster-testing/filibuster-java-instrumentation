@@ -32,5 +32,6 @@ public class FilibusterGrpcStubbedRPCHasNoAssertionsException extends Filibuster
                             "Set an expectation that a stub will be invoked, with a given request, a particular number of times." +
                         "</a>" +
                     "</li>" +
-                "</ul>";    }
+                "</ul>";
+    }
 }

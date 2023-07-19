@@ -23,27 +23,27 @@ public class FilibusterGrpcFailedRPCException extends FilibusterGrpcTestRuntimeE
         return "<ul>" +
                     "<li>" +
                         "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#assertFaultThrows(cloud.filibuster.junit.statem.CompositeFaultSpecification,io.grpc.Status.Code,java.lang.String)\">" +
-                            "assertFaultThrows(CompositeFaultSpecification compositeFaultSpecification, io.grpc.Status.Code thrownCode, java.lang.String thrownMessage)" +
+                            "Verify thrown exception matches assertFaultThrows(CompositeFaultSpecification compositeFaultSpecification, io.grpc.Status.Code thrownCode, java.lang.String thrownMessage)" +
                         "</a>" +
                     "</li>" +
                     "<li>" +
                         "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#assertFaultThrows(io.grpc.MethodDescriptor,io.grpc.Status.Code,io.grpc.Status.Code,java.lang.String)\">" +
-                            "assertFaultThrows(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, io.grpc.Status.Code code, io.grpc.Status.Code thrownCode, java.lang.String thrownMessage)" +
+                            "Verify thrown exception matches assertFaultThrows(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, io.grpc.Status.Code code, io.grpc.Status.Code thrownCode, java.lang.String thrownMessage)" +
                         "</a>" +
                     "</li>" +
                     "<li>" +
                         "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#assertFaultThrows(io.grpc.MethodDescriptor,io.grpc.Status.Code,java.lang.String)\">" +
-                            "assertFaultThrows(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, io.grpc.Status.Code thrownCode, java.lang.String thrownMessage)" +
+                            "Verify thrown exception matches assertFaultThrows(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, io.grpc.Status.Code thrownCode, java.lang.String thrownMessage)" +
                         "</a>" +
                     "</li>" +
                     "<li>" +
                         "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#assertFaultThrows(io.grpc.MethodDescriptor,io.grpc.Status.Code,ReqT,io.grpc.Status.Code,java.lang.String)\">" +
-                            "assertFaultThrows(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, io.grpc.Status.Code code, ReqT request, io.grpc.Status.Code thrownCode, java.lang.String thrownMessage)" +
+                            "Verify thrown exception matches assertFaultThrows(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, io.grpc.Status.Code code, ReqT request, io.grpc.Status.Code thrownCode, java.lang.String thrownMessage)" +
                         "</a>" +
                     "</li>" +
                     "<li>" +
                         "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#assertFaultThrows(io.grpc.MethodDescriptor,ReqT,io.grpc.Status.Code,java.lang.String)\">" +
-                            "assertFaultThrows(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, ReqT request, io.grpc.Status.Code thrownCode, java.lang.String thrownMessage)" +
+                            "Verify thrown exception matches assertFaultThrows(io.grpc.MethodDescriptor<ReqT,ResT> methodDescriptor, ReqT request, io.grpc.Status.Code thrownCode, java.lang.String thrownMessage)" +
                         "</a>" +
                     "</li>" +
                 "</ul>";

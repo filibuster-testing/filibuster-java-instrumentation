@@ -25,7 +25,7 @@ public class FilibusterGrpcAmbiguousFailureHandlingException extends FilibusterG
         return "<ul>" +
                     "<li>" +
                         "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#assertOnFaults(cloud.filibuster.junit.statem.CompositeFaultSpecification,java.lang.Runnable)\">" +
-                            "assertOnFaults(CompositeFaultSpecification compositeFaultSpecification, java.lang.Runnable runnable)." +
+                            "Write an assertOnFaults for the current fault combination." +
                         "</a>" +
                     "</li>" +
                 "</ul>";

@@ -23,7 +23,7 @@ public final class FilibusterGrpcInvokedRPCUnimplementedException extends Filibu
         return "<ul>" +
                     "<li>" +
                         "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/GrpcMock.html#stubFor(io.grpc.MethodDescriptor,ReqT,RespT)\">" +
-                            "Stub a GRPC method with a given request providing a particular response." +
+                            "Stub a GRPC method with a given request providing a particular response using stubFor." +
                         "</a>" +
                     "</li>" +
                 "</ul>";

@@ -14,7 +14,7 @@ import static org.grpcmock.GrpcMock.unaryMethod;
 
 /**
  * Filibuster wrapper for {@link org.grpcmock.GrpcMock Grpc} with a slightly different interface to allow
- * for dynamically adjusting mocks when fault sare injected.  Designed for use with {@link FilibusterGrpcTest} and
+ * for dynamically adjusting mocks when faults are injected. Designed for use with {@link FilibusterGrpcTest} and
  * will not work in isolation (at the moment!)
  */
 public class GrpcMock {

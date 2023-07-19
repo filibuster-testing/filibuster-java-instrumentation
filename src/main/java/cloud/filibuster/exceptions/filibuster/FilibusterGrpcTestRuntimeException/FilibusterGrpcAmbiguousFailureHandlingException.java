@@ -22,6 +22,17 @@ public class FilibusterGrpcAmbiguousFailureHandlingException extends FilibusterG
 
     @Override
     public String getFixMessage() {
-        return null;
+        return "<ul>" +
+                    "<li>" +
+                        "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/GrpcMock.html#stubFor(io.grpc.MethodDescriptor,ReqT,RespT)\">" +
+                            "Stub a GRPC method with a given request providing a particular response." +
+                        "</a>" +
+                    "</li>" +
+                    "<li>" +
+                        "<a target=\"_blank\" href=\"https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/GrpcMock.html#verifyThat(io.grpc.MethodDescriptor,ReqT,int)\">" +
+                            "Set an expectation that a stub will be invoked, with a given request, a particular number of times." +
+                        "</a>" +
+                    "</li>" +
+                "</ul>";
     }
 }

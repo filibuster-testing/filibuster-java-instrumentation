@@ -6,22 +6,17 @@ import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.functional.java.purchase.PurchaseBaseTest;
 
-import cloud.filibuster.functional.java.purchase.configurations.GRPCAnalysisConfigurationFile;
+import cloud.filibuster.junit.statem.CompositeFaultSpecification;
 import cloud.filibuster.junit.statem.FilibusterGrpcTest;
-import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.functional.java.purchase.PurchaseWorkflow;
-import cloud.filibuster.junit.FilibusterSearchStrategy;
-import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.statem.GrpcMock;
 
+import cloud.filibuster.junit.statem.GrpcMock;
 import io.grpc.Status;
-import org.grpcmock.junit5.GrpcMockExtension;
 import org.json.JSONObject;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static cloud.filibuster.junit.statem.GrpcMock.stubFor;
 import static cloud.filibuster.junit.statem.GrpcMock.verifyThat;
@@ -30,55 +25,153 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements FilibusterGrpcTest {
-    @RegisterExtension
-    static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
-            .withPort(Networking.getPort("mock"))
-            .build();
-
-    private final UUID sessionId = UUID.randomUUID();
-    private final UUID consumerId = UUID.randomUUID();
-    private final UUID merchantId = UUID.randomUUID();
-    private final UUID cartId = UUID.randomUUID();
-    private final AtomicReference<Hello.PurchaseResponse> response = new AtomicReference<>();
+    public final UUID sessionId = UUID.randomUUID();
+    protected final UUID consumerId = UUID.randomUUID();
+    protected final UUID merchantId = UUID.randomUUID();
+    public final UUID cartId = UUID.randomUUID();
 
     @Override
     public void failureBlock() {
+        // Generate random so we can sample different variations of this API across
+        // the different Filibuster executions.
+        Random random = new Random();
+
         // Single faults.
 
         // Failure of the getUserFromSession call results in upstream receiving UNAVAILABLE exception.
-        downstreamFailureResultsInException(
+        assertFaultThrows(
                 UserServiceGrpc.getGetUserFromSessionMethod(),
                 Status.Code.UNAVAILABLE,
-                "Purchase could not be completed at this time, please retry the request: user could not be retrieved.");
-
-        // Updated list of assertions when UNAVAILABLE is returned to user.
-        onExceptionReturnedToUpstream(
-                Status.Code.UNAVAILABLE,
-                () -> {
-                    // If we return unavailable, we should never invoke any of these downstream dependencies.
-                    GrpcMock.adjustExpectation(CartServiceGrpc.getGetCartForSessionMethod(), 0);
-                    for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
-                        Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
-                                .setCode(discountCode.getKey())
-                                .build();
-                        GrpcMock.adjustExpectation(CartServiceGrpc.getGetDiscountOnCartMethod(), request, 0);
-                    }
-                    GrpcMock.adjustExpectation(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
-
-                    // Verify transaction did not occur.
-                    assertEquals(20000, PurchaseWorkflow.getAccountBalance(consumerId));
-                    assertEquals(0, PurchaseWorkflow.getAccountBalance(merchantId));
-                }
+                "Purchase could not be completed at this time, please retry the request: user could not be retrieved."
         );
 
+        // State what the state of the system was on UNAVAILABLE.
+        assertOnException(Status.Code.UNAVAILABLE, () -> {
+            // Verify transaction did not occur.
+            assertEquals(20000, PurchaseWorkflow.getAccountBalance(consumerId));
+            assertEquals(0, PurchaseWorkflow.getAccountBalance(merchantId));
+        });
+
+        // State what the state of the system was on UNAVAILABLE.
+        assertOnException(Status.Code.UNAVAILABLE, () -> {
+            // Verify transaction did not occur.
+            assertEquals(20000, PurchaseWorkflow.getAccountBalance(consumerId));
+            assertEquals(0, PurchaseWorkflow.getAccountBalance(merchantId));
+
+            // Notify the system some endpoints are read-only and therefore OK to skip
+            // when we return a failure.
+            readOnlyRPC(UserServiceGrpc.getValidateSessionMethod());
+        });
+
+        // State what the state of the system was on UNAVAILABLE.
+        assertOnException(Status.Code.UNAVAILABLE, () -> {
+            // Verify transaction did not occur.
+            assertEquals(20000, PurchaseWorkflow.getAccountBalance(consumerId));
+            assertEquals(0, PurchaseWorkflow.getAccountBalance(merchantId));
+
+            // Notify the system some endpoints are read-only and therefore OK to skip
+            // when we return a failure.
+            readOnlyRPC(UserServiceGrpc.getValidateSessionMethod());
+            readOnlyRPC(CartServiceGrpc.getGetCartForSessionMethod());
+        });
+
+        // State what the state of the system was on UNAVAILABLE.
+        assertOnException(Status.Code.UNAVAILABLE, () -> {
+            // Verify transaction did not occur.
+            assertEquals(20000, PurchaseWorkflow.getAccountBalance(consumerId));
+            assertEquals(0, PurchaseWorkflow.getAccountBalance(merchantId));
+
+            // Notify the system some endpoints are read-only and therefore OK to skip
+            // when we return a failure.
+            readOnlyRPC(UserServiceGrpc.getValidateSessionMethod());
+            readOnlyRPC(CartServiceGrpc.getGetCartForSessionMethod());
+
+            for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
+                Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
+                        .setCode(discountCode.getKey())
+                        .build();
+                readOnlyRPC(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
+            }
+        });
+
+        // State what the state of the system was on UNAVAILABLE.
+        assertOnException(Status.Code.UNAVAILABLE, () -> {
+            // Verify transaction did not occur.
+            assertEquals(20000, PurchaseWorkflow.getAccountBalance(consumerId));
+            assertEquals(0, PurchaseWorkflow.getAccountBalance(merchantId));
+
+            // Notify the system some endpoints are read-only and therefore OK to skip
+            // when we return a failure.
+            readOnlyRPC(UserServiceGrpc.getValidateSessionMethod());
+            readOnlyRPC(CartServiceGrpc.getGetCartForSessionMethod());
+
+            for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
+                Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
+                        .setCode(discountCode.getKey())
+                        .build();
+                readOnlyRPC(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
+            }
+
+            sideEffectingRPC(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
+        });
+
+        // No error handling, propagate back to the upstream.
+        assertFaultPropagates(UserServiceGrpc.getValidateSessionMethod());
+
+        // State what the state of the system was on DEADLINE_EXCEEDED.
+        assertOnException(Status.Code.DEADLINE_EXCEEDED, () -> {
+            // Verify transaction did not occur.
+            assertEquals(20000, PurchaseWorkflow.getAccountBalance(consumerId));
+            assertEquals(0, PurchaseWorkflow.getAccountBalance(merchantId));
+
+            // Notify the system some endpoints are read-only and therefore OK to skip
+            // when we return a failure.
+            readOnlyRPC(UserServiceGrpc.getValidateSessionMethod());
+            readOnlyRPC(CartServiceGrpc.getGetCartForSessionMethod());
+
+            for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
+                Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
+                        .setCode(discountCode.getKey())
+                        .build();
+                readOnlyRPC(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
+            }
+
+            sideEffectingRPC(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
+        });
+
         // Failure of the getCartFromSession call results in upstream receiving UNAVAILABLE exception.
-        downstreamFailureResultsInException(
+        assertFaultThrows(
                 CartServiceGrpc.getGetCartForSessionMethod(),
                 Status.Code.UNAVAILABLE,
-                "Purchase could not be completed at this time, please retry the request: cart could not be retrieved.");
+                Status.Code.UNAVAILABLE,
+                "Purchase could not be completed at this time, please retry the request: cart could not be retrieved."
+        );
+
+        // We can use two different variations for the DEADLINE_EXCEEDED exception.
+        // The first, will catch all exceptions because it's by request, the second by error code.
+        //
+        // Randomly sample the two different APIs across Filibuster just as a form of
+        // regression test.
+        //
+        if (random.nextBoolean()) {
+            assertFaultThrows(
+                    CartServiceGrpc.getGetCartForSessionMethod(),
+                    Hello.GetCartRequest.newBuilder().setSessionId(sessionId.toString()).build(),
+                    Status.Code.UNAVAILABLE,
+                    "Purchase could not be completed at this time, please retry the request: cart could not be retrieved."
+            );
+        } else {
+            assertFaultThrows(
+                    CartServiceGrpc.getGetCartForSessionMethod(),
+                    Status.Code.DEADLINE_EXCEEDED,
+                    Hello.GetCartRequest.newBuilder().setSessionId(sessionId.toString()).build(),
+                    Status.Code.UNAVAILABLE,
+                    "Purchase could not be completed at this time, please retry the request: cart could not be retrieved."
+            );
+        }
 
         // Failure of the first getDiscountOnCart call results in a 5% discount.
-        onFaultOnRequest(
+        assertOnFault(
                 CartServiceGrpc.getGetDiscountOnCartMethod(),
                 Hello.GetDiscountRequest.newBuilder()
                         .setCode("FIRST-TIME")
@@ -86,57 +179,94 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
                 () -> { assertTestBlock(9500); }
         );
 
-        // Failure of the second getDiscountOnCart call results in a 10% discount.
-        onFaultOnRequest(
-                CartServiceGrpc.getGetDiscountOnCartMethod(),
-                Hello.GetDiscountRequest.newBuilder()
-                        .setCode("RETURNING")
-                        .build(),
-                this::assertTestBlock
-        );
+        // Failure of the second or third getDiscountOnCart call results in a 10% discount.
+        // We can write this several different ways too.
+        //
+        // Randomly sample the two different APIs across Filibuster just as a form of
+        // regression test.
+        //
+        if (random.nextBoolean()) {
+            assertOnFault(
+                    CartServiceGrpc.getGetDiscountOnCartMethod(),
+                    this::assertTestBlock
+            );
+        } else {
+            assertOnFault(
+                    CartServiceGrpc.getGetDiscountOnCartMethod(),
+                    Status.Code.UNAVAILABLE,
+                    Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build(),
+                    this::assertTestBlock
+            );
 
-        // Failure of the third getDiscountOnCart call results in a 10% discount.
-        onFaultOnRequest(
-                CartServiceGrpc.getGetDiscountOnCartMethod(),
-                Hello.GetDiscountRequest.newBuilder()
-                        .setCode("DAILY")
-                        .build(),
-                this::assertTestBlock
-        );
+            assertOnFault(
+                    CartServiceGrpc.getGetDiscountOnCartMethod(),
+                    Status.Code.UNAVAILABLE,
+                    Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build(),
+                    this::assertTestBlock
+            );
+
+            assertOnFault(
+                    CartServiceGrpc.getGetDiscountOnCartMethod(),
+                    Status.Code.DEADLINE_EXCEEDED,
+                    this::assertTestBlock
+            );
+        }
 
         // Failure of the getNotifyDiscountAppliedMethod has no effect.
-        onFaultOnMethodHasNoEffect(CartServiceGrpc.getNotifyDiscountAppliedMethod());
+        // We can write this several different ways too.
+        //
+        // Randomly sample the two different APIs across Filibuster just as a form of
+        // regression test.
+        //
+        boolean bool1 = random.nextBoolean();
+        boolean bool2 = random.nextBoolean();
+
+        if (bool1 && bool2) {
+            assertFaultHasNoImpact(
+                    CartServiceGrpc.getNotifyDiscountAppliedMethod(),
+                    Status.Code.UNAVAILABLE,
+                    Hello.NotifyDiscountAppliedRequest.newBuilder().setCartId(cartId.toString()).build());
+            assertFaultHasNoImpact(
+                    CartServiceGrpc.getNotifyDiscountAppliedMethod(),
+                    Status.Code.DEADLINE_EXCEEDED);
+        } else if (bool1 || bool2) {
+            assertFaultHasNoImpact(
+                    CartServiceGrpc.getNotifyDiscountAppliedMethod(),
+                    Hello.NotifyDiscountAppliedRequest.newBuilder().setCartId(cartId.toString()).build());
+        } else {
+            assertFaultHasNoImpact(CartServiceGrpc.getNotifyDiscountAppliedMethod());
+        }
 
         // Multiple faults.
 
         // Failure of the first two getDiscountOnCart calls results in a 1% discount.
-        CombinedFaultSpecification firstTwoCartRequestsFaultSpecification = new CombinedFaultSpecification.Builder()
+        CompositeFaultSpecification firstTwoCartRequestsFaultSpecification = new CompositeFaultSpecification.Builder()
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("FIRST-TIME").build())
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build())
                 .build();
-        onFaultOnRequests(firstTwoCartRequestsFaultSpecification, () -> { assertTestBlock(9900); });
+        assertOnFaults(firstTwoCartRequestsFaultSpecification, () -> { assertTestBlock(9900); });
 
         // Failure of the first and third getDiscountOnCart calls results in a 5% discount.
-        CombinedFaultSpecification firstAndThirdCartRequestsFaultSpecification = new CombinedFaultSpecification.Builder()
+        CompositeFaultSpecification firstAndThirdCartRequestsFaultSpecification = new CompositeFaultSpecification.Builder()
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("FIRST-TIME").build())
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build())
                 .build();
-        onFaultOnRequests(firstAndThirdCartRequestsFaultSpecification, () -> { assertTestBlock(9500); });
+        assertOnFaults(firstAndThirdCartRequestsFaultSpecification, () -> { assertTestBlock(9500); });
 
         // Failure of the second and third getDiscountOnCart calls results in a 10% discount.
-        CombinedFaultSpecification secondAndThirdCartRequestsFaultSpecification = new CombinedFaultSpecification.Builder()
+        CompositeFaultSpecification secondAndThirdCartRequestsFaultSpecification = new CompositeFaultSpecification.Builder()
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build())
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build())
                 .build();
-        onFaultOnRequests(secondAndThirdCartRequestsFaultSpecification, () -> { assertTestBlock(9000); });
+        assertOnFaults(secondAndThirdCartRequestsFaultSpecification, () -> { assertTestBlock(9000); });
 
         // Failure of all getDiscountOnCart calls results in no discount.
-        CombinedFaultSpecification allCartRequestsFaultSpecification = new CombinedFaultSpecification.Builder()
+        CompositeFaultSpecification allCartRequestsFaultSpecification = new CompositeFaultSpecification.Builder()
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("FIRST-TIME").build())
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build())
                 .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build())
                 .build();
-        onFaultOnRequests(
+        assertOnFaults(
                 allCartRequestsFaultSpecification,
                 () -> {
                     assertTestBlock(10000);
@@ -160,6 +290,10 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
 
     @Override
     public void stubBlock() {
+        stubFor(UserServiceGrpc.getValidateSessionMethod(),
+                Hello.ValidateSessionRequest.newBuilder().setSessionId(sessionId.toString()).build(),
+                Hello.ValidateSessionResponse.newBuilder().build());
+
         stubFor(UserServiceGrpc.getGetUserFromSessionMethod(),
                 Hello.GetUserRequest.newBuilder().setSessionId(sessionId.toString()).build(),
                 Hello.GetUserResponse.newBuilder().setUserId(consumerId.toString()).build());
@@ -194,15 +328,18 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
         APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(API_CHANNEL);
         Hello.PurchaseRequest request = Hello.PurchaseRequest.newBuilder()
                 .setSessionId(sessionId.toString())
+                .setAbortOnNoDiscount(false)
                 .build();
         response.set(blockingStub.purchase(request));
     }
 
-    private void assertTestBlock(int total) {
+    public void assertTestBlock(int total) {
+        Hello.PurchaseResponse response = (Hello.PurchaseResponse) getResponse();
+
         // Verify response.
-        assertNotNull(response.get());
-        assertTrue(response.get().getSuccess());
-        assertEquals(String.valueOf(total), response.get().getTotal());
+        assertNotNull(response);
+        assertTrue(response.getSuccess());
+        assertEquals(String.valueOf(total), response.getTotal());
 
         // Verify cache writes.
         JSONObject cacheObject = PurchaseWorkflow.getCacheObjectForUser(consumerId);
@@ -220,6 +357,7 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
 
     @Override
     public void assertStubBlock() {
+        verifyThat(UserServiceGrpc.getValidateSessionMethod(), 1);
         verifyThat(UserServiceGrpc.getGetUserFromSessionMethod(), 1);
         verifyThat(CartServiceGrpc.getGetCartForSessionMethod(), 1);
 
@@ -244,16 +382,5 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
 
         // Reset database state.
         PurchaseWorkflow.deleteAccount(merchantId);
-    }
-
-    @TestWithFilibuster(
-            analysisConfigurationFile = GRPCAnalysisConfigurationFile.class,
-            abortOnFirstFailure = true,
-            maxIterations = 50,
-            dataNondeterminism = true,
-            searchStrategy = FilibusterSearchStrategy.BFS
-    )
-    public void test() {
-        execute();
     }
 }

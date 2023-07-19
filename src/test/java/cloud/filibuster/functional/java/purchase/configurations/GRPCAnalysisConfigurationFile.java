@@ -29,6 +29,7 @@ public class GRPCAnalysisConfigurationFile implements FilibusterAnalysisConfigur
                 .pattern("(.*/.*)")
                 .type("grpc");
         filibusterAnalysisConfigurationBuilderGrpcExceptions.exception("io.grpc.StatusRuntimeException", createGrpcErrorMap("UNAVAILABLE"));
+        filibusterAnalysisConfigurationBuilderGrpcExceptions.exception("io.grpc.StatusRuntimeException", createGrpcErrorMap("DEADLINE_EXCEEDED"));
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderGrpcExceptions.build());
 
         filibusterCustomAnalysisConfigurationFile = filibusterCustomAnalysisConfigurationFileBuilder.build();

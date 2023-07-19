@@ -32,7 +32,9 @@ public class PurchaseWorkflow {
         INSUFFICIENT_FUNDS,
         UNPROCESSED,
         USER_UNAVAILABLE,
-        CART_UNAVAILABLE
+        CART_UNAVAILABLE,
+        NO_DISCOUNT,
+        INSUFFICIENT_DISCOUNT
     }
 
     public static void depositFundsToAccount(UUID account, int amount) {
@@ -77,6 +79,10 @@ public class PurchaseWorkflow {
 
     private final String sessionId;
 
+    private final boolean abortOnNoDiscount;
+
+    private final int abortOnLessThanDiscountAmount;
+
     private final Channel channel;
 
     private final StatefulRedisConnection<String, String> connection;
@@ -87,8 +93,10 @@ public class PurchaseWorkflow {
 
     private PurchaseWorkflowResponse purchaseWorkflowResponse = PurchaseWorkflowResponse.UNPROCESSED;
 
-    public PurchaseWorkflow(String sessionId) {
+    public PurchaseWorkflow(String sessionId, boolean abortOnNoDiscount, int abortOnLessThanDiscountAmount) {
         this.sessionId = sessionId;
+        this.abortOnNoDiscount = abortOnNoDiscount;
+        this.abortOnLessThanDiscountAmount = abortOnLessThanDiscountAmount;
         this.channel = getRpcChannel();
         this.connection = getRedisConnection();
         this.dao = getCockroachDAO();
@@ -106,6 +114,9 @@ public class PurchaseWorkflow {
         } catch (StatusRuntimeException statusRuntimeException) {
             return PurchaseWorkflowResponse.USER_UNAVAILABLE;
         }
+
+        // Validate session, let any errors propagate back to the caller.
+        validateSession(channel, sessionId);
 
         // Get cart.
         try {
@@ -137,12 +148,14 @@ public class PurchaseWorkflow {
 
         // Notify of applied discount.
         if (discountAmount > 0) {
-            CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
-            Hello.NotifyDiscountAppliedRequest notifyDiscountAppliedRequest = Hello.NotifyDiscountAppliedRequest.newBuilder().setCartId(cartId).build();
-            try {
-                cartServiceBlockingStub.notifyDiscountApplied(notifyDiscountAppliedRequest);
-            } catch (StatusRuntimeException statusRuntimeException) {
-                // Nothing, ignore the failure.
+            if (abortOnLessThanDiscountAmount > 0 && discountAmount < abortOnLessThanDiscountAmount) {
+                return PurchaseWorkflowResponse.INSUFFICIENT_DISCOUNT;
+            } else {
+                notifyOfDiscountApplied(channel, cartId);
+            }
+        } else {
+            if (abortOnNoDiscount) {
+                return PurchaseWorkflowResponse.NO_DISCOUNT;
             }
         }
 
@@ -200,10 +213,7 @@ public class PurchaseWorkflow {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private static StatefulRedisConnection<String, String> getRedisConnection() {
-        RedisClientService redisClient = RedisClientService.getInstance();
-
         if (getInstrumentationServerCommunicationEnabledProperty()) {
             // incomplete, needs instrumentation.
             return RedisClientService.getInstance().redisClient.connect();
@@ -240,5 +250,23 @@ public class PurchaseWorkflow {
         CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
         Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder().setCode(discountCode).build();
         return cartServiceBlockingStub.getDiscountOnCart(request);
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private static void notifyOfDiscountApplied(Channel channel, String cartId) {
+        CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
+        Hello.NotifyDiscountAppliedRequest notifyDiscountAppliedRequest = Hello.NotifyDiscountAppliedRequest.newBuilder().setCartId(cartId).build();
+        try {
+            cartServiceBlockingStub.notifyDiscountApplied(notifyDiscountAppliedRequest);
+        } catch (StatusRuntimeException statusRuntimeException) {
+            // Nothing, ignore the failure.
+        }
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private static void validateSession(Channel channel, String sessionId) {
+        UserServiceGrpc.UserServiceBlockingStub userServiceBlockingStub = UserServiceGrpc.newBlockingStub(channel);
+        Hello.ValidateSessionRequest request = Hello.ValidateSessionRequest.newBuilder().setSessionId(sessionId).build();
+        userServiceBlockingStub.validateSession(request);
     }
 }

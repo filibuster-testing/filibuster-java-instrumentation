@@ -175,6 +175,11 @@
             $('tr.collapsable').toggle();
         }
 
+        function underlineIteration(iterationNr) {
+            $(".iteration").css("text-decoration", "")
+            $("#iteration_" + iterationNr).css("text-decoration", "underline")
+        }
+
         $(document).ready(function () {
             console.log(summary);
 
@@ -201,12 +206,13 @@
                 }
 
                 row += '<td>';
-                row += '<a target="test_execution_frame" href="' + report.path + '">' + report.iteration + '</a>';
+                row += '<a target="test_execution_frame" href="' + report.path + '" class="iteration" id="iteration_' + report.iteration + '" onclick="underlineIteration('+report.iteration+');">' + report.iteration + '</a>';
                 row += '</td>';
                 row += '</tr>';
 
                 $('#reports').append(row);
             }
+            underlineIteration("1");
         });
     </script>
 </section>

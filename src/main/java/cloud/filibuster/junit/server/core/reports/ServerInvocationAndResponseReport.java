@@ -6,12 +6,14 @@ import com.google.protobuf.GeneratedMessageV3;
 import io.grpc.Status;
 import org.json.JSONObject;
 
+import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,7 +29,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class ServerInvocationAndResponseReport {
-    private static HashMap<String, Boolean> grpcMethodsInvoked = new HashMap<>();
+    private static final HashMap<String, Boolean> grpcMethodsInvoked = new HashMap<>();
 
     static {
         // TODO: fix hardcoding
@@ -42,8 +44,6 @@ public class ServerInvocationAndResponseReport {
             }
         }
 
-        Set<String> grpcEndpoints = new HashSet<>();
-
         for (Class c : grpcClasses) {
             Method[] methods = c.getDeclaredMethods();
             for (Method method : methods) {
@@ -52,7 +52,6 @@ public class ServerInvocationAndResponseReport {
                 if (matcher.find()) {
                     String strippedMethodName = matcher.group(1);
                     String fullMethodName = c.getName().replace("Grpc", "") + "/" + strippedMethodName;
-                    grpcEndpoints.add(fullMethodName);
                     grpcMethodsInvoked.put(fullMethodName, false);
                 }
             }
@@ -168,13 +167,14 @@ public class ServerInvocationAndResponseReport {
     public static Set<Class> findAllClassesUsingClassLoader(String packageName) {
         InputStream stream = ClassLoader.getSystemClassLoader()
                 .getResourceAsStream(packageName.replaceAll("[.]", "/"));
-        BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
         return reader.lines()
                 .filter(line -> line.endsWith(".class"))
                 .map(line -> getClass(line, packageName))
                 .collect(Collectors.toSet());
     }
 
+    @Nullable
     private static Class getClass(String className, String packageName) {
         try {
             return Class.forName(packageName + "."

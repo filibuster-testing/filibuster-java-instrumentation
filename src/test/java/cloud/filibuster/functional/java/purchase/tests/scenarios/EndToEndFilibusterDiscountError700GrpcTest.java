@@ -19,7 +19,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class EndToEndFilibusterNoDiscountGrpcTest extends EndToEndFilibusterGrpcTest {
+public class EndToEndFilibusterDiscountError700GrpcTest extends EndToEndFilibusterGrpcTest {
     // You cannot use this in a superclass because the stupid library doesn't know when to shut down.
     @RegisterExtension
     static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
@@ -30,16 +30,12 @@ public class EndToEndFilibusterNoDiscountGrpcTest extends EndToEndFilibusterGrpc
     public void failureBlock() {
         super.failureBlock();
 
-        // Combination of three failures using if forces exception.
-        CompositeFaultSpecification allCartRequestsFaultSpecification = new CompositeFaultSpecification.Builder()
-                .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("FIRST-TIME").build())
-                .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build())
-                .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build())
-                .build();
+        // Not enough of a discount if this call fails.
         assertFaultThrows(
-                allCartRequestsFaultSpecification,
+                CartServiceGrpc.getGetDiscountOnCartMethod(),
+                Hello.GetDiscountRequest.newBuilder().setCode("FIRST-TIME").build(),
                 Status.Code.FAILED_PRECONDITION,
-                "Consumer did not get a discount.");
+                "Consumer did not get enough of a discount.");
 
         // State what the state of the system was on UNAVAILABLE.
         assertOnException(Status.Code.FAILED_PRECONDITION, () -> {
@@ -61,6 +57,38 @@ public class EndToEndFilibusterNoDiscountGrpcTest extends EndToEndFilibusterGrpc
 
             sideEffectingRPC(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
         });
+
+        // Combination of three failures using if forces exception.
+        CompositeFaultSpecification firstTwoDiscountRequestsFaultSpecification = new CompositeFaultSpecification.Builder()
+                .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("FIRST-TIME").build())
+                .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build())
+                .build();
+        assertFaultThrows(
+                firstTwoDiscountRequestsFaultSpecification,
+                Status.Code.FAILED_PRECONDITION,
+                "Consumer did not get enough of a discount.");
+
+        // Combination of three failures using if forces exception.
+        CompositeFaultSpecification firstAndThirdDiscountRequestsFaultSpecification = new CompositeFaultSpecification.Builder()
+                .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("FIRST-TIME").build())
+                .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build())
+                .build();
+        assertFaultThrows(
+                firstAndThirdDiscountRequestsFaultSpecification,
+                Status.Code.FAILED_PRECONDITION,
+                "Consumer did not get enough of a discount.");
+
+        // Combination of three failures using if forces exception.
+        CompositeFaultSpecification allDiscountRequestsFaultSpecification = new CompositeFaultSpecification.Builder()
+                .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("FIRST-TIME").build())
+                .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build())
+                .faultOnRequest(CartServiceGrpc.getGetDiscountOnCartMethod(), Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build())
+                .build();
+        assertFaultThrows(
+                allDiscountRequestsFaultSpecification,
+                Status.Code.FAILED_PRECONDITION,
+                "Consumer did not get a discount.");
+
     }
 
     @Override
@@ -69,7 +97,7 @@ public class EndToEndFilibusterNoDiscountGrpcTest extends EndToEndFilibusterGrpc
         Hello.PurchaseRequest request = Hello.PurchaseRequest.newBuilder()
                 .setSessionId(sessionId.toString())
                 .setAbortOnNoDiscount(true)
-                .setAbortOnLessThanDiscountAmount(0)
+                .setAbortOnLessThanDiscountAmount(700)
                 .build();
         response.set(blockingStub.purchase(request));
     }

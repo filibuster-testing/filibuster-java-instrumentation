@@ -15,7 +15,7 @@ public final class FilibusterGrpcInvokedRPCUnimplementedException extends Filibu
     }
 
     private static String getErrorMessage() {
-        return "Invoked RPCs was left UNIMPLEMENTED. Use stubFor to implement stub.";
+        return "Invoked RPCs was left UNIMPLEMENTED. \nUse stubFor to implement stub.";
     }
 
     @Override

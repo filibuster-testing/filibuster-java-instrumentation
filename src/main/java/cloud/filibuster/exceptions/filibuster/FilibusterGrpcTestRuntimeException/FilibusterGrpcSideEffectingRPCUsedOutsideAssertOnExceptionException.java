@@ -16,7 +16,7 @@ public class FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionException
 
     private static String getErrorMessage() {
         return "Use of sideEffectingRPC not allowed outside of assertOnException(...) block. " +
-                "Please rewrite code to specify precise assertions on mock invocations.";
+                "\nPlease rewrite code to specify precise assertions on mock invocations.";
     }
 
     @Override

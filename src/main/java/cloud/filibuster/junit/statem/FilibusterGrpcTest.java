@@ -773,7 +773,7 @@ public interface FilibusterGrpcTest {
                 List<FaultKey> faultKeysIndicatingThrownExceptionFromFault = didUserIndicateThrownExceptionForFault(rpcWhereFaultInjected);
 
                 if (faultKeysIndicatingThrownExceptionFromFault.size() > 0) {
-                    validateThrownException(faultKeysIndicatingThrownExceptionFromFault, actualStatus);
+                    validateThrownException(faultKeysIndicatingThrownExceptionFromFault, statusRuntimeException);
                 }
 
                 if (faultKeyIndicatingPropagationOfFaults == null && faultKeysIndicatingThrownExceptionFromFault.size() == 0) {
@@ -917,7 +917,10 @@ public interface FilibusterGrpcTest {
         }
     }
 
-    default void validateThrownException(List<FaultKey> matchingFaultKeys, Status actualStatus) {
+    default void validateThrownException(List<FaultKey> matchingFaultKeys, StatusRuntimeException statusRuntimeException) {
+        // Get status.
+        Status actualStatus = statusRuntimeException.getStatus();
+
         // Find a status that matches the error code and description.
         boolean foundMatchingExpectedStatus = false;
 
@@ -940,7 +943,7 @@ public interface FilibusterGrpcTest {
 
         // If not found, throw error.
         if (!foundMatchingExpectedStatus) {
-            throw new FilibusterGrpcFailedRPCException();
+            throw new FilibusterGrpcFailedRPCException(statusRuntimeException);
         }
     }
 
@@ -956,7 +959,7 @@ public interface FilibusterGrpcTest {
         }
 
         if (faultKeysIndicatingThrownExceptionFromFault.size() > 0) {
-            validateThrownException(faultKeysIndicatingThrownExceptionFromFault, actualStatus);
+            validateThrownException(faultKeysIndicatingThrownExceptionFromFault, statusRuntimeException);
             verifyAssertionBlockForThrownException(statusRuntimeException);
             return;
         }
@@ -988,7 +991,7 @@ public interface FilibusterGrpcTest {
             List<JSONObject> rpcsWhereFaultsInjectedWithImpact = new ArrayList<>(methodsWithFaultImpact);
             performMultipleExceptionChecking(rpcsWhereFaultsInjectedWithImpact, statusRuntimeException);
         } else {
-            throw new FilibusterGrpcAmbiguousFailureHandlingException();
+            throw new FilibusterGrpcAmbiguousFailureHandlingException(statusRuntimeException);
         }
     }
 
@@ -1007,7 +1010,7 @@ public interface FilibusterGrpcTest {
         List<FaultKey> faultKeysIndicatingThrownExceptionFromFault = didUserIndicateThrownExceptionForFault(rpcWhereFaultInjected);
 
         if (faultKeysIndicatingThrownExceptionFromFault.size() > 0) {
-            validateThrownException(faultKeysIndicatingThrownExceptionFromFault, actualStatus);
+            validateThrownException(faultKeysIndicatingThrownExceptionFromFault, statusRuntimeException);
         }
 
         if (faultKeyIndicatingPropagationOfFaults == null && faultKeysIndicatingThrownExceptionFromFault.size() == 0) {

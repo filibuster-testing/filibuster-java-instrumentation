@@ -15,8 +15,8 @@ public class FilibusterGrpcAmbiguousThrowAndErrorPropagationException extends Fi
     }
 
     private static String getErrorMessage() {
-        return "Test indicates both throw and error propagation: too ambiguous. Please verify you are only using either " +
-                "assertOnException(...) or assertFaultPropagates(...).";
+        return "Test indicates both throw and error propagation: too ambiguous.\n" +
+               "Please verify you are only using either assertOnException(...) or assertFaultPropagates(...).";
     }
 
     @Override

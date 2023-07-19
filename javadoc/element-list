@@ -4,6 +4,7 @@ cloud.filibuster.examples
 cloud.filibuster.exceptions
 cloud.filibuster.exceptions.distributed_execution_index
 cloud.filibuster.exceptions.filibuster
+cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException
 cloud.filibuster.exceptions.vector_clock
 cloud.filibuster.instrumentation
 cloud.filibuster.instrumentation.datatypes
@@ -42,3 +43,4 @@ cloud.filibuster.junit.server.core.test_executions
 cloud.filibuster.junit.server.latency
 cloud.filibuster.junit.server.local
 cloud.filibuster.junit.statem
+cloud.filibuster.junit.statem.keys

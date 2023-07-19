@@ -23,6 +23,7 @@ public class EndToEndFilibusterWithDiscountGrpcTest extends EndToEndFilibusterGr
         Hello.PurchaseRequest request = Hello.PurchaseRequest.newBuilder()
                 .setSessionId(sessionId.toString())
                 .setAbortOnNoDiscount(false)
+                .setAbortOnLessThanDiscountAmount(0)
                 .build();
         response.set(blockingStub.purchase(request));
     }

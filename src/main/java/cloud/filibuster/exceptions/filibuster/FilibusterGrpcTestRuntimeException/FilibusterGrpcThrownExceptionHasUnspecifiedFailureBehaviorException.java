@@ -15,7 +15,7 @@ public class FilibusterGrpcThrownExceptionHasUnspecifiedFailureBehaviorException
     }
 
     private static String getErrorMessage() {
-        return "Test threw an exception, but no specification of failure behavior present. Use assertFaultThrows(...) " +
+        return "Test threw an exception, but no specification of failure behavior present. \nUse assertFaultThrows(...) " +
                 "to specify failure is expected when fault injected on this method, request or code.";
     }
 }

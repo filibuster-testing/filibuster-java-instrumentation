@@ -254,8 +254,7 @@
                 let selectedFailure = analysis.failures[selectedFailureIndex];
                 $("#failureStackTrace").html(`<textarea class="stacktrace" readonly>${selectedFailure.assertion_failure_stacktrace}</textarea>`)
                 if ("assertion_failure_fix_message" in selectedFailure) {
-                    $("#failureStackTrace").append(`<p>Possible ways to fix that failure:</p>`)
-                    $("#failureStackTrace").append(`<div class="fixMessage">${selectedFailure.assertion_failure_fix_message}</div>`)
+                    $("#failureStackTrace").append(`<div class="fixMessage"><p>Possible ways to fix that failure:</p>${selectedFailure.assertion_failure_fix_message}</div>`)
                 }
                 $("#failureStackTrace").toggle();
             }

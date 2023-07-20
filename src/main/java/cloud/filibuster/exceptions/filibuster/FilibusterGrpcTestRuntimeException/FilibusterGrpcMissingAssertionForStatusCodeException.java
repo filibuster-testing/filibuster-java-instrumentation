@@ -17,7 +17,7 @@ public class FilibusterGrpcMissingAssertionForStatusCodeException extends Filibu
     }
 
     private static String getErrorMessage(Code code) {
-        return "Missing assertion block for Status.Code." + code + " response. " + "\nPlease write assertOnException(Status.Code." +
+        return "Missing assertion block for Status.Code." + code + " response.\nPlease write assertOnException(Status.Code." +
                 code + ", Runnable) for the assertions that should hold under this status code.";
     }
 }

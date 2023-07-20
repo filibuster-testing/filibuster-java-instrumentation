@@ -15,7 +15,7 @@ public class FilibusterGrpcSuppressedStatusCodeException extends FilibusterGrpcT
     }
 
     private static String getErrorMessage() {
-        return "Injected fault's status code was suppressed, but test indicates this should propagate directly upstream. " +
+        return "Injected fault's status code was suppressed, but test indicates this should propagate directly upstream." +
                 "\nEnsure that use of assertFaultPropagates(...) is correct.";
     }
 }

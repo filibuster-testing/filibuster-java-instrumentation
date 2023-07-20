@@ -15,6 +15,6 @@ public class FilibusterGrpcInjectedFaultHasUnspecifiedFailureBehaviorException e
     }
 
     private static String getErrorMessage() {
-        return "Test injected a fault, but no specification of failure behavior present. \nPlease use assertOnFault(...) or assertFaultHasNoImpact(...) to specify assertions under fault.";
+        return "Test injected a fault, but no specification of failure behavior present.\nPlease use assertOnFault(...) or assertFaultHasNoImpact(...) to specify assertions under fault.";
     }
 }

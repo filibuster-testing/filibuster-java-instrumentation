@@ -15,6 +15,6 @@ public class FilibusterGrpcMultipleFaultsInjectedException extends FilibusterGrp
     }
 
     private static String getErrorMessage() {
-        return "Assertions in assertTestBlock failed due to multiple faults being injected. \nPlease use assertOnFault to update assertions so that they hold under fault.";
+        return "Assertions in assertTestBlock failed due to multiple faults being injected.\nPlease use assertOnFault to update assertions so that they hold under fault.";
     }
 }

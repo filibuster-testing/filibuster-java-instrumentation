@@ -15,7 +15,6 @@ public class FilibusterGrpcStubbedRPCHasNoAssertionsException extends Filibuster
     }
 
     private static String getErrorMessage(String key) {
-        return "Stubbed RPC " + key + " has no assertions on invocation count. " +
-                "\nUse verifyThat to specify expected invocation count.";
+        return "Stubbed RPC " + key + " has no assertions on invocation count.\nUse verifyThat to specify expected invocation count.";
     }
 }

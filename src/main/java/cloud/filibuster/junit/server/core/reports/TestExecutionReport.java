@@ -2,6 +2,7 @@ package cloud.filibuster.junit.server.core.reports;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.exceptions.filibuster.FilibusterAnalysisFailureException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcTestRuntimeException;
 import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterException;
 import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.*;
 import cloud.filibuster.junit.server.core.lint.analyzers.warnings.FilibusterAnalyzerWarning;
@@ -29,10 +30,17 @@ public class TestExecutionReport {
     public static class FailureMetadata {
         private final String assertionFailureMessage;
         private final String assertionFailureStackTrace;
+        private String assertionFailureFixMessage;
 
         private FailureMetadata(String assertionFailureMessage, String assertionFailureStackTrace) {
             this.assertionFailureMessage = assertionFailureMessage;
             this.assertionFailureStackTrace = assertionFailureStackTrace;
+        }
+
+        private FailureMetadata(String assertionFailureMessage, String assertionFailureStackTrace, String assertionFailureFixMessage) {
+            this.assertionFailureMessage = assertionFailureMessage;
+            this.assertionFailureStackTrace = assertionFailureStackTrace;
+            this.assertionFailureFixMessage = assertionFailureFixMessage;
         }
 
         public String getAssertionFailureMessage() {
@@ -175,6 +183,7 @@ public class TestExecutionReport {
         static class FailureKeys {
             private static final String ASSERTION_FAILURE_STACKTRACE = "assertion_failure_stacktrace";
             private static final String ASSERTION_FAILURE_MESSAGE = "assertion_failure_message";
+            private static final String ASSERTION_FAILURE_FIX_MESSAGE = "assertion_failure_fix_message";
         }
         private static final String CACHED_KEY = "cached";
     }
@@ -249,6 +258,7 @@ public class TestExecutionReport {
             JSONObject failure = new JSONObject();
             failure.put(Keys.FailureKeys.ASSERTION_FAILURE_MESSAGE, toEscapeForHtml.apply(f.assertionFailureMessage));
             failure.put(Keys.FailureKeys.ASSERTION_FAILURE_STACKTRACE, toEscapeForHtml.apply(f.assertionFailureStackTrace));
+            failure.put(Keys.FailureKeys.ASSERTION_FAILURE_FIX_MESSAGE, f.assertionFailureFixMessage);
             return failure;
         }).collect(Collectors.toList()));
 
@@ -307,8 +317,11 @@ public class TestExecutionReport {
                 {
                     assertionFailureMessage = throwable.getClass().getSimpleName();
                 }
-
-                failures.add(new FailureMetadata(assertionFailureMessage, stackTrace));
+                if (throwable instanceof FilibusterGrpcTestRuntimeException) {
+                    failures.add(new FailureMetadata(assertionFailureMessage, stackTrace, ((FilibusterGrpcTestRuntimeException) throwable).getFixMessage()));
+                } else {
+                    failures.add(new FailureMetadata(assertionFailureMessage, stackTrace));
+                }
             }
 
             try {

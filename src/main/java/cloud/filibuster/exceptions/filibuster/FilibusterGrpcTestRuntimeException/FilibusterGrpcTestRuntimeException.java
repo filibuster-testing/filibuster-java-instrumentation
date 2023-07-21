@@ -2,6 +2,8 @@ package cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeExceptio
 
 import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 
+import java.util.List;
+
 /**
  * {@code FilibusterGrpcTestRuntimeException} is the abstract superclass of the
  * exceptions that can be thrown from the GRPC test interface.
@@ -30,5 +32,32 @@ public abstract class FilibusterGrpcTestRuntimeException extends FilibusterRunti
      */
     protected FilibusterGrpcTestRuntimeException(String message, Throwable cause) {
         super(message, cause);
+    }
+
+    /**
+     * Returns the fix message for the exception.
+     */
+    abstract public String getFixMessage();
+
+    public String generateSingleFixMessage(
+            String descriptionText,
+            String linkURL
+    ) {
+        String linkText = linkURL.substring(linkURL.indexOf("statem/") + "statem/".length());
+        return "<li>" + descriptionText + "<br /><a target=\"_blank\" href=\"" + linkURL + "\"><span class=\"small_class_name\">" + linkText + "</span></a></li>";
+    }
+
+    public String generateFixMessage(List<String> fixMessages) {
+        StringBuilder completedFixMessage = new StringBuilder();
+
+        completedFixMessage.append("<ul>");
+
+        for (String fixMessage : fixMessages) {
+            completedFixMessage.append(fixMessage);
+        }
+
+        completedFixMessage.append("</ul>");
+
+        return completedFixMessage.toString();
     }
 }

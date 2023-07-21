@@ -3,7 +3,7 @@ package cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeExceptio
 import java.util.Arrays;
 
 /**
- * {@code FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionAndAssertOnFaultException} is thrown when readOnlyRPC is used outside assertOnException(...) block. " +
+ * {@code FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionAndAssertOnFaultException} is thrown when readOnlyRPC is used outside assertOnException(...)  and assertOnFault(...) block.
  * Please rewrite code to specify precise assertions on mock invocations.
  */
 public class FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionAndAssertOnFaultException extends FilibusterGrpcTestRuntimeException {
@@ -17,7 +17,7 @@ public class FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionAndAssertOnFau
     }
 
     private static String getErrorMessage() {
-        return "Use of readOnlyRPC not allowed outside of assertOnException(...) block.\nPlease rewrite code to specify precise assertions on mock invocations.";
+        return "Use of readOnlyRPC is only allowed either in assertOnException(...) or assertOnFault(...) block.\nPlease rewrite code to specify precise assertions on mock invocations.";
     }
 
     @Override

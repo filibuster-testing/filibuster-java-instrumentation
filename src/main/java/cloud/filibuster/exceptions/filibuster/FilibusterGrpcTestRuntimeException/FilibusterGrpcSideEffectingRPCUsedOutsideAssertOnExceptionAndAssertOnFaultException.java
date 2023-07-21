@@ -3,7 +3,7 @@ package cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeExceptio
 import java.util.Arrays;
 
 /**
- * {@code FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionAndAssertOnFaultException} is thrown when sideEffectingRPC is used outside assertOnException(...) and assertOnFault(...) block. " +
+ * {@code FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionAndAssertOnFaultException} is thrown when sideEffectingRPC is used outside assertOnException(...) and assertOnFault(...) block.
  * Please rewrite code to specify precise assertions on mock invocations.
  */
 public class FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionAndAssertOnFaultException extends FilibusterGrpcTestRuntimeException {
@@ -17,7 +17,7 @@ public class FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionAndAssert
     }
 
     private static String getErrorMessage() {
-        return "Use of sideEffectingRPC not allowed outside of assertOnException(...) and assertOnFault(...) block.\nPlease rewrite code to specify precise assertions on mock invocations.";
+        return "Use of sideEffectingRPC is allowed either in assertOnException(...) or assertOnFault(...) block.\nPlease rewrite code to specify precise assertions on mock invocations.";
     }
 
     @Override

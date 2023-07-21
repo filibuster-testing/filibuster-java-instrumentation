@@ -185,6 +185,19 @@
 
             $('#total').html("(" + summary.reports.length + ")");
 
+            let display_iteration= Number.POSITIVE_INFINITY;
+            for (i in summary.reports) {
+                let report = summary.reports[i];
+                if(report.iteration < display_iteration && !report.status )
+                {
+                    display_iteration = report.iteration;
+                }
+            }
+            if(display_iteration === Number.POSITIVE_INFINITY)
+            {
+                display_iteration = 1;
+            }
+
             for (i in summary.reports) {
                 var report = summary.reports[i];
                 console.log(report);
@@ -212,7 +225,7 @@
 
                 $('#reports').append(row);
             }
-            underlineIteration("1");
+            underlineIteration(`${display_iteration}`);
         });
     </script>
 </section>

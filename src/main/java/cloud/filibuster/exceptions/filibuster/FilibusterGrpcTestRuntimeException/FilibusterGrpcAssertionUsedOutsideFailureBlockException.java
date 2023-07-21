@@ -25,8 +25,8 @@ public class FilibusterGrpcAssertionUsedOutsideFailureBlockException extends Fil
         return generateFixMessage(
                 Arrays.asList(
                         generateSingleFixMessage(
-                                "Use of readOnlyRPC assertion must be used inside of exception assertion block:",
-                                "https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#assertOnException(io.grpc.Status.Code,java.lang.Runnable)")
+                                "Use of assertions is only allowed inside of the failureBlock(...):",
+                                "https://filibuster-testing.github.io/filibuster-java-instrumentation/javadoc/cloud/filibuster/junit/statem/FilibusterGrpcTest.html#failureBlock()")
                 )
         );
     }

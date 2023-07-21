@@ -14,7 +14,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcInvokedRPCUnimplementedException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcMissingAssertionForStatusCodeException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcMultipleFaultsInjectedException;
-import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionAndAssertOnFaultException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionAndAssertOnFaultException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcStubbedRPCHasNoAssertionsException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcSuppressedStatusCodeException;
@@ -558,7 +558,7 @@ public interface FilibusterGrpcTest {
         if (isInsideOfAssertOnExceptionBlock() || isInsideOfAssertOnFaultBlock()) {
             GrpcMock.adjustExpectation(methodDescriptor, -1);
         } else {
-            throw new FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionException();
+            throw new FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionAndAssertOnFaultException();
         }
     }
 
@@ -575,7 +575,7 @@ public interface FilibusterGrpcTest {
         if (isInsideOfAssertOnExceptionBlock() || isInsideOfAssertOnFaultBlock()) {
             GrpcMock.adjustExpectation(methodDescriptor, request, -1);
         } else {
-            throw new FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionException();
+            throw new FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionAndAssertOnFaultException();
         }
     }
 

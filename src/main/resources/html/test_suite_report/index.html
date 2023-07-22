@@ -141,9 +141,17 @@
         $(document).ready( () => {
             $("#num_tests").html("(" + summary.reports.length + ")");
             let testNames = summary.reports.map(report => `${report.status ? "✅" : "❌"} ${processClassName(report.class_name)}.${report.test_name}`);
+            let to_selected_index = summary.reports.length - 1;
+            for (let i = to_selected_index; i >= 0; i--) {
+                if(!summary.reports[i].status)
+                {
+                    to_selected_index = i;
+                    break;
+                }
+            }
             let options = testNames.map((testname,index) => `<option value="${index}">${testname}</option>`).join();
             $("#tests").append(options);
-            $("#tests option:last").attr("selected", "selected");
+            $(`#tests option:eq(${to_selected_index})`).attr('selected', 'selected');
             selectTest();
         });
     </script>

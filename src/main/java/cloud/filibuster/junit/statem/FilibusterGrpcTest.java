@@ -4,6 +4,7 @@ import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestInternalRuntimeException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcAmbiguousThrowAndErrorPropagationException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcAmbiguousFailureHandlingException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcAssertionUsedOutsideFailureBlockException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcAssertionsDidNotHoldUnderErrorResponseException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcAssertionsForAssertOnExceptionFailedException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcAssertOnFaultException;
@@ -13,8 +14,8 @@ import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcInvokedRPCUnimplementedException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcMissingAssertionForStatusCodeException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcMultipleFaultsInjectedException;
-import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionException;
-import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionAndAssertOnFaultException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionAndAssertOnFaultException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcStubbedRPCHasNoAssertionsException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcSuppressedStatusCodeException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcThrownExceptionHasUnspecifiedFailureBehaviorException;
@@ -43,6 +44,14 @@ import java.util.concurrent.atomic.AtomicReference;
 import static cloud.filibuster.junit.Assertions.getExecutedRPCs;
 import static cloud.filibuster.junit.Assertions.getFailedRPCs;
 import static cloud.filibuster.junit.Assertions.getFaultsInjected;
+import static cloud.filibuster.junit.statem.GrpcTestUtils.isInsideOfAssertOnExceptionBlock;
+import static cloud.filibuster.junit.statem.GrpcTestUtils.isInsideOfAssertOnFaultBlock;
+import static cloud.filibuster.junit.statem.GrpcTestUtils.isInsideOfFailureBlock;
+import static cloud.filibuster.junit.statem.GrpcTestUtils.setInsideOfAssertOnExceptionBlock;
+import static cloud.filibuster.junit.statem.GrpcTestUtils.setInsideOfAssertOnFaultBlock;
+import static cloud.filibuster.junit.statem.GrpcTestUtils.setInsideOfFailureBlock;
+import static cloud.filibuster.junit.statem.GrpcTestUtils.setInsideOfStubBlock;
+import static cloud.filibuster.junit.statem.GrpcTestUtils.setInsideOfAssertStubBlock;
 import static cloud.filibuster.junit.statem.keys.CompositeFaultKey.findMatchingFaultKey;
 import static cloud.filibuster.junit.statem.keys.CompositeFaultKey.findMatchingFaultKeys;
 
@@ -147,11 +156,15 @@ public interface FilibusterGrpcTest {
      * returned to the user, as part of a {@link StatusRuntimeException}.  These assertions should be placed in the
      * associated {@link Runnable}.  This block will replace the assertions in {@link #assertTestBlock()}.
      *
-     * @param code the thrown exception's status code when a fault is injected
+     * @param code     the thrown exception's status code when a fault is injected
      * @param runnable assertion block
      */
     default void assertOnException(Status.Code code, Runnable runnable) {
-        errorAssertions.put(code, runnable);
+        if (isInsideOfFailureBlock()) {
+            errorAssertions.put(code, runnable);
+        } else {
+            throw new FilibusterGrpcAssertionUsedOutsideFailureBlockException("assertOnException");
+        }
     }
 
     // *****************************************************************************************************************
@@ -165,15 +178,19 @@ public interface FilibusterGrpcTest {
      * returning a {@link StatusRuntimeException} with the specified code and message.
      *
      * @param compositeFaultSpecification {@link CompositeFaultSpecification}
-     * @param thrownCode the thrown exception's status code when a fault is injected
-     * @param thrownMessage the thrown exception's message that is returned when a fault is injected
+     * @param thrownCode                  the thrown exception's status code when a fault is injected
+     * @param thrownMessage               the thrown exception's message that is returned when a fault is injected
      */
     default void assertFaultThrows(
             CompositeFaultSpecification compositeFaultSpecification,
             Status.Code thrownCode,
             String thrownMessage
     ) {
-        faultKeysThatThrow.put(new CompositeFaultKey(compositeFaultSpecification), Pair.of(thrownCode, thrownMessage));
+        if (isInsideOfFailureBlock()) {
+            faultKeysThatThrow.put(new CompositeFaultKey(compositeFaultSpecification), Pair.of(thrownCode, thrownMessage));
+        } else {
+            throw new FilibusterGrpcAssertionUsedOutsideFailureBlockException("assertFaultThrows");
+        }
     }
 
     /**
@@ -181,17 +198,21 @@ public interface FilibusterGrpcTest {
      * returning a {@link StatusRuntimeException} with the specified code and message.
      *
      * @param methodDescriptor a GRPC method descriptor
-     * @param thrownCode the thrown exception's status code when a fault is injected
-     * @param thrownMessage the thrown exception's message that is returned when a fault is injected
-     * @param <ReqT> the request type for this method
-     * @param <ResT> the response type for this method
+     * @param thrownCode       the thrown exception's status code when a fault is injected
+     * @param thrownMessage    the thrown exception's message that is returned when a fault is injected
+     * @param <ReqT>           the request type for this method
+     * @param <ResT>           the response type for this method
      */
     default <ReqT, ResT> void assertFaultThrows(
             MethodDescriptor<ReqT, ResT> methodDescriptor,
             Status.Code thrownCode,
             String thrownMessage
     ) {
-        faultKeysThatThrow.put(new SingleFaultKey<>(methodDescriptor), Pair.of(thrownCode, thrownMessage));
+        if (isInsideOfFailureBlock()) {
+            faultKeysThatThrow.put(new SingleFaultKey<>(methodDescriptor), Pair.of(thrownCode, thrownMessage));
+        } else {
+            throw new FilibusterGrpcAssertionUsedOutsideFailureBlockException("assertFaultThrows");
+        }
     }
 
     /**
@@ -199,11 +220,11 @@ public interface FilibusterGrpcTest {
      * returning a {@link StatusRuntimeException} with the specified code and message.
      *
      * @param methodDescriptor a GRPC method descriptor
-     * @param code the status code of the fault injected
-     * @param thrownCode the thrown exception's status code when a fault is injected
-     * @param thrownMessage the thrown exception's message that is returned when a fault is injected
-     * @param <ReqT> the request type for this method
-     * @param <ResT> the response type for this method
+     * @param code             the status code of the fault injected
+     * @param thrownCode       the thrown exception's status code when a fault is injected
+     * @param thrownMessage    the thrown exception's message that is returned when a fault is injected
+     * @param <ReqT>           the request type for this method
+     * @param <ResT>           the response type for this method
      */
     default <ReqT, ResT> void assertFaultThrows(
             MethodDescriptor<ReqT, ResT> methodDescriptor,
@@ -211,7 +232,11 @@ public interface FilibusterGrpcTest {
             Status.Code thrownCode,
             String thrownMessage
     ) {
-        faultKeysThatThrow.put(new SingleFaultKey<>(methodDescriptor, code), Pair.of(thrownCode, thrownMessage));
+        if (isInsideOfFailureBlock()) {
+            faultKeysThatThrow.put(new SingleFaultKey<>(methodDescriptor, code), Pair.of(thrownCode, thrownMessage));
+        } else {
+            throw new FilibusterGrpcAssertionUsedOutsideFailureBlockException("assertFaultThrows");
+        }
     }
 
     /**
@@ -219,11 +244,11 @@ public interface FilibusterGrpcTest {
      * returning a {@link StatusRuntimeException} with the specified code and message.
      *
      * @param methodDescriptor a GRPC method descriptor
-     * @param request the request the fault was injected on
-     * @param thrownCode the thrown exception's status code when a fault is injected
-     * @param thrownMessage the thrown exception's message that is returned when a fault is injected
-     * @param <ReqT> the request type for this method
-     * @param <ResT> the response type for this method
+     * @param request          the request the fault was injected on
+     * @param thrownCode       the thrown exception's status code when a fault is injected
+     * @param thrownMessage    the thrown exception's message that is returned when a fault is injected
+     * @param <ReqT>           the request type for this method
+     * @param <ResT>           the response type for this method
      */
     default <ReqT, ResT> void assertFaultThrows(
             MethodDescriptor<ReqT, ResT> methodDescriptor,
@@ -231,7 +256,11 @@ public interface FilibusterGrpcTest {
             Status.Code thrownCode,
             String thrownMessage
     ) {
-        faultKeysThatThrow.put(new SingleFaultKey<>(methodDescriptor, request), Pair.of(thrownCode, thrownMessage));
+        if (isInsideOfFailureBlock()) {
+            faultKeysThatThrow.put(new SingleFaultKey<>(methodDescriptor, request), Pair.of(thrownCode, thrownMessage));
+        } else {
+            throw new FilibusterGrpcAssertionUsedOutsideFailureBlockException("assertFaultThrows");
+        }
     }
 
     /**
@@ -239,12 +268,12 @@ public interface FilibusterGrpcTest {
      * returning a {@link StatusRuntimeException} with the specified code and message.
      *
      * @param methodDescriptor a GRPC method descriptor
-     * @param code the status code of the fault injected
-     * @param request the request the fault was injected on
-     * @param thrownCode the thrown exception's status code when a fault is injected
-     * @param thrownMessage the thrown exception's message that is returned when a fault is injected
-     * @param <ReqT> the request type for this method
-     * @param <ResT> the response type for this method
+     * @param code             the status code of the fault injected
+     * @param request          the request the fault was injected on
+     * @param thrownCode       the thrown exception's status code when a fault is injected
+     * @param thrownMessage    the thrown exception's message that is returned when a fault is injected
+     * @param <ReqT>           the request type for this method
+     * @param <ResT>           the response type for this method
      */
     default <ReqT, ResT> void assertFaultThrows(
             MethodDescriptor<ReqT, ResT> methodDescriptor,
@@ -253,7 +282,11 @@ public interface FilibusterGrpcTest {
             Status.Code thrownCode,
             String thrownMessage
     ) {
-        faultKeysThatThrow.put(new SingleFaultKey<>(methodDescriptor, code, request), Pair.of(thrownCode, thrownMessage));
+        if (isInsideOfFailureBlock()) {
+            faultKeysThatThrow.put(new SingleFaultKey<>(methodDescriptor, code, request), Pair.of(thrownCode, thrownMessage));
+        } else {
+            throw new FilibusterGrpcAssertionUsedOutsideFailureBlockException("assertFaultThrows");
+        }
     }
 
     // *****************************************************************************************************************
@@ -267,13 +300,17 @@ public interface FilibusterGrpcTest {
      * any faults injected will be propagated directly back to the upstream.
      *
      * @param methodDescriptor a GRPC method descriptor
-     * @param <ReqT> the request type for this method
-     * @param <ResT> the response type for this method
+     * @param <ReqT>           the request type for this method
+     * @param <ResT>           the response type for this method
      */
     default <ReqT, ResT> void assertFaultPropagates(
             MethodDescriptor<ReqT, ResT> methodDescriptor
     ) {
-        faultKeysThatPropagate.add(new SingleFaultKey<>(methodDescriptor));
+        if (isInsideOfFailureBlock()) {
+            faultKeysThatPropagate.add(new SingleFaultKey<>(methodDescriptor));
+        } else {
+            throw new FilibusterGrpcAssertionUsedOutsideFailureBlockException("assertFaultPropagates");
+        }
     }
 
     // *****************************************************************************************************************
@@ -292,13 +329,17 @@ public interface FilibusterGrpcTest {
      * {@link GrpcMock#verifyThat(MethodDescriptor, int) GrpcMock.verifyThat} methods.)
      *
      * @param methodDescriptor a GRPC method descriptor
-     * @param <ReqT> the request type for this method
-     * @param <ResT> the response type for this method
+     * @param <ReqT>           the request type for this method
+     * @param <ResT>           the response type for this method
      */
     default <ReqT, ResT> void assertFaultHasNoImpact(
             MethodDescriptor<ReqT, ResT> methodDescriptor
     ) {
-        faultKeysWithNoImpact.add(new SingleFaultKey<>(methodDescriptor));
+        if (isInsideOfFailureBlock()) {
+            faultKeysWithNoImpact.add(new SingleFaultKey<>(methodDescriptor));
+        } else {
+            throw new FilibusterGrpcAssertionUsedOutsideFailureBlockException("assertFaultHasNoImpact");
+        }
     }
 
     /**
@@ -312,15 +353,19 @@ public interface FilibusterGrpcTest {
      * {@link GrpcMock#verifyThat(MethodDescriptor, int) GrpcMock.verifyThat} methods.)
      *
      * @param methodDescriptor a GRPC method descriptor
-     * @param code the status code
-     * @param <ReqT> the request type for this method
-     * @param <ResT> the response type for this method
+     * @param code             the status code
+     * @param <ReqT>           the request type for this method
+     * @param <ResT>           the response type for this method
      */
     default <ReqT, ResT> void assertFaultHasNoImpact(
             MethodDescriptor<ReqT, ResT> methodDescriptor,
             Status.Code code
     ) {
-        faultKeysWithNoImpact.add(new SingleFaultKey<>(methodDescriptor, code));
+        if (isInsideOfFailureBlock()) {
+            faultKeysWithNoImpact.add(new SingleFaultKey<>(methodDescriptor, code));
+        } else {
+            throw new FilibusterGrpcAssertionUsedOutsideFailureBlockException("assertFaultHasNoImpact");
+        }
     }
 
     /**
@@ -334,15 +379,19 @@ public interface FilibusterGrpcTest {
      * {@link GrpcMock#verifyThat(MethodDescriptor, int) GrpcMock.verifyThat} methods.)
      *
      * @param methodDescriptor a GRPC method descriptor
-     * @param request the request
-     * @param <ReqT> the request type for this method
-     * @param <ResT> the response type for this method
+     * @param request          the request
+     * @param <ReqT>           the request type for this method
+     * @param <ResT>           the response type for this method
      */
     default <ReqT, ResT> void assertFaultHasNoImpact(
             MethodDescriptor<ReqT, ResT> methodDescriptor,
             ReqT request
     ) {
-        faultKeysWithNoImpact.add(new SingleFaultKey<>(methodDescriptor, request));
+        if (isInsideOfFailureBlock()) {
+            faultKeysWithNoImpact.add(new SingleFaultKey<>(methodDescriptor, request));
+        } else {
+            throw new FilibusterGrpcAssertionUsedOutsideFailureBlockException("assertFaultHasNoImpact");
+        }
     }
 
     /**
@@ -356,17 +405,21 @@ public interface FilibusterGrpcTest {
      * {@link GrpcMock#verifyThat(MethodDescriptor, int) GrpcMock.verifyThat} methods.)
      *
      * @param methodDescriptor a GRPC method descriptor
-     * @param code the status code
-     * @param request the request
-     * @param <ReqT> the request type for this method
-     * @param <ResT> the response type for this method
+     * @param code             the status code
+     * @param request          the request
+     * @param <ReqT>           the request type for this method
+     * @param <ResT>           the response type for this method
      */
     default <ReqT, ResT> void assertFaultHasNoImpact(
             MethodDescriptor<ReqT, ResT> methodDescriptor,
             Status.Code code,
             ReqT request
     ) {
-        faultKeysWithNoImpact.add(new SingleFaultKey<>(methodDescriptor, code, request));
+        if (isInsideOfFailureBlock()) {
+            faultKeysWithNoImpact.add(new SingleFaultKey<>(methodDescriptor, code, request));
+        } else {
+            throw new FilibusterGrpcAssertionUsedOutsideFailureBlockException("assertFaultHasNoImpact");
+        }
     }
 
     // *****************************************************************************************************************
@@ -382,15 +435,19 @@ public interface FilibusterGrpcTest {
      * This block will replace the assertions in {@link #assertTestBlock()}.
      *
      * @param methodDescriptor a GRPC method descriptor
-     * @param runnable assertion block
-     * @param <ReqT> the request type for this method
-     * @param <ResT> the response type for this method
+     * @param runnable         assertion block
+     * @param <ReqT>           the request type for this method
+     * @param <ResT>           the response type for this method
      */
     default <ReqT, ResT> void assertOnFault(
             MethodDescriptor<ReqT, ResT> methodDescriptor,
             Runnable runnable
     ) {
-        assertionsByFaultKey.put(new SingleFaultKey<>(methodDescriptor), runnable);
+        if (isInsideOfFailureBlock()) {
+            assertionsByFaultKey.put(new SingleFaultKey<>(methodDescriptor), runnable);
+        } else {
+            throw new FilibusterGrpcAssertionUsedOutsideFailureBlockException("assertOnFault");
+        }
     }
 
     /**
@@ -400,17 +457,21 @@ public interface FilibusterGrpcTest {
      * This block will replace the assertions in {@link #assertTestBlock()}.
      *
      * @param methodDescriptor a GRPC method descriptor
-     * @param code the status code of the injected fault
-     * @param runnable assertion block
-     * @param <ReqT> the request type for this method
-     * @param <ResT> the response type for this method
+     * @param code             the status code of the injected fault
+     * @param runnable         assertion block
+     * @param <ReqT>           the request type for this method
+     * @param <ResT>           the response type for this method
      */
     default <ReqT, ResT> void assertOnFault(
             MethodDescriptor<ReqT, ResT> methodDescriptor,
             Status.Code code,
             Runnable runnable
     ) {
-        assertionsByFaultKey.put(new SingleFaultKey<>(methodDescriptor, code), runnable);
+        if (isInsideOfFailureBlock()) {
+            assertionsByFaultKey.put(new SingleFaultKey<>(methodDescriptor, code), runnable);
+        } else {
+            throw new FilibusterGrpcAssertionUsedOutsideFailureBlockException("assertOnFault");
+        }
     }
 
     /**
@@ -420,17 +481,21 @@ public interface FilibusterGrpcTest {
      * This block will replace the assertions in {@link #assertTestBlock()}.
      *
      * @param methodDescriptor a GRPC method descriptor
-     * @param request the request that the fault was injected on
-     * @param runnable assertion block
-     * @param <ReqT> the request type for this method
-     * @param <ResT> the response type for this method
+     * @param request          the request that the fault was injected on
+     * @param runnable         assertion block
+     * @param <ReqT>           the request type for this method
+     * @param <ResT>           the response type for this method
      */
     default <ReqT, ResT> void assertOnFault(
             MethodDescriptor<ReqT, ResT> methodDescriptor,
             ReqT request,
             Runnable runnable
     ) {
-        assertionsByFaultKey.put(new SingleFaultKey<>(methodDescriptor, request), runnable);
+        if (isInsideOfFailureBlock()) {
+            assertionsByFaultKey.put(new SingleFaultKey<>(methodDescriptor, request), runnable);
+        } else {
+            throw new FilibusterGrpcAssertionUsedOutsideFailureBlockException("assertOnFault");
+        }
     }
 
     /**
@@ -440,11 +505,11 @@ public interface FilibusterGrpcTest {
      * This block will replace the assertions in {@link #assertTestBlock()}.
      *
      * @param methodDescriptor a GRPC method descriptor
-     * @param code the status code of the injected fault
-     * @param request the request that the fault was injected on
-     * @param runnable assertion block
-     * @param <ReqT> the request type for this method
-     * @param <ResT> the response type for this method
+     * @param code             the status code of the injected fault
+     * @param request          the request that the fault was injected on
+     * @param runnable         assertion block
+     * @param <ReqT>           the request type for this method
+     * @param <ResT>           the response type for this method
      */
     default <ReqT, ResT> void assertOnFault(
             MethodDescriptor<ReqT, ResT> methodDescriptor,
@@ -452,7 +517,11 @@ public interface FilibusterGrpcTest {
             ReqT request,
             Runnable runnable
     ) {
-        assertionsByFaultKey.put(new SingleFaultKey<>(methodDescriptor, code, request), runnable);
+        if (isInsideOfFailureBlock()) {
+            assertionsByFaultKey.put(new SingleFaultKey<>(methodDescriptor, code, request), runnable);
+        } else {
+            throw new FilibusterGrpcAssertionUsedOutsideFailureBlockException("assertOnFault");
+        }
     }
 
     /**
@@ -461,32 +530,35 @@ public interface FilibusterGrpcTest {
      * associated {@link Runnable}.
      * This block will replace the assertions in {@link #assertTestBlock()}.
      * *
+     *
      * @param compositeFaultSpecification {@link CompositeFaultSpecification}
-     * @param runnable assertion block
+     * @param runnable                    assertion block
      */
     default void assertOnFault(CompositeFaultSpecification compositeFaultSpecification, Runnable runnable) {
-        assertionsByFaultKey.put(new CompositeFaultKey(compositeFaultSpecification), runnable);
+        if (isInsideOfFailureBlock()) {
+            assertionsByFaultKey.put(new CompositeFaultKey(compositeFaultSpecification), runnable);
+        } else {
+            throw new FilibusterGrpcAssertionUsedOutsideFailureBlockException("assertOnFault");
+        }
     }
 
     // *****************************************************************************************************************
     // Fault API: adjusted expectations for GRPC endpoints.
     // *****************************************************************************************************************
 
-    AtomicReference<Boolean> insideOfErrorAssertionBlock = new AtomicReference<>(false);
-
     /**
      * Indicates that this RPC has no side effects and therefore may be called 0 or more times.
      * Can only be used inside an {@link #assertOnException assertOnException} block.
      *
      * @param methodDescriptor a GRPC method descriptor
-     * @param <ReqT> the request type for this method
-     * @param <ResT> the response type for this method
+     * @param <ReqT>           the request type for this method
+     * @param <ResT>           the response type for this method
      */
     default <ReqT, ResT> void readOnlyRPC(MethodDescriptor<ReqT, ResT> methodDescriptor) {
-        if (insideOfErrorAssertionBlock.get()) {
+        if (isInsideOfAssertOnExceptionBlock() || isInsideOfAssertOnFaultBlock()) {
             GrpcMock.adjustExpectation(methodDescriptor, -1);
         } else {
-            throw new FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionException();
+            throw new FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionAndAssertOnFaultException();
         }
     }
 
@@ -495,15 +567,15 @@ public interface FilibusterGrpcTest {
      * Can only be used inside an {@link #assertOnException assertOnException} block.
      *
      * @param methodDescriptor a GRPC method descriptor
-     * @param request the request
-     * @param <ReqT> the request type for this method
-     * @param <ResT> the response type for this method
+     * @param request          the request
+     * @param <ReqT>           the request type for this method
+     * @param <ResT>           the response type for this method
      */
     default <ReqT, ResT> void readOnlyRPC(MethodDescriptor<ReqT, ResT> methodDescriptor, ReqT request) {
-        if (insideOfErrorAssertionBlock.get()) {
+        if (isInsideOfAssertOnExceptionBlock() || isInsideOfAssertOnFaultBlock()) {
             GrpcMock.adjustExpectation(methodDescriptor, request, -1);
         } else {
-            throw new FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionException();
+            throw new FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionAndAssertOnFaultException();
         }
     }
 
@@ -511,15 +583,15 @@ public interface FilibusterGrpcTest {
      * Indicates that an RPC has side effects and therefore needs explicit invocation counts.
      *
      * @param methodDescriptor a GRPC method descriptor
-     * @param count the number of times invoked
-     * @param <ReqT> the request type for this method
-     * @param <ResT> the response type for this method
+     * @param count            the number of times invoked
+     * @param <ReqT>           the request type for this method
+     * @param <ResT>           the response type for this method
      */
     default <ReqT, ResT> void sideEffectingRPC(MethodDescriptor<ReqT, ResT> methodDescriptor, int count) {
-        if (insideOfErrorAssertionBlock.get()) {
+        if (isInsideOfAssertOnExceptionBlock() || isInsideOfAssertOnFaultBlock()) {
             GrpcMock.adjustExpectation(methodDescriptor, count);
         } else {
-            throw new FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionException();
+            throw new FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionAndAssertOnFaultException();
         }
     }
 
@@ -527,16 +599,16 @@ public interface FilibusterGrpcTest {
      * Indicates that an RPC has side effects and therefore needs explicit invocation counts.
      *
      * @param methodDescriptor a GRPC method descriptor
-     * @param request the request
-     * @param count the number of times invoked
-     * @param <ReqT> the request type for this method
-     * @param <ResT> the response type for this method
+     * @param request          the request
+     * @param count            the number of times invoked
+     * @param <ReqT>           the request type for this method
+     * @param <ResT>           the response type for this method
      */
     default <ReqT, ResT> void sideEffectingRPC(MethodDescriptor<ReqT, ResT> methodDescriptor, ReqT request, int count) {
-        if (insideOfErrorAssertionBlock.get()) {
+        if (isInsideOfAssertOnExceptionBlock() || isInsideOfAssertOnFaultBlock()) {
             GrpcMock.adjustExpectation(methodDescriptor, request, count);
         } else {
-            throw new FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionException();
+            throw new FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionAndAssertOnFaultException();
         }
     }
 
@@ -596,12 +668,15 @@ public interface FilibusterGrpcTest {
                         Runnable runnable = assertionsByFaultKey.get(faultKey);
 
                         if (runnable != null) {
+                            setInsideOfAssertOnFaultBlock(true);
                             runnable.run();
                         } else {
                             throw new FilibusterGrpcTestInternalRuntimeException("runnable is null: this could indicate a problem!");
                         }
                     } catch (Throwable t) {
                         throw new FilibusterGrpcAssertOnFaultException(t);
+                    } finally {
+                        setInsideOfAssertOnFaultBlock(false);
                     }
                 }
 
@@ -631,12 +706,15 @@ public interface FilibusterGrpcTest {
                 Runnable runnable = assertionsByFaultKey.get(faultKey);
 
                 if (runnable != null) {
+                    setInsideOfAssertOnFaultBlock(true);
                     runnable.run();
                 } else {
                     throw new FilibusterGrpcTestInternalRuntimeException("runnable is null: this could indicate a problem!");
                 }
             } catch (Throwable t) {
                 throw new FilibusterGrpcAssertOnFaultException(t);
+            } finally {
+                setInsideOfAssertOnFaultBlock(true);
             }
 
             // Don't run the normal assertions.
@@ -694,10 +772,14 @@ public interface FilibusterGrpcTest {
         Helpers.setupBlock(this::setupBlock);
 
         // Stub downstream dependencies.
+        setInsideOfStubBlock(true);
         Helpers.setupBlock(this::stubBlock);
+        setInsideOfStubBlock(false);
 
         // Execute failure block.
+        setInsideOfFailureBlock(true);
         Helpers.setupBlock(this::failureBlock);
+        setInsideOfFailureBlock(false);
 
         try {
             // Execute the test.
@@ -734,6 +816,7 @@ public interface FilibusterGrpcTest {
             }
 
             // Verify stub invocations.
+            setInsideOfAssertStubBlock(true);
             Helpers.assertionBlock(this::assertStubBlock);
         } catch (StatusRuntimeException statusRuntimeException) {
             // Look up the faults that were injected.
@@ -781,7 +864,7 @@ public interface FilibusterGrpcTest {
                 }
 
                 // Verify that we have assertion block for thrown exception.
-                if (! errorAssertions.containsKey(statusRuntimeException.getStatus().getCode())) {
+                if (!errorAssertions.containsKey(statusRuntimeException.getStatus().getCode())) {
                     throw new FilibusterGrpcMissingAssertionForStatusCodeException(actualStatus.getCode());
                 }
 
@@ -789,25 +872,29 @@ public interface FilibusterGrpcTest {
                 for (Map.Entry<Status.Code, Runnable> errorAssertion : errorAssertions.entrySet()) {
                     if (errorAssertion.getKey().equals(statusRuntimeException.getStatus().getCode())) {
                         try {
-                            insideOfErrorAssertionBlock.set(true);
+                            setInsideOfAssertOnExceptionBlock(true);
                             errorAssertion.getValue().run();
                         } catch (Throwable t) {
                             throw new FilibusterGrpcAssertionsForAssertOnExceptionFailedException(actualStatus.getCode(), t);
                         } finally {
-                            insideOfErrorAssertionBlock.set(false);
+                            setInsideOfAssertOnExceptionBlock(false);
                         }
                     }
                 }
 
                 // Verify stub invocations.
                 try {
+                    setInsideOfAssertStubBlock(true);
                     Helpers.assertionBlock(this::assertStubBlock);
                 } catch (Throwable t) {
                     throw new FilibusterGrpcAssertionsDidNotHoldUnderErrorResponseException(actualStatus.getCode(), t);
+                } finally {
+                    setInsideOfAssertStubBlock(false);
                 }
                 performSingleExceptionChecking(rpcsWhereFaultsInjected.get(0), statusRuntimeException);
             }
         } finally {
+            setInsideOfAssertStubBlock(false);
             // Execute teardown.
             Helpers.teardownBlock(this::teardownBlock);
         }
@@ -1025,7 +1112,7 @@ public interface FilibusterGrpcTest {
         // Get actual status.
         Status actualStatus = statusRuntimeException.getStatus();
 
-        if (! errorAssertions.containsKey(statusRuntimeException.getStatus().getCode())) {
+        if (!errorAssertions.containsKey(statusRuntimeException.getStatus().getCode())) {
             throw new FilibusterGrpcMissingAssertionForStatusCodeException(actualStatus.getCode());
         }
 
@@ -1033,21 +1120,24 @@ public interface FilibusterGrpcTest {
         for (Map.Entry<Status.Code, Runnable> errorAssertion : errorAssertions.entrySet()) {
             if (errorAssertion.getKey().equals(statusRuntimeException.getStatus().getCode())) {
                 try {
-                    insideOfErrorAssertionBlock.set(true);
+                    setInsideOfAssertOnExceptionBlock(true);
                     errorAssertion.getValue().run();
                 } catch (Throwable t) {
                     throw new FilibusterGrpcAssertionsForAssertOnExceptionFailedException(actualStatus.getCode(), t);
                 } finally {
-                    insideOfErrorAssertionBlock.set(false);
+                    setInsideOfAssertOnExceptionBlock(false);
                 }
             }
         }
 
         // Verify stub invocations.
         try {
+            setInsideOfAssertStubBlock(true);
             Helpers.assertionBlock(this::assertStubBlock);
         } catch (Throwable t) {
             throw new FilibusterGrpcAssertionsDidNotHoldUnderErrorResponseException(actualStatus.getCode(), t);
+        } finally {
+            setInsideOfAssertStubBlock(false);
         }
     }
 }

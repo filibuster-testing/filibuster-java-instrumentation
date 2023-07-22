@@ -1,5 +1,7 @@
 package cloud.filibuster.junit.statem;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcStubForUsedOutsideStubBlockException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcVerifyThatUsedOutsideAssertStubException;
 import cloud.filibuster.junit.Assertions;
 import io.grpc.MethodDescriptor;
 
@@ -7,6 +9,8 @@ import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 
+import static cloud.filibuster.junit.statem.GrpcTestUtils.getInsideOfAssertStubBlock;
+import static cloud.filibuster.junit.statem.GrpcTestUtils.isInsideOfStubBlock;
 import static org.grpcmock.GrpcMock.calledMethod;
 import static org.grpcmock.GrpcMock.times;
 import static org.grpcmock.GrpcMock.atLeast;
@@ -99,10 +103,14 @@ public class GrpcMock {
             @Nonnull MethodDescriptor<ReqT, RespT> method,
             @Nonnull ReqT request,
             @Nonnull RespT response
-            ) {
-        verifyThatMapping.put(method.getFullMethodName(), false);
+    ) {
+        if (isInsideOfStubBlock()) {
+            verifyThatMapping.put(method.getFullMethodName(), false);
 
-        org.grpcmock.GrpcMock.stubFor(unaryMethod(method).withRequest(request).willReturn(response));
+            org.grpcmock.GrpcMock.stubFor(unaryMethod(method).withRequest(request).willReturn(response));
+        } else {
+            throw new FilibusterGrpcStubForUsedOutsideStubBlockException();
+        }
     }
 
     /**
@@ -118,22 +126,26 @@ public class GrpcMock {
             @Nonnull MethodDescriptor<ReqT, ?> method,
             int count
     ) {
-        verifyThatMapping.put(method.getFullMethodName(), true);
+        if (getInsideOfAssertStubBlock()) {
+            verifyThatMapping.put(method.getFullMethodName(), true);
 
-        if (Assertions.wasFaultInjectedOnMethod(method.getFullMethodName())) {
-            if (count > 0) {
-                count = count - 1;
+            if (Assertions.wasFaultInjectedOnMethod(method.getFullMethodName())) {
+                if (count > 0) {
+                    count = count - 1;
+                }
             }
-        }
 
-        if (adjustedExpectationsForMethods.containsKey(method.getFullMethodName())) {
-            count = adjustedExpectationsForMethods.get(method.getFullMethodName());
-        }
+            if (adjustedExpectationsForMethods.containsKey(method.getFullMethodName())) {
+                count = adjustedExpectationsForMethods.get(method.getFullMethodName());
+            }
 
-        if (count == -1) {
-            org.grpcmock.GrpcMock.verifyThat(calledMethod(method), atLeast(0));
+            if (count == -1) {
+                org.grpcmock.GrpcMock.verifyThat(calledMethod(method), atLeast(0));
+            } else {
+                org.grpcmock.GrpcMock.verifyThat(calledMethod(method), times(count));
+            }
         } else {
-            org.grpcmock.GrpcMock.verifyThat(calledMethod(method), times(count));
+            throw new FilibusterGrpcVerifyThatUsedOutsideAssertStubException();
         }
     }
 
@@ -152,6 +164,7 @@ public class GrpcMock {
             @Nonnull ReqT request,
             int count
     ) {
+        if (getInsideOfAssertStubBlock()) {
         verifyThatMapping.put(method.getFullMethodName(), true);
 
         if (Assertions.wasFaultInjectedOnRequest(request.toString())) {
@@ -160,16 +173,19 @@ public class GrpcMock {
             }
         }
 
-        for (Map.Entry<String, Integer> adjustedExpectationsForRequest : adjustedExpectationsForRequests.entrySet()){
-            if (adjustedExpectationsForRequest.getKey().equals(method.getFullMethodName() + request)) {
-                count = adjustedExpectationsForRequest.getValue();
+            for (Map.Entry<String, Integer> adjustedExpectationsForRequest : adjustedExpectationsForRequests.entrySet()) {
+                if (adjustedExpectationsForRequest.getKey().equals(method.getFullMethodName() + request)) {
+                    count = adjustedExpectationsForRequest.getValue();
+                }
             }
-        }
 
-        if (count == -1) {
-            org.grpcmock.GrpcMock.verifyThat(calledMethod(method).withRequest(request), atLeast(0));
+            if (count == -1) {
+                org.grpcmock.GrpcMock.verifyThat(calledMethod(method).withRequest(request), atLeast(0));
+            } else {
+                org.grpcmock.GrpcMock.verifyThat(calledMethod(method).withRequest(request), times(count));
+            }
         } else {
-            org.grpcmock.GrpcMock.verifyThat(calledMethod(method).withRequest(request), times(count));
+            throw new FilibusterGrpcVerifyThatUsedOutsideAssertStubException();
         }
     }
 }

@@ -270,7 +270,7 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
                 allCartRequestsFaultSpecification,
                 () -> {
                     assertTestBlock(10000);
-                    GrpcMock.adjustExpectation(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
+                    sideEffectingRPC(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
                 });
     }
 

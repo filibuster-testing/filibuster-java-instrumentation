@@ -124,6 +124,16 @@
             font-weight: 500;
         }
 
+        .small_class_name {
+            padding: 0;
+            margin-bottom: 10px;
+            font-family: 'Inconsolata', sans-serif;
+            font-size: verysmall;
+            font-weight: 500;
+            width: 100%;
+            text-align: left;
+        }
+
         .class_name {
             padding: 0;
             margin-bottom: 10px;
@@ -157,7 +167,19 @@
             height: 100px;
             margin-bottom: 10px;
         }
-	</style>
+
+        .fixMessage {
+            height: auto;
+            width: inherit;
+            padding: 10px 10px;
+            overflow: auto;
+            margin-bottom: 10px;
+            background: #a3d298;
+            box-sizing: border-box;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
 </head>
 
 <body>
@@ -240,7 +262,10 @@
             {
                 let selectedFailureIndex = parseInt($("#failureSelection").find(":selected").val());
                 let selectedFailure = analysis.failures[selectedFailureIndex];
-                $("#failureStackTrace").html(`<textarea class="stacktrace">${selectedFailure.assertion_failure_stacktrace}</textarea>`)
+                $("#failureStackTrace").html(`<textarea class="stacktrace" readonly>${selectedFailure.assertion_failure_stacktrace}</textarea>`)
+                if ("assertion_failure_fix_message" in selectedFailure) {
+                    $("#failureStackTrace").append(`<div class="fixMessage"><p>Possible ways to fix this failure:</p>${selectedFailure.assertion_failure_fix_message}</div>`)
+                }
                 $("#failureStackTrace").toggle();
             }
 

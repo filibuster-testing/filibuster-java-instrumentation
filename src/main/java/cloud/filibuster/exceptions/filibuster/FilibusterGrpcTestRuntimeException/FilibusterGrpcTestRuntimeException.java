@@ -31,7 +31,7 @@ public abstract class FilibusterGrpcTestRuntimeException extends FilibusterRunti
      *                unknown.)
      */
     protected FilibusterGrpcTestRuntimeException(String message, Throwable cause) {
-        super(message, cause);
+        super(message + "\n" + cause, cause);
     }
 
     /**
@@ -51,11 +51,9 @@ public abstract class FilibusterGrpcTestRuntimeException extends FilibusterRunti
         StringBuilder completedFixMessage = new StringBuilder();
 
         completedFixMessage.append("<ul>");
-
         for (String fixMessage : fixMessages) {
             completedFixMessage.append(fixMessage);
         }
-
         completedFixMessage.append("</ul>");
 
         return completedFixMessage.toString();

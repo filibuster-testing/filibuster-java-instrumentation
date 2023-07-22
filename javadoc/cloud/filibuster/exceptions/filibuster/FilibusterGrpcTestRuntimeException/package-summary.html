@@ -132,63 +132,75 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </td>
 </tr>
 <tr class="altColor">
+<th class="colFirst" scope="row"><a href="FilibusterGrpcAssertionUsedOutsideFailureBlockException.html" title="class in cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException">FilibusterGrpcAssertionUsedOutsideFailureBlockException</a></th>
+<td class="colLast">
+<div class="block"><code>FilibusterGrpcAssertionUsedOutsideFailureBlockException</code> is thrown when an assertion is used outside failureBlock(...).</div>
+</td>
+</tr>
+<tr class="rowColor">
 <th class="colFirst" scope="row"><a href="FilibusterGrpcAssertOnFaultException.html" title="class in cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException">FilibusterGrpcAssertOnFaultException</a></th>
 <td class="colLast">
 <div class="block"><code>FilibusterGrpcAssertOnFaultException</code> is invoked when the assertions in assertOnFault(...) fail.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <th class="colFirst" scope="row"><a href="FilibusterGrpcAssertTestBlockFailedException.html" title="class in cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException">FilibusterGrpcAssertTestBlockFailedException</a></th>
 <td class="colLast">
 <div class="block"><code>FilibusterGrpcAssertTestBlockFailedException</code> is invoked when assertions in assertTestBlock fail.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <th class="colFirst" scope="row"><a href="FilibusterGrpcFailedRPCException.html" title="class in cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException">FilibusterGrpcFailedRPCException</a></th>
 <td class="colLast">
 <div class="block"><code>FilibusterGrpcFailedRPCException</code> is invoked when a failed RPC results in exception, but error codes and descriptions do not match.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <th class="colFirst" scope="row"><a href="FilibusterGrpcInjectedFaultHasUnspecifiedFailureBehaviorException.html" title="class in cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException">FilibusterGrpcInjectedFaultHasUnspecifiedFailureBehaviorException</a></th>
 <td class="colLast">
 <div class="block"><code>FilibusterGrpcInjectedFaultHasUnspecifiedFailureBehaviorException</code> is invoked when a test injects a fault, but no specification of failure behavior is present.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <th class="colFirst" scope="row"><a href="FilibusterGrpcInvokedRPCUnimplementedException.html" title="class in cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException">FilibusterGrpcInvokedRPCUnimplementedException</a></th>
 <td class="colLast">
 <div class="block"><code>FilibusterGrpcInvokedRPCUnimplementedException</code> is thrown when an invoked RPCs was left UNIMPLEMENTED.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <th class="colFirst" scope="row"><a href="FilibusterGrpcMissingAssertionForStatusCodeException.html" title="class in cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException">FilibusterGrpcMissingAssertionForStatusCodeException</a></th>
 <td class="colLast">
 <div class="block"><code>FilibusterGrpcMissingAssertionForStatusCodeException</code> is thrown when assertion block for a specific status code response is missing.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <th class="colFirst" scope="row"><a href="FilibusterGrpcMultipleFaultsInjectedException.html" title="class in cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException">FilibusterGrpcMultipleFaultsInjectedException</a></th>
 <td class="colLast">
 <div class="block"><code>FilibusterGrpcMultipleFaultsInjectedException</code> is thrown when assertions in assertTestBlock fail due to multiple faults being injected.</div>
 </td>
 </tr>
-<tr class="rowColor">
-<th class="colFirst" scope="row"><a href="FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionException.html" title="class in cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException">FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionException</a></th>
+<tr class="altColor">
+<th class="colFirst" scope="row"><a href="FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionAndAssertOnFaultException.html" title="class in cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException">FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionAndAssertOnFaultException</a></th>
 <td class="colLast">
-<div class="block"><code>FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionException</code> is thrown when readOnlyRPC is used outside assertOnException(...) block.</div>
+<div class="block"><code>FilibusterGrpcReadOnlyRPCUsedOutsideAssertOnExceptionAndAssertOnFaultException</code> is thrown when readOnlyRPC is used outside assertOnException(...)  and assertOnFault(...) block.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<th class="colFirst" scope="row"><a href="FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionAndAssertOnFaultException.html" title="class in cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException">FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionAndAssertOnFaultException</a></th>
+<td class="colLast">
+<div class="block"><code>FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionAndAssertOnFaultException</code> is thrown when sideEffectingRPC is used outside assertOnException(...) and assertOnFault(...) block.</div>
 </td>
 </tr>
 <tr class="altColor">
-<th class="colFirst" scope="row"><a href="FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionException.html" title="class in cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException">FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionException</a></th>
-<td class="colLast">
-<div class="block"><code>FilibusterGrpcSideEffectingRPCUsedOutsideAssertOnExceptionException</code> is thrown when sideEffectingRPC is used outside assertOnException(...) block.</div>
-</td>
-</tr>
-<tr class="rowColor">
 <th class="colFirst" scope="row"><a href="FilibusterGrpcStubbedRPCHasNoAssertionsException.html" title="class in cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException">FilibusterGrpcStubbedRPCHasNoAssertionsException</a></th>
 <td class="colLast">
 <div class="block"><code>FilibusterGrpcStubbedRPCHasNoAssertionsException</code> is thrown when stubbed RPC has no assertions on invocation count.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<th class="colFirst" scope="row"><a href="FilibusterGrpcStubForUsedOutsideStubBlockException.html" title="class in cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException">FilibusterGrpcStubForUsedOutsideStubBlockException</a></th>
+<td class="colLast">
+<div class="block"><code>FilibusterGrpcStubForUsedOutsideStubBlockException</code> is thrown when stubFor is used outside stubBlock(...).</div>
 </td>
 </tr>
 <tr class="altColor">
@@ -208,6 +220,12 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <th class="colFirst" scope="row"><a href="FilibusterGrpcThrownExceptionHasUnspecifiedFailureBehaviorException.html" title="class in cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException">FilibusterGrpcThrownExceptionHasUnspecifiedFailureBehaviorException</a></th>
 <td class="colLast">
 <div class="block"><code>FilibusterGrpcThrownExceptionHasUnspecifiedFailureBehaviorException</code> is invoked when test throws an exception, but no specification of failure behavior is present.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<th class="colFirst" scope="row"><a href="FilibusterGrpcVerifyThatUsedOutsideAssertStubException.html" title="class in cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException">FilibusterGrpcVerifyThatUsedOutsideAssertStubException</a></th>
+<td class="colLast">
+<div class="block"><code>FilibusterGrpcVerifyThatUsedOutsideAssertStubException</code> is thrown when verifyThat is used outside assertStubBlock(...).</div>
 </td>
 </tr>
 </tbody>

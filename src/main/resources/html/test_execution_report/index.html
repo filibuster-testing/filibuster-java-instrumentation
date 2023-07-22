@@ -174,10 +174,16 @@
             padding: 10px 10px;
             overflow: auto;
             margin-bottom: 10px;
-            background: #a3d298;
+            background: lightcyan;
             box-sizing: border-box;
             border: 2px solid #ccc;
             border-radius: 4px;
+        }
+
+        .fixMessageHeading {
+            display: inline-block;
+            font-size: medium;
+            font-weight: bold;
         }
 
         /* unvisited link */
@@ -284,7 +290,7 @@
                 let selectedFailure = analysis.failures[selectedFailureIndex];
                 $("#failureStackTrace").html(`<textarea class="stacktrace" readonly>${selectedFailure.assertion_failure_stacktrace}</textarea>`)
                 if ("assertion_failure_fix_message" in selectedFailure) {
-                    $("#failureStackTrace").append(`<div class="fixMessage"><p>Possible ways to fix this failure:</p>${selectedFailure.assertion_failure_fix_message}</div>`)
+                    $("#failureStackTrace").append(`<div class="fixMessage"><span class="fixMessageHeading">Resolutions</span><p>❌ First, check if this is a bug.</p><p>✅ If this is desired application behavior, here are some possible ways to fix this failure:</p>${selectedFailure.assertion_failure_fix_message}</div>`)
                 }
                 $("#failureStackTrace").toggle();
             }

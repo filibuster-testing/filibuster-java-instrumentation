@@ -5,6 +5,7 @@ import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.instrumentation.datatypes.Pair;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.BasicDAO;
@@ -18,6 +19,7 @@ import io.grpc.StatusRuntimeException;
 import io.lettuce.core.api.StatefulRedisConnection;
 import org.json.JSONObject;
 
+import javax.sql.DataSource;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,7 +36,7 @@ public class PurchaseWorkflow {
         USER_UNAVAILABLE,
         CART_UNAVAILABLE,
         NO_DISCOUNT,
-        INSUFFICIENT_DISCOUNT
+        INSUFFICIENT_DISCOUNT,
     }
 
     public static void depositFundsToAccount(UUID account, int amount) {
@@ -217,6 +219,7 @@ public class PurchaseWorkflow {
         if (getInstrumentationServerCommunicationEnabledProperty()) {
             // incomplete, needs instrumentation.
             return RedisClientService.getInstance().redisClient.connect();
+            return DynamicProxyInterceptor.createInterceptor(redisClient.redisClient.connect(), redisClient.connectionString);
         } else {
             return RedisClientService.getInstance().redisClient.connect();
         }
@@ -231,6 +234,11 @@ public class PurchaseWorkflow {
         } else {
             return cockroachClientService.dao;
         }
+            DataSource interceptedDS = DynamicProxyInterceptor.createInterceptor(cockroachClientService.dataSource,
+                    cockroachClientService.connectionString);
+            cockroachClientService.dao.setDS(interceptedDS);
+        }
+        return cockroachClientService.dao;
     }
 
     private static String getUserFromSession(Channel channel, String sessionId) {

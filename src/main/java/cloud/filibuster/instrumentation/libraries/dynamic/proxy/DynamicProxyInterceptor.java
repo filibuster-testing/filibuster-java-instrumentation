@@ -32,6 +32,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URI;
 import java.sql.SQLException;
+import java.sql.SQLTimeoutException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -347,6 +348,9 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
                 break;
             case "java.sql.SQLException":
                 exceptionToThrow = new SQLException(cause);
+                break;
+            case "java.sql.SQLTimeoutException":
+                exceptionToThrow = new SQLTimeoutException(cause);
                 break;
             case "com.datastax.oss.driver.api.core.servererrors.OverloadedException":
                 exceptionToThrow = new OverloadedException(null);

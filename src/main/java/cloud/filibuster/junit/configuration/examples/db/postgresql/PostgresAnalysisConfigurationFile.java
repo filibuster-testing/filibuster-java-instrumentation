@@ -35,7 +35,11 @@ public class PostgresAnalysisConfigurationFile implements FilibusterAnalysisConf
                 {"java.postgresql.preparedStatement.exceptions.sql_exception", "java.sql.SQLException",
                         "(java.sql.PreparedStatement/executeQuery|" +
                                 "java.sql.PreparedStatement/execute|" +
-                                "java.sql.PreparedStatement/executeUpdate)\\b", ""}
+                                "java.sql.PreparedStatement/executeUpdate)\\b", ""},
+                {"java.postgresql.preparedStatement.exceptions.sql_timeout_exception", "java.sql.SQLTimeoutException",
+                        "(java.sql.PreparedStatement/executeQuery|" +
+                                "java.sql.PreparedStatement/execute|" +
+                                "java.sql.PreparedStatement/executeUpdate)\\b", "Connection attempt timed out."}
         };
 
         for (String[] exception : exceptions) {

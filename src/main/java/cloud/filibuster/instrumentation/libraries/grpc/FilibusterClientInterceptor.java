@@ -232,7 +232,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
             @Override
             protected ClientCall<REQUEST, RESPONSE> delegate() {
                 if (delegate == null) {
-                    throw new FilibusterInstrumentationMissingDelegateException("Delegate is null, something threw inside of the Filibuster interceptor.");
+                    throw new FilibusterInstrumentationMissingDelegateException("Delegate is null, something threw inside of the Filibuster interceptor previously, scroll to see previous exception.");
                 }
                 return delegate;
             }

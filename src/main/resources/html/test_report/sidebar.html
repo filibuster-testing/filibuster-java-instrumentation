@@ -9,25 +9,25 @@
         body {
             font-size: 85%;
 
-			font-family: 'Gill Sans',
-				'Gill Sans MT', ' Calibri',
-				'Trebuchet MS', 'sans-serif';
+            font-family: 'Gill Sans',
+            'Gill Sans MT', ' Calibri',
+            'Trebuchet MS', 'sans-serif';
             background-color: white;
         }
 
-		table {
-			margin: 0 auto;
-			font-size: large;
+        table {
+            margin: 0 auto;
+            font-size: large;
             table-layout: fixed;
-		}
+        }
 
-		h1 {
-			color: black;
-			font-size: xx-large;
-		}
+        h1 {
+            color: black;
+            font-size: xx-large;
+        }
 
         div {
-			text-align: center;
+            text-align: center;
             margin: 0 auto;
             width: 500px;
             padding-bottom: 10px;
@@ -64,14 +64,14 @@
             background-color: lightgrey;
         }
 
-		th,
-		td {
-			padding: 10px;
+        th,
+        td {
+            padding: 10px;
             vertical-align: top;
             font-size: 11px;
             text-align: left;
             font-weight: normal;
-		}
+        }
 
         tr.pass {
             background-color: lightgreen;
@@ -107,7 +107,7 @@
         }
 
         td.generated_id {
-			text-align: center;
+            text-align: center;
         }
 
         td.method, td.generated_id {
@@ -153,7 +153,7 @@
         h1 {
             margin-bottom: 0px;
         }
-	</style>
+    </style>
 </head>
 
 <body style="margin: 0 auto;">
@@ -175,10 +175,17 @@
             $('tr.collapsable').toggle();
         }
 
+        function underlineIteration(iterationNr) {
+            $(".iteration").css("text-decoration", "")
+            $("#iteration_" + iterationNr).css("text-decoration", "underline")
+        }
+
         $(document).ready(function () {
             console.log(summary);
 
             $('#total').html("(" + summary.reports.length + ")");
+
+            let display_iteration = 1;
 
             for (i in summary.reports) {
                 var report = summary.reports[i];
@@ -200,13 +207,18 @@
                     }
                 }
 
+                if (display_iteration === 1 && !report.status) {
+                    display_iteration = report.iteration;
+                }
+
                 row += '<td>';
-                row += '<a target="test_execution_frame" href="' + report.path + '">' + report.iteration + '</a>';
+                row += '<a target="test_execution_frame" href="' + report.path + '" class="iteration" id="iteration_' + report.iteration + '" onclick="underlineIteration(' + report.iteration + ');">' + report.iteration + '</a>';
                 row += '</td>';
                 row += '</tr>';
 
                 $('#reports').append(row);
             }
+            underlineIteration(display_iteration);
         });
     </script>
 </section>

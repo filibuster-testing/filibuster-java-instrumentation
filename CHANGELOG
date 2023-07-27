@@ -10,6 +10,28 @@
     - (MichaelA-ops) Add new test scenarios for transformer and Byzantine faults
     - (MichaelA-ops) Add test services and unit tests for DynamoDB, Cassandra and Postgres
     - (MichaelA-ops) Support null transformer fault injection for HTTP and GRPC
+1.9.10:
+   - (MichaelA-ops) UI: Show fix messages on plugin for FilibusterGrpcTestRuntimeException.
+1.9.9:
+   - (cmeiklejohn) Fix overloads for consistency.
+1.9.8:
+   - (cmeiklejohn) Rebuild of bad package.
+   - (cmeiklejohn) New test UX/UI.
+1.9.7:
+   - (cmeiklejohn) Refactor compositional testing interface.
+   - (MichaelA-ops) UI: Underline currently selected test iteration.
+1.9.5:
+   - (cmeiklejohn) Fix of bad build.
+1.9.4:
+   - (cmeiklejohn) Fix a UX bug where the page is empty when Filibuster is disabled.
+1.9.3:
+   - (cmeiklejohn) Update invocation report to show hit endpoints.
+1.9.2:
+   - (cmeiklejohn) Minor API cleanup and documentation.
+1.9.1:
+   - (cmeiklejohn) Fix javadoc for proper publishing.
+1.9.0:
+   - (cmeiklejohn) Improve test interface.
 1.8.0:
    - (cmeiklejohn) New test interface style.
    - (cmeiklejohn) Fix bug in getAvoidInjectionsOnOrganicFailures.

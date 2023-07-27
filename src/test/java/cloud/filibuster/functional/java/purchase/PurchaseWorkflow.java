@@ -1,4 +1,4 @@
-package cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql;
+package cloud.filibuster.functional.java.purchase;
 
 import cloud.filibuster.examples.CartServiceGrpc;
 import cloud.filibuster.examples.Hello;
@@ -8,6 +8,8 @@ import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.BasicDAO;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.CockroachClientService;
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
 import io.grpc.ClientInterceptors;
@@ -32,7 +34,9 @@ public class PurchaseWorkflow {
         INSUFFICIENT_FUNDS,
         UNPROCESSED,
         USER_UNAVAILABLE,
-        CART_UNAVAILABLE
+        CART_UNAVAILABLE,
+        NO_DISCOUNT,
+        INSUFFICIENT_DISCOUNT
     }
 
     public static void depositFundsToAccount(UUID account, int amount) {
@@ -77,6 +81,10 @@ public class PurchaseWorkflow {
 
     private final String sessionId;
 
+    private final boolean abortOnNoDiscount;
+
+    private final int abortOnLessThanDiscountAmount;
+
     private final Channel channel;
 
     private final StatefulRedisConnection<String, String> connection;
@@ -87,8 +95,10 @@ public class PurchaseWorkflow {
 
     private PurchaseWorkflowResponse purchaseWorkflowResponse = PurchaseWorkflowResponse.UNPROCESSED;
 
-    public PurchaseWorkflow(String sessionId) {
+    public PurchaseWorkflow(String sessionId, boolean abortOnNoDiscount, int abortOnLessThanDiscountAmount) {
         this.sessionId = sessionId;
+        this.abortOnNoDiscount = abortOnNoDiscount;
+        this.abortOnLessThanDiscountAmount = abortOnLessThanDiscountAmount;
         this.channel = getRpcChannel();
         this.connection = getRedisConnection();
         this.dao = getCockroachDAO();
@@ -103,9 +113,12 @@ public class PurchaseWorkflow {
         // Make call to get the user.
         try {
             userId = getUserFromSession(channel, sessionId);
-        } catch (StatusRuntimeException e) {
+        } catch (StatusRuntimeException statusRuntimeException) {
             return PurchaseWorkflowResponse.USER_UNAVAILABLE;
         }
+
+        // Validate session, let any errors propagate back to the caller.
+        validateSession(channel, sessionId);
 
         // Get cart.
         try {
@@ -113,7 +126,7 @@ public class PurchaseWorkflow {
             cartId = getCartResponse.getCartId();
             merchantId = getCartResponse.getMerchantId();
             cartTotal = Integer.parseInt(getCartResponse.getTotal());
-        } catch (StatusRuntimeException e) {
+        } catch (StatusRuntimeException statusRuntimeException) {
             return PurchaseWorkflowResponse.CART_UNAVAILABLE;
         }
 
@@ -125,7 +138,7 @@ public class PurchaseWorkflow {
                 Hello.GetDiscountResponse getDiscountResponse = getDiscountOnCart(channel, discountCode.getKey());
                 int discountPercentage = Integer.parseInt(getDiscountResponse.getPercent());
                 maxDiscountPercentage = Integer.max(maxDiscountPercentage, discountPercentage);
-            } catch (StatusRuntimeException e) {
+            } catch (StatusRuntimeException statusRuntimeException) {
                 // Nothing, ignore discount failure.
             }
         }
@@ -134,6 +147,19 @@ public class PurchaseWorkflow {
         float discountPct = maxDiscountPercentage / 100.00F;
         float discountAmount = cartTotal * discountPct;
         cartTotal = cartTotal - (int) discountAmount;
+
+        // Notify of applied discount.
+        if (discountAmount > 0) {
+            if (abortOnLessThanDiscountAmount > 0 && discountAmount < abortOnLessThanDiscountAmount) {
+                return PurchaseWorkflowResponse.INSUFFICIENT_DISCOUNT;
+            } else {
+                notifyOfDiscountApplied(channel, cartId);
+            }
+        } else {
+            if (abortOnNoDiscount) {
+                return PurchaseWorkflowResponse.NO_DISCOUNT;
+            }
+        }
 
         // Verify the user has sufficient funds.
         int userAccountBalance = dao.getAccountBalance(UUID.fromString(userId));
@@ -190,10 +216,9 @@ public class PurchaseWorkflow {
     }
 
     private static StatefulRedisConnection<String, String> getRedisConnection() {
-        RedisClientService redisClient = RedisClientService.getInstance();
-
         if (getInstrumentationServerCommunicationEnabledProperty()) {
-            return DynamicProxyInterceptor.createInterceptor(redisClient.redisClient.connect(), redisClient.connectionString);
+            // incomplete, needs instrumentation.
+            return RedisClientService.getInstance().redisClient.connect();
         } else {
             return RedisClientService.getInstance().redisClient.connect();
         }
@@ -203,11 +228,11 @@ public class PurchaseWorkflow {
         CockroachClientService cockroachClientService = CockroachClientService.getInstance();
 
         if (getInstrumentationServerCommunicationEnabledProperty()) {
-            DataSource interceptedDS = DynamicProxyInterceptor.createInterceptor(cockroachClientService.dataSource,
-                    cockroachClientService.connectionString);
-            cockroachClientService.dao.setDS(interceptedDS);
+            // incomplete, needs instrumentation.
+            return cockroachClientService.dao;
+        } else {
+            return cockroachClientService.dao;
         }
-        return cockroachClientService.dao;
     }
 
     private static String getUserFromSession(Channel channel, String sessionId) {
@@ -227,5 +252,23 @@ public class PurchaseWorkflow {
         CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
         Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder().setCode(discountCode).build();
         return cartServiceBlockingStub.getDiscountOnCart(request);
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private static void notifyOfDiscountApplied(Channel channel, String cartId) {
+        CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
+        Hello.NotifyDiscountAppliedRequest notifyDiscountAppliedRequest = Hello.NotifyDiscountAppliedRequest.newBuilder().setCartId(cartId).build();
+        try {
+            cartServiceBlockingStub.notifyDiscountApplied(notifyDiscountAppliedRequest);
+        } catch (StatusRuntimeException statusRuntimeException) {
+            // Nothing, ignore the failure.
+        }
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private static void validateSession(Channel channel, String sessionId) {
+        UserServiceGrpc.UserServiceBlockingStub userServiceBlockingStub = UserServiceGrpc.newBlockingStub(channel);
+        Hello.ValidateSessionRequest request = Hello.ValidateSessionRequest.newBuilder().setSessionId(sessionId).build();
+        userServiceBlockingStub.validateSession(request);
     }
 }

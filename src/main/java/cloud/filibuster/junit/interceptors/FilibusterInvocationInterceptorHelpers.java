@@ -24,23 +24,35 @@ public class FilibusterInvocationInterceptorHelpers {
     }
 
     @SuppressWarnings("InterruptedExceptionSwallowed")
-    public static boolean shouldBypassExecution(WebClient webClient, int currentIteration, String caller) {
+    public static boolean shouldBypassExecution(WebClient webClient, int currentIteration, String caller, boolean abortOnFirstFailure, boolean previousExecutionFailed) {
         try {
-            return !FilibusterServerAPI.hasNextIteration(webClient, currentIteration, caller);
+            boolean hasNextIteration = FilibusterServerAPI.hasNextIteration(webClient, currentIteration, caller);
+
+            if (hasNextIteration) {
+                if (abortOnFirstFailure && previousExecutionFailed) {
+                    return true;
+                }
+
+                return false;
+            } else {
+                return true;
+            }
         } catch (Exception e) {
             throw new FilibusterRuntimeException("Filibuster server threw: " + e, e);
         }
     }
 
-    public static void proceedAndLogException(InvocationInterceptor.Invocation<Void> invocation,
+    public static void proceedAndLogException(FilibusterInvocationInterceptor filibusterInvocationInterceptor,
+                                              InvocationInterceptor.Invocation<Void> invocation,
                                               int currentIteration,
                                               WebClient webClient,
                                               FilibusterConfiguration filibusterConfiguration) throws Throwable {
-        proceedAndLogException(invocation, currentIteration, webClient, filibusterConfiguration,/* shouldWritePlaceholder= */true,/* shouldPrintRPCSummary= */true);
+        proceedAndLogException(filibusterInvocationInterceptor, invocation, currentIteration, webClient, filibusterConfiguration,/* shouldWritePlaceholder= */true,/* shouldPrintRPCSummary= */true);
     }
 
     @SuppressWarnings("InterruptedExceptionSwallowed")
-    public static void proceedAndLogException(InvocationInterceptor.Invocation<Void> invocation,
+    public static void proceedAndLogException(FilibusterInvocationInterceptor filibusterInvocationInterceptor,
+                                              InvocationInterceptor.Invocation<Void> invocation,
                                               int currentIteration,
                                               WebClient webClient,
                                               FilibusterConfiguration filibusterConfiguration,
@@ -65,6 +77,7 @@ public class FilibusterInvocationInterceptorHelpers {
                 }
             } else {
                 FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */true, t, shouldPrintRPCSummary);
+                FilibusterInvocationInterceptor.previousIterationFailed = true;
                 throw t;
             }
         }

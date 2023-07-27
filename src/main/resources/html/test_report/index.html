@@ -187,6 +187,7 @@
 
     <script>
         $(document).ready(function () {
+            let i;
             var sidebarIFrame = '<iframe frameborder="0" marginwidth="0" marginheight="0" scrolling="auto" src="./sidebar.html" class="sidebar" name="test_sidebar_frame"></iframe>';
             $('#sidebar').html(sidebarIFrame);
 
@@ -194,11 +195,22 @@
                 $('#report_warning').append('️<span class="warning">️⚠️ ' + summary.num_bypassed_executions + ' generated test executions were bypassed due to Filibuster configuration.</span>');
                 $('#report_warning').show();
             }
+            let display_iteration= Number.POSITIVE_INFINITY;
+            for (i in summary.reports) {
+                let report = summary.reports[i];
+                if(report.iteration < display_iteration && !report.status )
+                {
+                    display_iteration = report.iteration;
+                }
+            }
+            if(display_iteration === Number.POSITIVE_INFINITY)
+            {
+                display_iteration = 1;
+            }
 
             for (i in summary.reports) {
                 var report = summary.reports[i];
-
-                if (report.iteration === 1) {
+                if (report.iteration === display_iteration) {
                     var resultsIFrame = '<iframe frameborder="0" marginwidth="0" marginheight="0" scrolling="auto" src="' + report.path + '" class="results" name="test_execution_frame"></iframe>';
                     $('#results').html(resultsIFrame);
                 }

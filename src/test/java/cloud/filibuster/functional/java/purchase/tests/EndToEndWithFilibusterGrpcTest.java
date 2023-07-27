@@ -7,7 +7,7 @@ import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.functional.java.purchase.PurchaseBaseTest;
 import cloud.filibuster.functional.java.purchase.configurations.GRPCAnalysisConfigurationFile;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.PurchaseWorkflow;
+import cloud.filibuster.functional.java.purchase.PurchaseWorkflow;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.TestWithFilibuster;
 import org.grpcmock.junit5.GrpcMockExtension;
@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class EndToEndWithFilibusterTest extends PurchaseBaseTest {
+public class EndToEndWithFilibusterGrpcTest extends PurchaseBaseTest {
     @RegisterExtension
     static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
             .withPort(Networking.getPort("mock"))
@@ -83,6 +83,9 @@ public class EndToEndWithFilibusterTest extends PurchaseBaseTest {
         stubFor(unaryMethod(UserServiceGrpc.getGetUserFromSessionMethod())
                 .willReturn(Hello.GetUserResponse.newBuilder()
                         .setUserId(consumerId.toString())
+                        .build()));
+        stubFor(unaryMethod(UserServiceGrpc.getValidateSessionMethod())
+                .willReturn(Hello.ValidateSessionResponse.newBuilder()
                         .build()));
         stubFor(unaryMethod(CartServiceGrpc.getGetCartForSessionMethod())
                 .willReturn(Hello.GetCartResponse.newBuilder()

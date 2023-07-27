@@ -132,6 +132,16 @@
             font-weight: 500;
         }
 
+        .small_class_name {
+            padding: 0;
+            margin-bottom: 10px;
+            font-family: 'Inconsolata', sans-serif;
+            font-size: verysmall;
+            font-weight: 500;
+            width: 100%;
+            text-align: left;
+        }
+
         .class_name {
             padding: 0;
             margin-bottom: 10px;
@@ -160,7 +170,50 @@
         .cached {
             display: none;
         }
-	</style>
+
+        .stacktrace {
+            height: 100px;
+            margin-bottom: 10px;
+        }
+
+        .fixMessage {
+            height: auto;
+            width: inherit;
+            padding: 10px 10px;
+            overflow: auto;
+            margin-bottom: 10px;
+            background: lightcyan;
+            box-sizing: border-box;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .fixMessageHeading {
+            display: inline-block;
+            font-size: small;
+            font-weight: bold;
+        }
+
+        /* unvisited link */
+        a:link {
+            color: black;
+        }
+
+        /* visited link */
+        a:visited {
+            color: black;
+        }
+
+        /* mouse over link */
+        a:hover {
+            color: black;
+        }
+
+        /* selected link */
+        a:active {
+            color: black;
+        }
+    </style>
 </head>
 
 <body>
@@ -172,9 +225,9 @@
     <!-- Assertion failure goes here. -->
     <div id="failure" style="display: none; margin: 0; padding: 0; width: 100%; font-size: 11px;">
         <span style="vertical-align: middle; text-align: left;" id ="failedMessage">️</span>
-        <select name="failureSelection" id="failureSelection" style="font-size: 11px;">
+        <select name="failureSelection" id="failureSelection" style="vertical-align: bottom; font-size: 11px;">
         </select>
-        <a style="text-decoration: none;" href="#" onClick="toggleStackTrace();">📚</a>
+        <a style="text-decoration: none; vertical-align: bottom; font-size: 11px;" href="#" onClick="toggleStackTrace();">⬇️</a>
     </div>
 
     <div id="failureStackTrace" style="display: none;margin: 0; padding: 0; width: 100%; font-size: 11px;">
@@ -247,7 +300,10 @@
             {
                 let selectedFailureIndex = parseInt($("#failureSelection").find(":selected").val());
                 let selectedFailure = analysis.failures[selectedFailureIndex];
-                $("#failureStackTrace").html(`<textarea>${selectedFailure.assertion_failure_stacktrace}</textarea>`)
+                $("#failureStackTrace").html(`<textarea class="stacktrace" readonly>${selectedFailure.assertion_failure_stacktrace}</textarea>`)
+                if ("assertion_failure_fix_message" in selectedFailure) {
+                    $("#failureStackTrace").append(`<div class="fixMessage"><span class="fixMessageHeading">Resolutions</span><p>❌ First, check if this is a bug.</p><p>✅ If this is desired application behavior, here are some possible ways to fix this failure:</p>${selectedFailure.assertion_failure_fix_message}</div>`)
+                }
                 $("#failureStackTrace").toggle();
             }
 
@@ -260,7 +316,7 @@
                     let plural = failures.length > 1  ? "s" : "";
                     $('#failedMessage').html(`❌&nbsp; Test failed because of assertion failure${plural}: `);
                     $('#failure').show();
-                    let options = failures.map((failure,index) => `<option value="${index}">${failure.assertion_failure_message}</option>`).join();
+                    let options = failures.map((failure,index) => failure.assertion_failure_message.indexOf(".\n") != -1 ? `<option value="${index}">${failure.assertion_failure_message.substring(0, failure.assertion_failure_message.indexOf(".\n") + 1)}</option>` : `<option value="${index}">${failure.assertion_failure_message}</option>`).join();
                     console.log(options);
                     $("#failureSelection").append(options);
                 } else {

@@ -10,6 +10,8 @@ import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.PurchaseWorkflow;
+import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
+import cloud.filibuster.functional.java.purchase.PurchaseWorkflow;
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
 import io.grpc.ClientInterceptors;
@@ -381,7 +383,7 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
 
     @Override
     public void purchase(Hello.PurchaseRequest req, StreamObserver<Hello.PurchaseResponse> responseObserver) {
-        PurchaseWorkflow purchaseWorkflow = new PurchaseWorkflow(req.getSessionId());
+        PurchaseWorkflow purchaseWorkflow = new PurchaseWorkflow(req.getSessionId(), req.getAbortOnNoDiscount(), req.getAbortOnLessThanDiscountAmount());
         PurchaseWorkflow.PurchaseWorkflowResponse workflowResponse = purchaseWorkflow.execute();
         Status status;
 
@@ -394,8 +396,12 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
                 responseObserver.onNext(purchaseResponse);
                 responseObserver.onCompleted();
                 break;
-            case INSUFFICIENT_FUNDS:
-                status = Status.FAILED_PRECONDITION.withDescription("Consumer did not have sufficient funds to make purchase.");
+            case NO_DISCOUNT:
+                status = Status.FAILED_PRECONDITION.withDescription("Consumer did not get a discount.");
+                responseObserver.onError(status.asRuntimeException());
+                break;
+            case INSUFFICIENT_DISCOUNT:
+                status = Status.FAILED_PRECONDITION.withDescription("Consumer did not get enough of a discount.");
                 responseObserver.onError(status.asRuntimeException());
                 break;
             case UNPROCESSED:

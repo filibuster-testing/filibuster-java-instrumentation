@@ -59,6 +59,9 @@ public class RedisExhaustiveAnalysisConfigurationFile implements FilibusterAnaly
                 {"java.lettuce.core.batch.exception", "io.lettuce.core.dynamic.batch.BatchException",
                         "(io.lettuce.core.dynamic.SimpleBatcher/flush)\\b",
                         "Error during batch command execution"},
+                {"java.lettuce.core.connection.exception", "io.lettuce.core.RedisConnectionException",
+                        "(io.lettuce.core.ConnectionFuture/get)\\b",
+                        "Unable to connect"}
         };
 
         for (String[] exception : exceptions) {

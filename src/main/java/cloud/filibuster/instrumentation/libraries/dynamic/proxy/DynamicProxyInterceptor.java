@@ -15,6 +15,7 @@ import io.lettuce.core.RedisBusyException;
 import io.lettuce.core.RedisCommandExecutionException;
 import io.lettuce.core.RedisCommandInterruptedException;
 import io.lettuce.core.RedisCommandTimeoutException;
+import io.lettuce.core.RedisConnectionException;
 import io.lettuce.core.cluster.PartitionSelectorException;
 import io.lettuce.core.cluster.UnknownPartitionException;
 import io.lettuce.core.cluster.models.partitions.Partitions;
@@ -356,6 +357,9 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
                 break;
             case "io.lettuce.core.RedisCommandTimeoutException":
                 exceptionToThrow = new RedisCommandTimeoutException(cause);
+                break;
+            case "io.lettuce.core.RedisConnectionException":
+                exceptionToThrow = new RedisConnectionException(cause);
                 break;
             case "io.lettuce.core.RedisBusyException":
                 exceptionToThrow = new RedisBusyException(cause);

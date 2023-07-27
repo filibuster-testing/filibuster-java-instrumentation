@@ -1,14 +1,15 @@
 {
   "metaDataMap": {
-    "0.2": {
+    "0.04": {
       "usedCallIDs": [
         0.5
       ],
       "retval": "StartDCBA",
       "Completed": true,
+      "responseObserver": {},
       "req": {
         "baseString_": "Start",
-        "callID_": 0.2,
+        "callID_": 0.04,
         "memoizedIsInitialized": 1,
         "unknownFields": {
           "fields": {}

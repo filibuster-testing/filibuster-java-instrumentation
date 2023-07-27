@@ -10,7 +10,7 @@ import java.util.ArrayList;
 
 public class MyCService extends CGrpc.CImplBase {
     private final MetaDataContainer metadataContainer;
-    private final String metadataPath = "/home/jwetzel/filibuster-java-instrumentation/src/test/java/algorithmjacob/jacobservices/CMetaData.json";
+    private static final String metadataPath = "/home/jwetzel/filibuster-java-instrumentation/src/test/java/algorithmjacob/jacobservices/CMetaData.json";
 
     public MyCService() {
         MetaDataContainer existingData = JsonUtil.readMetaData(metadataPath);

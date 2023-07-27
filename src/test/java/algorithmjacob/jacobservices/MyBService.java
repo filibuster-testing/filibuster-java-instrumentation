@@ -16,7 +16,7 @@ import java.util.ArrayList;
 public class MyBService extends BGrpc.BImplBase {
 
     private final MetaDataContainer metadataContainer;
-    private final String metadataPath = "/home/jwetzel/filibuster-java-instrumentation/src/test/java/algorithmjacob/jacobservices/BMetaData.json";
+    private static final String metadataPath = "/home/jwetzel/filibuster-java-instrumentation/src/test/java/algorithmjacob/jacobservices/BMetaData.json";
 
     public MyBService() {
         MetaDataContainer existingData = JsonUtil.readMetaData(metadataPath);
@@ -91,6 +91,7 @@ public class MyBService extends BGrpc.BImplBase {
         responseObserver.onCompleted();
     }
 
+    @SuppressWarnings("UnnecessaryBoxedVariable")
     private Jacobalg.AppendReply callC(Float callID, Jacobalg.AppendReply reply){
         ManagedChannel CChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("C"), Networking.getPort("C"))
@@ -104,6 +105,7 @@ public class MyBService extends BGrpc.BImplBase {
 
         return reply;
     }
+    @SuppressWarnings("UnnecessaryBoxedVariable")
     private Jacobalg.AppendReply callD(Float callID, Jacobalg.AppendReply reply){
         ManagedChannel DChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("D"), Networking.getPort("D"))

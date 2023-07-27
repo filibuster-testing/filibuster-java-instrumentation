@@ -23,7 +23,7 @@ public class CServer {
     final private static String serviceName = "C";
 
 
-
+    @SuppressWarnings("Java8ApiChecker")
     public static Server serve() {
         ServerBuilder sb = Server.builder();
         sb.workerGroup(FilibusterExecutor.getNewEventLoopGroup(), /* shutdownOnStop= */true);

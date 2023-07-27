@@ -1,11 +1,13 @@
 package algorithmjacob.jacobservices;
 import java.util.ArrayList;
 import cloud.filibuster.examples.Jacobalg;
+//import io.grpc.stub.StreamObserver;
+
 public class JacobMetaData {
     public ArrayList<Float> usedCallIDs;
     public String retval;
     public Boolean Completed;
-    //public StreamObserver<Jacobalg.AppendReply> responseObserver;
+   // public StreamObserver<Jacobalg.AppendReply> responseObserver;
     public Jacobalg.AppendRequest req;
     public JacobMetaData(int listSize,  Jacobalg.AppendRequest myReq){ //will also eventually include return address
         usedCallIDs = new ArrayList<>(listSize);

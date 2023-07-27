@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public class MyAService extends AGrpc.AImplBase{
 
     private final MetaDataContainer metadataContainer;
-    private final String metadataPath = "/home/jwetzel/filibuster-java-instrumentation/src/test/java/algorithmjacob/jacobservices/AMetaData.json";
+    private static final String metadataPath = "/home/jwetzel/filibuster-java-instrumentation/src/test/java/algorithmjacob/jacobservices/AMetaData.json";
 
 
     public MyAService() {
@@ -66,6 +66,7 @@ public void appendA(Jacobalg.AppendRequest req, StreamObserver<Jacobalg.AppendRe
     }
 }
 
+    @SuppressWarnings("UnnecessaryBoxedVariable")
     private void callB(Float callID, Jacobalg.AppendRequest req, StreamObserver<Jacobalg.AppendReply> responseObserver, JacobMetaData metaData){
         ManagedChannel BChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("B"), Networking.getPort("B"))

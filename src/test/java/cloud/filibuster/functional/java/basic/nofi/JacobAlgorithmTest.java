@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 import static cloud.filibuster.integration.instrumentation.TestHelper.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class TestAlgorithm extends JUnitAnnotationBaseTest{
+public class JacobAlgorithmTest extends JUnitAnnotationBaseTest{
     @BeforeAll
     public static void startAllServices() throws IOException, InterruptedException {
         startAServerAndWaitUntilAvailable();
@@ -34,10 +34,10 @@ public class TestAlgorithm extends JUnitAnnotationBaseTest{
                 .build();
 
         AGrpc.ABlockingStub blockingStub = AGrpc.newBlockingStub(AChannel);
-        Jacobalg.AppendRequest request = Jacobalg.AppendRequest.newBuilder().setBaseString("Start").setCallID(0.2f).build();
+        Jacobalg.AppendRequest request = Jacobalg.AppendRequest.newBuilder().setBaseString("Start").setCallID(0.04f).build();
         Jacobalg.AppendReply reply = blockingStub.appendA(request);
         String testString = reply.getReplyString();
-        if(testString != "StartDCBA"){
+        if(!testString.equals("StartDCBA")){
             return;
         }
         AChannel.shutdownNow();

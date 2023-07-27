@@ -10,7 +10,7 @@ import java.io.Reader;
 import java.lang.reflect.Type;
 
 public class JsonUtil {
-
+    @SuppressWarnings({"SystemOut", "CatchAndPrintStackTrace"})
     public static void writeMetaData(MetaDataContainer data, String filePath) {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String jsonString = gson.toJson(data);
@@ -21,7 +21,7 @@ public class JsonUtil {
             e.printStackTrace();
         }
     }
-
+    @SuppressWarnings({"SystemOut", "CatchAndPrintStackTrace"})
     public static MetaDataContainer readMetaData(String filePath) {
         Gson gson = new Gson();
         Type type = new TypeToken<MetaDataContainer>() {}.getType();

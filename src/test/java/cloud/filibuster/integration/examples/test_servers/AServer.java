@@ -23,7 +23,7 @@ public class AServer {
     final private static String serviceName = "A";
 
 
-
+    @SuppressWarnings("Java8ApiChecker")
     public static Server serve() {
         ServerBuilder sb = Server.builder();
         sb.workerGroup(FilibusterExecutor.getNewEventLoopGroup(), /* shutdownOnStop= */true);

@@ -4,6 +4,7 @@
       "usedCallIDs": [],
       "retval": "StartDC",
       "Completed": true,
+      "responseObserver": {},
       "req": {
         "baseString_": "StartD",
         "callID_": 1.6,

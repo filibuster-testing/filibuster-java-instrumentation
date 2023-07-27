@@ -1,12 +1,15 @@
 package cloud.filibuster.instrumentation.libraries.armeria.http;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
+import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
 import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
+import cloud.filibuster.junit.server.core.transformers.Accumulator;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import com.google.gson.Gson;
 import com.linecorp.armeria.client.*;
 import com.linecorp.armeria.common.*;
 import com.linecorp.armeria.common.logging.RequestLogBuilder;
@@ -218,9 +221,11 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
 
         JSONObject forcedException = filibusterClientInstrumentor.getForcedException();
         JSONObject failureMetadata = filibusterClientInstrumentor.getFailureMetadata();
+        JSONObject transformerFault = filibusterClientInstrumentor.getTransformerFault();
 
         logger.log(Level.INFO, logPrefix +"forcedException: " + forcedException);
         logger.log(Level.INFO, logPrefix +"failureMetadata: " + failureMetadata);
+        logger.log(Level.INFO, logPrefix +"transformerFault: " + transformerFault);
 
         // ******************************************************************************************
         // Attach metadata to outgoing request.
@@ -324,7 +329,15 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
         // ******************************************************************************************
 
         logger.log(Level.INFO, logPrefix +"Issuing request!");
-        HttpResponse response = delegateWithContext(ctx, req);
+        HttpResponse response;
+
+        // Inject transformer fault, if necessary.
+        if (transformerFault != null && filibusterClientInstrumentor.shouldAbort()) {
+            response = injectTransformerFault(transformerFault);
+        } else {
+            // If there is no transformer fault, issue the request.
+            response = delegateWithContext(ctx, req);
+        }
 
         // ******************************************************************************************
         // Callback that fires if the request throws an exception.
@@ -333,7 +346,7 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
         response.whenComplete().handle((result, cause) -> {
             // Only if this fires with an exception.
             if (cause != null) {
-                logger.log(Level.INFO, logPrefix +"cause: " + cause);
+                logger.log(Level.INFO, logPrefix + "cause: " + cause);
 
                 // Notify Filibuster.
                 if (!(cause instanceof CancelledSubscriptionException)) {
@@ -357,13 +370,16 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
 
         return new FilteredHttpResponse(response) {
 
+            ResponseHeaders responseHeaders;
+            String response = "";
+
             @Override
             @CanIgnoreReturnValue
             protected HttpObject filter(HttpObject obj) {
 
                 // We were supposed to perform fault injection, but only after the request succeeds.
                 // abort == false
-                if (! filibusterClientInstrumentor.shouldAbort()) {
+                if (!filibusterClientInstrumentor.shouldAbort()) {
 
                     if (forcedException != null) {
                         generateAndThrowException(filibusterClientInstrumentor, forcedException, hostname, hostnameForExceptionBody, port);
@@ -371,8 +387,9 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
 
                 } else {
                     if (obj instanceof ResponseHeaders) {
-                        // Get response headers, extract class name and status.
-                        ResponseHeaders responseHeaders = (ResponseHeaders) obj;
+                        // Get response headers.
+                        responseHeaders = (ResponseHeaders) obj;
+                        logger.log(Level.INFO, logPrefix + "responseHeaders: " + responseHeaders);
 
                         if (isResponseGrpcAsHttp(responseHeaders)) {
                             // if it's a grpc-as-http request and throws exception, we record exception in filibuster
@@ -390,28 +407,95 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
                                 HashMap<String, String> returnValueProperties = new HashMap<>();
                                 filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties);
                             }
-                        } else {
+                        }
+
+                    } else if (obj instanceof HttpData) {
+                        HttpData responseData = (HttpData) obj;
+
+                        // Get response data.
+                        // Response might be sent over multiple chunks, so we need to append them all.
+                        if (!responseData.isEmpty()) {
+                            response = response + " " + responseData.toStringAscii();
+                        }
+
+                        // If we have reached the end of the stream, we can notify Filibuster.
+                        // We have checked previously if obj is instance of ResponseHeaders.
+                        // In that if-block, we notify Filibuster about GRPC responses that were sent as HTTP.
+                        // Therefore, we do not notify Filibuster about these requests again here.
+                        if (responseData.isEndOfStream() && !isResponseGrpcAsHttp(responseHeaders)) {
+                            if(responseHeaders == null) {
+                                throw new FilibusterRuntimeException("responseHeaders should not be null at this point, something fatal occurred.");
+                            }
+
                             // This could be any subclass of HttpResponse: AggregatedHttpResponse, FilteredHttpResponse, etc.
                             // Therefore, take the super -- I don't think Filibuster really does anything with this anyway.
                             String className = "com.linecorp.armeria.common.HttpResponse";
-                            String statusCode = responseHeaders.get(HttpHeaderNames.STATUS);
 
-                            logger.log(Level.INFO, logPrefix +"responseHeaders: " + responseHeaders);
-                            logger.log(Level.INFO, logPrefix +"statusCode: " + statusCode);
+                            String statusCode = responseHeaders.get(HttpHeaderNames.STATUS);
+                            logger.log(Level.INFO, logPrefix + "statusCode: " + statusCode);
 
                             // Notify Filibuster.
-                            logger.log(Level.INFO, logPrefix +"Notifying Filibuster!!!");
+                            logger.log(Level.INFO, logPrefix + "Notifying Filibuster!!!");
                             HashMap<String, String> returnValueProperties = new HashMap<>();
                             returnValueProperties.put("status_code", statusCode);
-                            filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties);
-                        }
 
+                            JSONObject transformerFault = filibusterClientInstrumentor.getTransformerFault();
+                            if (transformerFault == null) {
+                                // Only communicate a successful invocation if there was no transformer fault.
+                                if (response.isEmpty()) {
+                                    filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, statusCode);
+                                } else {
+                                    filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, response);
+                                }
+                            } else {
+                                // Extract the transformer fault value from the transformerFault JSONObject.
+                                Object transformerFaultValue = transformerFault.get("value");
+                                String sTransformerValue = transformerFaultValue.toString();
+
+                                // Extract the accumulator from the transformerFault JSONObject.
+                                Accumulator<?, ?> accumulator = new Gson().fromJson(transformerFault.get("accumulator").toString(), Accumulator.class);
+
+                                logger.log(Level.INFO, logPrefix + "Notifying Filibuster of the transformer fault with value: " + transformerFaultValue);
+                                filibusterClientInstrumentor.afterInvocationWithTransformerFault(sTransformerValue,
+                                        HttpResponse.class.toString(), accumulator);
+                            }
+                        }
                     }
                 }
 
                 return obj;
             }
         };
+    }
+
+    private static HttpResponse injectTransformerFault(JSONObject transformerFault) {
+        try {
+            if (transformerFault.has("value") && transformerFault.has("accumulator")) {
+
+                // Extract the transformer fault value from the transformerFault JSONObject.
+                Object transformerFaultValue = transformerFault.get("value");
+                logger.log(Level.INFO, logPrefix + "Injecting the transformed fault value: " + transformerFaultValue);
+
+                // Return the transformer fault value.
+                if (transformerFaultValue == JSONObject.NULL) {
+                    transformerFaultValue = null;
+                }
+                return HttpResponse.of(HttpStatus.OK, MediaType.PLAIN_TEXT, String.valueOf(transformerFaultValue));
+
+            } else {
+                String missingKey;
+                if (transformerFault.has("value")) {
+                    missingKey = "accumulator";
+                } else {
+                    missingKey = "value";
+                }
+                logger.log(Level.WARNING, logPrefix + "injectTransformerFault: The transformerFault does not have the required key " + missingKey);
+                throw new FilibusterFaultInjectionException("injectTransformerFault: The transformerFault does not have the required key " + missingKey);
+            }
+        } catch (RuntimeException e) {
+            logger.log(Level.WARNING, logPrefix + "Could not inject transformer fault. The cast was probably not successful:", e);
+            throw new FilibusterFaultInjectionException("Could not inject transformer fault. The cast was probably not successful:", e);
+        }
     }
 
     private static void generateAndThrowException(

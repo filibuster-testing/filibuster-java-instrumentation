@@ -17,55 +17,72 @@ public class RedisExhaustiveAnalysisConfigurationFile implements FilibusterAnaly
         return myMap;
     }
 
+    private static Map<String, String> createFutureErrorMap(String cause, String injectOn) {
+        Map<String, String> myMap = new HashMap<>();
+        myMap.put("cause", cause);
+        myMap.put("injectOn", injectOn);
+        myMap.put("code", "");
+        return myMap;
+    }
+
     static {
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
         String[][] exceptions = new String[][]{
-                {"io.lettuce.core.RedisCommandTimeoutException",
-                        "(io.lettuce.core.api.async.RedisStringAsyncCommands/get|" +
-                                "io.lettuce.core.api.sync.RedisStringCommands/get|" +
+                {"java.lettuce.core.sync.command_timeout_exception", "io.lettuce.core.RedisCommandTimeoutException",
+                        "(io.lettuce.core.api.sync.RedisStringCommands/get|" +
                                 "io.lettuce.core.api.sync.RedisStringCommands/set|" +
                                 "io.lettuce.core.api.sync.RedisHashCommands/hget|" +
                                 "io.lettuce.core.api.sync.RedisHashCommands/hset|" +
                                 "io.lettuce.core.api.sync.RedisHashCommands/hgetall)\\b",
                         "Command timed out after 100 millisecond(s)"},
-                {"io.lettuce.core.RedisBusyException",
+                {"java.lettuce.core.sync.busy_exception", "io.lettuce.core.RedisBusyException",
                         "(io.lettuce.core.api.sync.RedisServerCommands/flushall|" +
                                 "io.lettuce.core.api.sync.RedisServerCommands/flushdb)\\b",
                         "BUSY Redis is busy running a script. You can only call SCRIPT KILL or SHUTDOWN NOSAVE"},
-                {"io.lettuce.core.RedisCommandExecutionException",
+                {"java.lettuce.core.sync.command_execution_exception", "io.lettuce.core.RedisCommandExecutionException",
                         "(io.lettuce.core.api.sync.RedisHashCommands/hget|" +
                                 "io.lettuce.core.api.sync.RedisHashCommands/hset|" +
                                 "io.lettuce.core.api.sync.RedisHashCommands/hgetall)\\b",
                         "WRONGTYPE Operation against a key holding the wrong kind of value"},
-                {"io.lettuce.core.RedisCommandInterruptedException",
+                {"java.lettuce.core.sync.command_interrupted_exception", "io.lettuce.core.RedisCommandInterruptedException",
                         "(io.lettuce.core.RedisFuture/await)\\b",
                         "Command interrupted"},
-                {"io.lettuce.core.cluster.UnknownPartitionException",
+                {"java.lettuce.core.sync.unknown_partition_exception", "io.lettuce.core.cluster.UnknownPartitionException",
                         "(io.lettuce.core.cluster.RedisClusterClient/getConnection|" +
                                 "io.lettuce.core.cluster.PooledClusterConnectionProvider/getConnection)\\b",
                         "Connection not allowed. This partition is not known in the cluster view"},
-                {"io.lettuce.core.cluster.PartitionSelectorException",
+                {"java.lettuce.core.sync.partition_selector_exception", "io.lettuce.core.cluster.PartitionSelectorException",
                         "(io.lettuce.core.cluster.RedisClusterClient/getConnection|" +
                                 "io.lettuce.core.cluster.PooledClusterConnectionProvider/getConnection)\\b",
                         "Cannot determine a partition to read for slot"},
-                {"io.lettuce.core.dynamic.batch.BatchException",
+                {"java.lettuce.core.batch.exception", "io.lettuce.core.dynamic.batch.BatchException",
                         "(io.lettuce.core.dynamic.SimpleBatcher/flush)\\b",
                         "Error during batch command execution"},
         };
 
         for (String[] exception : exceptions) {
-            createException(filibusterCustomAnalysisConfigurationFileBuilder, exception[0], exception[1], exception[2]);
+            createException(filibusterCustomAnalysisConfigurationFileBuilder, exception[0], exception[1], exception[2], exception[3]);
         }
+
+
+        // RedisFuture exceptions
+        FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder().name("java.lettuce.core.async.command_timeout_exception")
+                .pattern("(io.lettuce.core.api.async.RedisStringAsyncCommands/get|" +
+                        "io.lettuce.core.api.async.RedisStringAsyncCommands/set)\\b");
+        filibusterAnalysisConfigurationBuilderRedisExceptions.exception("io.lettuce.core.RedisCommandTimeoutException", createFutureErrorMap("Command timed out after 100 millisecond(s)",
+                "java.util.concurrent.Future/get"));
+        filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());
+
 
         filibusterCustomAnalysisConfigurationFile = filibusterCustomAnalysisConfigurationFileBuilder.build();
     }
 
-    private static void createException(FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder, String name, String pattern, String cause) {
+    private static void createException(FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder, String configName, String exceptionName, String pattern, String cause) {
 
-        FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder().name(name).pattern(pattern);
+        FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder().name(configName).pattern(pattern);
 
-        filibusterAnalysisConfigurationBuilderRedisExceptions.exception(name, createErrorMap(cause));
+        filibusterAnalysisConfigurationBuilderRedisExceptions.exception(exceptionName, createErrorMap(cause));
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());
     }

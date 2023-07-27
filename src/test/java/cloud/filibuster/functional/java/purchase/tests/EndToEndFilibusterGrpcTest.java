@@ -10,7 +10,6 @@ import cloud.filibuster.junit.statem.CompositeFaultSpecification;
 import cloud.filibuster.junit.statem.FilibusterGrpcTest;
 import cloud.filibuster.functional.java.purchase.PurchaseWorkflow;
 
-import cloud.filibuster.junit.statem.GrpcMock;
 import io.grpc.Status;
 import org.json.JSONObject;
 

@@ -119,6 +119,56 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
         }
     }
 
+    //SERVER SIDE ENDPOINT
+
+    //@Override
+    public void jacobEndpoint(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
+        /*Hello.HelloReply reply = Hello.HelloReply.newBuilder()
+                .setMessage("Hello, " + req.getName() + " World!! This is a new GRPC endpoint.")
+                .build();
+        responseObserver.onNext(reply);
+        responseObserver.onCompleted();*/
+
+        if (!shouldUseDecorator) {
+
+            ManagedChannel originalChannel = ManagedChannelBuilder
+                    .forAddress(Networking.getHost("world"), Networking.getPort("world"))
+                    .usePlaintext()
+                    .build();
+
+            ClientInterceptor clientInterceptor;
+
+            if (useOtelClientInterceptor) {
+                clientInterceptor = new OpenTelemetryFilibusterClientInterceptor("hello", null, null);
+            } else {
+                clientInterceptor = new FilibusterClientInterceptor("hello");
+            }
+
+            Channel channel = ClientInterceptors.intercept(originalChannel, clientInterceptor);
+
+
+            WorldServiceGrpc.WorldServiceBlockingStub blockingStub = WorldServiceGrpc.newBlockingStub(channel);
+            Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(req.getName()).build();
+            Hello.WorldReply worldReply = blockingStub.world(request);
+
+            Hello.HelloReply reply = Hello.HelloReply.newBuilder()
+                    .setMessage("Hello, " + worldReply.getMessage() + " This is a new GRPC endpoint.")
+                    .build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+
+            originalChannel.shutdownNow();
+            try {
+                while (!originalChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+                    Thread.sleep(4000);
+                }
+            } catch (InterruptedException ie) {
+                logger.log(Level.SEVERE, "Failed to terminate channel: " + ie);
+            }
+        }
+    }
+
+
     @Override
     public void hello(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
         if (shouldReturnRuntimeExceptionWithDescription) {

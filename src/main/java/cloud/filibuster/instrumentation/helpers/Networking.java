@@ -45,6 +45,14 @@ public class Networking {
                     return 5006;
                 case "hello-mock":
                     return 6002;
+                case "A":
+                    return 7007;
+                case "B":
+                    return 7009;
+                case "C":
+                    return 7001;
+                case "D":
+                    return 8002;
                 case "mock":
                     return 6007;
                 default:

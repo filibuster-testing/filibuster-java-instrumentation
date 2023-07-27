@@ -216,3 +216,4 @@ org.slf4j:slf4j-api:1.7.36=compileClasspath,compileProtoPath,runtimeClasspath,te
 org.testcontainers:testcontainers:1.17.5=compileClasspath,compileProtoPath,runtimeClasspath,testCompileClasspath,testCompileProtoPath,testRuntimeClasspath
 org.xerial.snappy:snappy-java:1.1.8.4=compileProtoPath,runtimeClasspath,testCompileProtoPath,testRuntimeClasspath
 empty=protobuf,signatures,testProtobuf
+

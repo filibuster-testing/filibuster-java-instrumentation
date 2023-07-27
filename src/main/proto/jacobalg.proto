@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package cloud.filibuster.examples;
+
+service A {
+  rpc AppendA (AppendRequest) returns (AppendReply) {}
+}
+
+service B{
+  rpc AppendB (AppendRequest) returns (AppendReply) {}
+}
+
+service C {
+  rpc AppendC (AppendRequest) returns (AppendReply) {}
+}
+
+service D{
+  rpc AppendD (AppendRequest) returns (AppendReply) {}
+}
+
+message AppendRequest{
+  string baseString = 1;
+  float CallID = 2;
+}
+
+message AppendReply{
+  string replyString = 1;
+}

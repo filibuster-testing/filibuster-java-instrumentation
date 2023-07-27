@@ -1,0 +1,26 @@
+{
+  "metaDataMap": {
+    "0.5": {
+      "usedCallIDs": [
+        0.6,
+        1.6
+      ],
+      "retval": "StartDCB",
+      "Completed": true,
+      "req": {
+        "baseString_": "Start",
+        "callID_": 0.5,
+        "memoizedIsInitialized": 1,
+        "unknownFields": {
+          "fields": {}
+        },
+        "memoizedSize": -1,
+        "memoizedHashCode": 0
+      }
+    }
+  },
+  "generatedIDs": [
+    0.6,
+    1.6
+  ]
+}

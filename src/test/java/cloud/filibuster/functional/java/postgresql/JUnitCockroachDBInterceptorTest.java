@@ -5,7 +5,7 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.CockroachClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.db.postgresql.PostgreSQLSingleFaultPSQLExceptionAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.db.postgresql.PostgresAnalysisConfigurationFile;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -45,7 +45,7 @@ public class JUnitCockroachDBInterceptorTest extends JUnitAnnotationBaseTest {
 
     @DisplayName("Inject basic PSQLException in CockroachDB.")
     @Order(1)
-    @TestWithFilibuster(analysisConfigurationFile = PostgreSQLSingleFaultPSQLExceptionAnalysisConfigurationFile.class)
+    @TestWithFilibuster(analysisConfigurationFile = PostgresAnalysisConfigurationFile.class)
     public void testCockroachConnection() {
         try {
             numberOfTestExecutions++;

@@ -30,6 +30,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URI;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -342,6 +343,9 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
         switch (exceptionName) {  // TODO: Refactor the switch to an interface
             case "org.postgresql.util.PSQLException":
                 exceptionToThrow = new PSQLException(new ServerErrorMessage(cause));
+                break;
+            case "java.sql.SQLException":
+                exceptionToThrow = new SQLException(cause);
                 break;
             case "com.datastax.oss.driver.api.core.servererrors.OverloadedException":
                 exceptionToThrow = new OverloadedException(null);

@@ -402,6 +402,10 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
                 status = Status.FAILED_PRECONDITION.withDescription("Consumer did not get enough of a discount.");
                 responseObserver.onError(status.asRuntimeException());
                 break;
+            case INSUFFICIENT_FUNDS:
+                status = Status.FAILED_PRECONDITION.withDescription("Consumer did not have sufficient funds to make purchase.");
+                responseObserver.onError(status.asRuntimeException());
+                break;
             case UNPROCESSED:
                 status = Status.INTERNAL.withDescription("Purchase has not yet been completed.");
                 responseObserver.onError(status.asRuntimeException());

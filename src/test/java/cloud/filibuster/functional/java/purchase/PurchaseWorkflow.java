@@ -18,7 +18,6 @@ import io.grpc.StatusRuntimeException;
 import io.lettuce.core.api.StatefulRedisConnection;
 import org.json.JSONObject;
 
-import javax.sql.DataSource;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

@@ -6,18 +6,58 @@ import com.google.protobuf.GeneratedMessageV3;
 import io.grpc.Status;
 import org.json.JSONObject;
 
+import javax.annotation.Nullable;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Method;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class ServerInvocationAndResponseReport {
+    private static final HashMap<String, Boolean> grpcMethodsInvoked = new HashMap<>();
+
+    static {
+        // TODO: fix hardcoding
+        Set<Class> allClassesInNamespace = findAllClassesUsingClassLoader("cloud.filibuster.examples");
+
+        Set<Class> grpcClasses = new HashSet<>();
+
+        // TODO: might not always work.
+        for (Class c : allClassesInNamespace) {
+            if (c.getName().endsWith("Grpc")) {
+                grpcClasses.add(c);
+            }
+        }
+
+        for (Class c : grpcClasses) {
+            Method[] methods = c.getDeclaredMethods();
+            for (Method method : methods) {
+                Pattern pattern = Pattern.compile("get(.*)Method");
+                Matcher matcher = pattern.matcher(method.getName());
+                if (matcher.find()) {
+                    String strippedMethodName = matcher.group(1);
+                    String fullMethodName = c.getName().replace("Grpc", "") + "/" + strippedMethodName;
+                    grpcMethodsInvoked.put(fullMethodName, false);
+                }
+            }
+        }
+    }
+
     private ServerInvocationAndResponseReport() {
 
     }
@@ -44,6 +84,9 @@ public class ServerInvocationAndResponseReport {
     public static void endServerInvocation(String requestId, String fullMethodName, Status status, GeneratedMessageV3 responseMessage) {
         GeneratedMessageV3 requestMessage = incompleteServerInvocationAndResponses.get(requestId);
         ServerInvocationAndResponse serverInvocationAndResponse = new ServerInvocationAndResponse(requestId, fullMethodName, requestMessage, status, responseMessage);
+        if (grpcMethodsInvoked.containsKey(fullMethodName)) {
+            grpcMethodsInvoked.put(fullMethodName, true);
+        }
         serverInvocationAndResponses.add(serverInvocationAndResponse);
     }
 
@@ -98,7 +141,7 @@ public class ServerInvocationAndResponseReport {
         public static final String RESULTS_KEY = "results";
     }
 
-    private static JSONObject toJSONObject() {
+    private static JSONObject toServerInvocationReportJSONObject() {
         JSONObject result = new JSONObject();
         List<JSONObject> results = new ArrayList<>();
 
@@ -110,8 +153,35 @@ public class ServerInvocationAndResponseReport {
         return result;
     }
 
+    private static JSONObject toAccessedGrpcEndpointsJSONObject() {
+        return new JSONObject(grpcMethodsInvoked);
+    }
+
     private static String toJavascript() {
-        JSONObject jsonObject = toJSONObject();
-        return "var serverInvocationReports = " + jsonObject.toString(4) + ";";
+        String output = "";
+        output += "var serverInvocationReports = " + toServerInvocationReportJSONObject().toString(4) + ";\n";
+        output += "var accessedGrpcEndpoints = " + toAccessedGrpcEndpointsJSONObject().toString(4) + ";\n";
+        return output;
+    }
+
+    public static Set<Class> findAllClassesUsingClassLoader(String packageName) {
+        InputStream stream = ClassLoader.getSystemClassLoader()
+                .getResourceAsStream(packageName.replaceAll("[.]", "/"));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
+        return reader.lines()
+                .filter(line -> line.endsWith(".class"))
+                .map(line -> getClass(line, packageName))
+                .collect(Collectors.toSet());
+    }
+
+    @Nullable
+    private static Class getClass(String className, String packageName) {
+        try {
+            return Class.forName(packageName + "."
+                    + className.substring(0, className.lastIndexOf('.')));
+        } catch (ClassNotFoundException e) {
+            // handle the exception
+        }
+        return null;
     }
 }

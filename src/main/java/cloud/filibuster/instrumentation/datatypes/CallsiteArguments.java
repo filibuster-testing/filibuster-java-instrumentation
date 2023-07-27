@@ -21,7 +21,7 @@ public class CallsiteArguments {
 
     public JSONObject toJSONObject() {
         JSONObject response = new JSONObject();
-        response.put("__class__", clazz.getName().toString());
+        response.put("__class__", clazz.getName());
         response.put("toString", toStringResult);
         return response;
     }

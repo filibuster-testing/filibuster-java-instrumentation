@@ -123,14 +123,22 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
             suppressCombinations = getTestSuppressCombinationsProperty();
         }
 
+        FilibusterSearchStrategy searchStrategy = testWithFilibuster.searchStrategy();
+
+        if (searchStrategy.equals(FilibusterSearchStrategy.DEFAULT)) {
+            FilibusterServerBackend filibusterServerBackend = FilibusterConfiguration.backendToBackendClass(testWithFilibuster.serverBackend());
+            searchStrategy = filibusterServerBackend.defaultSearchStrategy();
+        }
+
         FilibusterConfiguration filibusterConfiguration = new FilibusterConfiguration.Builder()
+                .abortOnFirstFailure(testWithFilibuster.abortOnFirstFailure())
                 .dynamicReduction(testWithFilibuster.dynamicReduction())
                 .suppressCombinations(suppressCombinations)
                 .dataNondeterminism(dataNondeterminism)
                 .avoidRedundantInjections(avoidRedundantInjections)
                 .avoidInjectionsOnOrganicFailures(avoidInjectionsOnOrganicFailures)
                 .serverBackend(testWithFilibuster.serverBackend())
-                .searchStrategy(testWithFilibuster.searchStrategy())
+                .searchStrategy(searchStrategy)
                 .dockerImageName(dockerImageName)
                 .analysisFile(analysisFile)
                 .degradeWhenServerInitializationFails(testWithFilibuster.degradeWhenServerInitializationFails())
@@ -142,7 +150,7 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
                 .className(className)
                 .build();
 
-        validateSearchBackend(testWithFilibuster, filibusterConfiguration);
+        validateSearchBackend(searchStrategy, filibusterConfiguration);
         validateBackendSelection(testWithFilibuster, filibusterConfiguration);
 
         HashMap<Integer, Boolean> invocationCompletionMap = new HashMap<>();
@@ -200,9 +208,8 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
         return repetitions;
     }
 
-    private static void validateSearchBackend(TestWithFilibuster testWithFilibuster, FilibusterConfiguration filibusterConfiguration) {
+    private static void validateSearchBackend(FilibusterSearchStrategy filibusterSearchStrategy, FilibusterConfiguration filibusterConfiguration) {
         FilibusterServerBackend filibusterServerBackend = filibusterConfiguration.getServerBackend();
-        FilibusterSearchStrategy filibusterSearchStrategy = testWithFilibuster.searchStrategy();
         List<FilibusterSearchStrategy> supportedSearchStrategies = filibusterServerBackend.supportedSearchStrategies();
 
         Preconditions.condition(supportedSearchStrategies.contains(filibusterSearchStrategy), () -> String.format(

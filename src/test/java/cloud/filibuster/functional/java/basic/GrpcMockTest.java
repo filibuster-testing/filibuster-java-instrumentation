@@ -25,10 +25,8 @@ import java.util.UUID;
 import static cloud.filibuster.instrumentation.helpers.Property.setTestAvoidRedundantInjectionsProperty;
 import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopAPIServerAndWaitUntilUnavailable;
-import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static org.grpcmock.GrpcMock.stubFor;
-import static org.grpcmock.GrpcMock.times;
 import static org.grpcmock.GrpcMock.never;
 import static org.grpcmock.GrpcMock.unaryMethod;
 import static org.grpcmock.GrpcMock.verifyThat;
@@ -73,8 +71,8 @@ public class GrpcMockTest {
                 .willReturn(Hello.GetUserResponse.newBuilder().setUserId("1").build()));
         stubFor(unaryMethod(CartServiceGrpc.getGetCartForSessionMethod())
                 .willReturn(Hello.GetCartResponse.newBuilder().setCartId("1").build()));
-        stubFor(unaryMethod(CartServiceGrpc.getSetDiscountOnCartMethod())
-                .willReturn(Hello.SetDiscountResponse.newBuilder().build()));
+        stubFor(unaryMethod(CartServiceGrpc.getGetDiscountOnCartMethod())
+                .willReturn(Hello.GetDiscountResponse.newBuilder().build()));
 
         String sessionId = UUID.randomUUID().toString();
 
@@ -86,14 +84,14 @@ public class GrpcMockTest {
         try {
             APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
             Hello.PurchaseRequest request = Hello.PurchaseRequest.newBuilder().setSessionId(sessionId).build();
-            Hello.PurchaseResponse response = blockingStub.purchase(request);
+            Hello.PurchaseResponse response = blockingStub.simulatePurchase(request);
             assertNotNull(response);
         } catch (RuntimeException e) {
             testFailures++;
         }
 
-        if (wasFaultInjectedOnMethod(CartServiceGrpc.getSetDiscountOnCartMethod())) {
-            verifyThat(CartServiceGrpc.getSetDiscountOnCartMethod(), never());
+        if (wasFaultInjectedOnMethod(CartServiceGrpc.getGetDiscountOnCartMethod())) {
+            verifyThat(CartServiceGrpc.getGetDiscountOnCartMethod(), never());
         }
     }
 

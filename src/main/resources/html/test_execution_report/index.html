@@ -124,6 +124,16 @@
             font-weight: 500;
         }
 
+        .small_class_name {
+            padding: 0;
+            margin-bottom: 10px;
+            font-family: 'Inconsolata', sans-serif;
+            font-size: verysmall;
+            font-weight: 500;
+            width: 100%;
+            text-align: left;
+        }
+
         .class_name {
             padding: 0;
             margin-bottom: 10px;
@@ -136,6 +146,7 @@
 
         .debug {
             display: none;
+            background-color: lightcyan;
         }
 
         section {
@@ -151,31 +162,68 @@
         .cached {
             display: none;
         }
-	</style>
+
+        .stacktrace {
+            height: 100px;
+            margin-bottom: 10px;
+        }
+
+        .fixMessage {
+            height: auto;
+            width: inherit;
+            padding: 10px 10px;
+            overflow: auto;
+            margin-bottom: 10px;
+            background: lightcyan;
+            box-sizing: border-box;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .fixMessageHeading {
+            display: inline-block;
+            font-size: small;
+            font-weight: bold;
+        }
+
+        /* unvisited link */
+        a:link {
+            color: black;
+        }
+
+        /* visited link */
+        a:visited {
+            color: black;
+        }
+
+        /* mouse over link */
+        a:hover {
+            color: black;
+        }
+
+        /* selected link */
+        a:active {
+            color: black;
+        }
+    </style>
 </head>
 
 <body>
 <section style="margin: 0; padding: 0;">
-    <span style="float: right; display: inline; text-align: right; text-decoration: none; margin-bottom: 10px; margin-left: 10px;"><a style="text-decoration: none;" href="#" onClick="toggleCached();">💵</a></span>
-    <span style="float: right; display: inline; text-align: right; text-decoration: none; margin-bottom: 10px; margin-left: 10px;"><a style="text-decoration: none;" href="#" onClick="toggleDebug();">🐞</a></span>
+    <span style="float: right; display: inline; text-align: right; text-decoration: none; margin-bottom: 10px; margin-left: 10px; vertical-align: middle;"><a style="vertical-align: middle; text-decoration: none; color: black;" href="#" onClick="toggleWarnings();">⚠️ (<span style="font-size: 10px; color: black;" id="numWarnings">0</span>)</a></span>
+    <span style="float: right; display: inline; text-align: right; text-decoration: none; margin-bottom: 10px; margin-left: 10px; vertical-align: middle;"><a style="vertical-align: middle; text-decoration: none; color: black;" href="#" onClick="toggleCached();">💵 (<span style="font-size: 10px; color: black;" id="numCached">0</span>)</a></span>
+    <span style="float: right; display: inline; text-align: right; text-decoration: none; margin-bottom: 10px; margin-left: 10px; vertical-align: middle;"><a style="vertical-align: middle; text-decoration: none; color: black;" href="#" onClick="toggleDebug();">🐞</a></span>
 
     <!-- Assertion failure goes here. -->
     <div id="failure" style="display: none; margin: 0; padding: 0; width: 100%; font-size: 11px;">
         <span style="vertical-align: middle; text-align: left;" id ="failedMessage">️</span>
-        <select name="failureSelection" id="failureSelection" style="font-size: 11px;">
+        <select name="failureSelection" id="failureSelection" style="vertical-align: bottom; font-size: 11px;">
         </select>
-        <a style="text-decoration: none;" href="#" onClick="toggleStackTrace();">📚</a>
+        <a style="text-decoration: none; vertical-align: bottom; font-size: 11px;" href="#" onClick="toggleStackTrace();">⬇️</a>
     </div>
 
     <div id="failureStackTrace" style="display: none;margin: 0; padding: 0; width: 100%; font-size: 11px;">
     </div>
-
-    <!-- Global warnings go here. -->
-    <table id='warnings' style="display: none; background-color: lightyellow; margin: 0; padding: 0;">
-        <tr>
-            <td>⚠️ <a href="#" onClick="toggleWarnings();"><span id="numWarnings" style="vertical-align: middle;"></span></a></td>
-        </tr>
-    </table>
 
     <table id='rpcs' style="margin: 0; padding: 0;">
         <tr>
@@ -186,6 +234,7 @@
         </tr>
 
         <script>
+            var numCached = 0;
             var numWarnings = 0;
 
             function copyIfBlock() {
@@ -208,6 +257,7 @@
 
             function toggleDebug() {
                 $(".debug").toggle();
+                toggleCached();
             }
 
             function toggleCached() {
@@ -238,7 +288,10 @@
             {
                 let selectedFailureIndex = parseInt($("#failureSelection").find(":selected").val());
                 let selectedFailure = analysis.failures[selectedFailureIndex];
-                $("#failureStackTrace").html(`<textarea>${selectedFailure.assertion_failure_stacktrace}</textarea>`)
+                $("#failureStackTrace").html(`<textarea class="stacktrace" readonly>${selectedFailure.assertion_failure_stacktrace}</textarea>`)
+                if ("assertion_failure_fix_message" in selectedFailure) {
+                    $("#failureStackTrace").append(`<div class="fixMessage"><span class="fixMessageHeading">Resolutions</span><p>❌ First, check if this is a bug.</p><p>✅ If this is desired application behavior, here are some possible ways to fix this failure:</p>${selectedFailure.assertion_failure_fix_message}</div>`)
+                }
                 $("#failureStackTrace").toggle();
             }
 
@@ -251,7 +304,7 @@
                     let plural = failures.length > 1  ? "s" : "";
                     $('#failedMessage').html(`❌&nbsp; Test failed because of assertion failure${plural}: `);
                     $('#failure').show();
-                    let options = failures.map((failure,index) => `<option value="${index}">${failure.assertion_failure_message}</option>`).join();
+                    let options = failures.map((failure,index) => failure.assertion_failure_message.indexOf(".\n") != -1 ? `<option value="${index}">${failure.assertion_failure_message.substring(0, failure.assertion_failure_message.indexOf(".\n") + 1)}</option>` : `<option value="${index}">${failure.assertion_failure_message}</option>`).join();
                     console.log(options);
                     $("#failureSelection").append(options);
                 } else {
@@ -279,13 +332,66 @@
                     if (rpc.group !== group) {
                         group = rpc.group;
 
-                        var row = "";
-                        row += "<tr>";
-                        row += "<td colspan=4>";
-                        row += "<span>Assertion Block: " + rpc.group.replace("TestScope+", "").replace("[", "").replace("]", "");
-                        row += "</td>";
-                        row += "</tr>";
-                        $('#rpcs').append(row);
+                        if (group.includes("TestScope")) {
+                            var groupWithoutPrefix = group.replace("TestScope+", "").replace("[", "").replace("]", "");
+                            var groupArray = groupWithoutPrefix.split("+");
+                            var groupNumber = groupArray[0];
+                            var groupType = groupArray[1];
+                            var normalizedGroupType = "";
+
+                            switch(groupType) {
+                                case "DEFAULT":
+                                    normalizedGroupType = "Default Block";
+                                    break;
+                                case "SETUP":
+                                    normalizedGroupType = "Setup Block (<i>No Faults Injected</i>)";
+                                    break;
+                                case "TEST":
+                                    normalizedGroupType = "Test Block";
+                                    break;
+                                case "ASSERTION":
+                                    normalizedGroupType = "Assertion Block (<i>No Faults Injected</i>)";
+                                    break;
+                                case "TEARDOWN":
+                                    normalizedGroupType = "Teardown Block (<i>No Faults Injected</i>)";
+                                    break;
+                                default:
+                                    normalizedGroupType = "Unknown Block (" + groupType + ")";
+                            }
+
+                            var row = "";
+                            row += "<tr>";
+                            row += "<td colspan=4>";
+                            row += "<span>";
+                            row += normalizedGroupType;
+                            row += "</span>";
+                            row += "</td>";
+                            row += "</tr>";
+                            $('#rpcs').append(row);
+
+                            var row = "";
+                            row += '<tr class="debug">';
+                            row += '<td class="right">🐞</td>';
+                            row += '<td colspan="3" class="warning" style="vertical-align: middle; text-align: left">';
+                            row += '<span style="font-weight: bold">Assertion Block ' + groupNumber + '</span>';
+                            row += '</td>';
+                            row += '</tr>';
+                            $('#rpcs').append(row);
+                        } else {
+                            var row = "";
+                            row += "<tr>";
+                            row += "<td colspan=4>";
+                            row += "<span>";
+                            row += '<span>Test Block: ' + rpc.group + '</span>';
+                            row += "</span>";
+                            row += "</td>";
+                            row += "</tr>";
+                            $('#rpcs').append(row);
+                        }
+                    }
+
+                    if (rpc.cached) {
+                        numCached++;
                     }
 
                     var row = '';
@@ -356,8 +462,6 @@
                     if (!isFaulted) {
                         row += '<td></td>';
                     } else {
-                        console.log(rpc.fault)
-
                         if ('forced_exception' in rpc.fault) {
                             row += '<td>';
                             row += '<div class="class_name">' + substringNamespace(rpc.fault.forced_exception.name) + '</div>';
@@ -401,9 +505,9 @@
 
                     var row = '';
                     row += '<tr class="debug">';
-                    row += '<td class="right">⚠️</td>';
+                    row += '<td class="right">🐞</td>';
                     row += '<td colspan="3" class="warning" style="vertical-align: middle; text-align: left">';
-                    row += '<span>Distributed Execution Index:</span>';
+                    row += '<span style="font-weight: bold">Distributed Execution Index:</span>';
                     row += '<textarea style="height: 60px; margin-top:10px;">';
                     row += rpc.dei;
                     row += '</textarea>';
@@ -475,16 +579,16 @@ tryGrpcAndCatchGrpcExceptions(() -> {
                     }
                 }
 
-                if (numWarnings > 0) {
-                    $('#warnings').show();
-
-                    if (numWarnings > 1) {
-                        $('#numWarnings').html("There are " + numWarnings + " warnings in this test execution.");
-                    } else {
-                        $('#numWarnings').html("There is " + numWarnings + " warning in this test execution.");
-                    }
+                if (numCached > 0) {
+                    $('#numCached').html("" + numCached + "");
                 } else {
+                    $('#numCached').html("0");
+                }
 
+                if (numWarnings > 0) {
+                    $('#numWarnings').html("" + numWarnings + "");
+                } else {
+                    $('#numWarnings').html("0");
                 }
             });
         </script>

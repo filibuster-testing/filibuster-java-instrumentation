@@ -35,6 +35,7 @@ public class FilibusterGrpcCodeWithoutCauseAnalysisConfigurationFile implements 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilder = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc")
                 .pattern("(.*/.*)")
+                .type("grpc")
                 .exception("io.grpc.StatusRuntimeException", createGrpcErrorMap(code, description));
         FilibusterAnalysisConfiguration filibusterAnalysisConfiguration = filibusterAnalysisConfigurationBuilder.build();
         filibusterCustomAnalysisConfigurationFile = new FilibusterCustomAnalysisConfigurationFile.Builder()

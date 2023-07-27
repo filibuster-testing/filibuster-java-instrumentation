@@ -7,8 +7,6 @@ import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
-import cloud.filibuster.junit.server.core.transformers.Accumulator;
-import com.google.gson.Gson;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
@@ -106,10 +104,9 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                     throwableMessage = causeMessageString;
                 }
 
-                Throwable throwable = Class.forName(causeString).asSubclass(Throwable.class).getConstructor(new Class[]{String.class}).newInstance(throwableMessage);
+                Throwable throwable = Class.forName(causeString).asSubclass(Throwable.class).getConstructor(new Class[] { String.class }).newInstance(throwableMessage);
                 status = Status.fromThrowable(throwable);
-            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException |
-                     InvocationTargetException e) {
+            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException | InvocationTargetException e) {
                 throw new FilibusterFaultInjectionException("Unable to generate custom exception from string '" + causeString + "':" + e, e);
             }
         } else if (!codeStr.isEmpty()) {
@@ -169,46 +166,6 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
         this.contextStorage = new ThreadLocalContextStorage();
     }
 
-    @Nullable
-    private static <REQUEST> REQUEST injectTransformerFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject transformerFault, REQUEST originalRequest) {
-        try {
-            if (transformerFault.has("value") && transformerFault.has("accumulator")) {
-
-                // Extract the transformer fault value from the transformerFault JSONObject.
-                Object transformerFaultValue = transformerFault.get("value");
-                String sTransformerValue = transformerFaultValue.toString();
-                @SuppressWarnings("unchecked")
-                REQUEST castedValue = (REQUEST) transformerFaultValue;
-                logger.log(Level.INFO, logPrefix + "Injecting the transformed fault value: " + sTransformerValue);
-
-                // Extract the accumulator from the transformerFault JSONObject.
-                Accumulator<?, ?> accumulator = new Gson().fromJson(transformerFault.get("accumulator").toString(), Accumulator.class);
-
-                // Notify Filibuster.
-                filibusterClientInstrumentor.afterInvocationWithTransformerFault(sTransformerValue,
-                        originalRequest.getClass().toString(), accumulator);
-
-                // Return the transformer fault value.
-                if (castedValue == JSONObject.NULL) {
-                    return null;
-                }
-                return castedValue;
-            } else {
-                String missingKey;
-                if (transformerFault.has("value")) {
-                    missingKey = "accumulator";
-                } else {
-                    missingKey = "value";
-                }
-                logger.log(Level.WARNING, logPrefix + "injectTransformerFault: The transformerFault does not have the required key " + missingKey);
-                throw new FilibusterFaultInjectionException("injectTransformerFault: The transformerFault does not have the required key " + missingKey);
-            }
-        } catch (RuntimeException e) {
-            logger.log(Level.WARNING, logPrefix + "Could not inject transformer fault. The cast was probably not successful:", e);
-            throw new FilibusterFaultInjectionException("Could not inject transformer fault. The cast was probably not successful:", e);
-        }
-    }
-
     @Override
     @SuppressWarnings("UnnecessaryFinal")
     public <REQUEST, RESPONSE> ClientCall<REQUEST, RESPONSE> interceptCall(
@@ -229,8 +186,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
             private int requestTokens;
             private FilibusterClientInstrumentor filibusterClientInstrumentor;
 
-            @Override
-            protected ClientCall<REQUEST, RESPONSE> delegate() {
+            @Override protected ClientCall<REQUEST, RESPONSE> delegate() {
                 if (delegate == null) {
                     throw new FilibusterInstrumentationMissingDelegateException("Delegate is null, something threw inside of the Filibuster interceptor previously, scroll to see previous exception.");
                 }
@@ -271,7 +227,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                 boolean instrumentationRequest = Boolean.parseBoolean(instrumentationRequestStr);
                 logger.log(Level.INFO, logPrefix + "instrumentationRequest: " + instrumentationRequest);
 
-                if (!shouldInstrument() || instrumentationRequest) {
+                if (! shouldInstrument() || instrumentationRequest) {
                     delegate = next.newCall(method, callOptions);
                     super.start(responseListener, headers);
                     headers = null;
@@ -366,11 +322,9 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
 
                     JSONObject forcedException = filibusterClientInstrumentor.getForcedException();
                     JSONObject failureMetadata = filibusterClientInstrumentor.getFailureMetadata();
-                    JSONObject transformerFault = filibusterClientInstrumentor.getTransformerFault();
 
                     logger.log(Level.INFO, logPrefix + "forcedException: " + forcedException);
                     logger.log(Level.INFO, logPrefix + "failureMetadata: " + failureMetadata);
-                    logger.log(Level.INFO, logPrefix + "transformerFault: " + transformerFault);
 
                     // ******************************************************************************************
                     // Setup additional failure headers, if necessary.
@@ -415,14 +369,6 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                         return;
                     }
 
-                    // ******************************************************************************************
-                    // Inject transformer fault, if necessary.
-                    // ******************************************************************************************
-
-                    if (transformerFault != null && filibusterClientInstrumentor.shouldAbort()) {
-                        message = injectTransformerFault(filibusterClientInstrumentor, transformerFault, message);
-                    }
-
                     delegate = next.newCall(method, callOptions);
                     super.start(new FilibusterClientCallListener<>(responseListener, filibusterClientInstrumentor), headers);
                     headers = null;
@@ -459,7 +405,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
             logger.log(Level.INFO, logPrefix + "INSIDE: onMessage!");
             logger.log(Level.INFO, logPrefix + "message: " + message);
 
-            if (!filibusterClientInstrumentor.shouldAbort()) {
+            if (! filibusterClientInstrumentor.shouldAbort()) {
                 // Request completed normally, but we want to throw the exception anyway, generate and throw.
                 generateExceptionFromForcedException(filibusterClientInstrumentor);
             } else {
@@ -469,7 +415,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                 String className = message.getClass().getName();
                 HashMap<String, String> returnValueProperties = new HashMap<>();
                 returnValueProperties.put("toString", message.toString());
-                filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, message);
+                filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties);
 
                 // Delegate.
                 delegate().onMessage(message);
@@ -485,12 +431,12 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
             logger.log(Level.INFO, logPrefix + "status: " + status);
             logger.log(Level.INFO, logPrefix + "trailers: " + trailers);
 
-            if (!filibusterClientInstrumentor.shouldAbort()) {
+            if (! filibusterClientInstrumentor.shouldAbort()) {
                 Status rewrittenStatus = generateCorrectStatusForAbort(filibusterClientInstrumentor);
                 delegate().onClose(rewrittenStatus, trailers);
             }
 
-            if (!status.isOk()) {
+            if (! status.isOk()) {
                 // Request completed -- if it completed with a failure, it will be coming here for
                 // the first time (didn't call onMessage) and therefore, we need to notify the Filibuster
                 // server that the call completed with failure.  If it completed successfully, we would

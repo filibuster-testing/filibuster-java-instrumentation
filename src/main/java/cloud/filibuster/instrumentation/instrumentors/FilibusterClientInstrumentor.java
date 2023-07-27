@@ -14,8 +14,6 @@ import cloud.filibuster.instrumentation.helpers.Response;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.exceptions.filibuster.FilibusterServerBadResponseException;
 import cloud.filibuster.junit.server.core.FilibusterCore;
-import cloud.filibuster.junit.server.core.transformers.Accumulator;
-import com.google.gson.Gson;
 import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.HttpMethod;
 import com.linecorp.armeria.common.ResponseHeaders;
@@ -83,7 +81,7 @@ final public class FilibusterClientInstrumentor {
     /**
      * Set the current vector clock for a given request id.
      *
-     * @param requestId   request identifier.
+     * @param requestId request identifier.
      * @param vectorClock vector clock.
      */
     public static void setVectorClockForRequestId(String serviceName, String requestId, VectorClock vectorClock) {
@@ -101,7 +99,7 @@ final public class FilibusterClientInstrumentor {
      * Does an entry exist in the vector clock request mapping for a particular request id?
      *
      * @param serviceName the service name.
-     * @param requestId   the request identifier.
+     * @param requestId the request identifier.
      * @return whether a mapping exists.
      */
     public static boolean vectorClockForRequestIdExists(String serviceName, String requestId) {
@@ -148,7 +146,7 @@ final public class FilibusterClientInstrumentor {
     /**
      * Set the current execution index for a given request id.
      *
-     * @param requestId                 request identifier.
+     * @param requestId request identifier.
      * @param distributedExecutionIndex execution index.
      */
     public static void setDistributedExecutionIndexForRequestId(String serviceName, String requestId, DistributedExecutionIndex distributedExecutionIndex) {
@@ -209,9 +207,6 @@ final public class FilibusterClientInstrumentor {
     @Nullable
     private JSONObject byzantineFault;
 
-    @Nullable
-    private JSONObject transformerFault;
-
     private String requestId;
     public static String overrideRequestId;
     private final ContextStorage contextStorage;
@@ -227,17 +222,16 @@ final public class FilibusterClientInstrumentor {
     @Nullable
     private DistributedExecutionIndex preliminaryDistributedExecutionIndex;
 
-    @Nullable
-    String rpcType;
+    @Nullable String rpcType;
 
     final private static String filibusterServiceName = "filibuster-instrumentation";
 
     /**
      * Create an instance of a Filibuster client instrumentor for controlling fault injection.
      *
-     * @param serviceName                 the name of the service being instrumented.
+     * @param serviceName the name of the service being instrumented.
      * @param shouldCommunicateWithServer whether the system should communicate with the Filibuster server.
-     * @param contextStorage              context storage.
+     * @param contextStorage context storage.
      */
     public FilibusterClientInstrumentor(
             String serviceName,
@@ -457,16 +451,6 @@ final public class FilibusterClientInstrumentor {
     }
 
     /**
-     * Return transformer fault that needs to be injected.
-     * This value will be null until the Filibuster server has been contacted for this request.
-     *
-     * @return JSON object containing failure to inject.
-     */
-    public JSONObject getTransformerFault() {
-        return this.transformerFault;
-    }
-
-    /**
      * Should this request be allowed to reach the remote service or should it be skipped?
      *
      * @return whether it should be aborted or not.
@@ -479,7 +463,7 @@ final public class FilibusterClientInstrumentor {
             if (forcedException.has("metadata")) {
                 JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
 
-                if (forcedExceptionMetadata.has("abort") && !forcedExceptionMetadata.getBoolean("abort")) {
+                if (forcedExceptionMetadata.has("abort") && ! forcedExceptionMetadata.getBoolean("abort")) {
                     return false;
                 }
             }
@@ -627,14 +611,15 @@ final public class FilibusterClientInstrumentor {
             originVectorClock = new VectorClock();
         }
 
-        logger.log(Level.INFO, "originVectorClock: " + originVectorClock);
+        logger.log(Level.INFO,"originVectorClock: " + originVectorClock);
     }
 
     /**
      * Invoked directly before a remote call is issued.
-     * <p>
+     *
      * Notifies Filibuster of the remote call that is about to
      * occur and determines if the remote call should instead, return a fault.
+     *
      */
     @SuppressWarnings("VoidMissingNullable")
     public void beforeInvocation() {
@@ -680,11 +665,8 @@ final public class FilibusterClientInstrumentor {
             if (jsonObject.has("byzantine_fault")) {
                 byzantineFault = jsonObject.getJSONObject("byzantine_fault");
             }
-
-            if (jsonObject.has("transformer_fault")) {
-                transformerFault = jsonObject.getJSONObject("transformer_fault");
-            }
-        } else if (shouldCommunicateWithServer && counterexampleNotProvided()) {
+        }
+        else if (shouldCommunicateWithServer && counterexampleNotProvided()) {
             if (getServerBackendCanInvokeDirectlyProperty()) {
                 if (FilibusterCore.hasCurrentInstance()) {
                     JSONObject jsonObject = FilibusterCore.getCurrentInstance().beginInvocation(invocationPayload);
@@ -700,10 +682,6 @@ final public class FilibusterClientInstrumentor {
 
                     if (jsonObject.has("byzantine_fault")) {
                         byzantineFault = jsonObject.getJSONObject("byzantine_fault");
-                    }
-
-                    if (jsonObject.has("transformer_fault")) {
-                        transformerFault = jsonObject.getJSONObject("transformer_fault");
                     }
                 } else {
                     throw new FilibusterRuntimeException("No current filibuster core instance, this could indicate a problem.");
@@ -749,10 +727,6 @@ final public class FilibusterClientInstrumentor {
                         if (jsonObject.has("byzantine_fault")) {
                             byzantineFault = jsonObject.getJSONObject("byzantine_fault");
                         }
-
-                        if (jsonObject.has("transformer_fault")) {
-                            transformerFault = jsonObject.getJSONObject("transformer_fault");
-                        }
                     } catch (RuntimeException e) {
                         logger.log(Level.SEVERE, "cannot connect to the Filibuster server: " + e);
                     }
@@ -786,7 +760,7 @@ final public class FilibusterClientInstrumentor {
     /**
      * Invoked after a remote call has been completed if the remote call threw an exception.
      *
-     * @param throwable          the exception thrown.
+     * @param throwable the exception thrown.
      * @param additionalMetadata any additional metadata that should be provided, such as if the request was aborted.
      */
     public void afterInvocationWithException(
@@ -794,15 +768,15 @@ final public class FilibusterClientInstrumentor {
             HashMap<String, String> additionalMetadata
     ) {
         String exceptionName = throwable.getClass().getName();
-        String exceptionCause = throwable.getCause() != null ? throwable.getCause().getClass().getName() : null;
+        String exceptionCause = throwable.getCause() != null? throwable.getCause().getClass().getName(): null;
         afterInvocationWithException(exceptionName, exceptionCause, additionalMetadata);
     }
 
     /**
      * Invoked after a remote call has been completed if the remote call threw an exception.
      *
-     * @param exceptionName      the fully qualified name of the exception thrown.
-     * @param exceptionCause     the fully qualified name of the cause (an exception), if provided.
+     * @param exceptionName the fully qualified name of the exception thrown.
+     * @param exceptionCause the fully qualified name of the cause (an exception), if provided.
      * @param additionalMetadata any additional metadata that should be provided, such as if the request was aborted.
      */
     public void afterInvocationWithException(
@@ -827,7 +801,7 @@ final public class FilibusterClientInstrumentor {
 
             metadata.put("cause", exceptionCause);
 
-            for (Map.Entry<String, String> entry : additionalMetadata.entrySet()) {
+            for (Map.Entry<String,String> entry : additionalMetadata.entrySet()) {
                 metadata.put(entry.getKey(), entry.getValue());
             }
 
@@ -841,8 +815,6 @@ final public class FilibusterClientInstrumentor {
             invocationCompletePayload.put("execution_index", distributedExecutionIndex.toString());
             invocationCompletePayload.put("vclock", vectorClock.toJSONObject());
             invocationCompletePayload.put("exception", exception);
-            invocationCompletePayload.put("module", callsite.getClassOrModuleName());
-            invocationCompletePayload.put("method", callsite.getMethodOrFunctionName());
 
             if (preliminaryDistributedExecutionIndex != null) {
                 invocationCompletePayload.put("preliminary_execution_index", preliminaryDistributedExecutionIndex.toString());
@@ -851,129 +823,28 @@ final public class FilibusterClientInstrumentor {
             recordInvocationComplete(invocationCompletePayload);
         }
     }
-
-
-    /**
-     * Invoked after a remote call has been completed if the remote call injects a byzantine value.
-     *
-     * @param value the byzantine value that was injected.
-     * @param type  type of the injected byzantine value (e.g., String).
-     */
-    public void afterInvocationWithByzantineFault(
-            String value,
-            String type
-    ) {
-        if (generatedId > -1 && shouldCommunicateWithServer && counterexampleNotProvided()) {
-
-            JSONObject byzantineFault = new JSONObject();
-            byzantineFault.put("value", value);
-            byzantineFault.put("type", type);
-
-            JSONObject invocationCompletePayload = new JSONObject();
-            invocationCompletePayload.put("instrumentation_type", "invocation_complete");
-            invocationCompletePayload.put("generated_id", generatedId);
-            invocationCompletePayload.put("execution_index", distributedExecutionIndex.toString());
-            invocationCompletePayload.put("vclock", vectorClock.toJSONObject());
-            invocationCompletePayload.put("byzantine_fault", byzantineFault);
-            invocationCompletePayload.put("module", callsite.getClassOrModuleName());
-            invocationCompletePayload.put("method", callsite.getMethodOrFunctionName());
-
-            if (preliminaryDistributedExecutionIndex != null) {
-                invocationCompletePayload.put("preliminary_execution_index", preliminaryDistributedExecutionIndex.toString());
-            }
-
-            recordInvocationComplete(invocationCompletePayload);
-        }
-    }
-
-
-    /**
-     * Invoked after a remote call has been completed if the remote call injects a transformer value.
-     *
-     * @param value       the byzantine value that was injected.
-     * @param type        type of the injected byzantine value (e.g., String).
-     * @param accumulator containing any additional information that should be communicated to the server and used in
-     *                    subsequent byzantine faults (e.g., original value before mutation and idx of mutated char in
-     *                    case of a byzantine string transformation).
-     */
-    public void afterInvocationWithTransformerFault(
-            String value,
-            String type,
-            Accumulator<?, ?> accumulator
-    ) {
-        if (generatedId > -1 && shouldCommunicateWithServer && counterexampleNotProvided()) {
-
-            JSONObject transformerFault = new JSONObject();
-            transformerFault.put("value", value);
-            transformerFault.put("accumulator", new Gson().toJson(accumulator));
-            transformerFault.put("type", type);
-
-            JSONObject invocationCompletePayload = new JSONObject();
-            invocationCompletePayload.put("instrumentation_type", "invocation_complete");
-            invocationCompletePayload.put("generated_id", generatedId);
-            invocationCompletePayload.put("execution_index", distributedExecutionIndex.toString());
-            invocationCompletePayload.put("vclock", vectorClock.toJSONObject());
-            invocationCompletePayload.put("transformer_fault", transformerFault);
-            invocationCompletePayload.put("module", callsite.getClassOrModuleName());
-            invocationCompletePayload.put("method", callsite.getMethodOrFunctionName());
-
-            if (preliminaryDistributedExecutionIndex != null) {
-                invocationCompletePayload.put("preliminary_execution_index", preliminaryDistributedExecutionIndex.toString());
-            }
-
-            recordInvocationComplete(invocationCompletePayload);
-        }
-    }
-
 
     /**
      * Invoked after a remote call has been completed if the remote call completed successfully.
      *
-     * @param className             the fully qualified name of the response class.
+     * @param className the fully qualified name of the response class.
      * @param returnValueProperties any properties of the response that make the response unique.
      */
     public void afterInvocationComplete(
             String className,
             HashMap<String, String> returnValueProperties
     ) {
-        afterInvocationComplete(className, returnValueProperties, null);
-    }
-
-
-    /**
-     * Invoked after a remote call has been completed if the remote call completed successfully.
-     *
-     * @param className             the fully qualified name of the response class.
-     * @param returnValueProperties any properties of the response that make the response unique.
-     * @param returnValue           the actual return value after invocation.
-     */
-    public void afterInvocationComplete(
-            String className,
-            HashMap<String, String> returnValueProperties,
-            @Nullable Object returnValue
-    ) {
         // Only if instrumented request, we should communicate, and we aren't inside of Filibuster instrumentation.
-        logger.log(Level.INFO, "generatedId: " + generatedId);
-        logger.log(Level.INFO, "shouldCommunicateWithServer: " + shouldCommunicateWithServer);
+        logger.log(Level.INFO,"generatedId: " + generatedId);
+        logger.log(Level.INFO,"shouldCommunicateWithServer: " + shouldCommunicateWithServer);
 
         if (generatedId > -1 && shouldCommunicateWithServer && counterexampleNotProvided()) {
-            JSONObject returnValueJO = new JSONObject();
+            JSONObject returnValue = new JSONObject();
 
-            returnValueJO.put("__class__", className);
-            if (returnValue != null && returnValue != JSONObject.NULL && returnValue != "") {  // Only serialise if return value is not null or empty.
-                try {
-                    returnValueJO.put("value", new Gson().toJson(returnValue));
-                } catch (RuntimeException e) {
-                    logger.log(Level.WARNING, "Could not serialise return value to JSON: " + e);
-                }
-            } else {
-                returnValueJO.put("value", returnValue);
-            }
+            returnValue.put("__class__", className);
 
-            for (Map.Entry<String, String> entry : returnValueProperties.entrySet()) {
-                // JSONObject does not allow null values.
-                // If the value in the HashMap is null, we need to put in JSONObject.NULL instead of null.
-                returnValueJO.put(entry.getKey(), entry.getValue() == null ? JSONObject.NULL : entry.getValue());
+            for (Map.Entry<String,String> entry : returnValueProperties.entrySet()) {
+                returnValue.put(entry.getKey(), entry.getValue());
             }
 
             JSONObject invocationCompletePayload = new JSONObject();
@@ -981,9 +852,7 @@ final public class FilibusterClientInstrumentor {
             invocationCompletePayload.put("generated_id", getGeneratedId());
             invocationCompletePayload.put("execution_index", distributedExecutionIndex.toString());
             invocationCompletePayload.put("vclock", getVectorClock().toJSONObject());
-            invocationCompletePayload.put("return_value", returnValueJO);
-            invocationCompletePayload.put("module", callsite.getClassOrModuleName());
-            invocationCompletePayload.put("method", callsite.getMethodOrFunctionName());
+            invocationCompletePayload.put("return_value", returnValue);
 
             if (preliminaryDistributedExecutionIndex != null) {
                 invocationCompletePayload.put("preliminary_execution_index", preliminaryDistributedExecutionIndex.toString());
@@ -992,7 +861,6 @@ final public class FilibusterClientInstrumentor {
             recordInvocationComplete(invocationCompletePayload);
         }
     }
-
 
     @SuppressWarnings("VoidMissingNullable")
     private void recordInvocationComplete(JSONObject invocationCompletePayload) {

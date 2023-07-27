@@ -836,20 +836,6 @@ public class HelloServer {
             }
         }.decorate(delegate -> new FilibusterDecoratingHttpService(delegate, serviceName)));
 
-        sb.service("/echo-cookie", new AbstractHttpService() {
-            // Return the cookie of the received request
-            @Override
-            protected @NotNull HttpResponse doGet(@NotNull ServiceRequestContext ctx, @NotNull HttpRequest req) {
-                setupLocalFixtures();
-
-                if(req.headers().get("cookie") != null) {
-                    return HttpResponse.of(req.headers().get("cookie"));
-                } else {
-                    return HttpResponse.of(HttpStatus.NOT_FOUND);
-                }
-            }
-        }.decorate(delegate -> new FilibusterDecoratingHttpService(delegate, serviceName)));
-
         return sb.build();
     }
 

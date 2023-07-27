@@ -1,15 +1,3 @@
-2.0.0:
-    - (MichaelA-ops) Use dynamic proxy interceptor for Redis and Cockroach
-    - (MichaelA-ops) Introduce transformer faults
-    - (MichaelA-ops) Generate transformer faults inductively, not up front
-    - (MichaelA-ops) Use a generic accumulator in transformer faults
-    - (MichaelA-ops) Implement String transformers
-    - (MichaelA-ops) Implement byte[] transformers
-    - (MichaelA-ops) Use different background colours in the plugin for Byzantine and transformer faults
-    - (MichaelA-ops) Implement afterInvocationWithByzantineFault and afterInvocationWithTransformerFault
-    - (MichaelA-ops) Add new test scenarios for transformer and Byzantine faults
-    - (MichaelA-ops) Add test services and unit tests for DynamoDB, Cassandra and Postgres
-    - (MichaelA-ops) Support null transformer fault injection for HTTP and GRPC
 1.9.10:
    - (MichaelA-ops) UI: Show fix messages on plugin for FilibusterGrpcTestRuntimeException.
 1.9.9:

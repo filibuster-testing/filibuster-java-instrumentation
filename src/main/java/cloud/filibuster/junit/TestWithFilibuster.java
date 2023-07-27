@@ -257,11 +257,4 @@ public @interface TestWithFilibuster {
      */
     ServiceProfileBehavior serviceProfileBehavior() default ServiceProfileBehavior.NONE;
 
-    /**
-     * Fail the test if a fault is not injected.
-     *
-     * @return whether service should fail.
-     */
-    boolean failIfFaultNotInjected() default false;
-
 }

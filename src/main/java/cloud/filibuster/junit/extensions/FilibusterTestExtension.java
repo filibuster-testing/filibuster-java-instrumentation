@@ -29,11 +29,9 @@ import org.junit.platform.commons.util.Preconditions;
 import static cloud.filibuster.instrumentation.helpers.Property.AVOID_INJECTIONS_ON_ORGANIC_FAILURES_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.AVOID_REDUNDANT_INJECTIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.DATA_NONDETERMINISM_DEFAULT;
-import static cloud.filibuster.instrumentation.helpers.Property.FAIL_IF_FAULT_NOT_INJECTED_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.MAX_ITERATIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.SUPPRESS_COMBINATIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.getEnabledProperty;
-import static cloud.filibuster.instrumentation.helpers.Property.getFailIfFaultNotInjectedProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendDockerImageNameProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestAnalysisResourceFileProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestAvoidInjectionsOnOrganicFailuresProperty;
@@ -125,13 +123,6 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
             suppressCombinations = getTestSuppressCombinationsProperty();
         }
 
-        boolean failIfFaultInjected = testWithFilibuster.failIfFaultNotInjected();
-
-        if (failIfFaultInjected == FAIL_IF_FAULT_NOT_INJECTED_DEFAULT) {
-            // Check the property to see if it was set.
-            failIfFaultInjected = getFailIfFaultNotInjectedProperty();
-        }
-
         FilibusterSearchStrategy searchStrategy = testWithFilibuster.searchStrategy();
 
         if (searchStrategy.equals(FilibusterSearchStrategy.DEFAULT)) {
@@ -157,7 +148,6 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
                 .serviceProfileBehavior(testWithFilibuster.serviceProfileBehavior())
                 .testName(displayName)
                 .className(className)
-                .failIfFaultNotInjected(failIfFaultInjected)
                 .build();
 
         validateSearchBackend(searchStrategy, filibusterConfiguration);

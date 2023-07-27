@@ -88,14 +88,6 @@
             background-color: lightyellow;
         }
 
-        tr.byzantine {
-            background-color: coral;
-        }
-
-        tr.transformer {
-            background-color: orange;
-        }
-
         tr.fault {
             background-color: lightcoral;
         }
@@ -284,10 +276,6 @@
                 return "byzantine_fault" in obj;
             }
 
-            function containsTransformerFaultKey(obj) {
-                return "transformer_fault" in obj;
-            }
-
             function toggleWarnings() {
                 $('tr.warning').toggle();
             }
@@ -339,8 +327,7 @@
                     var rpc = analysis.rpcs[i];
                     var isFaulted = !isEmpty(rpc.fault);
                     var isExceptionResponse = containsExceptionKey(rpc.response);
-                    var isByzantineFault = containsByzantineFaultKey(rpc.response);
-                    var isTransformerFault = containsTransformerFaultKey(rpc.response);
+                    var isByzantineFault = containsByzantineFaultKey(rpc.fault);
 
                     if (rpc.group !== group) {
                         group = rpc.group;
@@ -421,10 +408,6 @@
                                 row += '<tr class="success">';
                             }
                         }
-                    } else if (isByzantineFault) {
-                        row += '<tr class="byzantine">';
-                    } else if (isTransformerFault) {
-                        row += '<tr class="transformer">';
                     } else {
                         row += '<tr class="fault">';
                     }
@@ -441,15 +424,11 @@
                         row += '<td>⚠️ No RPC response was recorded.</td>';
                     } else if (isByzantineFault) {
                         row += '<td>';
-                        row += '<div class="class_name">' + substringNamespace(rpc.response.byzantine_fault.type) + '</div>';
+                        row += '<div class="class_name">' + substringNamespace(rpc.response.exception.name) + '</div>';
                         row += '<textarea>';
-                        row += rpc.response.byzantine_fault.value.toString();
-                        row += '</textarea></td>';
-                    } else if (isTransformerFault) {
-                        row += '<td>';
-                        row += '<div class="class_name">' + substringNamespace(rpc.response.transformer_fault.type) + '</div>';
-                        row += '<textarea>';
-                        row += rpc.response.transformer_fault.value.toString();
+
+                        row += '\ninjected byzantine value = ' + rpc.response.exception.metadata.value.toString();
+
                         row += '</textarea></td>';
                     } else if (isExceptionResponse) {
                         row += '<td>';
@@ -480,7 +459,7 @@
                         row += '</td>';
                     }
 
-                    if (!isFaulted || isByzantineFault) {
+                    if (!isFaulted) {
                         row += '<td></td>';
                     } else {
                         if ('forced_exception' in rpc.fault) {
@@ -507,12 +486,6 @@
                                 row += '\ndescription = ' + rpc.fault.forced_exception.metadata.description;
                             }
 
-                            if (rpc.fault.forced_exception.metadata.injectOn !== undefined) {
-                                row += '\ninject_on = ' + rpc.fault.forced_exception.metadata.injectOn;
-                            } else {
-                                // Do nothing.
-                            }
-
                             row += '</textarea>';
                             row += '</td>';
                         }
@@ -522,15 +495,6 @@
                             row += '<div class="class_name">&nbsp;</div>';
                             row += '<textarea>';
                             row += 'milliseconds = ' + rpc.fault.latency.milliseconds;
-                            row += '</textarea>';
-                            row += '</td>';
-                        }
-
-                        if(isTransformerFault) {
-                            row += '<td>';
-                            row += '<div class="class_name">' + substringNamespace(rpc.response.transformer_fault.type) + '</div>';
-                            row += '<textarea>';
-                            row += '\naccumulator = ' + JSON.stringify(JSON.parse(rpc.response.transformer_fault.accumulator));
                             row += '</textarea>';
                             row += '</td>';
                         }

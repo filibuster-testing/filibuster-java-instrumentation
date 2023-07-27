@@ -5,8 +5,17 @@ import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineStringFaultType;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class RedisSingleGetBasicStringByzantineFaultAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
+
+    private static <T> Map<String, T> createBzyantineFaultMap(T value) {
+        Map<String, T> myMap = new HashMap<>();
+        myMap.put("value", value);
+        return myMap;
+    }
 
     static {
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
@@ -18,8 +27,7 @@ public class RedisSingleGetBasicStringByzantineFaultAnalysisConfigurationFile im
 
         String[] possibleValues = {null, ""};
         for (String value : possibleValues) {
-            // Communicate the byzantine fault type and value to the analysis configuration builder
-            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(new ByzantineStringFaultType(), value);
+            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(new ByzantineStringFaultType(), createBzyantineFaultMap(value));
         }
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());

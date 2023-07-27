@@ -2,7 +2,6 @@ package cloud.filibuster.junit.configuration.examples.db.byzantine.types;
 
 import com.google.common.primitives.Bytes;
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -12,7 +11,7 @@ public final class ByzantineByteArrayFaultType extends ByzantineFaultType<byte[]
     @Override
     @Nullable
     public byte[] cast(Object byzantineFaultValue) {
-        if (byzantineFaultValue == null || byzantineFaultValue == JSONObject.NULL) {
+        if (byzantineFaultValue == null) {
             return null;
         }
         List<Byte> byteArray = new ArrayList<>();

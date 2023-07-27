@@ -218,8 +218,7 @@ public class PurchaseWorkflow {
     private static StatefulRedisConnection<String, String> getRedisConnection() {
         if (getInstrumentationServerCommunicationEnabledProperty()) {
             // incomplete, needs instrumentation.
-            return RedisClientService.getInstance().redisClient.connect();
-            return DynamicProxyInterceptor.createInterceptor(redisClient.redisClient.connect(), redisClient.connectionString);
+            return DynamicProxyInterceptor.createInterceptor(RedisClientService.getInstance().redisClient.connect(), RedisClientService.getInstance().connectionString);
         } else {
             return RedisClientService.getInstance().redisClient.connect();
         }
@@ -230,10 +229,6 @@ public class PurchaseWorkflow {
 
         if (getInstrumentationServerCommunicationEnabledProperty()) {
             // incomplete, needs instrumentation.
-            return cockroachClientService.dao;
-        } else {
-            return cockroachClientService.dao;
-        }
             DataSource interceptedDS = DynamicProxyInterceptor.createInterceptor(cockroachClientService.dataSource,
                     cockroachClientService.connectionString);
             cockroachClientService.dao.setDS(interceptedDS);

@@ -7,7 +7,6 @@ import cloud.filibuster.instrumentation.libraries.grpc.FilibusterServerIntercept
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterServerInvocationInterceptor;
 import com.linecorp.armeria.common.HttpRequest;
 import com.linecorp.armeria.common.HttpResponse;
-import com.linecorp.armeria.common.HttpStatus;
 import com.linecorp.armeria.server.AbstractHttpService;
 import com.linecorp.armeria.server.Server;
 import com.linecorp.armeria.server.ServerBuilder;

@@ -5,13 +5,12 @@ import cloud.filibuster.examples.DGrpc;
 import cloud.filibuster.examples.Jacobalg;
 import io.grpc.stub.StreamObserver;
 import java.util.HashMap;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
 
 public class MyDService extends DGrpc.DImplBase {
-    private MetaDataContainer metadataContainer;
+    private final MetaDataContainer metadataContainer;
     private final String metadataPath = "/home/jwetzel/filibuster-java-instrumentation/src/test/java/algorithmjacob/jacobservices/DMetaData.json";
 
     public MyDService() {
@@ -31,7 +30,7 @@ public class MyDService extends DGrpc.DImplBase {
             }
         }*/
     }
-    private static final Logger logger = Logger.getLogger(MyDService.class.getName());
+    //private static final Logger logger = Logger.getLogger(MyDService.class.getName());
     @Override
     public void appendD(Jacobalg.AppendRequest req, StreamObserver<Jacobalg.AppendReply> responseObserver) {
         Jacobalg.AppendReply reply;  // = Jacobalg.AppendReply.newBuilder().build();
@@ -43,7 +42,6 @@ public class MyDService extends DGrpc.DImplBase {
                         .build();
                 responseObserver.onNext(reply);
                 responseObserver.onCompleted();
-                return;
             }
         }
         else{

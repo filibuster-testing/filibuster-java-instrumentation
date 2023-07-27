@@ -26,7 +26,7 @@ public class JsonUtil {
         Gson gson = new Gson();
         Type type = new TypeToken<MetaDataContainer>() {}.getType();
         try (Reader reader = new FileReader(filePath)) {
-            return gson.fromJson(reader, type);;
+            return gson.fromJson(reader, type);
         } catch (IOException e) {
             e.printStackTrace();
         }

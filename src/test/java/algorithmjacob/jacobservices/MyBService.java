@@ -12,12 +12,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 
-import java.util.logging.Logger;
-
 
 public class MyBService extends BGrpc.BImplBase {
 
-    private MetaDataContainer metadataContainer;
+    private final MetaDataContainer metadataContainer;
     private final String metadataPath = "/home/jwetzel/filibuster-java-instrumentation/src/test/java/algorithmjacob/jacobservices/BMetaData.json";
 
     public MyBService() {

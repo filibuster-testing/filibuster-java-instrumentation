@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import static cloud.filibuster.integration.instrumentation.libraries.AppendTestHelper.startAppendServerAndWaitUntilAvailable;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class JacobAlgorithmTest extends JUnitAnnotationBaseTest{
@@ -40,7 +40,7 @@ public class JacobAlgorithmTest extends JUnitAnnotationBaseTest{
         AGrpc.ABlockingStub blockingStub = AGrpc.newBlockingStub(AChannel);
         AppendString.AppendRequest request = AppendString.AppendRequest.newBuilder().setBase("Start").setCallID(0.555f).build();
         AppendString.AppendReply reply = blockingStub.appendA(request);
-        assertTrue(reply.getReply().equals("StartDCBA"));
+        assertEquals(reply.getReply(), ("StartDCBA"));
         AChannel.shutdownNow();
         AChannel.awaitTermination(1000, TimeUnit.SECONDS);
 

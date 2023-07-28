@@ -5,7 +5,7 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.CassandraClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.db.cassandra.CassandraSingleFaultOverloadedExceptionAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.db.cassandra.CassandraAnalysisConfigurationFile;
 import com.datastax.oss.driver.api.core.CqlIdentifier;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.metadata.schema.KeyspaceMetadata;
@@ -41,7 +41,7 @@ public class JUnitCassandraFilibusterExecutionTest extends JUnitAnnotationBaseTe
 
     @DisplayName("Tests whether Cassandra interceptor can inject basic exception")
     @Order(1)
-    @TestWithFilibuster(analysisConfigurationFile = CassandraSingleFaultOverloadedExceptionAnalysisConfigurationFile.class)
+    @TestWithFilibuster(analysisConfigurationFile = CassandraAnalysisConfigurationFile.class)
     @SuppressWarnings("CatchingUnchecked")
     public void testCassandraExceptionInjection() {
         try {

@@ -98,7 +98,6 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
         allowedExceptions.put(RedisConnectionException.class,
                 new SimpleEntry<>(ImmutableMap.of("io.lettuce.core.ConnectionFuture", Collections.singletonList("get")),
                         "Unable to connect"));
-
     }
 
     @DisplayName("Exhaustive Core Redis fault injections")

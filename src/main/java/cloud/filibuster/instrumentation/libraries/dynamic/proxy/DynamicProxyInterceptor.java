@@ -28,6 +28,9 @@ import io.lettuce.core.dynamic.batch.BatchException;
 import org.json.JSONObject;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.ServerErrorMessage;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 import software.amazon.awssdk.services.dynamodb.model.RequestLimitExceededException;
 
 import javax.annotation.Nullable;
@@ -366,10 +369,10 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
                 exceptionToThrow = new InvalidQueryException(null, cause);
                 break;
             case "com.datastax.oss.driver.api.core.servererrors.ReadFailureException":
-                exceptionToThrow = new ReadFailureException(null, null, rand.nextInt(), rand.nextInt(), rand.nextInt(), true, null);
+                exceptionToThrow = new ReadFailureException(null, null, rand.nextInt(), rand.nextInt(), rand.nextInt(), /* dataPresent= */true, null);
                 break;
             case "com.datastax.oss.driver.api.core.servererrors.ReadTimeoutException":
-                exceptionToThrow = new ReadTimeoutException(null, null, rand.nextInt(), rand.nextInt(), true);
+                exceptionToThrow = new ReadTimeoutException(null, null, rand.nextInt(), rand.nextInt(), /* dataPresent= */true);
                 break;
             case "com.datastax.oss.driver.api.core.servererrors.WriteTimeoutException":
                 exceptionToThrow = new WriteTimeoutException(null, null, rand.nextInt(), rand.nextInt(), null);
@@ -379,6 +382,17 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
                 break;
             case "software.amazon.awssdk.services.dynamodb.model.RequestLimitExceededException":
                 exceptionToThrow = RequestLimitExceededException.builder().message(cause).statusCode(Integer.parseInt(code))
+                        .requestId(UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT)).build();
+                break;
+            case "software.amazon.awssdk.services.dynamodb.model.SdkClientException":
+                exceptionToThrow = SdkClientException.builder().message(cause).build();
+                break;
+            case "software.amazon.awssdk.services.dynamodb.model.DynamoDbException":
+                exceptionToThrow = DynamoDbException.builder().message(cause).statusCode(Integer.parseInt(code))
+                        .requestId(UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT)).build();
+                break;
+            case "software.amazon.awssdk.services.dynamodb.model.AwsServiceException":
+                exceptionToThrow = AwsServiceException.builder().message(cause).statusCode(Integer.parseInt(code))
                         .requestId(UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT)).build();
                 break;
             case "io.lettuce.core.RedisCommandTimeoutException":

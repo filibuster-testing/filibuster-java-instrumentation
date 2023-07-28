@@ -7,7 +7,7 @@ import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfiguratio
 import java.util.HashMap;
 import java.util.Map;
 
-public class CassandraSingleFaultOverloadedExceptionAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
+public class CassandraAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
     private static Map<String, String> createErrorMap(String cause) {

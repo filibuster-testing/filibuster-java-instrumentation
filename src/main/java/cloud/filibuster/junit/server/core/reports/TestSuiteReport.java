@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static cloud.filibuster.instrumentation.helpers.Property.getEnabledProperty;
 import static java.lang.Math.min;
 
 
@@ -107,17 +108,51 @@ public class TestSuiteReport {
             throw new FilibusterTestReportWriterException("Filibuster failed to delete content in the /tmp/filibuster/ directory ", e);
         }
 
-        writeOutPlaceholder();
+        if (getEnabledProperty()) {
+            writeOutPlaceholder();
+        } else {
+            writeOutFilibusterDisabledPage();
+        }
     }
 
     private void testSuiteCompleted() {
+        boolean filibusterEnabled = getEnabledProperty();
 
-        ServerInvocationAndResponseReport.writeServerInvocationReport();
+        if (getEnabledProperty()) {
+            ServerInvocationAndResponseReport.writeServerInvocationReport();
+            ServerInvocationAndResponseReport.writeServiceProfile();
+            writeOutReports();
+            writeExcelFile();
+        } else {
+            writeOutFilibusterDisabledPage();
+        }
+    }
 
-        ServerInvocationAndResponseReport.writeServiceProfile();
+    private void writeOutFilibusterDisabledPage() {
+        File directory = ReportUtilities.getBaseDirectoryPath();
+        File indexPath = new File(directory, "index.html");
 
-        writeOutReports();
-        writeExcelFile();
+        try {
+            //noinspection ResultOfMethodCallIgnored
+            directory.mkdirs();
+        } catch (SecurityException e) {
+            throw new FilibusterTestReportWriterException("Filibuster failed to write out the test suite report placeholder: ", e);
+        }
+
+        try {
+            Path constructionGifPath = Paths.get(directory + "/filibuster.png");
+            byte[] constructionGifBytes = ReportUtilities.getResourceAsBytes(getClass().getClassLoader(), "html/test_suite_report/filibuster.png");
+            Files.write(constructionGifPath, constructionGifBytes);
+        } catch (IOException e) {
+            throw new FilibusterTestReportWriterException("Filibuster failed to write out the test suite report: ", e);
+        }
+
+        try {
+            byte[] indexBytes = ReportUtilities.getResourceAsBytes(getClass().getClassLoader(), "html/test_suite_report/disabled.html");
+            Files.write(indexPath.toPath(), indexBytes);
+        } catch (IOException e) {
+            throw new FilibusterTestReportWriterException("Filibuster failed to write out the test suite report: ", e);
+        }
     }
 
     private static JSONObject getTestReportSummaryJSON(FilibusterTestReportSummary testReportSummary) {
@@ -149,8 +184,8 @@ public class TestSuiteReport {
         }
 
         try {
-            Path constructionGifPath = Paths.get(directory + "/construction.gif");
-            byte[] constructionGifBytes = ReportUtilities.getResourceAsBytes(getClass().getClassLoader(), "html/test_suite_report/construction.gif");
+            Path constructionGifPath = Paths.get(directory + "/filibuster.png");
+            byte[] constructionGifBytes = ReportUtilities.getResourceAsBytes(getClass().getClassLoader(), "html/test_suite_report/filibuster.png");
             Files.write(constructionGifPath, constructionGifBytes);
         } catch (IOException e) {
             throw new FilibusterTestReportWriterException("Filibuster failed to write out the test suite report: ", e);

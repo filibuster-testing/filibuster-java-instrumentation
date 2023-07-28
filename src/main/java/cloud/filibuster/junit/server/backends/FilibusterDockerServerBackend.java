@@ -61,6 +61,11 @@ public class FilibusterDockerServerBackend implements FilibusterServerBackend {
     }
 
     @Override
+    public FilibusterSearchStrategy defaultSearchStrategy() {
+        return FilibusterSearchStrategy.DFS;
+    }
+
+    @Override
     public boolean latencyProfileSupported() {
         return false;
     }

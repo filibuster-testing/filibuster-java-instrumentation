@@ -4,7 +4,10 @@ import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.exceptions.FilibusterServerUnavailabilityException;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.armeria.http.FilibusterDecoratingHttpClient;
-import cloud.filibuster.integration.examples.test_servers.*;
+import cloud.filibuster.integration.examples.test_servers.APIServer;
+import cloud.filibuster.integration.examples.test_servers.ExternalServer;
+import cloud.filibuster.integration.examples.test_servers.HelloServer;
+import cloud.filibuster.integration.examples.test_servers.WorldServer;
 
 import cloud.filibuster.integration.instrumentation.libraries.opentelemetry.OpenTelemetryFilibusterDecoratingHttpClient;
 
@@ -34,13 +37,6 @@ public class TestHelper {
 
     private static Server helloServer;
 
-    private static Server aServer;
-
-    private static Server bServer;
-
-    private static Server cServer;
-
-    private static Server dServer;
     private static Server worldServer;
 
     private static Server externalServer;
@@ -219,177 +215,6 @@ public class TestHelper {
             try {
                 // Get remote resource.
                 String baseURI = "http://" + Networking.getHost("hello") + ":" + Networking.getPort("hello") + "/";
-                WebClient webClient = getTestWebClient(baseURI);
-                RequestHeaders getHeaders = RequestHeaders.of(
-                        HttpMethod.GET, "/health-check", HttpHeaderNames.ACCEPT, "application/json");
-                AggregatedHttpResponse response = webClient.execute(getHeaders).aggregate().join();
-
-                // Get headers and verify a 200 OK response.
-                ResponseHeaders headers = response.headers();
-                String statusCode = headers.get(HttpHeaderNames.STATUS);
-
-                if (statusCode.equals("200")) {
-                    logger.log(Level.INFO, "Available!");
-                    online = true;
-                    break;
-                } else {
-                    logger.log(Level.INFO, "Didn't get proper response, status code: " + statusCode);
-                }
-            } catch (RuntimeException e) {
-                logger.log(Level.SEVERE, "Runtime exception occurred: " + e);
-            }
-
-            logger.log(Level.INFO, "Sleeping one second...");
-            Thread.sleep(1000);
-        }
-
-        if (!online) {
-            logger.log(Level.INFO, "HelloServer never came online!");
-            throw new FilibusterServerUnavailabilityException();
-        }
-    }
-    public static void startAServerAndWaitUntilAvailable() throws InterruptedException, IOException {
-        aServer = AServer.serve();
-        CompletableFuture<Void> helloServerFuture = aServer.start();
-
-        // Wait up to 10 seconds for HelloServer to start.
-        boolean online = false;
-
-        for (int i = 0; i < 10; i++) {
-            logger.log(Level.INFO, "Waiting for HelloServer to come online...");
-
-            try {
-                // Get remote resource.
-                String baseURI = "http://" + Networking.getHost("A") + ":" + Networking.getPort("A") + "/";
-                WebClient webClient = getTestWebClient(baseURI);
-                RequestHeaders getHeaders = RequestHeaders.of(
-                        HttpMethod.GET, "/health-check", HttpHeaderNames.ACCEPT, "application/json");
-                AggregatedHttpResponse response = webClient.execute(getHeaders).aggregate().join();
-
-                // Get headers and verify a 200 OK response.
-                ResponseHeaders headers = response.headers();
-                String statusCode = headers.get(HttpHeaderNames.STATUS);
-
-                if (statusCode.equals("200")) {
-                    logger.log(Level.INFO, "Available!");
-                    online = true;
-                    break;
-                } else {
-                    logger.log(Level.INFO, "Didn't get proper response, status code: " + statusCode);
-                }
-            } catch (RuntimeException e) {
-                logger.log(Level.SEVERE, "Runtime exception occurred: " + e);
-            }
-
-            logger.log(Level.INFO, "Sleeping one second...");
-            Thread.sleep(1000);
-        }
-
-        if (!online) {
-            logger.log(Level.INFO, "HelloServer never came online!");
-            throw new FilibusterServerUnavailabilityException();
-        }
-    }
-
-    public static void startBServerAndWaitUntilAvailable() throws InterruptedException, IOException {
-        bServer = BServer.serve();
-        CompletableFuture<Void> helloServerFuture = bServer.start();
-
-        // Wait up to 10 seconds for HelloServer to start.
-        boolean online = false;
-
-        for (int i = 0; i < 10; i++) {
-            logger.log(Level.INFO, "Waiting for HelloServer to come online...");
-
-            try {
-                // Get remote resource.
-                String baseURI = "http://" + Networking.getHost("B") + ":" + Networking.getPort("B") + "/";
-                WebClient webClient = getTestWebClient(baseURI);
-                RequestHeaders getHeaders = RequestHeaders.of(
-                        HttpMethod.GET, "/health-check", HttpHeaderNames.ACCEPT, "application/json");
-                AggregatedHttpResponse response = webClient.execute(getHeaders).aggregate().join();
-
-                // Get headers and verify a 200 OK response.
-                ResponseHeaders headers = response.headers();
-                String statusCode = headers.get(HttpHeaderNames.STATUS);
-
-                if (statusCode.equals("200")) {
-                    logger.log(Level.INFO, "Available!");
-                    online = true;
-                    break;
-                } else {
-                    logger.log(Level.INFO, "Didn't get proper response, status code: " + statusCode);
-                }
-            } catch (RuntimeException e) {
-                logger.log(Level.SEVERE, "Runtime exception occurred: " + e);
-            }
-
-            logger.log(Level.INFO, "Sleeping one second...");
-            Thread.sleep(1000);
-        }
-
-        if (!online) {
-            logger.log(Level.INFO, "HelloServer never came online!");
-            throw new FilibusterServerUnavailabilityException();
-        }
-    }
-
-    public static void startCServerAndWaitUntilAvailable() throws InterruptedException, IOException {
-        cServer = CServer.serve();
-        CompletableFuture<Void> helloServerFuture = cServer.start();
-
-        // Wait up to 10 seconds for HelloServer to start.
-        boolean online = false;
-
-        for (int i = 0; i < 10; i++) {
-            logger.log(Level.INFO, "Waiting for HelloServer to come online...");
-
-            try {
-                // Get remote resource.
-                String baseURI = "http://" + Networking.getHost("C") + ":" + Networking.getPort("C") + "/";
-                WebClient webClient = getTestWebClient(baseURI);
-                RequestHeaders getHeaders = RequestHeaders.of(
-                        HttpMethod.GET, "/health-check", HttpHeaderNames.ACCEPT, "application/json");
-                AggregatedHttpResponse response = webClient.execute(getHeaders).aggregate().join();
-
-                // Get headers and verify a 200 OK response.
-                ResponseHeaders headers = response.headers();
-                String statusCode = headers.get(HttpHeaderNames.STATUS);
-
-                if (statusCode.equals("200")) {
-                    logger.log(Level.INFO, "Available!");
-                    online = true;
-                    break;
-                } else {
-                    logger.log(Level.INFO, "Didn't get proper response, status code: " + statusCode);
-                }
-            } catch (RuntimeException e) {
-                logger.log(Level.SEVERE, "Runtime exception occurred: " + e);
-            }
-
-            logger.log(Level.INFO, "Sleeping one second...");
-            Thread.sleep(1000);
-        }
-
-        if (!online) {
-            logger.log(Level.INFO, "HelloServer never came online!");
-            throw new FilibusterServerUnavailabilityException();
-        }
-    }
-
-    public static void startDServerAndWaitUntilAvailable() throws InterruptedException, IOException {
-        dServer = DServer.serve();
-        CompletableFuture<Void> helloServerFuture = dServer.start();
-
-        // Wait up to 10 seconds for HelloServer to start.
-        boolean online = false;
-
-        for (int i = 0; i < 10; i++) {
-            logger.log(Level.INFO, "Waiting for HelloServer to come online...");
-
-            try {
-                // Get remote resource.
-                String baseURI = "http://" + Networking.getHost("D") + ":" + Networking.getPort("D") + "/";
                 WebClient webClient = getTestWebClient(baseURI);
                 RequestHeaders getHeaders = RequestHeaders.of(
                         HttpMethod.GET, "/health-check", HttpHeaderNames.ACCEPT, "application/json");

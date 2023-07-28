@@ -7,7 +7,6 @@ public class MetaDataContainer {
     private HashMap<Float, JacobMetaData> metaDataMap;
     private List<Float> generatedIDs;
 
-    // Getter and setter for metaDataMap
     public HashMap<Float, JacobMetaData> getMetaDataMap() {
         return metaDataMap;
     }
@@ -16,7 +15,6 @@ public class MetaDataContainer {
         this.metaDataMap = metaDataMap;
     }
 
-    // Getter and setter for generatedIDs
     public List<Float> getGeneratedIDs() {
         return generatedIDs;
     }

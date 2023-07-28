@@ -30,14 +30,8 @@ public class MyBService extends BGrpc.BImplBase {
             this.metadataContainer.setGeneratedIDs(new ArrayList<>());
             JsonUtil.writeMetaData(this.metadataContainer, metadataPath);
         }
-        /*for (HashMap.Entry<Float, JacobMetaData> entry : metadataContainer.getMetaDataMap().entrySet()) {
-            if (entry.getValue().Completed = false) {
-                appendB(entry.getValue().req, entry.getValue().responseObserver);
-            }
-        }*/
     }
 
-    //private static final Logger logger = Logger.getLogger(MyBService.class.getName());
     @Override
     public void appendB(AppendString.AppendRequest req, StreamObserver<AppendString.AppendReply> responseObserver) {
         AppendString.AppendReply reply = AppendString.AppendReply.newBuilder().setReply(req.getBase()).build();

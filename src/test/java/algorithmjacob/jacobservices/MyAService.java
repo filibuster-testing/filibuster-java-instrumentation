@@ -29,11 +29,6 @@ public class MyAService extends AGrpc.AImplBase{
             this.metadataContainer.setGeneratedIDs(new ArrayList<>());
             JsonUtil.writeMetaData(this.metadataContainer, metadataPath);
         }
-        /*for (HashMap.Entry<Float, JacobMetaData> entry : metadataContainer.getMetaDataMap().entrySet()) {
-            if(entry.getValue().Completed = false){
-                appendA(entry.getValue().req, entry.getValue().responseObserver);
-            }
-        }*/
     }
 
 @Override

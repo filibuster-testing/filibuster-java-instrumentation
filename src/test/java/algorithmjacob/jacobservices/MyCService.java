@@ -24,13 +24,8 @@ public class MyCService extends CGrpc.CImplBase {
             this.metadataContainer.setGeneratedIDs(new ArrayList<>());
             JsonUtil.writeMetaData(this.metadataContainer, metadataPath);
         }
-        /*for (HashMap.Entry<Float, JacobMetaData> entry : metadataContainer.getMetaDataMap().entrySet()) {
-            if (entry.getValue().Completed = false) {
-                appendC(entry.getValue().req, entry.getValue().responseObserver);
-            }
-        }*/
+
     }
-    //private static final Logger logger = Logger.getLogger(MyCService.class.getName());
     @Override
     public void appendC(AppendString.AppendRequest req, StreamObserver<AppendString.AppendReply> responseObserver) {
         AppendString.AppendReply reply; // = AppendString.AppendReply.newBuilder().build();

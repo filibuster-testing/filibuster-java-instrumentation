@@ -22,14 +22,7 @@ public class MyDService extends DGrpc.DImplBase {
             this.metadataContainer.setGeneratedIDs(new ArrayList<>());
             JsonUtil.writeMetaData(this.metadataContainer, metadataPath);
         }
-
-        /*for (HashMap.Entry<Float, JacobMetaData> entry : metadataContainer.getMetaDataMap().entrySet()) {
-            if (entry.getValue().Completed = false) {
-                appendD(entry.getValue().req, entry.getValue().responseObserver);
-            }
-        }*/
     }
-    //private static final Logger logger = Logger.getLogger(MyDService.class.getName());
     @Override
     public void appendD(AppendString.AppendRequest req, StreamObserver<AppendString.AppendReply> responseObserver) {
         AppendString.AppendReply reply;  // = AppendString.AppendReply.newBuilder().build();

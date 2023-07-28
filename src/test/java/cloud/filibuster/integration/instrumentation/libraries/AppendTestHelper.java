@@ -17,32 +17,28 @@ import java.util.logging.Logger;
 
 public class AppendTestHelper {
     private static final Logger logger = Logger.getLogger(TestHelper.class.getName());
-    private static Server aServer;
 
-    private static Server bServer;
-
-    private static Server cServer;
-
-    private static Server dServer;
 
 
     public static void startAppendServerAndWaitUntilAvailable(String serverName) throws InterruptedException, IOException {
+        Server myServer;
+
         switch (serverName) {
             case "A":
-                aServer = AServer.serve();
-                aServer.start();
+                myServer = AServer.serve();
+                myServer.start();
                 break;
             case "B":
-                bServer = BServer.serve();
-                bServer.start();
+                myServer = BServer.serve();
+                myServer.start();
                 break;
             case "C":
-                cServer = CServer.serve();
-                cServer.start();
+                myServer = CServer.serve();
+                myServer.start();
                 break;
             case "D":
-                dServer = DServer.serve();
-                dServer.start();
+                myServer = DServer.serve();
+                myServer.start();
                 break;
             default:
                 logger.log(Level.SEVERE, "server does not exist");

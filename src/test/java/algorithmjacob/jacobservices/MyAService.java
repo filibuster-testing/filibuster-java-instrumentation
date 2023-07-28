@@ -6,6 +6,8 @@ import cloud.filibuster.instrumentation.helpers.Networking;
 import io.grpc.stub.StreamObserver;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
@@ -14,7 +16,7 @@ import java.util.ArrayList;
 public class MyAService extends AGrpc.AImplBase{
 
     private final MetaDataContainer metadataContainer;
-    private static final String metadataPath = "/home/jwetzel/filibuster-java-instrumentation/src/test/java/algorithmjacob/jacobservices/AMetaData.json";
+    private static final String metadataPath = (new File("").getAbsolutePath()) + "/src/test/java/algorithmjacob/jacobservices/AMetaData.json";
 
 
     public MyAService() {

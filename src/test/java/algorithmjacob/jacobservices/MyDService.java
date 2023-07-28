@@ -2,13 +2,15 @@ package algorithmjacob.jacobservices;
 import cloud.filibuster.examples.DGrpc;
 import cloud.filibuster.examples.AppendString;
 import io.grpc.stub.StreamObserver;
+
+import java.io.File;
 import java.util.HashMap;
 import java.util.ArrayList;
 
 
 public class MyDService extends DGrpc.DImplBase {
     private final MetaDataContainer metadataContainer;
-    private static final String metadataPath = "/home/jwetzel/filibuster-java-instrumentation/src/test/java/algorithmjacob/jacobservices/DMetaData.json";
+    private static final String metadataPath = (new File("").getAbsolutePath()) + "/src/test/java/algorithmjacob/jacobservices/DMetaData.json";
 
     public MyDService() {
         MetaDataContainer existingData = JsonUtil.readMetaData(metadataPath);

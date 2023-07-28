@@ -8,6 +8,8 @@ import cloud.filibuster.instrumentation.helpers.Networking;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
+
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
@@ -16,7 +18,7 @@ import java.util.ArrayList;
 public class MyBService extends BGrpc.BImplBase {
 
     private final MetaDataContainer metadataContainer;
-    private static final String metadataPath = "/home/jwetzel/filibuster-java-instrumentation/src/test/java/algorithmjacob/jacobservices/BMetaData.json";
+    private static final String metadataPath = (new File("").getAbsolutePath()) + "/src/test/java/algorithmjacob/jacobservices/BMetaData.json";
 
     public MyBService() {
         MetaDataContainer existingData = JsonUtil.readMetaData(metadataPath);

@@ -3,6 +3,8 @@ package algorithmjacob.jacobservices;
 import cloud.filibuster.examples.CGrpc;
 import cloud.filibuster.examples.AppendString;
 import io.grpc.stub.StreamObserver;
+
+import java.io.File;
 import java.util.HashMap;
 import java.util.ArrayList;
 
@@ -10,7 +12,7 @@ import java.util.ArrayList;
 
 public class MyCService extends CGrpc.CImplBase {
     private final MetaDataContainer metadataContainer;
-    private static final String metadataPath = "/home/jwetzel/filibuster-java-instrumentation/src/test/java/algorithmjacob/jacobservices/CMetaData.json";
+    private static final String metadataPath = (new File("").getAbsolutePath()) + "/src/test/java/algorithmjacob/jacobservices/CMetaData.json";
 
     public MyCService() {
         MetaDataContainer existingData = JsonUtil.readMetaData(metadataPath);

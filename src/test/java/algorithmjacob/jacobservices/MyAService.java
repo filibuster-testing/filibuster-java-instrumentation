@@ -1,7 +1,7 @@
 package algorithmjacob.jacobservices;
 import cloud.filibuster.examples.AGrpc;
 import cloud.filibuster.examples.BGrpc;
-import cloud.filibuster.examples.Jacobalg;
+import cloud.filibuster.examples.AppendString;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import io.grpc.stub.StreamObserver;
 import io.grpc.ManagedChannel;
@@ -35,13 +35,13 @@ public class MyAService extends AGrpc.AImplBase{
     }
 
 @Override
-public void appendA(Jacobalg.AppendRequest req, StreamObserver<Jacobalg.AppendReply> responseObserver) {
+public void appendA(AppendString.AppendRequest req, StreamObserver<AppendString.AppendReply> responseObserver) {
 
     if(metadataContainer.getMetaDataMap().containsKey(req.getCallID())){
         JacobMetaData existingMetaData = metadataContainer.getMetaDataMap().get(req.getCallID());
         if(existingMetaData.retval != null){
-            Jacobalg.AppendReply reply = Jacobalg.AppendReply.newBuilder()
-                    .setReplyString(existingMetaData.retval)
+            AppendString.AppendReply reply = AppendString.AppendReply.newBuilder()
+                    .setReply(existingMetaData.retval)
                     .build();
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
@@ -67,24 +67,24 @@ public void appendA(Jacobalg.AppendRequest req, StreamObserver<Jacobalg.AppendRe
 }
 
     @SuppressWarnings("UnnecessaryBoxedVariable")
-    private void callB(Float callID, Jacobalg.AppendRequest req, StreamObserver<Jacobalg.AppendReply> responseObserver, JacobMetaData metaData){
+    private void callB(Float callID, AppendString.AppendRequest req, StreamObserver<AppendString.AppendReply> responseObserver, JacobMetaData metaData){
         ManagedChannel BChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("B"), Networking.getPort("B"))
                 .usePlaintext()
                 .build();
         BGrpc.BBlockingStub blockingStubB = BGrpc.newBlockingStub(BChannel);
 
-        Jacobalg.AppendRequest request = Jacobalg.AppendRequest.newBuilder()
-                .setBaseString(req.getBaseString())
+        AppendString.AppendRequest request = AppendString.AppendRequest.newBuilder()
+                .setBase(req.getBase())
                 .setCallID(callID)
                 .build();
 
-        Jacobalg.AppendReply reply = blockingStubB.appendB(request);
+        AppendString.AppendReply reply = blockingStubB.appendB(request);
         BChannel.shutdownNow();
-        reply = Jacobalg.AppendReply.newBuilder()
-                .setReplyString(reply.getReplyString() + "A")
+        reply = AppendString.AppendReply.newBuilder()
+                .setReply(reply.getReply() + "A")
                 .build();
-        metaData.retval = reply.getReplyString();
+        metaData.retval = reply.getReply();
         metaData.Completed = true;
         JsonUtil.writeMetaData(metadataContainer, metadataPath);
 

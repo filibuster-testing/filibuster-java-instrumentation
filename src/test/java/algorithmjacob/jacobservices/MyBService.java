@@ -3,7 +3,7 @@ package algorithmjacob.jacobservices;
 import cloud.filibuster.examples.BGrpc;
 import cloud.filibuster.examples.CGrpc;
 import cloud.filibuster.examples.DGrpc;
-import cloud.filibuster.examples.Jacobalg;
+import cloud.filibuster.examples.AppendString;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -37,13 +37,13 @@ public class MyBService extends BGrpc.BImplBase {
 
     //private static final Logger logger = Logger.getLogger(MyBService.class.getName());
     @Override
-    public void appendB(Jacobalg.AppendRequest req, StreamObserver<Jacobalg.AppendReply> responseObserver) {
-        Jacobalg.AppendReply reply = Jacobalg.AppendReply.newBuilder().setReplyString(req.getBaseString()).build();
+    public void appendB(AppendString.AppendRequest req, StreamObserver<AppendString.AppendReply> responseObserver) {
+        AppendString.AppendReply reply = AppendString.AppendReply.newBuilder().setReply(req.getBase()).build();
         if(metadataContainer.getMetaDataMap().containsKey(req.getCallID())) {
             JacobMetaData existingMetaData = metadataContainer.getMetaDataMap().get(req.getCallID());
             if (existingMetaData.retval != null) {
-                reply = Jacobalg.AppendReply.newBuilder()
-                        .setReplyString(existingMetaData.retval)
+                reply = AppendString.AppendReply.newBuilder()
+                        .setReply(existingMetaData.retval)
                         .build();
                 responseObserver.onNext(reply);
                 responseObserver.onCompleted();
@@ -80,11 +80,11 @@ public class MyBService extends BGrpc.BImplBase {
             reply = callC(newIDC, reply);
 
         }
-        reply = Jacobalg.AppendReply.newBuilder()
-                .setReplyString(reply.getReplyString() + "B")
+        reply = AppendString.AppendReply.newBuilder()
+                .setReply(reply.getReply() + "B")
                 .build();
         JacobMetaData metaData = metadataContainer.getMetaDataMap().get(req.getCallID());
-        metaData.retval = reply.getReplyString();
+        metaData.retval = reply.getReply();
         metaData.Completed = true;
         JsonUtil.writeMetaData(metadataContainer, metadataPath);
         responseObserver.onNext(reply);
@@ -92,28 +92,28 @@ public class MyBService extends BGrpc.BImplBase {
     }
 
     @SuppressWarnings("UnnecessaryBoxedVariable")
-    private Jacobalg.AppendReply callC(Float callID, Jacobalg.AppendReply reply){
+    private AppendString.AppendReply callC(Float callID, AppendString.AppendReply reply){
         ManagedChannel CChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("C"), Networking.getPort("C"))
                 .usePlaintext()
                 .build();
         CGrpc.CBlockingStub blockingStubC = CGrpc.newBlockingStub(CChannel);
-        Jacobalg.AppendRequest Crequest = Jacobalg.AppendRequest.newBuilder().setBaseString(reply.getReplyString()).setCallID(callID).build();
-        reply = Jacobalg.AppendReply.newBuilder().setReplyString(blockingStubC.appendC(Crequest).getReplyString()).build();
+        AppendString.AppendRequest Crequest = AppendString.AppendRequest.newBuilder().setBase(reply.getReply()).setCallID(callID).build();
+        reply = AppendString.AppendReply.newBuilder().setReply(blockingStubC.appendC(Crequest).getReply()).build();
         JsonUtil.writeMetaData(metadataContainer, metadataPath);
         CChannel.shutdownNow();
 
         return reply;
     }
     @SuppressWarnings("UnnecessaryBoxedVariable")
-    private Jacobalg.AppendReply callD(Float callID, Jacobalg.AppendReply reply){
+    private AppendString.AppendReply callD(Float callID, AppendString.AppendReply reply){
         ManagedChannel DChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("D"), Networking.getPort("D"))
                 .usePlaintext()
                 .build();
         DGrpc.DBlockingStub blockingStubD = DGrpc.newBlockingStub(DChannel);
-        Jacobalg.AppendRequest Drequest = Jacobalg.AppendRequest.newBuilder().setBaseString(reply.getReplyString()).setCallID(callID).build();
-        reply = Jacobalg.AppendReply.newBuilder().setReplyString(blockingStubD.appendD(Drequest).getReplyString()).build();
+        AppendString.AppendRequest Drequest = AppendString.AppendRequest.newBuilder().setBase(reply.getReply()).setCallID(callID).build();
+        reply = AppendString.AppendReply.newBuilder().setReply(blockingStubD.appendD(Drequest).getReply()).build();
         JsonUtil.writeMetaData(metadataContainer, metadataPath);
         DChannel.shutdownNow();
         return reply;

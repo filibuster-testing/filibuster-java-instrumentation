@@ -1,7 +1,7 @@
 package cloud.filibuster.functional.java.basic.nofi;
 
 import cloud.filibuster.examples.AGrpc;
-import cloud.filibuster.examples.Jacobalg;
+import cloud.filibuster.examples.AppendString;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.TestWithFilibuster;
@@ -34,9 +34,9 @@ public class JacobAlgorithmTest extends JUnitAnnotationBaseTest{
                 .build();
 
         AGrpc.ABlockingStub blockingStub = AGrpc.newBlockingStub(AChannel);
-        Jacobalg.AppendRequest request = Jacobalg.AppendRequest.newBuilder().setBaseString("Start").setCallID(0.04f).build();
-        Jacobalg.AppendReply reply = blockingStub.appendA(request);
-        String testString = reply.getReplyString();
+        AppendString.AppendRequest request = AppendString.AppendRequest.newBuilder().setBase("Start").setCallID(0.06f).build();
+        AppendString.AppendReply reply = blockingStub.appendA(request);
+        String testString = reply.getReply();
         if(!testString.equals("StartDCBA")){
             return;
         }

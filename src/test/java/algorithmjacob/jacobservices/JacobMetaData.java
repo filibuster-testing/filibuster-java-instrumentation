@@ -1,6 +1,6 @@
 package algorithmjacob.jacobservices;
 import java.util.ArrayList;
-import cloud.filibuster.examples.Jacobalg;
+import cloud.filibuster.examples.AppendString;
 //import io.grpc.stub.StreamObserver;
 
 public class JacobMetaData {
@@ -8,8 +8,8 @@ public class JacobMetaData {
     public String retval;
     public Boolean Completed;
    // public StreamObserver<Jacobalg.AppendReply> responseObserver;
-    public Jacobalg.AppendRequest req;
-    public JacobMetaData(int listSize,  Jacobalg.AppendRequest myReq){ //will also eventually include return address
+    public AppendString.AppendRequest req;
+    public JacobMetaData(int listSize,  AppendString.AppendRequest myReq){ //will also eventually include return address
         usedCallIDs = new ArrayList<>(listSize);
         for (int i = 0; i < listSize; i++) {
             usedCallIDs.add(-1f);

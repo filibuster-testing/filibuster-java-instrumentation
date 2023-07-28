@@ -1,7 +1,7 @@
 package algorithmjacob.jacobservices;
 
 import cloud.filibuster.examples.CGrpc;
-import cloud.filibuster.examples.Jacobalg;
+import cloud.filibuster.examples.AppendString;
 import io.grpc.stub.StreamObserver;
 import java.util.HashMap;
 import java.util.ArrayList;
@@ -30,27 +30,27 @@ public class MyCService extends CGrpc.CImplBase {
     }
     //private static final Logger logger = Logger.getLogger(MyCService.class.getName());
     @Override
-    public void appendC(Jacobalg.AppendRequest req, StreamObserver<Jacobalg.AppendReply> responseObserver) {
-        Jacobalg.AppendReply reply; // = Jacobalg.AppendReply.newBuilder().build();
+    public void appendC(AppendString.AppendRequest req, StreamObserver<AppendString.AppendReply> responseObserver) {
+        AppendString.AppendReply reply; // = AppendString.AppendReply.newBuilder().build();
         if(metadataContainer.getMetaDataMap().containsKey(req.getCallID())) {
             JacobMetaData existingMetaData = metadataContainer.getMetaDataMap().get(req.getCallID());
             if (existingMetaData.retval != null) {
-                reply = Jacobalg.AppendReply.newBuilder()
-                        .setReplyString(existingMetaData.retval)
+                reply = AppendString.AppendReply.newBuilder()
+                        .setReply(existingMetaData.retval)
                         .build();
                 responseObserver.onNext(reply);
                 responseObserver.onCompleted();
             }
         }
         else{
-            reply = Jacobalg.AppendReply.newBuilder()
-                    .setReplyString(req.getBaseString() + "C")
+            reply = AppendString.AppendReply.newBuilder()
+                    .setReply(req.getBase() + "C")
                     .build();
             JacobMetaData newMetaData = new JacobMetaData(0, req);
             metadataContainer.getMetaDataMap().put(req.getCallID(), newMetaData);
             JsonUtil.writeMetaData(metadataContainer, metadataPath);
             JacobMetaData metaData = metadataContainer.getMetaDataMap().get(req.getCallID());
-            metaData.retval = reply.getReplyString();
+            metaData.retval = reply.getReply();
             metaData.Completed = true;
             JsonUtil.writeMetaData(metadataContainer, metadataPath);
             responseObserver.onNext(reply);

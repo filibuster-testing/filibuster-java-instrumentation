@@ -11,10 +11,7 @@ import cloud.filibuster.integration.instrumentation.TestHelper;
 import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.*;
 import com.linecorp.armeria.server.Server;
-import org.eclipse.jetty.util.IO;
-
 import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,12 +34,15 @@ public class AppendTestHelper {
                 break;
             case "B":
                 bServer = BServer.serve();
+                bServer.start();
                 break;
             case "C":
                 cServer = CServer.serve();
+                cServer.start();
                 break;
             case "D":
                 dServer = DServer.serve();
+                dServer.start();
                 break;
             default:
                 logger.log(Level.SEVERE, "server does not exist");

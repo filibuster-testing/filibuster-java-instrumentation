@@ -72,7 +72,6 @@ service HelloService {
   rpc CompositionalHello (HelloExtendedRequest) returns (HelloExtendedReply) {}
   rpc SimplePartialHello (HelloRequest) returns (HelloReply) {}
   rpc ThrowException (HelloRequest) returns (HelloReply) {}
-  rpc jacobEndpoint (HelloRequest) returns (HelloReply) {}
 }
 
 message HelloRequest {

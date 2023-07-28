@@ -85,7 +85,7 @@ public void appendA(AppendString.AppendRequest req, StreamObserver<AppendString.
                 .setReply(reply.getReply() + "A")
                 .build();
         metaData.retval = reply.getReply();
-        metaData.Completed = true;
+        metaData.isCompleted = true;
         JsonUtil.writeMetaData(metadataContainer, metadataPath);
 
         responseObserver.onNext(reply);

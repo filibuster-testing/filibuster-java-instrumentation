@@ -50,7 +50,7 @@ public class MyDService extends DGrpc.DImplBase {
             JsonUtil.writeMetaData(metadataContainer, metadataPath);
             JacobMetaData metaData = metadataContainer.getMetaDataMap().get(req.getCallID());
             metaData.retval = reply.getReply();
-            metaData.Completed = true;
+            metaData.isCompleted = true;
             JsonUtil.writeMetaData(metadataContainer, metadataPath);
             responseObserver.onNext(reply);
             responseObserver.onCompleted();

@@ -11,6 +11,7 @@ import cloud.filibuster.integration.instrumentation.TestHelper;
 import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.*;
 import com.linecorp.armeria.server.Server;
+import org.eclipse.jetty.util.IO;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
@@ -29,27 +30,23 @@ public class AppendTestHelper {
 
 
     public static void startAppendServerAndWaitUntilAvailable(String serverName) throws InterruptedException, IOException {
-        CompletableFuture<Void> myServer;
         switch (serverName) {
             case "A":
                 aServer = AServer.serve();
-                myServer = aServer.start();
+                aServer.start();
                 break;
             case "B":
                 bServer = BServer.serve();
-                myServer = bServer.start();
                 break;
             case "C":
                 cServer = CServer.serve();
-                myServer = cServer.start();
                 break;
             case "D":
                 dServer = DServer.serve();
-                myServer = dServer.start();
                 break;
             default:
                 logger.log(Level.SEVERE, "server does not exist");
-                break;
+                throw new IOException();
         }
 
         boolean online = false;

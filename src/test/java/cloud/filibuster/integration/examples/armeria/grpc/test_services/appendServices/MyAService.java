@@ -1,22 +1,23 @@
-package algorithmjacob.jacobservices;
+package cloud.filibuster.integration.examples.armeria.grpc.test_services.appendServices;
+
 import cloud.filibuster.examples.AGrpc;
-import cloud.filibuster.examples.BGrpc;
 import cloud.filibuster.examples.AppendString;
+import cloud.filibuster.examples.BGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import io.grpc.stub.StreamObserver;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.stub.StreamObserver;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ArrayList;
 
 
 public class MyAService extends AGrpc.AImplBase{
 
     private final MetaDataContainer metadataContainer;
-    private static final String metadataPath = new File("").getAbsolutePath() + "/src/test/java/algorithmjacob/jacobservices/AMetaData.json";
+    private static final String metadataPath = new File("").getAbsolutePath() + "/src/test/java/cloud/filibuster/integration/examples/armeria/grpc/test_services/appendServices/AMetaData.json";
 
 
     public MyAService() {

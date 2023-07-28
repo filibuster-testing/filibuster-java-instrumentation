@@ -1,6 +1,8 @@
-package algorithmjacob.jacobservices;
-import java.util.ArrayList;
+package cloud.filibuster.integration.examples.armeria.grpc.test_services.appendServices;
+
 import cloud.filibuster.examples.AppendString;
+
+import java.util.ArrayList;
 
 public class JacobMetaData {
     public ArrayList<Float> usedCallIDs;

@@ -1,5 +1,5 @@
 package cloud.filibuster.integration.examples.test_servers;
-import algorithmjacob.jacobservices.MyCService;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.appendServices.MyCService;
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.armeria.http.FilibusterDecoratingHttpService;

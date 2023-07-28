@@ -19,8 +19,8 @@ service D{
 }
 
 message AppendRequest{
-  string baseString = 1;
-  float CallID = 2;
+  string base = 1;
+  float callID = 2;
 }
 
 message AppendReply{

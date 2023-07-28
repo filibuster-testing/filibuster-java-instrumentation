@@ -16,7 +16,7 @@ import java.util.ArrayList;
 public class MyAService extends AGrpc.AImplBase{
 
     private final MetaDataContainer metadataContainer;
-    private static final String metadataPath = (new File("").getAbsolutePath()) + "/src/test/java/algorithmjacob/jacobservices/AMetaData.json";
+    private static final String metadataPath = new File("").getAbsolutePath() + "/src/test/java/algorithmjacob/jacobservices/AMetaData.json";
 
 
     public MyAService() {
@@ -48,13 +48,13 @@ public void appendA(AppendString.AppendRequest req, StreamObserver<AppendString.
         if(existingMetaData.usedCallIDs.get(0) != -1f){
             callB(existingMetaData.usedCallIDs.get(0), req, responseObserver, existingMetaData);
         }else{
-            Float newID = generateNewID(metadataContainer);
+            float newID = generateNewID(metadataContainer);
             existingMetaData.usedCallIDs.set(0, newID);
             callB(newID, req, responseObserver, existingMetaData);
         }
     }else{
         JacobMetaData newMetaData = new JacobMetaData(1, req);
-        Float newID = generateNewID(metadataContainer);
+        float newID = generateNewID(metadataContainer);
         newMetaData.usedCallIDs.set(0, newID);
         metadataContainer.getMetaDataMap().put(req.getCallID(), newMetaData);
         metadataContainer.setGeneratedIDs(metadataContainer.getGeneratedIDs());
@@ -63,8 +63,7 @@ public void appendA(AppendString.AppendRequest req, StreamObserver<AppendString.
     }
 }
 
-    @SuppressWarnings("UnnecessaryBoxedVariable")
-    private void callB(Float callID, AppendString.AppendRequest req, StreamObserver<AppendString.AppendReply> responseObserver, JacobMetaData metaData){
+    private void callB(float callID, AppendString.AppendRequest req, StreamObserver<AppendString.AppendReply> responseObserver, JacobMetaData metaData){
         ManagedChannel BChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("B"), Networking.getPort("B"))
                 .usePlaintext()
@@ -88,9 +87,9 @@ public void appendA(AppendString.AppendRequest req, StreamObserver<AppendString.
         responseObserver.onNext(reply);
         responseObserver.onCompleted();
     }
-    public Float generateNewID(MetaDataContainer existingData){
+    public float generateNewID(MetaDataContainer existingData){
         List<Float> existingIDs = existingData.getGeneratedIDs();
-        Float newID;
+        float newID;
 
         if (existingIDs.isEmpty()) {
             newID = 0.5f;

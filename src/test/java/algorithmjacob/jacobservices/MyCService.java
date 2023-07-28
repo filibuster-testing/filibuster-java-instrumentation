@@ -28,7 +28,7 @@ public class MyCService extends CGrpc.CImplBase {
     }
     @Override
     public void appendC(AppendString.AppendRequest req, StreamObserver<AppendString.AppendReply> responseObserver) {
-        AppendString.AppendReply reply; // = AppendString.AppendReply.newBuilder().build();
+        AppendString.AppendReply reply;
         if(metadataContainer.getMetaDataMap().containsKey(req.getCallID())) {
             JacobMetaData existingMetaData = metadataContainer.getMetaDataMap().get(req.getCallID());
             if (existingMetaData.retval != null) {
@@ -56,21 +56,4 @@ public class MyCService extends CGrpc.CImplBase {
 
     }
 
-    /*
-    public Float generateNewID(MetaDataContainer existingData){
-        List<Float> existingIDs = existingData.getGeneratedIDs();
-        Float newID;
-
-        if (existingIDs.isEmpty()) {
-            newID = 0.7f;
-        } else {
-            newID = existingIDs.get(existingIDs.size() - 1) + 1;
-        }
-
-        existingIDs.add(newID);
-        existingData.setGeneratedIDs(existingIDs);
-        JsonUtil.writeMetaData(existingData, metadataPath);
-        return newID;
-    }
-*/
 }

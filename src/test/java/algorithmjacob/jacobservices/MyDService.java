@@ -25,7 +25,7 @@ public class MyDService extends DGrpc.DImplBase {
     }
     @Override
     public void appendD(AppendString.AppendRequest req, StreamObserver<AppendString.AppendReply> responseObserver) {
-        AppendString.AppendReply reply;  // = AppendString.AppendReply.newBuilder().build();
+        AppendString.AppendReply reply;
         if(metadataContainer.getMetaDataMap().containsKey(req.getCallID())) {
             JacobMetaData existingMetaData = metadataContainer.getMetaDataMap().get(req.getCallID());
             if (existingMetaData.retval != null) {
@@ -51,21 +51,5 @@ public class MyDService extends DGrpc.DImplBase {
             responseObserver.onCompleted();
         }
     }
-
- /*   public Float generateNewID(MetaDataContainer existingData){
-        List<Float> existingIDs = existingData.getGeneratedIDs();
-        Float newID;
-
-        if (existingIDs.isEmpty()) {
-            newID = 0.8f;
-        } else {
-            newID = existingIDs.get(existingIDs.size() - 1) + 1;
-        }
-
-        existingIDs.add(newID);
-        existingData.setGeneratedIDs(existingIDs);
-        JsonUtil.writeMetaData(existingData, metadataPath);
-        return newID;
-    }*/
 
 }

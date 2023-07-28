@@ -18,7 +18,7 @@ import java.util.ArrayList;
 public class MyBService extends BGrpc.BImplBase {
 
     private final MetaDataContainer metadataContainer;
-    private static final String metadataPath = (new File("").getAbsolutePath()) + "/src/test/java/algorithmjacob/jacobservices/BMetaData.json";
+    private static final String metadataPath = new File("").getAbsolutePath() + "/src/test/java/algorithmjacob/jacobservices/BMetaData.json";
 
     public MyBService() {
         MetaDataContainer existingData = JsonUtil.readMetaData(metadataPath);
@@ -48,14 +48,14 @@ public class MyBService extends BGrpc.BImplBase {
             if(existingMetaData.usedCallIDs.get(0) != -1f){
                 callD(existingMetaData.usedCallIDs.get(0), reply);
             }else{
-                Float newID = generateNewID(metadataContainer);
+                float newID = generateNewID(metadataContainer);
                 existingMetaData.usedCallIDs.set(0, newID);
                 reply = callD(newID, reply);
             }
             if(existingMetaData.usedCallIDs.get(1) != -1f){
                 reply = callC(existingMetaData.usedCallIDs.get(1), reply);
             }else{
-                Float newID = generateNewID(metadataContainer);
+                float newID = generateNewID(metadataContainer);
                 existingMetaData.usedCallIDs.set(1, newID);
                 reply = callC(newID, reply);
             }
@@ -64,12 +64,12 @@ public class MyBService extends BGrpc.BImplBase {
             JacobMetaData newMetaData = new JacobMetaData(2, req);
             metadataContainer.getMetaDataMap().put(req.getCallID(), newMetaData);
 
-            Float newIDD = generateNewID(metadataContainer);
+            float newIDD = generateNewID(metadataContainer);
             newMetaData.usedCallIDs.set(0, newIDD);
             metadataContainer.setGeneratedIDs(metadataContainer.getGeneratedIDs());
             JsonUtil.writeMetaData(metadataContainer, metadataPath);
             reply = callD(newIDD, reply);
-            Float newIDC = generateNewID(metadataContainer);
+            float newIDC = generateNewID(metadataContainer);
             newMetaData.usedCallIDs.set(1, newIDC);
             metadataContainer.setGeneratedIDs(metadataContainer.getGeneratedIDs());
             JsonUtil.writeMetaData(metadataContainer, metadataPath);
@@ -88,7 +88,7 @@ public class MyBService extends BGrpc.BImplBase {
     }
 
     @SuppressWarnings("UnnecessaryBoxedVariable")
-    private AppendString.AppendReply callC(Float callID, AppendString.AppendReply reply){
+    private AppendString.AppendReply callC(float callID, AppendString.AppendReply reply){
         ManagedChannel CChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("C"), Networking.getPort("C"))
                 .usePlaintext()
@@ -102,7 +102,7 @@ public class MyBService extends BGrpc.BImplBase {
         return reply;
     }
     @SuppressWarnings("UnnecessaryBoxedVariable")
-    private AppendString.AppendReply callD(Float callID, AppendString.AppendReply reply){
+    private AppendString.AppendReply callD(float callID, AppendString.AppendReply reply){
         ManagedChannel DChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("D"), Networking.getPort("D"))
                 .usePlaintext()
@@ -115,9 +115,9 @@ public class MyBService extends BGrpc.BImplBase {
         return reply;
     }
 
-    public Float generateNewID(MetaDataContainer existingData){
+    public float generateNewID(MetaDataContainer existingData){
         List<Float> existingIDs = existingData.getGeneratedIDs();
-        Float newID;
+        float newID;
 
         if (existingIDs.isEmpty()) {
             newID = 0.6f;

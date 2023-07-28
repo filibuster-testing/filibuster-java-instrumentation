@@ -48,11 +48,6 @@ public class MyWorldService extends WorldServiceGrpc.WorldServiceImplBase {
                 .build();
         responseObserver.onNext(reply);
         responseObserver.onCompleted();
-        try {
-            Thread.sleep(2000);
-        }catch (InterruptedException e){
-            e.printStackTrace();
-        }
     }
 
     @Override

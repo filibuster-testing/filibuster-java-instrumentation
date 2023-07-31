@@ -4,6 +4,7 @@ package cloud.filibuster.examples;
 
 service A {
   rpc AppendA (AppendRequest) returns (AppendReply) {}
+    rpc StatusUpdate (RetryRequest) returns (Nothing) {}
 }
 
 service B{
@@ -21,6 +22,14 @@ service D{
 message AppendRequest{
   string base = 1;
   float callID = 2;
+}
+
+message RetryRequest{
+   float callID = 1;
+}
+
+message Nothing{
+
 }
 
 message AppendReply{

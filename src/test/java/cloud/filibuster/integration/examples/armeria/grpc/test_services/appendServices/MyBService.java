@@ -4,20 +4,26 @@ import cloud.filibuster.examples.AppendString;
 import cloud.filibuster.examples.BGrpc;
 import cloud.filibuster.examples.CGrpc;
 import cloud.filibuster.examples.DGrpc;
+import cloud.filibuster.functional.java.basic.JacobAlgorithmTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
-
+import org.junit.Before;
+import org.junit.jupiter.api.BeforeAll;
+import cloud.filibuster.integration.examples.test_servers.AServer;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import static cloud.filibuster.integration.instrumentation.libraries.AppendTestHelper.stopBServerAndWaitUntilUnavailable;
+
 
 public class MyBService extends BGrpc.BImplBase {
 
     private final MetaDataContainer metadataContainer;
+    public static int bExecutionCounter = 0;
     private static final String metadataPath = new File("").getAbsolutePath() + "/src/test/java/cloud/filibuster/integration/examples/armeria/grpc/test_services/appendServices/BMetaData.json";
     public MyBService() {
         MetaDataContainer existingData = JsonUtil.readMetaData(metadataPath);
@@ -29,10 +35,12 @@ public class MyBService extends BGrpc.BImplBase {
             this.metadataContainer.setGeneratedIDs(new ArrayList<>());
             JsonUtil.writeMetaData(this.metadataContainer, metadataPath);
         }
+
     }
 
     @Override
     public void appendB(AppendString.AppendRequest req, StreamObserver<AppendString.AppendReply> responseObserver) {
+        //MyAService.shutDownB();
         AppendString.AppendReply reply = AppendString.AppendReply.newBuilder().setReply(req.getBase()).build();
         if(metadataContainer.getMetaDataMap().containsKey(req.getCallID())) {
             JacobMetaData existingMetaData = metadataContainer.getMetaDataMap().get(req.getCallID());
@@ -73,8 +81,8 @@ public class MyBService extends BGrpc.BImplBase {
             metadataContainer.setGeneratedIDs(metadataContainer.getGeneratedIDs());
             JsonUtil.writeMetaData(metadataContainer, metadataPath);
             reply = callC(newIDC, reply);
-
         }
+        bExecutionCounter++;
         reply = AppendString.AppendReply.newBuilder()
                 .setReply(reply.getReply() + "B")
                 .build();

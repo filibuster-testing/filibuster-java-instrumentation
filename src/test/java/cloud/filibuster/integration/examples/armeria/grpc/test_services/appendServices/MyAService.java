@@ -16,9 +16,13 @@ import java.util.List;
 
 public class MyAService extends AGrpc.AImplBase{
 
+    public static boolean appendFinished = false;
+    public static ManagedChannel BChannel;
+    public static int aExecutionCounter = 0;
+
     private final MetaDataContainer metadataContainer;
     private static final String metadataPath = new File("").getAbsolutePath() + "/src/test/java/cloud/filibuster/integration/examples/armeria/grpc/test_services/appendServices/AMetaData.json";
-
+    public static boolean retryCall = false;
 
     public MyAService() {
         MetaDataContainer existingData = JsonUtil.readMetaData(metadataPath);
@@ -34,6 +38,10 @@ public class MyAService extends AGrpc.AImplBase{
 
 @Override
 public void appendA(AppendString.AppendRequest req, StreamObserver<AppendString.AppendReply> responseObserver) {
+
+        //while(testTrue == false){
+
+        //}
 
     if(metadataContainer.getMetaDataMap().containsKey(req.getCallID())){
         JacobMetaData existingMetaData = metadataContainer.getMetaDataMap().get(req.getCallID());
@@ -64,8 +72,8 @@ public void appendA(AppendString.AppendRequest req, StreamObserver<AppendString.
     }
 }
 
-    private void callB(float callID, AppendString.AppendRequest req, StreamObserver<AppendString.AppendReply> responseObserver, JacobMetaData metaData){
-        ManagedChannel BChannel = ManagedChannelBuilder
+    public void callB(float callID, AppendString.AppendRequest req, StreamObserver<AppendString.AppendReply> responseObserver, JacobMetaData metaData){
+        BChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("B"), Networking.getPort("B"))
                 .usePlaintext()
                 .build();
@@ -76,8 +84,13 @@ public void appendA(AppendString.AppendRequest req, StreamObserver<AppendString.
                 .setCallID(callID)
                 .build();
 
+        /*try{
+            thread
+        }*/
+
         AppendString.AppendReply reply = blockingStubB.appendB(request);
-        BChannel.shutdownNow();
+
+        aExecutionCounter++;
         reply = AppendString.AppendReply.newBuilder()
                 .setReply(reply.getReply() + "A")
                 .build();
@@ -104,4 +117,7 @@ public void appendA(AppendString.AppendRequest req, StreamObserver<AppendString.
         return newID;
     }
 
+    public static void StatusUpdate(AppendString.RetryRequest req, StreamObserver<AppendString.AppendReply> responseObserver){
+
+    }
 }

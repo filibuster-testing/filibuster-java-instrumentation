@@ -12,6 +12,7 @@ import java.util.HashMap;
 
 public class MyCService extends CGrpc.CImplBase {
     private final MetaDataContainer metadataContainer;
+    public static int cExecutionCounter = 0;
     private static final String metadataPath = new File("").getAbsolutePath() + "/src/test/java/cloud/filibuster/integration/examples/armeria/grpc/test_services/appendServices/CMetaData.json";
 
     public MyCService() {
@@ -40,6 +41,7 @@ public class MyCService extends CGrpc.CImplBase {
             }
         }
         else{
+            cExecutionCounter++;
             reply = AppendString.AppendReply.newBuilder()
                     .setReply(req.getBase() + "C")
                     .build();

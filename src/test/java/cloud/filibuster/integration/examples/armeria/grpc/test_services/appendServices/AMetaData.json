@@ -1,6 +1,6 @@
 {
   "metaDataMap": {
-    "0.555": {
+    "0.1": {
       "usedCallIDs": [
         0.5
       ],
@@ -8,24 +8,7 @@
       "isCompleted": true,
       "req": {
         "base_": "Start",
-        "callID_": 0.555,
-        "memoizedIsInitialized": 1,
-        "unknownFields": {
-          "fields": {}
-        },
-        "memoizedSize": -1,
-        "memoizedHashCode": 0
-      }
-    },
-    "0.22": {
-      "usedCallIDs": [
-        1.5
-      ],
-      "retval": "StartDCBA",
-      "isCompleted": true,
-      "req": {
-        "base_": "Start",
-        "callID_": 0.22,
+        "callID_": 0.1,
         "memoizedIsInitialized": 1,
         "unknownFields": {
           "fields": {}
@@ -36,7 +19,6 @@
     }
   },
   "generatedIDs": [
-    0.5,
-    1.5
+    0.5
   ]
 }

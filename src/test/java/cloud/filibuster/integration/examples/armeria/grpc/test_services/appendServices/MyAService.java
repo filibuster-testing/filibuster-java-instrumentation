@@ -12,13 +12,23 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public class MyAService extends AGrpc.AImplBase{
 
     public static boolean appendFinished = false;
+    private static final Logger logger = Logger.getLogger(MyAService.class.getName());
+
     public static ManagedChannel BChannel;
     public static int aExecutionCounter = 0;
+    private static Lock lock = new ReentrantLock();
+    private static Condition observedCondition = lock.newCondition();
 
     private final MetaDataContainer metadataContainer;
     private static final String metadataPath = new File("").getAbsolutePath() + "/src/test/java/cloud/filibuster/integration/examples/armeria/grpc/test_services/appendServices/AMetaData.json";
@@ -39,27 +49,45 @@ public class MyAService extends AGrpc.AImplBase{
 @Override
 public void appendA(AppendString.AppendRequest req, StreamObserver<AppendString.AppendReply> responseObserver) {
 
-        //while(testTrue == false){
-
-        //}
-
+    AppendString.AppendReply reply = AppendString.AppendReply.newBuilder().setReply(req.getBase()).build();
     if(metadataContainer.getMetaDataMap().containsKey(req.getCallID())){
         JacobMetaData existingMetaData = metadataContainer.getMetaDataMap().get(req.getCallID());
         if(existingMetaData.retval != null){
-            AppendString.AppendReply reply = AppendString.AppendReply.newBuilder()
+            reply = (AppendString.AppendReply.newBuilder()
                     .setReply(existingMetaData.retval)
-                    .build();
+                    .build());
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
             return;
         }
 
         if(existingMetaData.usedCallIDs.get(0) != -1f){
-            callB(existingMetaData.usedCallIDs.get(0), req, responseObserver, existingMetaData);
+            callB(existingMetaData.usedCallIDs.get(0), req, responseObserver);
         }else{
             float newID = generateNewID(metadataContainer);
             existingMetaData.usedCallIDs.set(0, newID);
-            callB(newID, req, responseObserver, existingMetaData);
+            /*Thread callThread = new Thread(()-> {
+                    try {
+                        reply.set(callB(newID, req, responseObserver));
+                    } finally {
+
+                    }
+            });
+
+            Thread observeThread = new Thread(() -> {
+                    try {
+                        checkConditional();
+                    } finally {
+
+                    }
+
+            });
+
+            callThread.start();
+            observeThread.start();*/
+
+            reply = (callB(newID, req, responseObserver));
+
         }
     }else{
         JacobMetaData newMetaData = new JacobMetaData(1, req);
@@ -68,11 +96,21 @@ public void appendA(AppendString.AppendRequest req, StreamObserver<AppendString.
         metadataContainer.getMetaDataMap().put(req.getCallID(), newMetaData);
         metadataContainer.setGeneratedIDs(metadataContainer.getGeneratedIDs());
         JsonUtil.writeMetaData(metadataContainer, metadataPath);
-        callB(newID, req, responseObserver, newMetaData);
+        reply = (callB(newID, req, responseObserver));
     }
+    aExecutionCounter++;
+    reply = (AppendString.AppendReply.newBuilder()
+            .setReply(reply.getReply()+ "A")
+            .build());
+    JacobMetaData metaData = metadataContainer.getMetaDataMap().get(req.getCallID());
+    metaData.retval = reply.getReply();
+    metaData.isCompleted = true;
+    JsonUtil.writeMetaData(metadataContainer, metadataPath);
+    responseObserver.onNext(reply);
+    responseObserver.onCompleted();
 }
 
-    public void callB(float callID, AppendString.AppendRequest req, StreamObserver<AppendString.AppendReply> responseObserver, JacobMetaData metaData){
+    public AppendString.AppendReply callB(float callID, AppendString.AppendRequest req, StreamObserver<AppendString.AppendReply> responseObserver){
         BChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("B"), Networking.getPort("B"))
                 .usePlaintext()
@@ -84,23 +122,24 @@ public void appendA(AppendString.AppendRequest req, StreamObserver<AppendString.
                 .setCallID(callID)
                 .build();
 
-        /*try{
-            thread
-        }*/
-
-        AppendString.AppendReply reply = blockingStubB.appendB(request);
-
-        aExecutionCounter++;
-        reply = AppendString.AppendReply.newBuilder()
-                .setReply(reply.getReply() + "A")
-                .build();
-        metaData.retval = reply.getReply();
-        metaData.isCompleted = true;
-        JsonUtil.writeMetaData(metadataContainer, metadataPath);
-
-        responseObserver.onNext(reply);
-        responseObserver.onCompleted();
+        AppendString.AppendReply reply = AppendString.AppendReply.newBuilder().setReply("").build();
+        while(!reply.getReply().equals("StartDCB")){
+            try{
+                reply = blockingStubB.appendB(request);
+                break;
+            } catch (Exception e) {
+                logger.log(Level.WARNING, e.toString());
+            }
+        }
+        return reply;
     }
+
+    public void checkConditional(){
+
+    }
+
+
+
     public float generateNewID(MetaDataContainer existingData){
         List<Float> existingIDs = existingData.getGeneratedIDs();
         float newID;

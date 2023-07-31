@@ -4,25 +4,24 @@ import cloud.filibuster.examples.AppendString;
 import cloud.filibuster.examples.BGrpc;
 import cloud.filibuster.examples.CGrpc;
 import cloud.filibuster.examples.DGrpc;
-import cloud.filibuster.functional.java.basic.JacobAlgorithmTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
-import org.junit.Before;
-import org.junit.jupiter.api.BeforeAll;
-import cloud.filibuster.integration.examples.test_servers.AServer;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import static cloud.filibuster.integration.instrumentation.libraries.AppendTestHelper.stopBServerAndWaitUntilUnavailable;
 
 
 public class MyBService extends BGrpc.BImplBase {
 
     private final MetaDataContainer metadataContainer;
+    private static final Logger logger = Logger.getLogger(MyBService.class.getName());
+
     public static int bExecutionCounter = 0;
     private static final String metadataPath = new File("").getAbsolutePath() + "/src/test/java/cloud/filibuster/integration/examples/armeria/grpc/test_services/appendServices/BMetaData.json";
     public MyBService() {
@@ -94,7 +93,6 @@ public class MyBService extends BGrpc.BImplBase {
         responseObserver.onCompleted();
     }
 
-    @SuppressWarnings("UnnecessaryBoxedVariable")
     private AppendString.AppendReply callC(float callID, AppendString.AppendReply reply){
         ManagedChannel CChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("C"), Networking.getPort("C"))
@@ -102,13 +100,24 @@ public class MyBService extends BGrpc.BImplBase {
                 .build();
         CGrpc.CBlockingStub blockingStubC = CGrpc.newBlockingStub(CChannel);
         AppendString.AppendRequest Crequest = AppendString.AppendRequest.newBuilder().setBase(reply.getReply()).setCallID(callID).build();
-        reply = AppendString.AppendReply.newBuilder().setReply(blockingStubC.appendC(Crequest).getReply()).build();
-        JsonUtil.writeMetaData(metadataContainer, metadataPath);
+        reply = AppendString.AppendReply.newBuilder().setReply("").build();
+
+        while(!reply.getReply().equals("StartDC")){
+            try{
+                reply = blockingStubC.appendC(Crequest);
+                break;
+            } catch (Exception e) {
+                logger.log(Level.WARNING, e.toString());
+            }
+        }
+
+
+        //JsonUtil.writeMetaData(metadataContainer, metadataPath);
         CChannel.shutdownNow();
 
         return reply;
     }
-    @SuppressWarnings("UnnecessaryBoxedVariable")
+
     private AppendString.AppendReply callD(float callID, AppendString.AppendReply reply){
         ManagedChannel DChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("D"), Networking.getPort("D"))
@@ -116,8 +125,16 @@ public class MyBService extends BGrpc.BImplBase {
                 .build();
         DGrpc.DBlockingStub blockingStubD = DGrpc.newBlockingStub(DChannel);
         AppendString.AppendRequest Drequest = AppendString.AppendRequest.newBuilder().setBase(reply.getReply()).setCallID(callID).build();
-        reply = AppendString.AppendReply.newBuilder().setReply(blockingStubD.appendD(Drequest).getReply()).build();
-        JsonUtil.writeMetaData(metadataContainer, metadataPath);
+        reply = AppendString.AppendReply.newBuilder().setReply("").build();
+
+        while(!(reply.getReply().equals("StartD"))){
+            try{
+                reply = blockingStubD.appendD(Drequest);
+                break;
+            } catch (Exception e) {
+                logger.log(Level.WARNING, e.toString());
+            }
+        }
         DChannel.shutdownNow();
         return reply;
     }

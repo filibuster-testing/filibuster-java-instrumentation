@@ -18,10 +18,10 @@ import java.util.logging.Logger;
 public class AppendTestHelper {
     private static final Logger logger = Logger.getLogger(TestHelper.class.getName());
 
-
+    public static Server myServer;
 
     public static void startAppendServerAndWaitUntilAvailable(String serverName) throws InterruptedException, IOException {
-        Server myServer;
+        //Server myServer;
 
         switch (serverName) {
             case "A":
@@ -83,6 +83,10 @@ public class AppendTestHelper {
         }
     }
 
+    public static void stopBServerAndWaitUntilUnavailable()  {
+        BServer.serve().close();
+        //BServer.serve().blockUntilShutdown();
+    }
     public static WebClient getTestWebClient(String baseURI) {
         return WebClient.builder(baseURI)
                 .factory(FilibusterExecutor.getNewClientFactory(1))

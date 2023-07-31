@@ -6,14 +6,18 @@ import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInte
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.db.redis.RedisExhaustiveAnalysisConfigurationFile;
+import io.lettuce.core.ConnectionFuture;
 import io.lettuce.core.RedisBusyException;
 import io.lettuce.core.RedisCommandExecutionException;
 import io.lettuce.core.RedisCommandInterruptedException;
 import io.lettuce.core.RedisCommandTimeoutException;
+import io.lettuce.core.RedisConnectionException;
 import io.lettuce.core.RedisFuture;
+import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.sync.RedisCommands;
+import io.lettuce.core.codec.StringCodec;
 import junit.framework.AssertionFailedError;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -91,6 +95,9 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
                 new SimpleEntry<>(ImmutableMap.of("io.lettuce.core.RedisFuture", Collections.singletonList("await")),
                         "Command interrupted"));
 
+        allowedExceptions.put(RedisConnectionException.class,
+                new SimpleEntry<>(ImmutableMap.of("io.lettuce.core.ConnectionFuture", Collections.singletonList("get")),
+                        "Unable to connect"));
     }
 
     @DisplayName("Exhaustive Core Redis fault injections")
@@ -127,6 +134,11 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
             // Test RedisCommandTimeoutException
             setResult.get();
             getResult.get();
+
+            // Test RedisConnectionException
+            ConnectionFuture<StatefulRedisConnection<String, String>> connectionFuture = RedisClientService.getInstance().redisClient.connectAsync(new StringCodec(), RedisURI.create(redisConnectionString));
+            ConnectionFuture<StatefulRedisConnection<String, String>> myConnectionFuture = DynamicProxyInterceptor.createInterceptor(connectionFuture, redisConnectionString);
+            myConnectionFuture.get();
 
             assertFalse(wasFaultInjected());
         } catch (@SuppressWarnings("InterruptedExceptionSwallowed") Throwable t) {
@@ -170,7 +182,7 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
     @Test
     @Order(2)
     public void testNumExecutions() {
-        assertEquals(13, numberOfTestExecutions);
+        assertEquals(14, numberOfTestExecutions);
     }
 
     @DisplayName("Verify correct number of Filibuster exceptions.")

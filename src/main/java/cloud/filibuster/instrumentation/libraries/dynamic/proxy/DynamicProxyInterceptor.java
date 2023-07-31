@@ -9,12 +9,18 @@ import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
 import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineFaultType;
 import cloud.filibuster.junit.server.core.transformers.Accumulator;
+import com.datastax.oss.driver.api.core.servererrors.InvalidQueryException;
 import com.datastax.oss.driver.api.core.servererrors.OverloadedException;
+import com.datastax.oss.driver.api.core.servererrors.ReadFailureException;
+import com.datastax.oss.driver.api.core.servererrors.ReadTimeoutException;
+import com.datastax.oss.driver.api.core.servererrors.WriteFailureException;
+import com.datastax.oss.driver.api.core.servererrors.WriteTimeoutException;
 import com.google.gson.Gson;
 import io.lettuce.core.RedisBusyException;
 import io.lettuce.core.RedisCommandExecutionException;
 import io.lettuce.core.RedisCommandInterruptedException;
 import io.lettuce.core.RedisCommandTimeoutException;
+import io.lettuce.core.RedisConnectionException;
 import io.lettuce.core.cluster.PartitionSelectorException;
 import io.lettuce.core.cluster.UnknownPartitionException;
 import io.lettuce.core.cluster.models.partitions.Partitions;
@@ -22,6 +28,9 @@ import io.lettuce.core.dynamic.batch.BatchException;
 import org.json.JSONObject;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.ServerErrorMessage;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 import software.amazon.awssdk.services.dynamodb.model.RequestLimitExceededException;
 
 import javax.annotation.Nullable;
@@ -30,10 +39,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URI;
+import java.sql.SQLException;
+import java.sql.SQLTimeoutException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Random;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -338,20 +350,56 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
 
     private static void throwExceptionAndNotifyFilibuster(FilibusterClientInstrumentor filibusterClientInstrumentor, String exceptionName, String cause, String code) throws Exception {
         Exception exceptionToThrow;
+        Random rand = new Random(0);
 
         switch (exceptionName) {  // TODO: Refactor the switch to an interface
             case "org.postgresql.util.PSQLException":
                 exceptionToThrow = new PSQLException(new ServerErrorMessage(cause));
                 break;
+            case "java.sql.SQLException":
+                exceptionToThrow = new SQLException(cause);
+                break;
+            case "java.sql.SQLTimeoutException":
+                exceptionToThrow = new SQLTimeoutException(cause);
+                break;
             case "com.datastax.oss.driver.api.core.servererrors.OverloadedException":
                 exceptionToThrow = new OverloadedException(null);
+                break;
+            case "com.datastax.oss.driver.api.core.servererrors.InvalidQueryException":
+                exceptionToThrow = new InvalidQueryException(null, cause);
+                break;
+            case "com.datastax.oss.driver.api.core.servererrors.ReadFailureException":
+                exceptionToThrow = new ReadFailureException(null, null, rand.nextInt(), rand.nextInt(), rand.nextInt(), /* dataPresent= */true, null);
+                break;
+            case "com.datastax.oss.driver.api.core.servererrors.ReadTimeoutException":
+                exceptionToThrow = new ReadTimeoutException(null, null, rand.nextInt(), rand.nextInt(), /* dataPresent= */true);
+                break;
+            case "com.datastax.oss.driver.api.core.servererrors.WriteTimeoutException":
+                exceptionToThrow = new WriteTimeoutException(null, null, rand.nextInt(), rand.nextInt(), null);
+                break;
+            case "com.datastax.oss.driver.api.core.servererrors.WriteFailureException":
+                exceptionToThrow = new WriteFailureException(null, null, rand.nextInt(), rand.nextInt(), null, rand.nextInt(), null);
                 break;
             case "software.amazon.awssdk.services.dynamodb.model.RequestLimitExceededException":
                 exceptionToThrow = RequestLimitExceededException.builder().message(cause).statusCode(Integer.parseInt(code))
                         .requestId(UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT)).build();
                 break;
+            case "software.amazon.awssdk.services.dynamodb.model.SdkClientException":
+                exceptionToThrow = SdkClientException.builder().message(cause).build();
+                break;
+            case "software.amazon.awssdk.services.dynamodb.model.DynamoDbException":
+                exceptionToThrow = DynamoDbException.builder().message(cause).statusCode(Integer.parseInt(code))
+                        .requestId(UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT)).build();
+                break;
+            case "software.amazon.awssdk.services.dynamodb.model.AwsServiceException":
+                exceptionToThrow = AwsServiceException.builder().message(cause).statusCode(Integer.parseInt(code))
+                        .requestId(UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT)).build();
+                break;
             case "io.lettuce.core.RedisCommandTimeoutException":
                 exceptionToThrow = new RedisCommandTimeoutException(cause);
+                break;
+            case "io.lettuce.core.RedisConnectionException":
+                exceptionToThrow = new RedisConnectionException(cause);
                 break;
             case "io.lettuce.core.RedisBusyException":
                 exceptionToThrow = new RedisBusyException(cause);

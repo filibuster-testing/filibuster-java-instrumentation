@@ -8,7 +8,9 @@
     - (MichaelA-ops) Use different background colours in the plugin for Byzantine and transformer faults
     - (MichaelA-ops) Implement afterInvocationWithByzantineFault and afterInvocationWithTransformerFault
     - (MichaelA-ops) Add new test scenarios for transformer and Byzantine faults
-    - (MichaelA-ops) Add test services and unit tests for DynamoDB, Cassandra and Postgres
+    - (MichaelA-ops) Add test services and unit tests for DynamoDB, Cassandra, CockroachDB and Postgres
+    - (MichaelA-ops) Add exception config files for DynamoDB, Cassandra, CockroachDB and Postgres
+    - (MichaelA-ops) Inject RedisConnectionException
     - (MichaelA-ops) Support null transformer fault injection for HTTP and GRPC
 1.9.10:
    - (MichaelA-ops) UI: Show fix messages on plugin for FilibusterGrpcTestRuntimeException.

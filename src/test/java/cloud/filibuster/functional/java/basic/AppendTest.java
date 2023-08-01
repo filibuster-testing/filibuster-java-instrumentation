@@ -3,7 +3,6 @@ import cloud.filibuster.examples.AGrpc;
 import cloud.filibuster.examples.AppendString;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.appendServices.*;
 import cloud.filibuster.junit.TestWithFilibuster;
 import io.grpc.ManagedChannel;
@@ -35,8 +34,7 @@ public class AppendTest extends JUnitAnnotationBaseTest{
     }
 
     @BeforeEach
-    public void clearRedis() {
-        RedisClientService.getInstance().redisClient.connect().sync().del(metadataPath);
+    public void Reset() {
         MyAService.clearRedis(); MyAService.MyAServiceResetFunction();
         MyBService.clearRedis(); MyBService.MyBServiceResetFunction();
         MyCService.clearRedis(); MyCService.MyCServiceResetFunction();
@@ -70,10 +68,6 @@ public class AppendTest extends JUnitAnnotationBaseTest{
         AppendString.AppendRequest request = AppendString.AppendRequest.newBuilder().setBase("Start").setCallID(callID).build();
         AppendString.AppendReply reply = blockingStub.appendA(request);
         assertEquals(reply.getReply(), ("StartDCBA"));
-        JacobMetaData jacobMetaData = new JacobMetaData(1, null);
-        jacobMetaData.retval = reply.getReply();
-        metadataContainer.getMetaDataMap().put(callID, jacobMetaData);
-        JsonUtil.writeMetaData(metadataContainer, metadataPath);
         assertEquals(MyAService.aExecutionCounter, 1);
         assertEquals(MyBService.bExecutionCounter, 1);
         assertEquals(MyCService.cExecutionCounter, 1);

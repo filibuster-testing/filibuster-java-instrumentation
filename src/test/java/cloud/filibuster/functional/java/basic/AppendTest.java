@@ -22,7 +22,7 @@ import static cloud.filibuster.integration.instrumentation.libraries.AppendTestH
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JacobAlgorithmTest extends JUnitAnnotationBaseTest{
+public class AppendTest extends JUnitAnnotationBaseTest{
 
     private static final String metadataPath = new File("").getAbsolutePath() + "/src/test/java/cloud/filibuster/integration/examples/armeria/grpc/test_services/appendServices/AppendTestMetaData.json";
     private final MetaDataContainer metadataContainer;
@@ -35,7 +35,7 @@ public class JacobAlgorithmTest extends JUnitAnnotationBaseTest{
         startAppendServerAndWaitUntilAvailable("D");
     }
 
-    public JacobAlgorithmTest() {
+    public AppendTest() {
         MetaDataContainer existingData = JsonUtil.readMetaData(metadataPath);
         if (existingData != null) {
             this.metadataContainer = existingData;
@@ -56,7 +56,7 @@ public class JacobAlgorithmTest extends JUnitAnnotationBaseTest{
                 .forAddress(Networking.getHost("A"), Networking.getPort("A"))
                 .usePlaintext()
                 .build();
-        float callID = 0.1f;
+        float callID = 0.12341f;
         AGrpc.ABlockingStub blockingStub = AGrpc.newBlockingStub(AChannel);
 
         AppendString.AppendRequest request = AppendString.AppendRequest.newBuilder().setBase("Start").setCallID(callID).build();

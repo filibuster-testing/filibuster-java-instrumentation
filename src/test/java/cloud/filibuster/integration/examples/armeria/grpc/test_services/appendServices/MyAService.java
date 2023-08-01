@@ -1,21 +1,19 @@
 package cloud.filibuster.integration.examples.armeria.grpc.test_services.appendServices;
-
+import cloud.filibuster.functional.java.redis.JUnitRedisFilibusterRetryTest;
 import cloud.filibuster.examples.AGrpc;
 import cloud.filibuster.examples.AppendString;
 import cloud.filibuster.examples.BGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,12 +25,9 @@ public class MyAService extends AGrpc.AImplBase{
 
     public static ManagedChannel BChannel;
     public static int aExecutionCounter = 0;
-    private static Lock lock = new ReentrantLock();
-    private static Condition observedCondition = lock.newCondition();
 
     private final MetaDataContainer metadataContainer;
     private static final String metadataPath = new File("").getAbsolutePath() + "/src/test/java/cloud/filibuster/integration/examples/armeria/grpc/test_services/appendServices/AMetaData.json";
-    public static boolean retryCall = false;
 
     public MyAService() {
         MetaDataContainer existingData = JsonUtil.readMetaData(metadataPath);
@@ -66,26 +61,6 @@ public void appendA(AppendString.AppendRequest req, StreamObserver<AppendString.
         }else{
             float newID = generateNewID(metadataContainer);
             existingMetaData.usedCallIDs.set(0, newID);
-            /*Thread callThread = new Thread(()-> {
-                    try {
-                        reply.set(callB(newID, req, responseObserver));
-                    } finally {
-
-                    }
-            });
-
-            Thread observeThread = new Thread(() -> {
-                    try {
-                        checkConditional();
-                    } finally {
-
-                    }
-
-            });
-
-            callThread.start();
-            observeThread.start();*/
-
             reply = (callB(newID, req, responseObserver));
 
         }
@@ -134,12 +109,6 @@ public void appendA(AppendString.AppendRequest req, StreamObserver<AppendString.
         return reply;
     }
 
-    public void checkConditional(){
-
-    }
-
-
-
     public float generateNewID(MetaDataContainer existingData){
         List<Float> existingIDs = existingData.getGeneratedIDs();
         float newID;
@@ -156,7 +125,4 @@ public void appendA(AppendString.AppendRequest req, StreamObserver<AppendString.
         return newID;
     }
 
-    public static void StatusUpdate(AppendString.RetryRequest req, StreamObserver<AppendString.AppendReply> responseObserver){
-
-    }
 }

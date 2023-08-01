@@ -5,9 +5,12 @@ import cloud.filibuster.examples.BGrpc;
 import cloud.filibuster.examples.CGrpc;
 import cloud.filibuster.examples.DGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
+import org.junit.jupiter.api.BeforeEach;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,22 +22,29 @@ import java.util.logging.Logger;
 
 public class MyBService extends BGrpc.BImplBase {
 
-    private final MetaDataContainer metadataContainer;
+    private static MetaDataContainer metadataContainer;
     private static final Logger logger = Logger.getLogger(MyBService.class.getName());
 
     public static int bExecutionCounter = 0;
     public static final String metadataPath = new File("").getAbsolutePath() + "/src/test/java/cloud/filibuster/integration/examples/armeria/grpc/test_services/appendServices/BMetaData.json";
     public MyBService() {
+        MyBServiceResetFunction();
+    }
+    @BeforeEach
+    public static void MyBServiceResetFunction(){
         MetaDataContainer existingData = JsonUtil.readMetaData(metadataPath);
         if (existingData != null) {
-            this.metadataContainer = existingData;
+            metadataContainer = existingData;
         } else {
-            this.metadataContainer = new MetaDataContainer();
-            this.metadataContainer.setMetaDataMap(new HashMap<>());
-            this.metadataContainer.setGeneratedIDs(new ArrayList<>());
-            JsonUtil.writeMetaData(this.metadataContainer, metadataPath);
+            metadataContainer = new MetaDataContainer();
+            metadataContainer.setMetaDataMap(new HashMap<>());
+            metadataContainer.setGeneratedIDs(new ArrayList<>());
+            JsonUtil.writeMetaData(metadataContainer, metadataPath);
         }
-
+    }
+    @BeforeEach
+    public void clearRedis() {
+        RedisClientService.getInstance().redisClient.connect().sync().del(metadataPath);
     }
 
     @Override

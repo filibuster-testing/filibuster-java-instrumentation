@@ -2,7 +2,9 @@ package cloud.filibuster.integration.examples.armeria.grpc.test_services.appendS
 
 import cloud.filibuster.examples.AppendString;
 import cloud.filibuster.examples.DGrpc;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import io.grpc.stub.StreamObserver;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -10,21 +12,31 @@ import java.util.HashMap;
 
 
 public class MyDService extends DGrpc.DImplBase {
-    private final MetaDataContainer metadataContainer;
+    private static MetaDataContainer metadataContainer;
     public static int dExecutionCounter = 0;
     public static final String metadataPath = new File("").getAbsolutePath() + "/src/test/java/cloud/filibuster/integration/examples/armeria/grpc/test_services/appendServices/DMetaData.json";
 
     public MyDService() {
+        MyDServiceResetFunction();
+    }
+
+    @BeforeEach
+    public static void MyDServiceResetFunction(){
         MetaDataContainer existingData = JsonUtil.readMetaData(metadataPath);
         if (existingData != null) {
-            this.metadataContainer = existingData;
+            metadataContainer = existingData;
         } else {
-            this.metadataContainer = new MetaDataContainer();
-            this.metadataContainer.setMetaDataMap(new HashMap<>());
-            this.metadataContainer.setGeneratedIDs(new ArrayList<>());
-            JsonUtil.writeMetaData(this.metadataContainer, metadataPath);
+            metadataContainer = new MetaDataContainer();
+            metadataContainer.setMetaDataMap(new HashMap<>());
+            metadataContainer.setGeneratedIDs(new ArrayList<>());
+            JsonUtil.writeMetaData(metadataContainer, metadataPath);
         }
     }
+    @BeforeEach
+    public void clearRedis() {
+        RedisClientService.getInstance().redisClient.connect().sync().del(metadataPath);
+    }
+
     @Override
     public void appendD(AppendString.AppendRequest req, StreamObserver<AppendString.AppendReply> responseObserver) {
         AppendString.AppendReply reply;

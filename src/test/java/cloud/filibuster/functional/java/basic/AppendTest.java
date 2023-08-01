@@ -37,10 +37,6 @@ public class AppendTest extends JUnitAnnotationBaseTest{
     @BeforeEach
     public void clearRedis() {
         RedisClientService.getInstance().redisClient.connect().sync().del(metadataPath);
-        RedisClientService.getInstance().redisClient.connect().sync().del(MyAService.metadataPath);
-        RedisClientService.getInstance().redisClient.connect().sync().del(MyBService.metadataPath);
-        RedisClientService.getInstance().redisClient.connect().sync().del(MyCService.metadataPath);
-        RedisClientService.getInstance().redisClient.connect().sync().del(MyDService.metadataPath);
     }
 
     public AppendTest() {
@@ -70,26 +66,16 @@ public class AppendTest extends JUnitAnnotationBaseTest{
         AppendString.AppendRequest request = AppendString.AppendRequest.newBuilder().setBase("Start").setCallID(callID).build();
         AppendString.AppendReply reply = blockingStub.appendA(request);
         assertEquals(reply.getReply(), ("StartDCBA"));
-        if(metadataContainer.getMetaDataMap().containsKey(callID)){
-            assertEquals(MyAService.aExecutionCounter, 0);
-            assertEquals(MyBService.bExecutionCounter, 0);
-            assertEquals(MyCService.cExecutionCounter, 0);
-            assertEquals(MyDService.dExecutionCounter, 0);
-            AChannel.shutdownNow();
-            AChannel.awaitTermination(1000, TimeUnit.SECONDS);
-            }
-        else {
-            JacobMetaData jacobMetaData = new JacobMetaData(1, null);
-            jacobMetaData.retval = reply.getReply();
-            metadataContainer.getMetaDataMap().put(callID, jacobMetaData);
-            JsonUtil.writeMetaData(metadataContainer, metadataPath);
-            assertEquals(MyAService.aExecutionCounter, 1);
-            assertEquals(MyBService.bExecutionCounter, 1);
-            assertEquals(MyCService.cExecutionCounter, 1);
-            assertEquals(MyDService.dExecutionCounter, 1);
-            AChannel.shutdownNow();
-            AChannel.awaitTermination(1000, TimeUnit.SECONDS);
-        }
+        JacobMetaData jacobMetaData = new JacobMetaData(1, null);
+        jacobMetaData.retval = reply.getReply();
+        metadataContainer.getMetaDataMap().put(callID, jacobMetaData);
+        JsonUtil.writeMetaData(metadataContainer, metadataPath);
+        assertEquals(MyAService.aExecutionCounter, 1);
+        assertEquals(MyBService.bExecutionCounter, 1);
+        assertEquals(MyCService.cExecutionCounter, 1);
+        assertEquals(MyDService.dExecutionCounter, 1);
+        AChannel.shutdownNow();
+        AChannel.awaitTermination(1000, TimeUnit.SECONDS);
     }
 
 }

@@ -9,6 +9,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -26,22 +27,32 @@ public class MyAService extends AGrpc.AImplBase{
     public static ManagedChannel BChannel;
     public static int aExecutionCounter = 0;
 
-    private final MetaDataContainer metadataContainer;
+    private static MetaDataContainer metadataContainer = null;
     public static final String metadataPath = new File("").getAbsolutePath() + "/src/test/java/cloud/filibuster/integration/examples/armeria/grpc/test_services/appendServices/AMetaData.json";
 
     public MyAService() {
-        MetaDataContainer existingData = JsonUtil.readMetaData(metadataPath);
-        if (existingData != null) {
-            this.metadataContainer = existingData;
-        } else {
-            this.metadataContainer = new MetaDataContainer();
-            this.metadataContainer.setMetaDataMap(new HashMap<>());
-            this.metadataContainer.setGeneratedIDs(new ArrayList<>());
-            JsonUtil.writeMetaData(this.metadataContainer, metadataPath);
-        }
+        MyAServiceResetFunction();
     }
 
-@Override
+    @BeforeEach
+    public static void MyAServiceResetFunction(){
+        MetaDataContainer existingData = JsonUtil.readMetaData(metadataPath);
+        if (existingData != null) {
+            metadataContainer = existingData;
+        } else {
+            metadataContainer = new MetaDataContainer();
+            metadataContainer.setMetaDataMap(new HashMap<>());
+            metadataContainer.setGeneratedIDs(new ArrayList<>());
+            JsonUtil.writeMetaData(metadataContainer, metadataPath);
+        }
+    }
+    @BeforeEach
+    public void clearRedis() {
+        RedisClientService.getInstance().redisClient.connect().sync().del(metadataPath);
+    }
+
+
+    @Override
 public void appendA(AppendString.AppendRequest req, StreamObserver<AppendString.AppendReply> responseObserver) {
 
     AppendString.AppendReply reply = AppendString.AppendReply.newBuilder().setReply(req.getBase()).build();

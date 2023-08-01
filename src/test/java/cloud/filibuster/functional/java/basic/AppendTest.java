@@ -8,11 +8,9 @@ import cloud.filibuster.integration.examples.armeria.grpc.test_services.appendSe
 import cloud.filibuster.junit.TestWithFilibuster;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.TestMethodOrder;
-
+import org.junit.jupiter.api.BeforeEach;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,6 +34,15 @@ public class AppendTest extends JUnitAnnotationBaseTest{
         startAppendServerAndWaitUntilAvailable("D");
     }
 
+    @BeforeEach
+    public void clearRedis() {
+        RedisClientService.getInstance().redisClient.connect().sync().del(metadataPath);
+        RedisClientService.getInstance().redisClient.connect().sync().del(MyAService.metadataPath);
+        RedisClientService.getInstance().redisClient.connect().sync().del(MyBService.metadataPath);
+        RedisClientService.getInstance().redisClient.connect().sync().del(MyCService.metadataPath);
+        RedisClientService.getInstance().redisClient.connect().sync().del(MyDService.metadataPath);
+    }
+
     public AppendTest() {
         MetaDataContainer existingData = JsonUtil.readMetaData(metadataPath);
         if (existingData != null) {
@@ -52,9 +59,7 @@ public class AppendTest extends JUnitAnnotationBaseTest{
     @TestWithFilibuster()
     @Order(1)
     public void testABCDService() throws InterruptedException {
-        if(true) {
-            cleanRedis();
-        }
+
         ManagedChannel AChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("A"), Networking.getPort("A"))
                 .usePlaintext()
@@ -85,14 +90,6 @@ public class AppendTest extends JUnitAnnotationBaseTest{
             AChannel.shutdownNow();
             AChannel.awaitTermination(1000, TimeUnit.SECONDS);
         }
-    }
-
-    private void cleanRedis(){
-        RedisClientService.getInstance().redisClient.connect().sync().del(metadataPath);
-        RedisClientService.getInstance().redisClient.connect().sync().del(MyAService.metadataPath);
-        RedisClientService.getInstance().redisClient.connect().sync().del(MyBService.metadataPath);
-        RedisClientService.getInstance().redisClient.connect().sync().del(MyCService.metadataPath);
-        RedisClientService.getInstance().redisClient.connect().sync().del(MyDService.metadataPath);
     }
 
 }

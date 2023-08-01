@@ -9,7 +9,6 @@ import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientIntercept
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import io.grpc.*;
 import io.grpc.stub.StreamObserver;
-import org.junit.jupiter.api.BeforeEach;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -124,9 +123,7 @@ public class MyBService extends BGrpc.BImplBase {
             }
         }
 
-
-        //JsonUtil.writeMetaData(metadataContainer, metadataPath);
-        //CChannel.shutdownNow();
+        CManagedChannel.shutdownNow();
 
         return reply;
     }
@@ -150,7 +147,7 @@ public class MyBService extends BGrpc.BImplBase {
                 logger.log(Level.WARNING, e.toString());
             }
         }
-        //DChannel.shutdownNow();
+        DManagedChannel.shutdownNow();
         return reply;
     }
 

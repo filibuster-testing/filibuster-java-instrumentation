@@ -1,16 +1,16 @@
 package cloud.filibuster.integration.examples.armeria.grpc.test_services.appendServices;
-import cloud.filibuster.functional.java.redis.JUnitRedisFilibusterRetryTest;
 import cloud.filibuster.examples.AGrpc;
 import cloud.filibuster.examples.AppendString;
 import cloud.filibuster.examples.BGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
-import io.grpc.*;
+import io.grpc.Channel;
+import io.grpc.ClientInterceptor;
+import io.grpc.ClientInterceptors;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
-import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
-import org.junit.jupiter.api.BeforeEach;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,7 +22,6 @@ import java.util.logging.Logger;
 public class MyAService extends AGrpc.AImplBase{
 
     private static final Logger logger = Logger.getLogger(MyAService.class.getName());
-    public static ManagedChannel BChannel;
     public static int aExecutionCounter = 0;
 
     private static MetaDataContainer metadataContainer = null;
@@ -44,7 +43,16 @@ public class MyAService extends AGrpc.AImplBase{
             JsonUtil.writeMetaData(metadataContainer, metadataPath);
         }
         aExecutionCounter = 0;
-
+        for (HashMap.Entry<Float, JacobMetaData> entry : metadataContainer.getMetaDataMap().entrySet()) {
+            if(!entry.getValue().isCompleted){
+                ManagedChannel AChannel = ManagedChannelBuilder
+                        .forAddress(Networking.getHost("A"), Networking.getPort("A"))
+                        .usePlaintext()
+                        .build();
+                AGrpc.ABlockingStub blockingStub = AGrpc.newBlockingStub(AChannel);
+                blockingStub.appendA(entry.getValue().req);
+            }
+        }
     }
 
 

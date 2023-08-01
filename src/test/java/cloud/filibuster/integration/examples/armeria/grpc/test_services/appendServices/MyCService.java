@@ -31,6 +31,7 @@ public class MyCService extends CGrpc.CImplBase {
             metadataContainer.setGeneratedIDs(new ArrayList<>());
             JsonUtil.writeMetaData(metadataContainer, metadataPath);
         }
+        cExecutionCounter = 0;
     }
 
     public static void clearRedis() {

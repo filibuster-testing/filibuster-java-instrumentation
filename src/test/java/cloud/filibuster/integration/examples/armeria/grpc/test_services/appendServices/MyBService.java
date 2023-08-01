@@ -5,9 +5,9 @@ import cloud.filibuster.examples.BGrpc;
 import cloud.filibuster.examples.CGrpc;
 import cloud.filibuster.examples.DGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
+import io.grpc.*;
 import io.grpc.stub.StreamObserver;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -41,6 +41,7 @@ public class MyBService extends BGrpc.BImplBase {
             metadataContainer.setGeneratedIDs(new ArrayList<>());
             JsonUtil.writeMetaData(metadataContainer, metadataPath);
         }
+        bExecutionCounter = 0;
     }
 
     public static void clearRedis() {
@@ -104,10 +105,12 @@ public class MyBService extends BGrpc.BImplBase {
     }
 
     private AppendString.AppendReply callC(float callID, AppendString.AppendReply reply){
-        ManagedChannel CChannel = ManagedChannelBuilder
+        ManagedChannel CManagedChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("C"), Networking.getPort("C"))
                 .usePlaintext()
                 .build();
+        ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("C");
+        Channel CChannel = ClientInterceptors.intercept(CManagedChannel, clientInterceptor);
         CGrpc.CBlockingStub blockingStubC = CGrpc.newBlockingStub(CChannel);
         AppendString.AppendRequest Crequest = AppendString.AppendRequest.newBuilder().setBase(reply.getReply()).setCallID(callID).build();
         reply = AppendString.AppendReply.newBuilder().setReply("").build();
@@ -123,16 +126,18 @@ public class MyBService extends BGrpc.BImplBase {
 
 
         //JsonUtil.writeMetaData(metadataContainer, metadataPath);
-        CChannel.shutdownNow();
+        //CChannel.shutdownNow();
 
         return reply;
     }
 
     private AppendString.AppendReply callD(float callID, AppendString.AppendReply reply){
-        ManagedChannel DChannel = ManagedChannelBuilder
+        ManagedChannel DManagedChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("D"), Networking.getPort("D"))
                 .usePlaintext()
                 .build();
+        ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("D");
+        Channel DChannel  = ClientInterceptors.intercept(DManagedChannel, clientInterceptor);
         DGrpc.DBlockingStub blockingStubD = DGrpc.newBlockingStub(DChannel);
         AppendString.AppendRequest Drequest = AppendString.AppendRequest.newBuilder().setBase(reply.getReply()).setCallID(callID).build();
         reply = AppendString.AppendReply.newBuilder().setReply("").build();
@@ -145,7 +150,7 @@ public class MyBService extends BGrpc.BImplBase {
                 logger.log(Level.WARNING, e.toString());
             }
         }
-        DChannel.shutdownNow();
+        //DChannel.shutdownNow();
         return reply;
     }
 

@@ -31,6 +31,7 @@ public class MyDService extends DGrpc.DImplBase {
             metadataContainer.setGeneratedIDs(new ArrayList<>());
             JsonUtil.writeMetaData(metadataContainer, metadataPath);
         }
+        dExecutionCounter = 0;
     }
 
     public static void clearRedis() {

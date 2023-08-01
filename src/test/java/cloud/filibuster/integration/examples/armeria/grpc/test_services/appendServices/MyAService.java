@@ -4,9 +4,9 @@ import cloud.filibuster.examples.AGrpc;
 import cloud.filibuster.examples.AppendString;
 import cloud.filibuster.examples.BGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
+import io.grpc.*;
 import io.grpc.stub.StreamObserver;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,9 +21,7 @@ import java.util.logging.Logger;
 
 public class MyAService extends AGrpc.AImplBase{
 
-    public static boolean appendFinished = false;
     private static final Logger logger = Logger.getLogger(MyAService.class.getName());
-
     public static ManagedChannel BChannel;
     public static int aExecutionCounter = 0;
 
@@ -45,6 +43,8 @@ public class MyAService extends AGrpc.AImplBase{
             metadataContainer.setGeneratedIDs(new ArrayList<>());
             JsonUtil.writeMetaData(metadataContainer, metadataPath);
         }
+        aExecutionCounter = 0;
+
     }
 
 
@@ -85,6 +85,7 @@ public void appendA(AppendString.AppendRequest req, StreamObserver<AppendString.
         JsonUtil.writeMetaData(metadataContainer, metadataPath);
         reply = (callB(newID, req, responseObserver));
     }
+
     aExecutionCounter++;
     reply = (AppendString.AppendReply.newBuilder()
             .setReply(reply.getReply()+ "A")
@@ -98,10 +99,12 @@ public void appendA(AppendString.AppendRequest req, StreamObserver<AppendString.
 }
 
     public AppendString.AppendReply callB(float callID, AppendString.AppendRequest req, StreamObserver<AppendString.AppendReply> responseObserver){
-        BChannel = ManagedChannelBuilder
+        ManagedChannel BManagedChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("B"), Networking.getPort("B"))
                 .usePlaintext()
                 .build();
+        ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("A");
+        Channel BChannel = ClientInterceptors.intercept(BManagedChannel, clientInterceptor);
         BGrpc.BBlockingStub blockingStubB = BGrpc.newBlockingStub(BChannel);
 
         AppendString.AppendRequest request = AppendString.AppendRequest.newBuilder()

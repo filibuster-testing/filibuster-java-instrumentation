@@ -23,7 +23,7 @@ public class MyBService extends BGrpc.BImplBase {
     private static final Logger logger = Logger.getLogger(MyBService.class.getName());
 
     public static int bExecutionCounter = 0;
-    private static final String metadataPath = new File("").getAbsolutePath() + "/src/test/java/cloud/filibuster/integration/examples/armeria/grpc/test_services/appendServices/BMetaData.json";
+    public static final String metadataPath = new File("").getAbsolutePath() + "/src/test/java/cloud/filibuster/integration/examples/armeria/grpc/test_services/appendServices/BMetaData.json";
     public MyBService() {
         MetaDataContainer existingData = JsonUtil.readMetaData(metadataPath);
         if (existingData != null) {

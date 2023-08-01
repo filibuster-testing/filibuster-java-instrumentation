@@ -3,6 +3,7 @@ import cloud.filibuster.examples.AGrpc;
 import cloud.filibuster.examples.AppendString;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.appendServices.*;
 import cloud.filibuster.junit.TestWithFilibuster;
 import io.grpc.ManagedChannel;
@@ -51,12 +52,14 @@ public class AppendTest extends JUnitAnnotationBaseTest{
     @TestWithFilibuster()
     @Order(1)
     public void testABCDService() throws InterruptedException {
-
+        if(true) {
+            cleanRedis();
+        }
         ManagedChannel AChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("A"), Networking.getPort("A"))
                 .usePlaintext()
                 .build();
-        float callID = 0.12341f;
+        float callID = 0.5f;
         AGrpc.ABlockingStub blockingStub = AGrpc.newBlockingStub(AChannel);
 
         AppendString.AppendRequest request = AppendString.AppendRequest.newBuilder().setBase("Start").setCallID(callID).build();
@@ -82,6 +85,14 @@ public class AppendTest extends JUnitAnnotationBaseTest{
             AChannel.shutdownNow();
             AChannel.awaitTermination(1000, TimeUnit.SECONDS);
         }
+    }
+
+    private void cleanRedis(){
+        RedisClientService.getInstance().redisClient.connect().sync().del(metadataPath);
+        RedisClientService.getInstance().redisClient.connect().sync().del(MyAService.metadataPath);
+        RedisClientService.getInstance().redisClient.connect().sync().del(MyBService.metadataPath);
+        RedisClientService.getInstance().redisClient.connect().sync().del(MyCService.metadataPath);
+        RedisClientService.getInstance().redisClient.connect().sync().del(MyDService.metadataPath);
     }
 
 }

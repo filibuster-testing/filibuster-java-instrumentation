@@ -27,7 +27,7 @@ public class MyAService extends AGrpc.AImplBase{
     public static int aExecutionCounter = 0;
 
     private final MetaDataContainer metadataContainer;
-    private static final String metadataPath = new File("").getAbsolutePath() + "/src/test/java/cloud/filibuster/integration/examples/armeria/grpc/test_services/appendServices/AMetaData.json";
+    public static final String metadataPath = new File("").getAbsolutePath() + "/src/test/java/cloud/filibuster/integration/examples/armeria/grpc/test_services/appendServices/AMetaData.json";
 
     public MyAService() {
         MetaDataContainer existingData = JsonUtil.readMetaData(metadataPath);

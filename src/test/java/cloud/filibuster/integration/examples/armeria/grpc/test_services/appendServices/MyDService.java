@@ -12,7 +12,7 @@ import java.util.HashMap;
 public class MyDService extends DGrpc.DImplBase {
     private final MetaDataContainer metadataContainer;
     public static int dExecutionCounter = 0;
-    private static final String metadataPath = new File("").getAbsolutePath() + "/src/test/java/cloud/filibuster/integration/examples/armeria/grpc/test_services/appendServices/DMetaData.json";
+    public static final String metadataPath = new File("").getAbsolutePath() + "/src/test/java/cloud/filibuster/integration/examples/armeria/grpc/test_services/appendServices/DMetaData.json";
 
     public MyDService() {
         MetaDataContainer existingData = JsonUtil.readMetaData(metadataPath);

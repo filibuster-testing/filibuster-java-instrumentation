@@ -34,7 +34,7 @@ public class MyAService extends AGrpc.AImplBase{
         MyAServiceResetFunction();
     }
 
-    @BeforeEach
+
     public static void MyAServiceResetFunction(){
         MetaDataContainer existingData = JsonUtil.readMetaData(metadataPath);
         if (existingData != null) {
@@ -46,8 +46,9 @@ public class MyAService extends AGrpc.AImplBase{
             JsonUtil.writeMetaData(metadataContainer, metadataPath);
         }
     }
-    @BeforeEach
-    public void clearRedis() {
+
+
+    public static void clearRedis() {
         RedisClientService.getInstance().redisClient.connect().sync().del(metadataPath);
     }
 

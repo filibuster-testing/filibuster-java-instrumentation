@@ -30,7 +30,7 @@ public class MyBService extends BGrpc.BImplBase {
     public MyBService() {
         MyBServiceResetFunction();
     }
-    @BeforeEach
+
     public static void MyBServiceResetFunction(){
         MetaDataContainer existingData = JsonUtil.readMetaData(metadataPath);
         if (existingData != null) {
@@ -42,8 +42,8 @@ public class MyBService extends BGrpc.BImplBase {
             JsonUtil.writeMetaData(metadataContainer, metadataPath);
         }
     }
-    @BeforeEach
-    public void clearRedis() {
+
+    public static void clearRedis() {
         RedisClientService.getInstance().redisClient.connect().sync().del(metadataPath);
     }
 

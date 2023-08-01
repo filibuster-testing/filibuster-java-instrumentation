@@ -37,6 +37,10 @@ public class AppendTest extends JUnitAnnotationBaseTest{
     @BeforeEach
     public void clearRedis() {
         RedisClientService.getInstance().redisClient.connect().sync().del(metadataPath);
+        MyAService.clearRedis(); MyAService.MyAServiceResetFunction();
+        MyBService.clearRedis(); MyBService.MyBServiceResetFunction();
+        MyCService.clearRedis(); MyCService.MyCServiceResetFunction();
+        MyDService.clearRedis(); MyDService.MyDServiceResetFunction();
     }
 
     public AppendTest() {

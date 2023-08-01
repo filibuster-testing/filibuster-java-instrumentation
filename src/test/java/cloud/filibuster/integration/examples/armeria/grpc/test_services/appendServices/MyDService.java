@@ -20,7 +20,7 @@ public class MyDService extends DGrpc.DImplBase {
         MyDServiceResetFunction();
     }
 
-    @BeforeEach
+
     public static void MyDServiceResetFunction(){
         MetaDataContainer existingData = JsonUtil.readMetaData(metadataPath);
         if (existingData != null) {
@@ -32,8 +32,8 @@ public class MyDService extends DGrpc.DImplBase {
             JsonUtil.writeMetaData(metadataContainer, metadataPath);
         }
     }
-    @BeforeEach
-    public void clearRedis() {
+
+    public static void clearRedis() {
         RedisClientService.getInstance().redisClient.connect().sync().del(metadataPath);
     }
 

@@ -20,7 +20,7 @@ public class MyCService extends CGrpc.CImplBase {
     public MyCService() {
         MyCServiceResetFunction();
     }
-    @BeforeEach
+
     public static void MyCServiceResetFunction(){
         MetaDataContainer existingData = JsonUtil.readMetaData(metadataPath);
         if (existingData != null) {
@@ -33,8 +33,7 @@ public class MyCService extends CGrpc.CImplBase {
         }
     }
 
-    @BeforeEach
-    public void clearRedis() {
+    public static void clearRedis() {
         RedisClientService.getInstance().redisClient.connect().sync().del(metadataPath);
     }
 

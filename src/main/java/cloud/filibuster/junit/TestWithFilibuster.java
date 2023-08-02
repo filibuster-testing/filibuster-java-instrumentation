@@ -26,6 +26,7 @@ import org.junit.jupiter.api.parallel.Isolated;
 import static cloud.filibuster.instrumentation.helpers.Property.AVOID_INJECTIONS_ON_ORGANIC_FAILURES_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.AVOID_REDUNDANT_INJECTIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.DATA_NONDETERMINISM_DEFAULT;
+import static cloud.filibuster.instrumentation.helpers.Property.FAIL_ON_ORGANIC_FAILURES_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.MAX_ITERATIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.SUPPRESS_COMBINATIONS_DEFAULT;
 
@@ -170,6 +171,13 @@ public @interface TestWithFilibuster {
      * @return whether we should avoid these injections
      */
     boolean avoidInjectionsOnOrganicFailures() default AVOID_INJECTIONS_ON_ORGANIC_FAILURES_DEFAULT;
+
+    /**
+     * Should we fail the test when RPCs have failed without fault injection?
+     *
+     * @return whether we should avoid these injections
+     */
+    boolean failOnOrganicFailures() default FAIL_ON_ORGANIC_FAILURES_DEFAULT;
 
     /**
      * Analysis file that should be used for this configuration of Filibuster.

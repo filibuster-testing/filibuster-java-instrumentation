@@ -29,6 +29,7 @@ import org.junit.platform.commons.util.Preconditions;
 import static cloud.filibuster.instrumentation.helpers.Property.AVOID_INJECTIONS_ON_ORGANIC_FAILURES_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.AVOID_REDUNDANT_INJECTIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.DATA_NONDETERMINISM_DEFAULT;
+import static cloud.filibuster.instrumentation.helpers.Property.FAIL_ON_ORGANIC_FAILURES_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.MAX_ITERATIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.SUPPRESS_COMBINATIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.getEnabledProperty;
@@ -37,6 +38,7 @@ import static cloud.filibuster.instrumentation.helpers.Property.getTestAnalysisR
 import static cloud.filibuster.instrumentation.helpers.Property.getTestAvoidInjectionsOnOrganicFailuresProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestAvoidRedundantInjectionsProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestDataNondeterminismProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.getTestFailOnOrganicFailuresProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestMaxIterationsProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestSuppressCombinationsProperty;
 
@@ -116,6 +118,14 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
             avoidInjectionsOnOrganicFailures = getTestAvoidInjectionsOnOrganicFailuresProperty();
         }
 
+
+        boolean failOnOrganicFailures = testWithFilibuster.failOnOrganicFailures();
+
+        if (failOnOrganicFailures == FAIL_ON_ORGANIC_FAILURES_DEFAULT) {
+            // Check the property to see if it was set.
+            failOnOrganicFailures = getTestFailOnOrganicFailuresProperty();
+        }
+
         boolean suppressCombinations = testWithFilibuster.suppressCombinations();
 
         if (suppressCombinations == SUPPRESS_COMBINATIONS_DEFAULT) {
@@ -137,6 +147,7 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
                 .dataNondeterminism(dataNondeterminism)
                 .avoidRedundantInjections(avoidRedundantInjections)
                 .avoidInjectionsOnOrganicFailures(avoidInjectionsOnOrganicFailures)
+                .failOnOrganicFailures(failOnOrganicFailures)
                 .serverBackend(testWithFilibuster.serverBackend())
                 .searchStrategy(searchStrategy)
                 .dockerImageName(dockerImageName)

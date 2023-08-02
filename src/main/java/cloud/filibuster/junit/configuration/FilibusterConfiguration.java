@@ -39,36 +39,22 @@ public class FilibusterConfiguration {
     private static final String filibusterExecutable = "/usr/local/bin/filibuster";
 
     private final boolean dynamicReduction;
-
     private final boolean suppressCombinations;
-
     private final boolean dataNondeterminism;
-
     private final boolean avoidRedundantInjections;
-
     private final boolean avoidInjectionsOnOrganicFailures;
-
+    private final boolean failOnOrganicFailures;
     private final FilibusterSearchStrategy searchStrategy;
-
     private final String analysisFile;
-
     private final FilibusterServerBackend serverBackend;
-
     private final String dockerImageName;
-
     private final boolean degradeWhenServerInitializationFails;
-
     private final boolean abortOnFirstFailure;
-
     private final Class<? extends Throwable> expected;
-
     private final FilibusterLatencyProfile latencyProfile;
-
     private final String testName;
-
     private final String className;
     private final List<ServiceProfile> serviceProfiles;
-
     private final ServiceProfileBehavior serviceProfileBehavior;
 
     private FilibusterConfiguration(Builder builder) {
@@ -78,6 +64,7 @@ public class FilibusterConfiguration {
         this.dataNondeterminism = builder.dataNondeterminism;
         this.avoidRedundantInjections = builder.avoidRedundantInjections;
         this.avoidInjectionsOnOrganicFailures = builder.avoidInjectionsOnOrganicFailures;
+        this.failOnOrganicFailures = builder.failOnOrganicFailures;
         this.searchStrategy = builder.searchStrategy;
         this.analysisFile = builder.analysisFile;
         this.serverBackend = builder.serverBackend;
@@ -275,6 +262,7 @@ public class FilibusterConfiguration {
         private boolean dataNondeterminism = false;
         private boolean avoidRedundantInjections = false;
         private boolean avoidInjectionsOnOrganicFailures = false;
+        private boolean failOnOrganicFailures = false;
         private boolean abortOnFirstFailure = false;
 
         private FilibusterSearchStrategy searchStrategy;
@@ -355,6 +343,18 @@ public class FilibusterConfiguration {
         @CanIgnoreReturnValue
         public Builder avoidRedundantInjections(boolean avoidRedundantInjections) {
             this.avoidRedundantInjections = avoidRedundantInjections;
+            return this;
+        }
+
+        /**
+         * Do we fail the test on organic failures?
+         *
+         * @param failOnOrganicFailures whether the test fails on failing RPCs
+         * @return builder
+         */
+        @CanIgnoreReturnValue
+        public Builder failOnOrganicFailures(boolean failOnOrganicFailures) {
+            this.failOnOrganicFailures = failOnOrganicFailures;
             return this;
         }
 

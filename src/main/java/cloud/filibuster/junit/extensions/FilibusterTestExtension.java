@@ -154,6 +154,7 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
                 .analysisFile(analysisFile)
                 .degradeWhenServerInitializationFails(testWithFilibuster.degradeWhenServerInitializationFails())
                 .expected(testWithFilibuster.expected())
+                .faultInjectionFilter(testWithFilibuster.faultInjectionFilter())
                 .latencyProfile(testWithFilibuster.latencyProfile())
                 .serviceProfilesPath(testWithFilibuster.serviceProfilesPath())
                 .serviceProfileBehavior(testWithFilibuster.serviceProfileBehavior())

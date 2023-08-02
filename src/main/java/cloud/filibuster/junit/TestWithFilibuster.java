@@ -11,6 +11,8 @@ import cloud.filibuster.junit.configuration.examples.FilibusterDefaultAnalysisCo
 import cloud.filibuster.exceptions.filibuster.FilibusterNoopException;
 import cloud.filibuster.junit.extensions.FilibusterTestExtension;
 
+import cloud.filibuster.junit.filters.FilibusterFaultInjectionFilter;
+import cloud.filibuster.junit.filters.NoopFilter;
 import cloud.filibuster.junit.server.FilibusterServerBackend;
 import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
 import cloud.filibuster.junit.server.core.profiles.ServiceProfileBehavior;
@@ -264,5 +266,12 @@ public @interface TestWithFilibuster {
      * @return service profile behavior
      */
     ServiceProfileBehavior serviceProfileBehavior() default ServiceProfileBehavior.NONE;
+
+    /**
+     * Fault injection filter.
+     *
+     * @return filter
+     */
+    Class<? extends FilibusterFaultInjectionFilter> faultInjectionFilter() default NoopFilter.class;
 
 }

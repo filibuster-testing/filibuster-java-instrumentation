@@ -1,3 +1,5 @@
+1.9.11:
+   - Invocation reporting fixes.
 1.9.10:
    - (MichaelA-ops) UI: Show fix messages on plugin for FilibusterGrpcTestRuntimeException.
 1.9.9:

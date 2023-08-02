@@ -92,7 +92,7 @@ public class FilibusterCore {
         // This statement clears out /tmp/filibuster and sets up the execution.
         TestSuiteReport.getInstance();
 
-        // This statement writes out the place holder for the report
+        // This statement writes out the placeholder for the report
         this.testReport = new TestReport(testName, testUUID, className);
         testReport.writeOutPlaceholder();
     }

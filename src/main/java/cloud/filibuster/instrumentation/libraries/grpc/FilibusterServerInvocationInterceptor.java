@@ -14,6 +14,10 @@ import io.grpc.Status;
 import java.util.UUID;
 
 public class FilibusterServerInvocationInterceptor implements ServerInterceptor {
+    public FilibusterServerInvocationInterceptor(String packageName) {
+        ServerInvocationAndResponseReport.loadGrpcEndpoints(packageName);
+    }
+
     private static class FilibusterServerCallListener<REQUEST> extends ForwardingServerCallListener.SimpleForwardingServerCallListener<REQUEST> {
         private final String requestId;
 

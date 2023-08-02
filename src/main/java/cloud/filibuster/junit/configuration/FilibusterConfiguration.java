@@ -2,6 +2,7 @@ package cloud.filibuster.junit.configuration;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedServerBackendException;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
+import cloud.filibuster.junit.filters.FilibusterFaultInjectionFilter;
 import cloud.filibuster.junit.server.backends.FilibusterDockerServerBackend;
 import cloud.filibuster.junit.server.FilibusterServerBackend;
 import cloud.filibuster.junit.server.core.profiles.ServiceProfile;
@@ -51,6 +52,7 @@ public class FilibusterConfiguration {
     private final boolean degradeWhenServerInitializationFails;
     private final boolean abortOnFirstFailure;
     private final Class<? extends Throwable> expected;
+    private final Class<? extends FilibusterFaultInjectionFilter> faultInjectionFilter;
     private final FilibusterLatencyProfile latencyProfile;
     private final String testName;
     private final String className;
@@ -71,6 +73,7 @@ public class FilibusterConfiguration {
         this.dockerImageName = builder.dockerImageName;
         this.degradeWhenServerInitializationFails = builder.degradeWhenServerInitializationFails;
         this.expected = builder.expected;
+        this.faultInjectionFilter = builder.faultInjectionFilter;
         this.latencyProfile = builder.latencyProfile;
         this.testName = builder.testName;
         this.serviceProfiles = builder.serviceProfiles;
@@ -94,6 +97,15 @@ public class FilibusterConfiguration {
      */
     public Class<? extends Throwable> getExpected() {
         return this.expected;
+    }
+
+    /**
+     * Return fault injection filter.
+     *
+     * @return fault injection filter
+     */
+    public Class<? extends FilibusterFaultInjectionFilter> getFaultInjectionFilter() {
+        return this.faultInjectionFilter;
     }
 
     /**
@@ -286,6 +298,8 @@ public class FilibusterConfiguration {
 
         private Class<? extends Throwable> expected;
 
+        private Class<? extends FilibusterFaultInjectionFilter> faultInjectionFilter;
+
         private FilibusterLatencyProfile latencyProfile;
 
         private String testName;
@@ -412,6 +426,18 @@ public class FilibusterConfiguration {
         @CanIgnoreReturnValue
         public Builder expected(Class<? extends Throwable> clazz) {
             this.expected = clazz;
+            return this;
+        }
+
+        /**
+         * Fault injection filter.
+         *
+         * @param clazz class of the fault injection filter.
+         * @return builder
+         */
+        @CanIgnoreReturnValue
+        public Builder faultInjectionFilter(Class<? extends FilibusterFaultInjectionFilter> clazz) {
+            this.faultInjectionFilter = clazz;
             return this;
         }
 

@@ -1,5 +1,6 @@
 package cloud.filibuster.junit.interceptors;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterOrganicFailuresPresentException;
 import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.exceptions.filibuster.FilibusterNoopException;
@@ -63,8 +64,17 @@ public class FilibusterInvocationInterceptorHelpers {
                     FilibusterCore.getCurrentInstance().writePlaceholderReport();
                 }
             }
+
             invocation.proceed();
-            FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */ false, null, shouldPrintRPCSummary);
+
+            if (filibusterConfiguration.getFailOnOrganicFailures() && FilibusterCore.hasCurrentInstance() && FilibusterCore.getCurrentInstance().testContainsOrganicFailures()) {
+                FilibusterOrganicFailuresPresentException t = new FilibusterOrganicFailuresPresentException("Organic failures present: did you stubs for all invoked RPCs?");
+                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */ true, t, shouldPrintRPCSummary);
+                FilibusterInvocationInterceptor.previousIterationFailed = true;
+                throw t;
+            } else {
+                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */ false, null, shouldPrintRPCSummary);
+            }
         } catch (Throwable t) {
             Class<? extends Throwable> expectedExceptionClass = filibusterConfiguration.getExpected();
 

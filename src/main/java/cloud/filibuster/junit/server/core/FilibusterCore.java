@@ -36,6 +36,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static cloud.filibuster.junit.server.core.test_executions.TestExecution.organicallyFailedInSourceConcreteTestExecution;
+
 @SuppressWarnings({"Varifier", "Var"})
 public class FilibusterCore {
     private static final Logger logger = Logger.getLogger(FilibusterCore.class.getName());
@@ -429,6 +431,24 @@ public class FilibusterCore {
         boolean result = currentConcreteTestExecution != null;
         logger.info("[FILIBUSTER-CORE]: hasNextIteration returning: " + result);
         return result;
+    }
+
+    public synchronized boolean testContainsOrganicFailures() {
+        boolean found = false;
+
+        if (currentConcreteTestExecution != null) {
+            for (Map.Entry<DistributedExecutionIndex, JSONObject> executedRPC: currentConcreteTestExecution.getExecutedRPCs().entrySet()) {
+                DistributedExecutionIndex distributedExecutionIndex = executedRPC.getKey();
+                boolean organicallyFailedInSourceConcreteTestExecution = organicallyFailedInSourceConcreteTestExecution(this.currentConcreteTestExecution, this.currentConcreteTestExecution, distributedExecutionIndex);
+                boolean faultWasInjected = currentConcreteTestExecution.getFaultsToInject().containsKey(distributedExecutionIndex);
+                if (organicallyFailedInSourceConcreteTestExecution && !faultWasInjected) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+
+        return found;
     }
 
     // A test has completed and all callbacks have fired.

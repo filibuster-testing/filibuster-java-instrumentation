@@ -13,9 +13,19 @@ import io.grpc.Status;
 
 import java.util.UUID;
 
+import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationEnabledProperty;
+
 public class FilibusterServerInvocationInterceptor implements ServerInterceptor {
     public FilibusterServerInvocationInterceptor(String packageName) {
         ServerInvocationAndResponseReport.loadGrpcEndpoints(packageName);
+    }
+
+    private static boolean shouldInstrument() {
+        if (getInstrumentationEnabledProperty()) {
+            return true;
+        }
+
+        return false;
     }
 
     private static class FilibusterServerCallListener<REQUEST> extends ForwardingServerCallListener.SimpleForwardingServerCallListener<REQUEST> {
@@ -28,9 +38,13 @@ public class FilibusterServerInvocationInterceptor implements ServerInterceptor 
 
         @Override
         public void onMessage(REQUEST message) {
-            GeneratedMessageV3 generatedMessage = (GeneratedMessageV3) message;
-            ServerInvocationAndResponseReport.beginServerInvocation(requestId, generatedMessage);
-            super.onMessage(message);
+            if (!shouldInstrument()) {
+                super.onMessage(message);
+            } else {
+                GeneratedMessageV3 generatedMessage = (GeneratedMessageV3) message;
+                ServerInvocationAndResponseReport.beginServerInvocation(requestId, generatedMessage);
+                super.onMessage(message);
+            }
         }
     }
 
@@ -46,17 +60,25 @@ public class FilibusterServerInvocationInterceptor implements ServerInterceptor 
 
         @Override
         public void sendMessage(RESPONSE message) {
-            GeneratedMessageV3 generatedMessage = (GeneratedMessageV3) message;
-            ServerInvocationAndResponseReport.endServerInvocation(requestId, fullMethodName, Status.OK, generatedMessage);
-            super.sendMessage(message);
+            if (!shouldInstrument()) {
+                super.sendMessage(message);
+            } else {
+                GeneratedMessageV3 generatedMessage = (GeneratedMessageV3) message;
+                ServerInvocationAndResponseReport.endServerInvocation(requestId, fullMethodName, Status.OK, generatedMessage);
+                super.sendMessage(message);
+            }
         }
 
         @Override
         public void close(Status status, Metadata trailers) {
-            if (!status.equals(Status.OK)) {
-                ServerInvocationAndResponseReport.endServerInvocation(requestId, fullMethodName, status, null);
+            if (!shouldInstrument()) {
+                super.close(status, trailers);
+            } else {
+                if (!status.equals(Status.OK)) {
+                    ServerInvocationAndResponseReport.endServerInvocation(requestId, fullMethodName, status, null);
+                }
+                super.close(status, trailers);
             }
-            super.close(status, trailers);
         }
     }
 

@@ -34,8 +34,7 @@ public class APIServer {
         sb.workerGroup(FilibusterExecutor.getNewEventLoopGroup(), /* shutdownOnStop= */true);
         sb.http(Networking.getPort(serviceName));
 
-        ServerServiceDefinition interceptService = ServerInterceptors.intercept(new MyAPIService(),
-                List.of(new FilibusterServerInterceptor(serviceName), new FilibusterServerInvocationInterceptor("cloud.filibuster.examples")));
+        ServerServiceDefinition interceptService = ServerInterceptors.intercept(new MyAPIService(), List.of(new FilibusterServerInterceptor(serviceName), new FilibusterServerInvocationInterceptor("cloud.filibuster.examples")));
         sb.service(GrpcService.builder().addService(interceptService).build());
 
         sb.service("/health-check", new AbstractHttpService() {

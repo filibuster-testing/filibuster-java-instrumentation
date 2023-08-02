@@ -109,11 +109,9 @@ public class HelloServer {
         ServerServiceDefinition interceptService;
 
         if (useOtelServerInterceptor) {
-            interceptService = ServerInterceptors.intercept(new MyHelloService(),
-                    List.of(new OpenTelemetryFilibusterServerInterceptor(serviceName, null)));
+            interceptService = ServerInterceptors.intercept(new MyHelloService(), List.of(new OpenTelemetryFilibusterServerInterceptor(serviceName, null)));
         } else {
-            interceptService = ServerInterceptors.intercept(new MyHelloService(),
-                    List.of(new FilibusterServerInterceptor(serviceName), new FilibusterServerInvocationInterceptor("cloud.filibuster.examples")));
+            interceptService = ServerInterceptors.intercept(new MyHelloService(), List.of(new FilibusterServerInterceptor(serviceName), new FilibusterServerInvocationInterceptor("cloud.filibuster.examples")));
         }
 
         sb.service(GrpcService.builder().addService(interceptService).build());

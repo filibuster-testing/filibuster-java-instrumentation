@@ -1,5 +1,6 @@
 1.9.11:
-   - Invocation reporting fixes.
+   - (cmeiklejohn) Invocation reporting fixes.
+   - (cmeiklejohn) Add invocation report into the main UX.
 1.9.10:
    - (MichaelA-ops) UI: Show fix messages on plugin for FilibusterGrpcTestRuntimeException.
 1.9.9:

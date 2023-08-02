@@ -133,6 +133,15 @@ public class FilibusterConfiguration {
     }
 
     /**
+     * Do we fail on failing RPCs?
+     *
+     * @return boolean
+     */
+    public boolean getFailOnOrganicFailures() {
+        return this.failOnOrganicFailures;
+    }
+
+    /**
      * Should dynamic reduction be used?
      *
      * @return boolean

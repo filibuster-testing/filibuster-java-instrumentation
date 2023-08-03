@@ -27,6 +27,7 @@ cloud.filibuster.junit.configuration.examples.db.dynamodb
 cloud.filibuster.junit.configuration.examples.db.postgresql
 cloud.filibuster.junit.configuration.examples.db.redis
 cloud.filibuster.junit.extensions
+cloud.filibuster.junit.filters
 cloud.filibuster.junit.formatters
 cloud.filibuster.junit.interceptors
 cloud.filibuster.junit.resolvers

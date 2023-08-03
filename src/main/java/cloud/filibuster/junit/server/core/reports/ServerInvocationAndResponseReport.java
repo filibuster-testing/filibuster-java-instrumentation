@@ -31,6 +31,19 @@ import java.util.stream.Collectors;
 public class ServerInvocationAndResponseReport {
     private static final HashMap<String, Boolean> grpcMethodsInvoked = new HashMap<>();
 
+    public static void loadGrpcEndpoints(Class c) {
+        Method[] methods = c.getDeclaredMethods();
+        for (Method method : methods) {
+            Pattern pattern = Pattern.compile("get(.*)Method");
+            Matcher matcher = pattern.matcher(method.getName());
+            if (matcher.find()) {
+                String strippedMethodName = matcher.group(1);
+                String fullMethodName = c.getName().replace("Grpc", "") + "/" + strippedMethodName;
+                grpcMethodsInvoked.put(fullMethodName, false);
+            }
+        }
+    }
+
     @SuppressWarnings("ConstantPatternCompile")
     public static void loadGrpcEndpoints(String packageName) {
         Set<Class> allClassesInNamespace = findAllClassesUsingClassLoader(packageName);
@@ -45,16 +58,7 @@ public class ServerInvocationAndResponseReport {
         }
 
         for (Class c : grpcClasses) {
-            Method[] methods = c.getDeclaredMethods();
-            for (Method method : methods) {
-                Pattern pattern = Pattern.compile("get(.*)Method");
-                Matcher matcher = pattern.matcher(method.getName());
-                if (matcher.find()) {
-                    String strippedMethodName = matcher.group(1);
-                    String fullMethodName = c.getName().replace("Grpc", "") + "/" + strippedMethodName;
-                    grpcMethodsInvoked.put(fullMethodName, false);
-                }
-            }
+            loadGrpcEndpoints(c);
         }
     }
 

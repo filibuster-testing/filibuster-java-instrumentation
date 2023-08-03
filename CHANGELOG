@@ -1,3 +1,5 @@
+1.9.12:
+   - (cmeiklejohn) Add second constructor for invocation interceptor that takes a class directly.
 1.9.11:
    - (cmeiklejohn) Invocation reporting fixes.
    - (cmeiklejohn) Add invocation report into the main UX.

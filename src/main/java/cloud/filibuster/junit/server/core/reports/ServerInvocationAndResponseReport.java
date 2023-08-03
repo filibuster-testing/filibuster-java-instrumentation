@@ -31,9 +31,9 @@ import java.util.stream.Collectors;
 public class ServerInvocationAndResponseReport {
     private static final HashMap<String, Boolean> grpcMethodsInvoked = new HashMap<>();
 
-    static {
-        // TODO: fix hardcoding
-        Set<Class> allClassesInNamespace = findAllClassesUsingClassLoader("cloud.filibuster.examples");
+    @SuppressWarnings("ConstantPatternCompile")
+    public static void loadGrpcEndpoints(String packageName) {
+        Set<Class> allClassesInNamespace = findAllClassesUsingClassLoader(packageName);
 
         Set<Class> grpcClasses = new HashSet<>();
 

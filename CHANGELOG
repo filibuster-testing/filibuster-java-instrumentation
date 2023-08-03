@@ -12,6 +12,11 @@
     - (MichaelA-ops) Add exception config files for DynamoDB, Cassandra, CockroachDB and Postgres
     - (MichaelA-ops) Inject RedisConnectionException
     - (MichaelA-ops) Support null transformer fault injection for HTTP and GRPC
+1.9.11:
+   - (cmeiklejohn) Invocation reporting fixes.
+   - (cmeiklejohn) Add invocation report into the main UX.
+   - (cmeiklejohn) Add option to fail on any organic failures.
+   - (cmeiklejohn) Add filters for fault injection.
 1.9.10:
    - (MichaelA-ops) UI: Show fix messages on plugin for FilibusterGrpcTestRuntimeException.
 1.9.9:

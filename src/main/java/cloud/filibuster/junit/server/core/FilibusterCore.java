@@ -6,11 +6,13 @@ import cloud.filibuster.exceptions.filibuster.FilibusterCoreLogicException;
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultNotInjectedException;
 import cloud.filibuster.exceptions.filibuster.FilibusterLatencyInjectionException;
+import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.instrumentation.helpers.Property;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.server.core.transformers.Transformer;
 import cloud.filibuster.junit.assertions.BlockType;
 import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineFaultType;
+import cloud.filibuster.junit.filters.FilibusterFaultInjectionFilter;
 import cloud.filibuster.junit.server.core.reports.TestSuiteReport;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration.MatcherType;
@@ -39,6 +41,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
+
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -47,6 +52,8 @@ import static cloud.filibuster.junit.server.core.FilibusterCoreTransformerExtens
 import static cloud.filibuster.junit.server.core.FilibusterCoreTransformerExtension.getTransformerResult;
 import static cloud.filibuster.junit.server.core.FilibusterCoreTransformerExtension.setNextAccumulator;
 import static cloud.filibuster.junit.server.core.FilibusterCoreTransformerExtension.generateAndSetTransformerValue;
+
+import static cloud.filibuster.junit.server.core.test_executions.TestExecution.organicallyFailedInSourceConcreteTestExecution;
 
 @SuppressWarnings({"Varifier", "Var"})
 public class FilibusterCore {
@@ -104,7 +111,7 @@ public class FilibusterCore {
         // This statement clears out /tmp/filibuster and sets up the execution.
         TestSuiteReport.getInstance();
 
-        // This statement writes out the place holder for the report
+        // This statement writes out the placeholder for the report
         this.testReport = new TestReport(testName, testUUID, className);
         testReport.writeOutPlaceholder();
     }
@@ -554,6 +561,24 @@ public class FilibusterCore {
         return result;
     }
 
+    public synchronized boolean testContainsOrganicFailures() {
+        boolean found = false;
+
+        if (currentConcreteTestExecution != null) {
+            for (Map.Entry<DistributedExecutionIndex, JSONObject> executedRPC: currentConcreteTestExecution.getExecutedRPCs().entrySet()) {
+                DistributedExecutionIndex distributedExecutionIndex = executedRPC.getKey();
+                boolean organicallyFailedInSourceConcreteTestExecution = organicallyFailedInSourceConcreteTestExecution(this.currentConcreteTestExecution, this.currentConcreteTestExecution, distributedExecutionIndex);
+                boolean faultWasInjected = currentConcreteTestExecution.getFaultsToInject().containsKey(distributedExecutionIndex);
+                if (organicallyFailedInSourceConcreteTestExecution && !faultWasInjected) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+
+        return found;
+    }
+
     // A test has completed and all callbacks have fired.
     public synchronized void teardownsCompleted(int currentIteration) {
         logger.info("[FILIBUSTER-CORE]: teardownsCompleted called, currentIteration: " + currentIteration);
@@ -945,6 +970,15 @@ public class FilibusterCore {
     ) {
         logger.info("[FILIBUSTER-CORE]: generateFaultsUsingSpecificAnalysisConfiguration called.");
 
+        // Initialize the filter.
+        Class<? extends FilibusterFaultInjectionFilter> filibusterFaultInjectionFilterClass = filibusterConfiguration.getFaultInjectionFilter();
+        FilibusterFaultInjectionFilter filibusterFaultInjectionFilter;
+        try {
+            filibusterFaultInjectionFilter = filibusterFaultInjectionFilterClass.getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            throw new FilibusterRuntimeException(e);
+        }
+
         if (customAnalysisConfigurationFile != null) {
             for (FilibusterAnalysisConfiguration filibusterAnalysisConfiguration : customAnalysisConfigurationFile.getFilibusterAnalysisConfigurations()) {
                 // Second check here (concat) is a legacy check for the old Python server compatibility.
@@ -980,7 +1014,10 @@ public class FilibusterCore {
                     List<JSONObject> exceptionFaultObjects = filibusterAnalysisConfiguration.getExceptionFaultObjects();
 
                     for (JSONObject faultObject : exceptionFaultObjects) {
-                        createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject);
+                        // If we shouldn't execute this, skip it.
+                        if (filibusterFaultInjectionFilter.shouldInjectFault(methodName)) {
+                            createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject);
+                        }
                     }
 
                     // Errors.

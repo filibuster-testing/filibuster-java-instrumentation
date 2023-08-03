@@ -1,5 +1,6 @@
 package cloud.filibuster.junit.server.core.reports;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterException;
 import cloud.filibuster.junit.server.core.profiles.ServiceProfile;
 import com.google.protobuf.GeneratedMessageV3;
@@ -11,6 +12,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -33,15 +35,24 @@ public class ServerInvocationAndResponseReport {
 
     @SuppressWarnings("ConstantPatternCompile")
     public static void loadGrpcEndpoints(Class<?> c) {
-        Method[] methods = c.getDeclaredMethods();
-        for (Method method : methods) {
-            Pattern pattern = Pattern.compile("get(.*)Method");
-            Matcher matcher = pattern.matcher(method.getName());
-            if (matcher.find()) {
-                String strippedMethodName = matcher.group(1);
-                String fullMethodName = c.getName().replace("Grpc", "") + "/" + strippedMethodName;
-                grpcMethodsInvoked.put(fullMethodName, false);
+        String serviceName;
+
+        try {
+            Field serviceNameField = c.getField("SERVICE_NAME");
+            serviceName = (String) serviceNameField.get(null);
+
+            Method[] methods = c.getDeclaredMethods();
+            for (Method method : methods) {
+                Pattern pattern = Pattern.compile("get(.*)Method");
+                Matcher matcher = pattern.matcher(method.getName());
+                if (matcher.find()) {
+                    String strippedMethodName = matcher.group(1);
+                    String fullMethodName = serviceName + "/" + strippedMethodName;
+                    grpcMethodsInvoked.put(fullMethodName, false);
+                }
             }
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
         }
     }
 

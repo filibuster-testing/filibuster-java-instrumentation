@@ -31,7 +31,8 @@ import java.util.stream.Collectors;
 public class ServerInvocationAndResponseReport {
     private static final HashMap<String, Boolean> grpcMethodsInvoked = new HashMap<>();
 
-    public static void loadGrpcEndpoints(Class c) {
+    @SuppressWarnings("ConstantPatternCompile")
+    public static void loadGrpcEndpoints(Class<?> c) {
         Method[] methods = c.getDeclaredMethods();
         for (Method method : methods) {
             Pattern pattern = Pattern.compile("get(.*)Method");
@@ -48,16 +49,16 @@ public class ServerInvocationAndResponseReport {
     public static void loadGrpcEndpoints(String packageName) {
         Set<Class> allClassesInNamespace = findAllClassesUsingClassLoader(packageName);
 
-        Set<Class> grpcClasses = new HashSet<>();
+        Set<Class<?>> grpcClasses = new HashSet<>();
 
         // TODO: might not always work.
-        for (Class c : allClassesInNamespace) {
+        for (Class<?> c : allClassesInNamespace) {
             if (c.getName().endsWith("Grpc")) {
                 grpcClasses.add(c);
             }
         }
 
-        for (Class c : grpcClasses) {
+        for (Class<?> c : grpcClasses) {
             loadGrpcEndpoints(c);
         }
     }
@@ -179,7 +180,7 @@ public class ServerInvocationAndResponseReport {
     }
 
     @Nullable
-    private static Class getClass(String className, String packageName) {
+    private static Class<?> getClass(String className, String packageName) {
         try {
             return Class.forName(packageName + "."
                     + className.substring(0, className.lastIndexOf('.')));

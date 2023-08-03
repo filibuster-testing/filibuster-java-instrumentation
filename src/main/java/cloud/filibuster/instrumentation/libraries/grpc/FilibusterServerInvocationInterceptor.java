@@ -20,6 +20,10 @@ public class FilibusterServerInvocationInterceptor implements ServerInterceptor 
         ServerInvocationAndResponseReport.loadGrpcEndpoints(packageName);
     }
 
+    public FilibusterServerInvocationInterceptor(Class clazz) {
+        ServerInvocationAndResponseReport.loadGrpcEndpoints(clazz);
+    }
+
     private static boolean shouldInstrument() {
         if (getInstrumentationEnabledProperty()) {
             return true;

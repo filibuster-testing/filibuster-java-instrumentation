@@ -1,6 +1,5 @@
 package cloud.filibuster.junit.server.core.reports;
 
-import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterException;
 import cloud.filibuster.junit.server.core.profiles.ServiceProfile;
 import com.google.protobuf.GeneratedMessageV3;
@@ -52,7 +51,7 @@ public class ServerInvocationAndResponseReport {
                 }
             }
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
+            logger.warning("Cannot populate Filibuster server invocation report, cannot determine service name for class " + c.getName() + " : " + e);
         }
     }
 

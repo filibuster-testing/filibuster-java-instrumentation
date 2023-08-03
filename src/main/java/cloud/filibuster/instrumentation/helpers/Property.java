@@ -168,6 +168,28 @@ public class Property {
     }
 
     /***********************************************************************************
+     ** filibuster.test.fail_on_organic_failures
+     ***********************************************************************************/
+
+    public static final boolean FAIL_ON_ORGANIC_FAILURES_DEFAULT = false;
+
+    private final static String TEST_FAIL_ON_ORGANIC_FAILURES = "filibuster.test.fail_on_organic_failures";
+
+    public static void setTestFailOnOrganicFailuresProperty(boolean value) {
+        System.setProperty(TEST_FAIL_ON_ORGANIC_FAILURES, String.valueOf(value));
+    }
+
+    public static boolean getTestFailOnOrganicFailuresProperty() {
+        String propertyValue = System.getProperty(TEST_FAIL_ON_ORGANIC_FAILURES);
+
+        if (isPropertyNull(propertyValue)) {
+            return FAIL_ON_ORGANIC_FAILURES_DEFAULT;
+        } else {
+            return Boolean.valueOf(propertyValue);
+        }
+    }
+
+    /***********************************************************************************
      ** filibuster.test.avoid_injections_on_organic_failures
      ***********************************************************************************/
 

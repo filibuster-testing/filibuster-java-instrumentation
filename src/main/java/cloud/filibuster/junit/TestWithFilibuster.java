@@ -11,6 +11,8 @@ import cloud.filibuster.junit.configuration.examples.FilibusterDefaultAnalysisCo
 import cloud.filibuster.exceptions.filibuster.FilibusterNoopException;
 import cloud.filibuster.junit.extensions.FilibusterTestExtension;
 
+import cloud.filibuster.junit.filters.FilibusterFaultInjectionFilter;
+import cloud.filibuster.junit.filters.NoopFilter;
 import cloud.filibuster.junit.server.FilibusterServerBackend;
 import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
 import cloud.filibuster.junit.server.core.profiles.ServiceProfileBehavior;
@@ -26,6 +28,7 @@ import org.junit.jupiter.api.parallel.Isolated;
 import static cloud.filibuster.instrumentation.helpers.Property.AVOID_INJECTIONS_ON_ORGANIC_FAILURES_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.AVOID_REDUNDANT_INJECTIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.DATA_NONDETERMINISM_DEFAULT;
+import static cloud.filibuster.instrumentation.helpers.Property.FAIL_ON_ORGANIC_FAILURES_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.MAX_ITERATIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.SUPPRESS_COMBINATIONS_DEFAULT;
 
@@ -172,6 +175,13 @@ public @interface TestWithFilibuster {
     boolean avoidInjectionsOnOrganicFailures() default AVOID_INJECTIONS_ON_ORGANIC_FAILURES_DEFAULT;
 
     /**
+     * Should we fail the test when RPCs have failed without fault injection?
+     *
+     * @return whether we should avoid these injections
+     */
+    boolean failOnOrganicFailures() default FAIL_ON_ORGANIC_FAILURES_DEFAULT;
+
+    /**
      * Analysis file that should be used for this configuration of Filibuster.
      *
      * <p>When supplied, {@code analysisConfigurationFile()} is ignored.
@@ -256,5 +266,12 @@ public @interface TestWithFilibuster {
      * @return service profile behavior
      */
     ServiceProfileBehavior serviceProfileBehavior() default ServiceProfileBehavior.NONE;
+
+    /**
+     * Fault injection filter.
+     *
+     * @return filter
+     */
+    Class<? extends FilibusterFaultInjectionFilter> faultInjectionFilter() default NoopFilter.class;
 
 }

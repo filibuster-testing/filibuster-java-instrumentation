@@ -130,22 +130,77 @@
         .debug {
             display: none;
         }
+
+        div.container {
+            width: 100%;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        /* unvisited link */
+        a:link {
+            color: black;
+        }
+
+        /* visited link */
+        a:visited {
+            color: black;
+        }
+
+        /* mouse over link */
+        a:hover {
+            color: black;
+        }
+
+        /* selected link */
+        a:active {
+            color: black;
+        }
+
+        .class_name {
+            padding: 0;
+            margin-bottom: 10px;
+            font-family: 'Inconsolata', sans-serif;
+            font-size: small;
+            font-weight: 500;
+            width: 100%;
+            text-align: left;
+        }
+
+		th,
+		td {
+			font-weight: bold;
+			padding: 10px;
+            vertical-align: top;
+            font-size: 11px;
+            text-align: left;
+            font-weight: normal;
+		}
+
+		td {
+            text-align: left;
+            font-weight: normal;
+		}
 	</style>
 </head>
 
 <body>
 <section>
-    <h3 id='status'></h3>
-    <div style="float: left"><a href="#" onClick="toggleDebug();">Toggle Debugging Information</a></div>
-    <br />
+    <div class="container" style="margin: 0 auto; padding: 0;">
+        <div style="display: block; width: 98%; padding: 10px; margin-bottom: 10px; text-align: left;">
+            <a href="index.html">🔙</a>
 
-    <table id='endpoints'>
-        <tr>
-            <th>RPC Method <span id="hitPercentage"></span></th>
-        </tr>
-    </table>
+            <table id='endpoints' style="margin-top: 10px;">
+                <tr>
+                    <th>RPC Method Coverage:&nbsp;<span id="hitPercentage" style="font-weight: bold;"></span></th>
+                </tr>
+            </table>
+        </div>
+    </div>
 
-    <table id='invocations'>
+    <table id='invocations' style="display: none;">
         <tr>
             <th>RPC Method</th>
             <th>RPC Request</th>

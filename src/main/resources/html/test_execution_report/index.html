@@ -477,10 +477,10 @@
 
                         row += '<textarea>';
                         if (substringNamespace(rpc.response.return_value.__class__) === "HttpResponse") {
-                            row += "Status Code: " + rpc.response.return_value.status_code;
+                            row += "status_code = " + rpc.response.return_value.status_code;
 
                             if ('value' in rpc.response.return_value) {
-                                row += "\n";
+                                row += "\nvalue = ";
                                 row += rpc.response.return_value.value;
                             }
                         } else {

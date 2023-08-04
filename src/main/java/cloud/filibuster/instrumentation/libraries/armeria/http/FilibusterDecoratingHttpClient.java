@@ -153,6 +153,7 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
 
             if (req.method().toString().equals("POST") || req.method().toString().equals("PUT")) {
                 int payloadHashCode = -1;
+                String payloadString = null;
 
                 try {
                     // From: https://stackoverflow.com/questions/1196192/how-to-read-the-value-of-a-private-field-from-a-different-class-in-java
@@ -165,12 +166,19 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
                     HttpData f2ByteArray = (HttpData) f2.get(f1Delegate); //IllegalAccessException
 
                     payloadHashCode = f2ByteArray.hashCode();
+                    payloadString = f2ByteArray.toStringAscii();
                 } catch (NoSuchFieldException | IllegalAccessException e) {
                     // Ignore.
                     logger.log(Level.SEVERE, "!!! Possible dynamic reduction risk: could not serialize arguments for callsite identification");
                 }
 
-                serializedArguments.add(String.valueOf(payloadHashCode));
+                if (payloadString != null) {
+                    serializedArguments.add(payloadString);
+                }
+
+                if (payloadHashCode != -1) {
+                    serializedArguments.add(String.valueOf(payloadHashCode));
+                }
             }
 
             String classOrModuleName = "WebClient";

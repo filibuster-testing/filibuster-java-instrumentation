@@ -57,7 +57,7 @@ public class WorldTest {
         stopAPIServerAndWaitUntilUnavailable();
     }
 
-    @TestWithFilibuster(maxIterations = 10)
+    @TestWithFilibuster
     public void testWorld() {
         APIServiceGrpc.APIServiceBlockingStub apiServiceBlockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
         Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Chris").build();

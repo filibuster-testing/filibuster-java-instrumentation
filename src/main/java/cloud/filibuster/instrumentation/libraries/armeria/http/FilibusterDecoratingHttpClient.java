@@ -174,9 +174,7 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
 
                 if (payloadString != null) {
                     serializedArguments.add(payloadString);
-                }
-
-                if (payloadHashCode != -1) {
+                } else {
                     serializedArguments.add(String.valueOf(payloadHashCode));
                 }
             }
@@ -186,7 +184,7 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
                     serviceName,
                     classOrModuleName,
                     req.method().toString(),
-                    new CallsiteArguments(req.getClass(), String.join("-", serializedArguments)));
+                    new CallsiteArguments(req.getClass(), "[" + String.join(",", serializedArguments) + "]"));
         } else { // GRPC call
             String classOrModuleName = "GrpcClient";
             String path = req.path();

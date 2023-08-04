@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.armeria.http;
+package cloud.filibuster.functional.java.http;
 
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.integration.instrumentation.TestHelper;

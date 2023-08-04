@@ -473,9 +473,13 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("hello");
         Channel worldChannel = ClientInterceptors.intercept(worldManagedChannel, clientInterceptor);
 
-        WorldServiceGrpc.WorldServiceBlockingStub worldServiceBlockingStub = WorldServiceGrpc.newBlockingStub(worldChannel);
-        Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(req.getName()).build();
-        worldServiceBlockingStub.world(request);
+        try {
+            WorldServiceGrpc.WorldServiceBlockingStub worldServiceBlockingStub = WorldServiceGrpc.newBlockingStub(worldChannel);
+            Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(req.getName()).build();
+            worldServiceBlockingStub.world(request);
+        } catch (RuntimeException e) {
+            // Ignore for now, we only care about executing the request.
+        }
 
         worldManagedChannel.shutdownNow();
         try {

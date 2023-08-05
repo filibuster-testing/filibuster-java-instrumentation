@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.http;
+package cloud.filibuster.unit;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;

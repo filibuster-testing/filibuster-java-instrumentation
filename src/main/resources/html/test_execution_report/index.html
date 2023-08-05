@@ -474,8 +474,18 @@
                         console.log(rpc.response.return_value);
                         row += '<td class="response">';
                         row += '<div class="class_name">' + substringNamespace(rpc.response.return_value.__class__) + '</div>';
+
                         row += '<textarea>';
-                        row += rpc.response.return_value.toString;
+                        if (substringNamespace(rpc.response.return_value.__class__) === "HttpResponse") {
+                            row += "status_code = " + rpc.response.return_value.status_code;
+
+                            if ('value' in rpc.response.return_value) {
+                                row += "\nvalue = ";
+                                row += rpc.response.return_value.value;
+                            }
+                        } else {
+                            row += rpc.response.return_value.toString;
+                        }
                         row += '</textarea>'
                         row += '</td>';
                     }
@@ -522,6 +532,15 @@
                             row += '<div class="class_name">&nbsp;</div>';
                             row += '<textarea>';
                             row += 'milliseconds = ' + rpc.fault.latency.milliseconds;
+                            row += '</textarea>';
+                            row += '</td>';
+                        }
+
+                        if ('failure_metadata' in rpc.fault) {
+                            row += '<td>';
+                            row += '<div class="class_name">HttpResponse</div>';
+                            row += '<textarea>';
+                            row += 'status_code = ' + rpc.fault.failure_metadata.return_value.status_code;
                             row += '</textarea>';
                             row += '</td>';
                         }

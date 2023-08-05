@@ -44,12 +44,12 @@ public final class FilibusterCoreTransformerExtension {
                 // Return the transformation result.
                 return transformationResult;
             } else {
-                logger.warning("[FILIBUSTER-CORE]: getByzantineTransformationResult, transformer is missing required keys, either 'accumulator', 'referenceValue' or 'transformerClassName'.");
-                throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: getByzantineTransformationResult, transformer is missing required keys, either 'accumulator', 'referenceValue' or 'transformerClassName': " + transformer);
+                logger.warning("[FILIBUSTER-CORE]: getTransformerResult, transformer is missing required keys, either 'accumulator', 'referenceValue' or 'transformerClassName'.");
+                throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: getTransformerResult, transformer is missing required keys, either 'accumulator', 'referenceValue' or 'transformerClassName': " + transformer);
             }
         } catch (Exception e) {
-            logger.warning("[FILIBUSTER-CORE]: getByzantineTransformationResult, an exception occurred in getTransformerByzantineValue: " + e);
-            throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: getByzantineTransformationResult, an exception occurred in getTransformerByzantineValue: " + e);
+            logger.warning("[FILIBUSTER-CORE]: getTransformerResult, an exception occurred: " + e);
+            throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: getTransformerResult, an exception occurred: " + e);
         }
     }
 

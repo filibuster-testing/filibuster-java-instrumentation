@@ -93,7 +93,7 @@ dependencies {
 
     testImplementation 'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:1.6.0-alpha'
 
-    testImplementation "com.github.tomakehurst:wiremock-jre8:2.35.0"
+    testImplementation 'com.github.tomakehurst:wiremock:2.27.2'
 }
 
 test {

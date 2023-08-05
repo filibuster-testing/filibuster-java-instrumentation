@@ -72,7 +72,7 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
     private boolean trackedMethodInvoked;
 
     private DynamicProxyInterceptor(T targetObject, String connectionString) {
-        this(targetObject, connectionString, null, null, false);
+        this(targetObject, connectionString, null, null, /* trackedMethodInvoked= */false);
     }
 
     private DynamicProxyInterceptor(T targetObject, String connectionString, @Nullable String futureInvokeExceptionOnMethod, @Nullable JSONObject futureExceptionMetadata, boolean trackedMethodInvoked) {
@@ -329,7 +329,7 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
     }
 
     // Return true if exception should be injected on current method, otherwise false
-    private boolean shouldInjectExceptionOnCurrentMethod(JSONObject forcedException, String currentMethodName) {
+    private static boolean shouldInjectExceptionOnCurrentMethod(JSONObject forcedException, String currentMethodName) {
         JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
 
         if (forcedExceptionMetadata.has("injectOn")) {

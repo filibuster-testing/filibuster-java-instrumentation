@@ -358,7 +358,7 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
         return currentMethodName;
     }
 
-    private void generateAndThrowException(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject forcedException) throws Exception {
+    private static void generateAndThrowException(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject forcedException) throws Exception {
         String sExceptionName = forcedException.getString("name");
         JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
         String sCause = forcedExceptionMetadata.getString("cause");
@@ -367,7 +367,7 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
         throwExceptionAndNotifyFilibuster(filibusterClientInstrumentor, sExceptionName, sCause, sCode);
     }
 
-    private void throwExceptionAndNotifyFilibuster(FilibusterClientInstrumentor filibusterClientInstrumentor, String exceptionName, String cause, String code) throws Exception {
+    private static void throwExceptionAndNotifyFilibuster(FilibusterClientInstrumentor filibusterClientInstrumentor, String exceptionName, String cause, String code) throws Exception {
         Exception exceptionToThrow;
         Random rand = new Random(0);
 

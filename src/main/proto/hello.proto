@@ -20,6 +20,15 @@ service APIService {
   rpc SimulatePurchase (PurchaseRequest) returns (PurchaseResponse) {}
   rpc Purchase (PurchaseRequest) returns (PurchaseResponse) {}
   rpc RedisHelloRetry (RedisRequest) returns (RedisReply) {};
+  rpc NonPrimitive (NonPrimitiveRequest) returns (NonPrimitiveResponse) {};
+}
+
+message NonPrimitiveRequest {
+  map<string, string> obj = 1;
+}
+
+message NonPrimitiveResponse {
+  map<string, string> obj = 1;
 }
 
 message GetUserRequest {

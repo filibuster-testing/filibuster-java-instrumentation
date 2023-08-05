@@ -4,6 +4,7 @@ import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.dei.implementations.DistributedExecutionIndexV1;
 import cloud.filibuster.exceptions.filibuster.FilibusterCoreLogicException;
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
+import cloud.filibuster.exceptions.filibuster.FilibusterFaultNotInjectedAndATrackedMethodInvokedException;
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultNotInjectedException;
 import cloud.filibuster.exceptions.filibuster.FilibusterLatencyInjectionException;
 import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
@@ -42,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
 
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -523,6 +523,32 @@ public class FilibusterCore {
                         MapDifference<DistributedExecutionIndex, JSONObject> diff = Maps.difference(faultsToInject, failedRPCs);
                         throw new FilibusterFaultNotInjectedException("One or more of the intended faults was not injected: "
                                 + diff.entriesOnlyOnLeft().values());
+                    }
+                }
+            }
+
+            if (filibusterConfiguration.getFailIfFaultNotInjectedAndATrackedMethodIsInvoked()) {
+                if (throwable == null || !throwable.getClass().equals(FilibusterFaultNotInjectedException.class)) {
+                    HashMap<DistributedExecutionIndex, JSONObject> faultsToInject = currentConcreteTestExecution.getFaultsToInject();
+                    HashMap<DistributedExecutionIndex, JSONObject> failedRPCs = currentConcreteTestExecution.getFailedRPCs();
+                    if (failedRPCs.size() != faultsToInject.size()) {
+                        MapDifference<DistributedExecutionIndex, JSONObject> diff = Maps.difference(faultsToInject, failedRPCs);
+
+                        // Check if a tracked method was invoked.
+                        ArrayList<String> methodNames = new ArrayList<>();
+                        for (Map.Entry<DistributedExecutionIndex, JSONObject> dei : currentConcreteTestExecution.getTestExecutionReport().getResponses().entrySet()) {
+                            JSONObject responseObject = dei.getValue();
+                            if (responseObject.has("return_value")) {
+                                JSONObject returnValue = responseObject.getJSONObject("return_value");
+                                if (returnValue.has("trackedMethodInvoked") && returnValue.getBoolean("trackedMethodInvoked")) {
+                                    methodNames.add(responseObject.getString("method"));
+                                }
+                            }
+                        }
+
+                        throw new FilibusterFaultNotInjectedAndATrackedMethodInvokedException("The following tracked method(s) was invoked: " + methodNames + ". However, one or more of the intended faults " +
+                                "was not injected: " + diff.entriesOnlyOnLeft().values());
+
                     }
                 }
             }

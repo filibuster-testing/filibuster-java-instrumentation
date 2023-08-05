@@ -29,11 +29,13 @@ import org.junit.platform.commons.util.Preconditions;
 import static cloud.filibuster.instrumentation.helpers.Property.AVOID_INJECTIONS_ON_ORGANIC_FAILURES_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.AVOID_REDUNDANT_INJECTIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.DATA_NONDETERMINISM_DEFAULT;
+import static cloud.filibuster.instrumentation.helpers.Property.FAIL_IF_FAULT_NOT_INJECTED_AND_A_TRACKED_METHOD_IS_INVOKED_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.FAIL_IF_FAULT_NOT_INJECTED_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.FAIL_ON_ORGANIC_FAILURES_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.MAX_ITERATIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.SUPPRESS_COMBINATIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.getEnabledProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.getFailIfFaultNotInjectedAndATrackedMethodIsInvokedProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getFailIfFaultNotInjectedProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendDockerImageNameProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestAnalysisResourceFileProperty;
@@ -142,6 +144,13 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
             failIfFaultInjected = getFailIfFaultNotInjectedProperty();
         }
 
+        boolean failIfFaultNotInjectedAndATrackedMethodIsInvoked = testWithFilibuster.failIfFaultNotInjectedAndATrackedMethodIsInvoked();
+
+        if (failIfFaultNotInjectedAndATrackedMethodIsInvoked == FAIL_IF_FAULT_NOT_INJECTED_AND_A_TRACKED_METHOD_IS_INVOKED_DEFAULT) {
+            // Check the property to see if it was set.
+            failIfFaultNotInjectedAndATrackedMethodIsInvoked = getFailIfFaultNotInjectedAndATrackedMethodIsInvokedProperty();
+        }
+
         FilibusterSearchStrategy searchStrategy = testWithFilibuster.searchStrategy();
 
         if (searchStrategy.equals(FilibusterSearchStrategy.DEFAULT)) {
@@ -170,6 +179,7 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
                 .testName(displayName)
                 .className(className)
                 .failIfFaultNotInjected(failIfFaultInjected)
+                .failIfFaultNotInjectedAndATrackedMethodIsInvoked(failIfFaultNotInjectedAndATrackedMethodIsInvoked)
                 .build();
 
         validateSearchBackend(searchStrategy, filibusterConfiguration);

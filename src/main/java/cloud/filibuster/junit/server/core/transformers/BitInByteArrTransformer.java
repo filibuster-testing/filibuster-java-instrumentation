@@ -6,14 +6,10 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.lang.reflect.Type;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
-import java.util.Random;
 
 import com.google.gson.reflect.TypeToken;
 
-import static cloud.filibuster.instrumentation.helpers.Property.getRandomSeedProperty;
-
 public final class BitInByteArrTransformer implements Transformer<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> {
-    private static final Random rand = new Random(getRandomSeedProperty());
     private boolean hasNext = true;
     private byte[] result;
     private Accumulator<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> accumulator;
@@ -94,8 +90,8 @@ public final class BitInByteArrTransformer implements Transformer<byte[], ArrayL
     public Accumulator<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> getInitialAccumulator() {
         Accumulator<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> accumulator = new Accumulator<>();
         ArrayList<SimpleImmutableEntry<Integer, Integer>> ctx = new ArrayList<>();
-        // Initial entry for byte 0 at a random bit - the byteBound is exclusive
-        ctx.add(generateRandomEntry(1));
+        // Initial entry for byte and bit 0
+        ctx.add(new SimpleImmutableEntry<>(0, 0));
         accumulator.setContext(ctx);
         return accumulator;
     }
@@ -108,13 +104,8 @@ public final class BitInByteArrTransformer implements Transformer<byte[], ArrayL
             ArrayList<SimpleImmutableEntry<Integer, Integer>> ctx = accumulator.getContext();
 
             SimpleImmutableEntry<Integer, Integer> newEntry;
-            do {
-                newEntry = generateRandomEntry(accumulator.getReferenceValue().length);
-                if (!ctx.contains(newEntry)) {
-                    ctx.add(newEntry);
-                    break;
-                }
-            } while (ctx.contains(newEntry));
+            newEntry = getNextEntry(ctx.get(ctx.size() - 1));
+            ctx.add(newEntry);
 
             accumulator.setContext(ctx);
             return accumulator;
@@ -133,14 +124,11 @@ public final class BitInByteArrTransformer implements Transformer<byte[], ArrayL
                 listType).getType();
     }
 
-    private static SimpleImmutableEntry<Integer, Integer> generateRandomEntry(int byteBound) {
-        int byteIdx = generateRandomIdx(byteBound);
-        int bitIdx = generateRandomIdx(8);  // There are only 8 bits in a byte
+    private static SimpleImmutableEntry<Integer, Integer> getNextEntry(SimpleImmutableEntry<Integer, Integer> ctx) {
+        // There are only 8 bits in a byte
+        int byteIdx = ctx.getValue() < 7 ? ctx.getKey() : ctx.getKey() + 1;
+        int bitIdx = ctx.getValue() < 7 ? ctx.getValue() + 1 : 0;
         return new SimpleImmutableEntry<>(byteIdx, bitIdx);
-    }
-
-    private static int generateRandomIdx(int bound) {
-        return rand.nextInt(bound);
     }
 
 }

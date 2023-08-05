@@ -60,7 +60,7 @@ public class JUnitRedisFilibusterGetSessionLocationPositiveTest extends JUnitAnn
 
         statefulRedisConnection = RedisClientService.getInstance().redisClient.connect(RedisCodec.of(new StringCodec(), new ByteArrayCodec()));
         redisConnectionString = RedisClientService.getInstance().connectionString;
-        statefulRedisConnection.sync().set(sessionId, "a".getBytes());
+        statefulRedisConnection.sync().set(sessionId, sessionBytes);
 
         startAPIServerAndWaitUntilAvailable();
         startHelloServerAndWaitUntilAvailable();

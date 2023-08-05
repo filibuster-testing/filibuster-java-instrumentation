@@ -4,6 +4,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.junit.server.core.transformers.Accumulator;
 import cloud.filibuster.junit.server.core.transformers.Transformer;
 import com.google.gson.Gson;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
@@ -62,9 +63,16 @@ public final class FilibusterCoreTransformerExtension {
         }
     }
 
-    public static void generateAndSetTransformerValue(JSONObject transformer) {
+    public static void generateAndSetTransformerValue(JSONObject transformer, boolean asJsonArray) {
         Transformer<?, ?> transformerResult = getTransformerResult(transformer);
-        transformer.put("value", transformerResult.getResult());
+        Object result = transformerResult.getResult();
+        if (asJsonArray) {
+            if (result.getClass().isArray()) {
+                transformer.put("value", new JSONArray(result));
+                return;
+            }
+        }
+        transformer.put("value", result);
     }
 
 

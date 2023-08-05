@@ -52,9 +52,9 @@ public class JUnitRedisFilibusterGetSessionLocationPositiveTest extends JUnitAnn
     @BeforeAll
     public static void primeCache() throws IOException, InterruptedException {
         referenceSession = new JSONObject();
-//        referenceSession.put("uid", "JohnS.");
-        referenceSession.put("loc", "US");
-//        referenceSession.put("iat", "123");
+        referenceSession.put("uid", "JohnS.");
+        referenceSession.put("location", "US");
+        referenceSession.put("iat", "123");
 
         sessionBytes = referenceSession.toString().getBytes(Charset.defaultCharset());
 

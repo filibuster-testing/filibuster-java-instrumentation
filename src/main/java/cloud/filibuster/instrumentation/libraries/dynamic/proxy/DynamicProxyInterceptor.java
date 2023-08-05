@@ -49,6 +49,7 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationServerCommunicationEnabledProperty;
@@ -68,12 +69,13 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
     private final String connectionString;
     private static final String logPrefix = "[FILIBUSTER-PROXY_INTERCEPTOR]: ";
     private FilibusterClientInstrumentor filibusterClientInstrumentor;
+    private boolean trackedMethodInvoked;
 
     private DynamicProxyInterceptor(T targetObject, String connectionString) {
-        this(targetObject, connectionString, null, null);
+        this(targetObject, connectionString, null, null, false);
     }
 
-    private DynamicProxyInterceptor(T targetObject, String connectionString, @Nullable String futureInvokeExceptionOnMethod, @Nullable JSONObject futureExceptionMetadata) {
+    private DynamicProxyInterceptor(T targetObject, String connectionString, @Nullable String futureInvokeExceptionOnMethod, @Nullable JSONObject futureExceptionMetadata, boolean trackedMethodInvoked) {
         logger.log(Level.INFO, logPrefix + "Constructor was called");
         this.targetObject = targetObject;
         this.contextStorage = new ThreadLocalContextStorage();
@@ -81,6 +83,7 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
         this.serviceName = extractServiceFromConnection(connectionString);
         this.futureInvokeExceptionOnMethod = futureInvokeExceptionOnMethod;
         this.futureExceptionMetadata = futureExceptionMetadata;
+        this.trackedMethodInvoked = trackedMethodInvoked;
     }
 
     private static String extractServiceFromConnection(String connectionString) {
@@ -183,8 +186,13 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
             }
         }
 
-        if (this.futureInvokeExceptionOnMethod != null && this.futureInvokeExceptionOnMethod.equals(fullMethodName) && filibusterClientInstrumentor.shouldAbort()) {
-            generateAndThrowException(filibusterClientInstrumentor, this.futureExceptionMetadata);
+        if (this.futureExceptionMetadata != null) {
+            currentMethodIsTracked(this.futureExceptionMetadata, fullMethodName);
+
+            if (this.futureInvokeExceptionOnMethod != null && this.futureInvokeExceptionOnMethod.equals(fullMethodName) && filibusterClientInstrumentor.shouldAbort()) {
+                trackedMethodInvoked = false;  // Reset trackedMethodInvoked since the futureInvokeExceptionOnMethod  is the current method
+                generateAndThrowException(filibusterClientInstrumentor, this.futureExceptionMetadata);
+            }
         }
 
         if (byzantineFault != null && filibusterClientInstrumentor.shouldAbort()) {
@@ -219,13 +227,14 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
             }
 
             returnValueProperties.put("toString", sInvocationResult);
+            returnValueProperties.put("trackedMethodInvoked", String.valueOf(trackedMethodInvoked));
 
             // If "invocationResult" is an interface, return an intercepted proxy
             // (e.g., when calling StatefulRedisConnection.sync() where StatefulRedisConnection is an intercepted proxy,
             // the returned RedisCommands object should also be an intercepted proxy)
             if (method.getReturnType().isInterface() &&
                     method.getReturnType().getClassLoader() != null) {
-                invocationResult = DynamicProxyInterceptor.createInterceptor(invocationResult, connectionString, futureInvokeExceptionOnMethod, futureExceptionMetadata);
+                invocationResult = DynamicProxyInterceptor.createInterceptor(invocationResult, connectionString, futureInvokeExceptionOnMethod, futureExceptionMetadata, trackedMethodInvoked);
                 filibusterClientInstrumentor.afterInvocationComplete(method.getReturnType().getName(), returnValueProperties);
             } else {
                 filibusterClientInstrumentor.afterInvocationComplete(method.getReturnType().getName(), returnValueProperties, invocationResult);
@@ -327,14 +336,24 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
     }
 
     // Return true if exception should be injected on current method, otherwise false
-    private static boolean shouldInjectExceptionOnCurrentMethod(JSONObject forcedException, String currentMethodName) {
+    private boolean shouldInjectExceptionOnCurrentMethod(JSONObject forcedException, String currentMethodName) {
         JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
 
         if (forcedExceptionMetadata.has("injectOn")) {
             String injectOn = forcedExceptionMetadata.getString("injectOn");
+
             return injectOn.equals(currentMethodName);
         }
         return true;
+    }
+
+    private void currentMethodIsTracked(JSONObject forcedException, String currentMethodName) {
+        JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
+
+        if (forcedExceptionMetadata.has("trackInvocationOf")) {
+            String trackInvocationOf = forcedExceptionMetadata.getString("trackInvocationOf");
+            trackedMethodInvoked = trackedMethodInvoked || Pattern.compile(trackInvocationOf).matcher(currentMethodName).find();
+        }
     }
 
     private static String getExceptionMethodName(JSONObject forcedException, String currentMethodName) {
@@ -346,7 +365,7 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
         return currentMethodName;
     }
 
-    private static void generateAndThrowException(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject forcedException) throws Exception {
+    private void generateAndThrowException(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject forcedException) throws Exception {
         String sExceptionName = forcedException.getString("name");
         JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
         String sCause = forcedExceptionMetadata.getString("cause");
@@ -355,7 +374,7 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
         throwExceptionAndNotifyFilibuster(filibusterClientInstrumentor, sExceptionName, sCause, sCode);
     }
 
-    private static void throwExceptionAndNotifyFilibuster(FilibusterClientInstrumentor filibusterClientInstrumentor, String exceptionName, String cause, String code) throws Exception {
+    private void throwExceptionAndNotifyFilibuster(FilibusterClientInstrumentor filibusterClientInstrumentor, String exceptionName, String cause, String code) throws Exception {
         Exception exceptionToThrow;
         Random rand = new Random(0);
 
@@ -458,9 +477,9 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
                 dynamicProxyInterceptor);
     }
 
-    private static <T> T createInterceptor(T target, String connectionString, String futureInvokeExceptionOnMethod, JSONObject futureExceptionMetadata) {
+    private static <T> T createInterceptor(T target, String connectionString, String futureInvokeExceptionOnMethod, JSONObject futureExceptionMetadata, boolean trackedMethodInvoked) {
         logger.log(Level.INFO, logPrefix + "createInterceptor was called");
-        return createProxy(target, new DynamicProxyInterceptor<>(target, connectionString, futureInvokeExceptionOnMethod, futureExceptionMetadata));
+        return createProxy(target, new DynamicProxyInterceptor<>(target, connectionString, futureInvokeExceptionOnMethod, futureExceptionMetadata, trackedMethodInvoked));
     }
 
     public static <T> T createInterceptor(T target, String connectionString) {

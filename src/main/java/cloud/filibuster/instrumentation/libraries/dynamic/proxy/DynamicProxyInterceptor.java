@@ -72,7 +72,7 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
     private boolean trackedMethodInvoked;
 
     private DynamicProxyInterceptor(T targetObject, String connectionString) {
-        this(targetObject, connectionString, null, null, false);
+        this(targetObject, connectionString, null, null, /* trackedMethodInvoked= */false);
     }
 
     private DynamicProxyInterceptor(T targetObject, String connectionString, @Nullable String futureInvokeExceptionOnMethod, @Nullable JSONObject futureExceptionMetadata, boolean trackedMethodInvoked) {
@@ -336,7 +336,7 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
     }
 
     // Return true if exception should be injected on current method, otherwise false
-    private boolean shouldInjectExceptionOnCurrentMethod(JSONObject forcedException, String currentMethodName) {
+    private static boolean shouldInjectExceptionOnCurrentMethod(JSONObject forcedException, String currentMethodName) {
         JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
 
         if (forcedExceptionMetadata.has("injectOn")) {
@@ -365,7 +365,7 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
         return currentMethodName;
     }
 
-    private void generateAndThrowException(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject forcedException) throws Exception {
+    private static void generateAndThrowException(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject forcedException) throws Exception {
         String sExceptionName = forcedException.getString("name");
         JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
         String sCause = forcedExceptionMetadata.getString("cause");
@@ -374,7 +374,7 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
         throwExceptionAndNotifyFilibuster(filibusterClientInstrumentor, sExceptionName, sCause, sCode);
     }
 
-    private void throwExceptionAndNotifyFilibuster(FilibusterClientInstrumentor filibusterClientInstrumentor, String exceptionName, String cause, String code) throws Exception {
+    private static void throwExceptionAndNotifyFilibuster(FilibusterClientInstrumentor filibusterClientInstrumentor, String exceptionName, String cause, String code) throws Exception {
         Exception exceptionToThrow;
         Random rand = new Random(0);
 

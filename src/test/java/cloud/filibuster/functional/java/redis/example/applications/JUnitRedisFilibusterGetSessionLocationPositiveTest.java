@@ -98,21 +98,25 @@ public class JUnitRedisFilibusterGetSessionLocationPositiveTest extends JUnitAnn
     @DisplayName("Verify correct number of test executions.")
     @Test
     @Order(2)
-    // 1 for the reference execution and +1 for each bit in the byte array
-    // => 1 + sessionBytes.length * 8 = 1 + 69 * 8 = 553
+    // Number of execution is |BFI fault space| * |grpc fault space| + reference execution
+    // For the BFI fault space, we have a byte array with 44 bytes. Therefore, the fault space is 44 * 8 = 352
+    // For the gRPC fault space, we inject only one fault in the Hello service. Therefore, the fault space is 1 + 1 = 2
+    // The +1 comes from the iteration where no gRPC fault is injected
+    // In total, we have 352 * 2 + 1 = 705 test executions
     public void testNumExecutions() {
-        assertEquals(1 + sessionBytes.length * 8, numberOfTestExecutions);
+        assertEquals(1 + (sessionBytes.length * 8) * 2, numberOfTestExecutions);
     }
 
-    @DisplayName("Assert the fault at the hello service was found")
+    @DisplayName("Assert the exception UNAVAILABLE is found when a BFI and a GRPC fault are simultaneously injected")
     @Test
     @Order(3)
-    public void testHelloFaultFound() {
-        // The fault in the hello service will be found in every iteration where a bit in the key "title" was mutated
-        // The length of the key "title" is 5. Therefore, there are 5 * 8 = 40 iterations where the fault will be found
-        // TODO replace with actual exception that is thrown when both BFI and GRPC faults are injected
-        int helloFaults = testFaults.stream().filter(e -> e.contains("An exception was thrown at Hello service")).collect(Collectors.toList()).size();
-        assertEquals(40, helloFaults);
+    public void testGRPCAndBFIFaultFound() {
+        // This fault can only be detected in the iterations where a bit in the key "location" is mutated
+        // and, simultaneously, a gRPC fault is injected.
+        // The length of the key "location" is 8. Therefore, there are 8 * 8 = 64 iterations where the fault will be found
+        // That fault was found in 64 / 705 = 9% of the executions
+        int helloFaults = testFaults.stream().filter(e -> e.contains("UNAVAILABLE")).collect(Collectors.toList()).size();
+        assertEquals(64, helloFaults);
     }
 
     @DisplayName("Assert the exception 'session not found' was not found")
@@ -128,20 +132,19 @@ public class JUnitRedisFilibusterGetSessionLocationPositiveTest extends JUnitAnn
     @Test
     @Order(5)
     public void testNumDeserializationAndHelloFaults() {
-        // Out of 553 executions, 208 were deserialization faults
+        // Out of 705 executions, 308 were deserialization faults (308 / 705 = 44%)
         int deserializationFaults = testFaults.stream().filter(e -> e.contains("Error deserializing")).collect(Collectors.toList()).size();
 
-        // 40 iterations mutated the key "title" and therefore caused a fault in the hello service
-        // TODO replace with actual exception that is thrown when both BFI and GRPC faults are injected
-        int helloFaults = testFaults.stream().filter(e -> e.contains("An exception was thrown at Hello service")).collect(Collectors.toList()).size();
+        // 64 iterations where a gRPC fault and BFI fault at key "location" are simultaneously injected
+        int combinedGrpcAndBFIFaults = testFaults.stream().filter(e -> e.contains("UNAVAILABLE")).collect(Collectors.toList()).size();
 
-        // Total faults should be 208 + 40 = 248 faults
-        // This shows that only 248 / 553 = 44.8% of the executions actually caused faults
+        // Total faults should be 308 + 64 = 372 faults
+        // This shows that only 248 / 705 = 35% of the executions were successful
         // The rest of the executions were successful, although a bit was flipped
-        assertEquals(248, deserializationFaults + helloFaults);
+        assertEquals(372, deserializationFaults + combinedGrpcAndBFIFaults);
 
         // All faults should be either deserialization faults or from the hello service
-        assertEquals(testFaults.size(), deserializationFaults + helloFaults);
+        assertEquals(testFaults.size(), deserializationFaults + combinedGrpcAndBFIFaults);
     }
 
 }

@@ -51,9 +51,9 @@ public class JUnitRedisFilibusterGetSessionNegativeTest extends JUnitAnnotationB
     @BeforeAll
     public static void primeCache() throws IOException, InterruptedException {
         referenceSession = new JSONObject();
-        referenceSession.put("userId", "JohnSmith");
-        referenceSession.put("location", "USA");
-        referenceSession.put("iat", System.currentTimeMillis());
+        referenceSession.put("uid", "JohnS.");
+        referenceSession.put("location", "US");
+        referenceSession.put("iat", "123");
 
         sessionBytes = referenceSession.toString().getBytes(Charset.defaultCharset());
 
@@ -96,8 +96,9 @@ public class JUnitRedisFilibusterGetSessionNegativeTest extends JUnitAnnotationB
     @DisplayName("Verify correct number of test executions.")
     @Test
     @Order(2)
-    // 1 for the reference execution and +1 for each bit in the byte array
-    // => 1 + sessionBytes.length * 8 = 1 + 69 * 8 = 553
+    // Number of execution is |BFI fault space| + reference execution
+    // For the BFI fault space, we have a byte array with 44 bytes. Therefore, the fault space is 44 * 8 = 352
+    // In total, we have 352 + 1 = 353 test executions
     public void testNumExecutions() {
         assertEquals(1 + sessionBytes.length * 8, numberOfTestExecutions);
     }
@@ -109,24 +110,24 @@ public class JUnitRedisFilibusterGetSessionNegativeTest extends JUnitAnnotationB
         // In this scenario, the bit transformations should only cause deserialization faults
         int deserializationFaults = testFaults.stream().filter(e -> e.contains("Error deserializing")).collect(Collectors.toList()).size();
 
-        // Out of 553 executions, 208 caused deserialization faults
-        // This shows that only 208 / 554 = 37.6% of the executions actually caused faults
+        // Out of 705 executions, 154 were deserialization faults
+        // This shows that only 154 / 705 = 21.8% of the executions actually caused faults
         // The rest of the executions were successful, although a bit was flipped
-        assertEquals(208, deserializationFaults);
+        assertEquals(154, deserializationFaults);
 
         // All faults should be deserialization faults
         assertEquals(testFaults.size(), deserializationFaults);
     }
 
-    @DisplayName("Assert the fault at the hello service was not found")
+    @DisplayName("Assert the second level cache fault was not found")
     @Test
     @Order(4)
-    public void testHelloFaultNotFound() {
+    public void testSecondLevelCacheFaultNotFound() {
         // The bit transformations should only cause deserialization faults
-        // In all the 553 executions, none of the injected faults leads us to discover the
-        // fault at the hello service
-        int helloFaults = testFaults.stream().filter(e -> e.contains("Redis second level cache is down.")).collect(Collectors.toList()).size();
-        assertEquals(0, helloFaults);
+        // In all the 705 executions, none of the injected faults leads us to discover the
+        // second level cache down fault
+        int cacheDownFault = testFaults.stream().filter(e -> e.contains("Redis second level cache is down.")).collect(Collectors.toList()).size();
+        assertEquals(0, cacheDownFault);
     }
 
 }

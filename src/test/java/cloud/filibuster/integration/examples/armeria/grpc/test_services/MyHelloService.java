@@ -812,7 +812,7 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
         // Returns a random element from the list of countries
         String[] countries = {"USA", "Germany", "Canada", "Brazil", "France", "Italy", "Spain", "UK", "China", "Japan"};
         Hello.HelloReply reply = Hello.HelloReply.newBuilder()
-                .setMessage(countries[(int) (Math.random() * countries.length)])
+                .setMessage(countries[(int) (Math.random() * (countries.length - 1))])
                 .build();
         responseObserver.onNext(reply);
         responseObserver.onCompleted();

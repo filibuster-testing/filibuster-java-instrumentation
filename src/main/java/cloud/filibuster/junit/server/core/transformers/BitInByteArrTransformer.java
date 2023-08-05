@@ -103,8 +103,7 @@ public final class BitInByteArrTransformer implements Transformer<byte[], ArrayL
         } else {
             ArrayList<SimpleImmutableEntry<Integer, Integer>> ctx = accumulator.getContext();
 
-            SimpleImmutableEntry<Integer, Integer> newEntry;
-            newEntry = getNextEntry(ctx.get(ctx.size() - 1));
+            SimpleImmutableEntry<Integer, Integer> newEntry = getNextEntry(ctx.get(ctx.size() - 1));
             ctx.add(newEntry);
 
             accumulator.setContext(ctx);

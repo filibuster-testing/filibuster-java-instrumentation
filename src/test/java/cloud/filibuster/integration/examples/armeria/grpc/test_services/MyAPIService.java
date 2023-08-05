@@ -13,7 +13,6 @@ import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInte
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
 import cloud.filibuster.functional.java.purchase.PurchaseWorkflow;
 import cloud.filibuster.integration.instrumentation.TestHelper;
-import cloud.filibuster.integration.instrumentation.libraries.opentelemetry.OpenTelemetryFilibusterClientInterceptor;
 import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.AggregatedHttpResponse;
 import com.linecorp.armeria.common.HttpHeaderNames;

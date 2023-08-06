@@ -325,13 +325,13 @@ public class HelloGrpcServerTestWithHelloAndWorldAndFilibusterServerFakeTest ext
 
         JSONObject secondInvocationPayload = FilibusterServerFake.payloadsReceived.get(2);
         assertEquals("invocation", secondInvocationPayload.getString("instrumentation_type"));
-        assertEquals("[[\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-07b1a0d6b1748a4e44384cce19bb13bb84b70289-c5ae426c0e338b03f750b8963fd3010cee50be0a-3c1cee3739e0ed5d0c169309c4a17650cd7fb4a4\", 1], [\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-7c211433f02071597741e6ff5a8ea34789abbf43-bf801c417a24769c151e3729f35ee3e62e4e04d4-97094b6a010685cf94ff6050f3e7d47808fad43b-0a8127ad87a9ab6630533750add635c52d003488\", 1]]", secondInvocationPayload.getString("execution_index"));
+        assertEquals("[[\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-07b1a0d6b1748a4e44384cce19bb13bb84b70289-c5ae426c0e338b03f750b8963fd3010cee50be0a-3c1cee3739e0ed5d0c169309c4a17650cd7fb4a4\", 1], [\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-7c211433f02071597741e6ff5a8ea34789abbf43-bf801c417a24769c151e3729f35ee3e62e4e04d4-97094b6a010685cf94ff6050f3e7d47808fad43b-efcac005fd5764253ef51e64f89f80aa3694defe\", 1]]", secondInvocationPayload.getString("execution_index"));
         assertEquals(secondRequestVectorClock.toJSONObject().toString(), secondInvocationPayload.getJSONObject("vclock").toString());
         secondInvocationPayload = null;
 
         JSONObject secondInvocationCompletePayload = FilibusterServerFake.payloadsReceived.get(3);
         assertEquals("invocation_complete", secondInvocationCompletePayload.getString("instrumentation_type"));
-        assertEquals("[[\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-07b1a0d6b1748a4e44384cce19bb13bb84b70289-c5ae426c0e338b03f750b8963fd3010cee50be0a-3c1cee3739e0ed5d0c169309c4a17650cd7fb4a4\", 1], [\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-7c211433f02071597741e6ff5a8ea34789abbf43-bf801c417a24769c151e3729f35ee3e62e4e04d4-97094b6a010685cf94ff6050f3e7d47808fad43b-0a8127ad87a9ab6630533750add635c52d003488\", 1]]", secondInvocationCompletePayload.getString("execution_index"));
+        assertEquals("[[\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-07b1a0d6b1748a4e44384cce19bb13bb84b70289-c5ae426c0e338b03f750b8963fd3010cee50be0a-3c1cee3739e0ed5d0c169309c4a17650cd7fb4a4\", 1], [\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-7c211433f02071597741e6ff5a8ea34789abbf43-bf801c417a24769c151e3729f35ee3e62e4e04d4-97094b6a010685cf94ff6050f3e7d47808fad43b-efcac005fd5764253ef51e64f89f80aa3694defe\", 1]]", secondInvocationCompletePayload.getString("execution_index"));
         assertEquals(secondRequestVectorClock.toJSONObject().toString(), secondInvocationCompletePayload.getJSONObject("vclock").toString());
         assertEquals(0, secondInvocationCompletePayload.getInt("generated_id"));
         secondInvocationCompletePayload = null;

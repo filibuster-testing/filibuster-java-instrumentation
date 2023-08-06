@@ -5,11 +5,16 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.CassandraClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.db.cassandra.CassandraSingleFaultOverloadedExceptionAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.db.cassandra.CassandraAnalysisConfigurationFile;
 import com.datastax.oss.driver.api.core.CqlIdentifier;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.metadata.schema.KeyspaceMetadata;
+import com.datastax.oss.driver.api.core.servererrors.InvalidQueryException;
 import com.datastax.oss.driver.api.core.servererrors.OverloadedException;
+import com.datastax.oss.driver.api.core.servererrors.ReadFailureException;
+import com.datastax.oss.driver.api.core.servererrors.ReadTimeoutException;
+import com.datastax.oss.driver.api.core.servererrors.WriteFailureException;
+import com.datastax.oss.driver.api.core.servererrors.WriteTimeoutException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -36,7 +41,7 @@ public class JUnitCassandraFilibusterExecutionTest extends JUnitAnnotationBaseTe
 
     @DisplayName("Tests whether Cassandra interceptor can inject basic exception")
     @Order(1)
-    @TestWithFilibuster(analysisConfigurationFile = CassandraSingleFaultOverloadedExceptionAnalysisConfigurationFile.class)
+    @TestWithFilibuster(analysisConfigurationFile = CassandraAnalysisConfigurationFile.class)
     @SuppressWarnings("CatchingUnchecked")
     public void testCassandraExceptionInjection() {
         try {
@@ -62,7 +67,8 @@ public class JUnitCassandraFilibusterExecutionTest extends JUnitAnnotationBaseTe
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
             assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService("com.datastax.oss.driver.api.core.CqlSession"), "Expected FilibusterUnsupportedAPIException to be thrown: " + t);
             assertTrue(wasFaultInjectedOnMethod("com.datastax.oss.driver.api.core.CqlSession/execute"), "Fault was not injected on the expected method: " + t);
-            assertTrue(t instanceof OverloadedException, "Fault was not of the correct type: " + t);
+            assertTrue(t instanceof OverloadedException || t instanceof InvalidQueryException || t instanceof ReadFailureException || t instanceof ReadTimeoutException || t instanceof WriteFailureException || t instanceof WriteTimeoutException,
+                    "Fault was not of the correct type: " + t);
         }
     }
 
@@ -70,14 +76,14 @@ public class JUnitCassandraFilibusterExecutionTest extends JUnitAnnotationBaseTe
     @Test
     @Order(2)
     public void testNumExecutions() {
-        // 1 fault free execution + 1 fault injected execution
-        assertEquals(2, numberOfTestExecutions);
+        // 1 fault free execution + 6 executions with faults injected
+        assertEquals(7, numberOfTestExecutions);
     }
 
     @DisplayName("Verify correct number of generated Filibuster tests.")
     @Test
     @Order(3)
     public void testNumExceptions() {
-        assertEquals(1, testExceptionsThrown.size());
+        assertEquals(6, testExceptionsThrown.size());
     }
 }

@@ -59,6 +59,10 @@ public class FilibusterConfiguration {
     private final List<ServiceProfile> serviceProfiles;
     private final ServiceProfileBehavior serviceProfileBehavior;
 
+    private final boolean failIfFaultNotInjected;
+
+    private final boolean failIfFaultNotInjectedAndATrackedMethodIsInvoked;
+
     private FilibusterConfiguration(Builder builder) {
         this.abortOnFirstFailure = builder.abortOnFirstFailure;
         this.dynamicReduction = builder.dynamicReduction;
@@ -79,6 +83,8 @@ public class FilibusterConfiguration {
         this.serviceProfiles = builder.serviceProfiles;
         this.serviceProfileBehavior = builder.serviceProfileBehavior;
         this.className = builder.className;
+        this.failIfFaultNotInjected = builder.failIfFaultNotInjected;
+        this.failIfFaultNotInjectedAndATrackedMethodIsInvoked = builder.failIfFaultNotInjectedAndATrackedMethodIsInvoked;
     }
 
     /**
@@ -212,6 +218,24 @@ public class FilibusterConfiguration {
     }
 
     /**
+     * Fail the test if a fault is not injected.
+     *
+     * @return whether service should fail.
+     */
+    public boolean getFailIfFaultNotInjected() {
+        return this.failIfFaultNotInjected;
+    }
+
+    /**
+     * Fail the test if a fault is not injected and a tracked method is invoked.
+     *
+     * @return whether service should fail.
+     */
+    public boolean getFailIfFaultNotInjectedAndATrackedMethodIsInvoked() {
+        return this.failIfFaultNotInjectedAndATrackedMethodIsInvoked;
+    }
+
+    /**
      * How should service profiles be used?
      *
      * @return service profile behavior
@@ -308,6 +332,9 @@ public class FilibusterConfiguration {
         private List<ServiceProfile> serviceProfiles;
 
         private ServiceProfileBehavior serviceProfileBehavior;
+
+        private boolean failIfFaultNotInjected;
+        private boolean failIfFaultNotInjectedAndATrackedMethodIsInvoked;
 
         /**
          * Should this configuration use dynamic reduction?
@@ -521,6 +548,18 @@ public class FilibusterConfiguration {
         @CanIgnoreReturnValue
         public Builder className(String className) {
             this.className = className;
+            return this;
+        }
+
+        @CanIgnoreReturnValue
+        public Builder failIfFaultNotInjected(boolean failIfFaultNotInjected) {
+            this.failIfFaultNotInjected = failIfFaultNotInjected;
+            return this;
+        }
+
+        @CanIgnoreReturnValue
+        public Builder failIfFaultNotInjectedAndATrackedMethodIsInvoked(boolean failIfFaultNotInjectedAndATrackedMethodIsInvoked) {
+            this.failIfFaultNotInjectedAndATrackedMethodIsInvoked = failIfFaultNotInjectedAndATrackedMethodIsInvoked;
             return this;
         }
 

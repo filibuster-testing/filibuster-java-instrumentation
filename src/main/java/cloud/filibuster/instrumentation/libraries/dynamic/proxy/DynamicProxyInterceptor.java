@@ -8,10 +8,29 @@ import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrument
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
 import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineFaultType;
+import cloud.filibuster.junit.server.core.transformers.Accumulator;
+import com.datastax.oss.driver.api.core.servererrors.InvalidQueryException;
 import com.datastax.oss.driver.api.core.servererrors.OverloadedException;
+import com.datastax.oss.driver.api.core.servererrors.ReadFailureException;
+import com.datastax.oss.driver.api.core.servererrors.ReadTimeoutException;
+import com.datastax.oss.driver.api.core.servererrors.WriteFailureException;
+import com.datastax.oss.driver.api.core.servererrors.WriteTimeoutException;
+import com.google.gson.Gson;
+import io.lettuce.core.RedisBusyException;
+import io.lettuce.core.RedisCommandExecutionException;
+import io.lettuce.core.RedisCommandInterruptedException;
+import io.lettuce.core.RedisCommandTimeoutException;
+import io.lettuce.core.RedisConnectionException;
+import io.lettuce.core.cluster.PartitionSelectorException;
+import io.lettuce.core.cluster.UnknownPartitionException;
+import io.lettuce.core.cluster.models.partitions.Partitions;
+import io.lettuce.core.dynamic.batch.BatchException;
 import org.json.JSONObject;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.ServerErrorMessage;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 import software.amazon.awssdk.services.dynamodb.model.RequestLimitExceededException;
 
 import javax.annotation.Nullable;
@@ -20,39 +39,51 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URI;
+import java.sql.SQLException;
+import java.sql.SQLTimeoutException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Random;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationServerCommunicationEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getRedisTestPortNondeterminismProperty;
 
 
-public class DynamicProxyInterceptor<T> implements InvocationHandler {
+public final class DynamicProxyInterceptor<T> implements InvocationHandler {
 
     private static final Logger logger = Logger.getLogger(DynamicProxyInterceptor.class.getName());
     private final T targetObject;
-
     public static final Boolean disableInstrumentation = false;
-
-    protected final ContextStorage contextStorage;
-
+    private final String futureInvokeExceptionOnMethod;
+    private final JSONObject futureExceptionMetadata;
+    private final ContextStorage contextStorage;
     public static final Boolean disableServerCommunication = false;
     private final String serviceName;
     private final String connectionString;
     private static final String logPrefix = "[FILIBUSTER-PROXY_INTERCEPTOR]: ";
     private FilibusterClientInstrumentor filibusterClientInstrumentor;
+    private boolean trackedMethodInvoked;
 
     private DynamicProxyInterceptor(T targetObject, String connectionString) {
+        this(targetObject, connectionString, null, null, /* trackedMethodInvoked= */false);
+    }
+
+    private DynamicProxyInterceptor(T targetObject, String connectionString, @Nullable String futureInvokeExceptionOnMethod, @Nullable JSONObject futureExceptionMetadata, boolean trackedMethodInvoked) {
         logger.log(Level.INFO, logPrefix + "Constructor was called");
         this.targetObject = targetObject;
         this.contextStorage = new ThreadLocalContextStorage();
         this.connectionString = connectionString;
         this.serviceName = extractServiceFromConnection(connectionString);
+        this.futureInvokeExceptionOnMethod = futureInvokeExceptionOnMethod;
+        this.futureExceptionMetadata = futureExceptionMetadata;
+        this.trackedMethodInvoked = trackedMethodInvoked;
     }
 
     private static String extractServiceFromConnection(String connectionString) {
@@ -123,10 +154,12 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
         JSONObject forcedException = filibusterClientInstrumentor.getForcedException();
         JSONObject failureMetadata = filibusterClientInstrumentor.getFailureMetadata();
         JSONObject byzantineFault = filibusterClientInstrumentor.getByzantineFault();
+        JSONObject transformerFault = filibusterClientInstrumentor.getTransformerFault();
 
         logger.log(Level.INFO, logPrefix + "forcedException: " + forcedException);
         logger.log(Level.INFO, logPrefix + "failureMetadata: " + failureMetadata);
         logger.log(Level.INFO, logPrefix + "byzantineFault: " + byzantineFault);
+        logger.log(Level.INFO, logPrefix + "transformerFault: " + transformerFault);
 
         // ******************************************************************************************
         // If we need to throw, this is where we throw.
@@ -136,12 +169,38 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
             generateExceptionFromFailureMetadata();
         }
 
+        String futureInvokeExceptionOnMethod = null;
+        JSONObject futureExceptionMetadata = null;
+
         if (forcedException != null && filibusterClientInstrumentor.shouldAbort()) {
-            generateAndThrowException(filibusterClientInstrumentor, forcedException);
+            boolean shouldInjectExceptionOnCurrentMethod = shouldInjectExceptionOnCurrentMethod(forcedException, fullMethodName);
+
+            if (shouldInjectExceptionOnCurrentMethod) {
+                generateAndThrowException(filibusterClientInstrumentor, forcedException);
+            } else {
+                // If the forced exception should not be injected on the current method, we store the metadata of the exception
+                // and the name of the method on which it should be injected. This information will be used later, when the correct
+                // method is invoked, to throw the exception.
+                futureInvokeExceptionOnMethod = getExceptionMethodName(forcedException, fullMethodName);
+                futureExceptionMetadata = forcedException;
+            }
+        }
+
+        if (this.futureExceptionMetadata != null) {
+            currentMethodIsTracked(this.futureExceptionMetadata, fullMethodName);
+
+            if (this.futureInvokeExceptionOnMethod != null && this.futureInvokeExceptionOnMethod.equals(fullMethodName) && filibusterClientInstrumentor.shouldAbort()) {
+                trackedMethodInvoked = false;  // Reset trackedMethodInvoked since the futureInvokeExceptionOnMethod  is the current method
+                generateAndThrowException(filibusterClientInstrumentor, this.futureExceptionMetadata);
+            }
         }
 
         if (byzantineFault != null && filibusterClientInstrumentor.shouldAbort()) {
-            return injectByzantineFault(filibusterClientInstrumentor, byzantineFault);
+            return injectByzantineFault(filibusterClientInstrumentor, byzantineFault, method.getReturnType());
+        }
+
+        if (transformerFault != null && filibusterClientInstrumentor.shouldAbort()) {
+            return injectTransformerFault(filibusterClientInstrumentor, transformerFault, method.getReturnType());
         }
 
         // ******************************************************************************************
@@ -151,20 +210,39 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
         Object invocationResult = invokeOnInterceptedObject(method, args);
         HashMap<String, String> returnValueProperties = new HashMap<>();
 
-        // invocationResult could be null (e.g., when querying a key in that does not exist). If it is null, skip
-        // execute the following block
+        // invocationResult could be null (e.g., when querying a key in that does not exist)
         if (invocationResult != null) {
-            returnValueProperties.put("toString", invocationResult.toString());
+            String sInvocationResult;
+
+            // Remove memory references from the response
+            // They can differ for each test execution and can cause non-termination
+            if ((invocationResult.getClass().getName().contains("jdk.proxy") || // Matches Redis
+                    invocationResult.getClass().getName().contains("org.postgresql.jdbc")) // Matches Postgres
+                    && invocationResult.toString().matches(".*\\..*@.*"))  // Match the pattern of having class names, separated by ".", then "@" and then the memory reference
+            {
+                // Avoid encoding memory reference in the RPC response. Instead, encode only the class name
+                sInvocationResult = invocationResult.toString().split("@")[0];
+            } else {
+                sInvocationResult = invocationResult.toString();
+            }
+
+            returnValueProperties.put("toString", sInvocationResult);
+            returnValueProperties.put("trackedMethodInvoked", String.valueOf(trackedMethodInvoked));
+
             // If "invocationResult" is an interface, return an intercepted proxy
             // (e.g., when calling StatefulRedisConnection.sync() where StatefulRedisConnection is an intercepted proxy,
             // the returned RedisCommands object should also be an intercepted proxy)
             if (method.getReturnType().isInterface() &&
                     method.getReturnType().getClassLoader() != null) {
-                invocationResult = DynamicProxyInterceptor.createInterceptor(invocationResult, connectionString);
+                invocationResult = DynamicProxyInterceptor.createInterceptor(invocationResult, connectionString, futureInvokeExceptionOnMethod, futureExceptionMetadata, trackedMethodInvoked);
+                filibusterClientInstrumentor.afterInvocationComplete(method.getReturnType().getName(), returnValueProperties);
+            } else {
+                filibusterClientInstrumentor.afterInvocationComplete(method.getReturnType().getName(), returnValueProperties, invocationResult);
             }
+        } else {
+            returnValueProperties.put("toString", null);
+            filibusterClientInstrumentor.afterInvocationComplete(method.getReturnType().getName(), returnValueProperties);
         }
-
-        filibusterClientInstrumentor.afterInvocationComplete(method.getReturnType().getName(), returnValueProperties);
 
         return invocationResult;
     }
@@ -181,58 +259,187 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
         }
     }
 
-    @Nullable
-    private static Object injectByzantineFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject byzantineFault) {
-        if (byzantineFault.has("type") && byzantineFault.has("metadata")) {
-            ByzantineFaultType<?> byzantineFaultType = (ByzantineFaultType<?>) byzantineFault.get("type");
-            JSONObject byzantineFaultMetadata = byzantineFault.getJSONObject("metadata");
+    private static Object injectTransformerFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject transformerFault, Class<?> returnType) {
+        try {
+            if (transformerFault.has("value") && transformerFault.has("accumulator")) {
 
-            // If a value was assigned, return it. Otherwise, return null.
-            Object byzantineFaultValue = byzantineFaultMetadata.has("value") ? byzantineFaultMetadata.get("value") : null;
+                // Extract the transformer fault value from the transformerFault JSONObject.
+                Object transformerFaultValue = transformerFault.get("value");
+                String sTransformerValue = transformerFaultValue.toString();
+                logger.log(Level.INFO, logPrefix + "Injecting the transformed fault value: " + sTransformerValue);
 
-            // Cast the byzantineFaultValue to the correct type.
-            byzantineFaultValue = byzantineFaultType.cast(byzantineFaultValue);
+                // Extract the accumulator from the transformerFault JSONObject.
+                Accumulator<?, ?> accumulator = new Gson().fromJson(transformerFault.get("accumulator").toString(), Accumulator.class);
 
-            logger.log(Level.INFO, logPrefix + "byzantineFaultType: " + byzantineFaultType);
-            logger.log(Level.INFO, logPrefix + "byzantineFaultValue: " + byzantineFaultValue);
+                // Notify Filibuster.
+                filibusterClientInstrumentor.afterInvocationWithTransformerFault(sTransformerValue,
+                        returnType.toString(), accumulator);
 
-            // Build the additional metadata used to notify Filibuster.
-            HashMap<String, String> additionalMetadata = new HashMap<>();
-            String byzantineFaultValueString = byzantineFaultValue != null ? byzantineFaultValue.toString() : "null";
-            additionalMetadata.put("name", byzantineFaultType.toString());
-            additionalMetadata.put("value", byzantineFaultValueString);
-
-            // Notify Filibuster.
-            filibusterClientInstrumentor.afterInvocationWithException(byzantineFaultType.toString(), byzantineFaultValueString, additionalMetadata);
-
-            return byzantineFaultValue;
-        } else {
-            logger.log(Level.WARNING, logPrefix + "The byzantineFault either does not have the required key 'type' or 'metadata'");
-            return null;
+                // Return the transformer fault value.
+                return transformerFaultValue;
+            } else {
+                String missingKey;
+                if (transformerFault.has("value")) {
+                    missingKey = "accumulator";
+                } else {
+                    missingKey = "value";
+                }
+                logger.log(Level.WARNING, logPrefix + "injectTransformerFault: The transformerFault does not have the required key " + missingKey);
+                throw new FilibusterFaultInjectionException("injectTransformerFault: The transformerFault does not have the required key " + missingKey);
+            }
+        } catch (RuntimeException e) {
+            logger.log(Level.WARNING, logPrefix + "Could not inject transformer fault. The cast was probably not successful:", e);
+            throw new FilibusterFaultInjectionException("Could not inject transformer fault. The cast was probably not successful:", e);
         }
     }
 
-    private static void generateAndThrowException(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject forcedException) throws Exception {
-        String exceptionNameString = forcedException.getString("name");
+    @Nullable
+    private static Object injectByzantineFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject byzantineFault, Class<?> returnType) {
+        try {
+            if (byzantineFault.has("type") && byzantineFault.has("value")) {
+                ByzantineFaultType<?> byzantineFaultType = (ByzantineFaultType<?>) byzantineFault.get("type");
+                Object value = byzantineFault.get("value");
+
+                // Cast the byzantineFaultValue to the correct type.
+                value = byzantineFaultType.cast(value);
+
+                logger.log(Level.INFO, logPrefix + "byzantineFaultType: " + byzantineFaultType);
+                logger.log(Level.INFO, logPrefix + "byzantineFaultValue: " + value);
+
+                String sByzantineFaultValue = String.valueOf(value);
+
+                // Notify Filibuster.
+                filibusterClientInstrumentor.afterInvocationWithByzantineFault(sByzantineFaultValue, returnType.toString());
+
+                return value;
+            } else {
+                String missingKey;
+                if (byzantineFault.has("type")) {
+                    missingKey = "value";
+                } else {
+                    missingKey = "type";
+                }
+                logger.log(Level.WARNING, logPrefix + "The byzantineFault does not have the required key " + missingKey);
+                throw new FilibusterFaultInjectionException("injectByzantineFault: The byzantineFault does not have the required key " + missingKey);
+            }
+        } catch (RuntimeException e) {
+            logger.log(Level.WARNING, logPrefix + "Could not inject byzantine fault. The cast was probably not successful:", e);
+            throw new FilibusterFaultInjectionException("Could not inject byzantine fault. The cast was probably not successful:", e);
+        }
+    }
+
+    // Return true if exception should be injected on current method, otherwise false
+    private static boolean shouldInjectExceptionOnCurrentMethod(JSONObject forcedException, String currentMethodName) {
         JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
-        String causeString = forcedExceptionMetadata.getString("cause");
-        String codeString = forcedExceptionMetadata.getString("code");
 
+        if (forcedExceptionMetadata.has("injectOn")) {
+            String injectOn = forcedExceptionMetadata.getString("injectOn");
+
+            return injectOn.equals(currentMethodName);
+        }
+        return true;
+    }
+
+    private void currentMethodIsTracked(JSONObject forcedException, String currentMethodName) {
+        JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
+
+        if (forcedExceptionMetadata.has("trackInvocationOf")) {
+            String trackInvocationOf = forcedExceptionMetadata.getString("trackInvocationOf");
+            trackedMethodInvoked = trackedMethodInvoked || Pattern.compile(trackInvocationOf).matcher(currentMethodName).find();
+        }
+    }
+
+    private static String getExceptionMethodName(JSONObject forcedException, String currentMethodName) {
+        JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
+
+        if (forcedExceptionMetadata.has("injectOn")) {
+            return forcedExceptionMetadata.getString("injectOn");
+        }
+        return currentMethodName;
+    }
+
+    private static void generateAndThrowException(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject forcedException) throws Exception {
+        String sExceptionName = forcedException.getString("name");
+        JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
+        String sCause = forcedExceptionMetadata.getString("cause");
+        String sCode = forcedExceptionMetadata.getString("code");
+
+        throwExceptionAndNotifyFilibuster(filibusterClientInstrumentor, sExceptionName, sCause, sCode);
+    }
+
+    private static void throwExceptionAndNotifyFilibuster(FilibusterClientInstrumentor filibusterClientInstrumentor, String exceptionName, String cause, String code) throws Exception {
         Exception exceptionToThrow;
+        Random rand = new Random(0);
 
-        switch (exceptionNameString) {  // TODO: Refactor the switch to an interface
+        switch (exceptionName) {  // TODO: Refactor the switch to an interface
             case "org.postgresql.util.PSQLException":
-                exceptionToThrow = new PSQLException(new ServerErrorMessage(causeString));
+                exceptionToThrow = new PSQLException(new ServerErrorMessage(cause));
+                break;
+            case "java.sql.SQLException":
+                exceptionToThrow = new SQLException(cause);
+                break;
+            case "java.sql.SQLTimeoutException":
+                exceptionToThrow = new SQLTimeoutException(cause);
                 break;
             case "com.datastax.oss.driver.api.core.servererrors.OverloadedException":
                 exceptionToThrow = new OverloadedException(null);
                 break;
+            case "com.datastax.oss.driver.api.core.servererrors.InvalidQueryException":
+                exceptionToThrow = new InvalidQueryException(null, cause);
+                break;
+            case "com.datastax.oss.driver.api.core.servererrors.ReadFailureException":
+                exceptionToThrow = new ReadFailureException(null, null, rand.nextInt(), rand.nextInt(), rand.nextInt(), /* dataPresent= */true, null);
+                break;
+            case "com.datastax.oss.driver.api.core.servererrors.ReadTimeoutException":
+                exceptionToThrow = new ReadTimeoutException(null, null, rand.nextInt(), rand.nextInt(), /* dataPresent= */true);
+                break;
+            case "com.datastax.oss.driver.api.core.servererrors.WriteTimeoutException":
+                exceptionToThrow = new WriteTimeoutException(null, null, rand.nextInt(), rand.nextInt(), null);
+                break;
+            case "com.datastax.oss.driver.api.core.servererrors.WriteFailureException":
+                exceptionToThrow = new WriteFailureException(null, null, rand.nextInt(), rand.nextInt(), null, rand.nextInt(), null);
+                break;
             case "software.amazon.awssdk.services.dynamodb.model.RequestLimitExceededException":
-                exceptionToThrow = RequestLimitExceededException.builder().message(causeString).statusCode(Integer.parseInt(codeString))
-                        .requestId(UUID.randomUUID().toString().replace("-","").toUpperCase(Locale.ROOT)).build();
+                exceptionToThrow = RequestLimitExceededException.builder().message(cause).statusCode(Integer.parseInt(code))
+                        .requestId(UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT)).build();
+                break;
+            case "software.amazon.awssdk.services.dynamodb.model.SdkClientException":
+                exceptionToThrow = SdkClientException.builder().message(cause).build();
+                break;
+            case "software.amazon.awssdk.services.dynamodb.model.DynamoDbException":
+                exceptionToThrow = DynamoDbException.builder().message(cause).statusCode(Integer.parseInt(code))
+                        .requestId(UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT)).build();
+                break;
+            case "software.amazon.awssdk.services.dynamodb.model.AwsServiceException":
+                exceptionToThrow = AwsServiceException.builder().message(cause).statusCode(Integer.parseInt(code))
+                        .requestId(UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT)).build();
+                break;
+            case "io.lettuce.core.RedisCommandTimeoutException":
+                exceptionToThrow = new RedisCommandTimeoutException(cause);
+                break;
+            case "io.lettuce.core.RedisConnectionException":
+                exceptionToThrow = new RedisConnectionException(cause);
+                break;
+            case "io.lettuce.core.RedisBusyException":
+                exceptionToThrow = new RedisBusyException(cause);
+                break;
+            case "io.lettuce.core.RedisCommandExecutionException":
+                exceptionToThrow = new RedisCommandExecutionException(cause);
+                break;
+            case "io.lettuce.core.RedisCommandInterruptedException":
+                exceptionToThrow = new RedisCommandInterruptedException(new Throwable(cause));
+                break;
+            case "io.lettuce.core.cluster.UnknownPartitionException":
+                exceptionToThrow = new UnknownPartitionException(cause);
+                break;
+            case "io.lettuce.core.cluster.PartitionSelectorException":
+                exceptionToThrow = new PartitionSelectorException(cause, new Partitions());
+                break;
+            case "io.lettuce.core.dynamic.batch.BatchException":
+                exceptionToThrow = new BatchException(new ArrayList<>());
                 break;
             default:
-                throw new FilibusterFaultInjectionException("Cannot determine the execution cause to throw: " + causeString);
+                throw new FilibusterFaultInjectionException("Cannot determine the execution cause to throw: " + cause);
         }
 
         // Notify Filibuster.
@@ -255,13 +462,21 @@ public class DynamicProxyInterceptor<T> implements InvocationHandler {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T createInterceptor(T target, String connectionString) {
-        logger.log(Level.INFO, logPrefix + "createInterceptor was called");
+    private static <T> T createProxy(T target, DynamicProxyInterceptor<?> dynamicProxyInterceptor) {
+        logger.log(Level.INFO, logPrefix + "createProxy was called");
         return (T) Proxy.newProxyInstance(
                 target.getClass().getClassLoader(),
                 target.getClass().getInterfaces(),
-                new DynamicProxyInterceptor<>(target, connectionString)
-        );
+                dynamicProxyInterceptor);
     }
 
+    private static <T> T createInterceptor(T target, String connectionString, String futureInvokeExceptionOnMethod, JSONObject futureExceptionMetadata, boolean trackedMethodInvoked) {
+        logger.log(Level.INFO, logPrefix + "createInterceptor was called");
+        return createProxy(target, new DynamicProxyInterceptor<>(target, connectionString, futureInvokeExceptionOnMethod, futureExceptionMetadata, trackedMethodInvoked));
+    }
+
+    public static <T> T createInterceptor(T target, String connectionString) {
+        logger.log(Level.INFO, logPrefix + "createInterceptor was called");
+        return createProxy(target, new DynamicProxyInterceptor<>(target, connectionString));
+    }
 }

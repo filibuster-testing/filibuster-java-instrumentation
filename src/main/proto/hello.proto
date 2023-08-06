@@ -14,7 +14,8 @@ message PurchaseResponse {
 }
 
 service APIService {
-  rpc Hello (HelloRequest) returns (HelloReply) {};
+  rpc Hello (HelloRequest) returns (HelloReply) {}
+  rpc World (HelloRequest) returns (HelloReply) {}
   rpc HelloWithMock (HelloRequest) returns (HelloReply) {};
   rpc RedisHello (RedisRequest) returns (RedisReply) {};
   rpc SimulatePurchase (PurchaseRequest) returns (PurchaseResponse) {}
@@ -29,6 +30,18 @@ message NonPrimitiveRequest {
 
 message NonPrimitiveResponse {
   map<string, string> obj = 1;
+}
+
+message GetBookRequest {
+  string book_id = 1;
+}
+
+message GetBookTitleResponse {
+  string title = 1;
+}
+
+message GetBookResponse {
+  string book = 1;
 }
 
 message GetUserRequest {

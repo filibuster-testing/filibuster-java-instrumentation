@@ -13,7 +13,6 @@ import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInte
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
 import cloud.filibuster.functional.java.purchase.PurchaseWorkflow;
 import cloud.filibuster.integration.instrumentation.TestHelper;
-import cloud.filibuster.integration.instrumentation.libraries.opentelemetry.OpenTelemetryFilibusterClientInterceptor;
 import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.AggregatedHttpResponse;
 import com.linecorp.armeria.common.HttpHeaderNames;
@@ -35,6 +34,7 @@ import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.codec.StringCodec;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
@@ -483,7 +483,7 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
 
         worldManagedChannel.shutdownNow();
         try {
-            while (! worldManagedChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+            while (!worldManagedChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
                 Thread.sleep(4000);
             }
         } catch (InterruptedException ie) {

@@ -37,11 +37,14 @@ import org.json.JSONObject;
 
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static cloud.filibuster.instrumentation.helpers.Property.getRandomSeedProperty;
 
 public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     private static final Logger logger = Logger.getLogger(MyAPIService.class.getName());
@@ -218,21 +221,21 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
 
 
     @Override
-    public void getBook(Hello.GetBookRequest req, StreamObserver<Hello.GetBookResponse> responseObserver) {
-        Hello.GetBookResponse reply = null;
+    public void getSession(Hello.GetSessionRequest req, StreamObserver<Hello.GetSessionResponse> responseObserver) {
+        Hello.GetSessionResponse reply = null;
         RedisClientService redisService = RedisClientService.getInstance();
-        Hello.GetBookResponse.Builder bookBuilder = Hello.GetBookResponse.newBuilder();
+        Hello.GetSessionResponse.Builder sessionBuilder = Hello.GetSessionResponse.newBuilder();
 
         StatefulRedisConnection<String, byte[]> redisConnection = redisService.redisClient.connect(RedisCodec.of(new StringCodec(), new ByteArrayCodec()));
 
         redisConnection = DynamicProxyInterceptor.createInterceptor(redisConnection, redisService.connectionString);
 
-        byte[] retrievedValue = redisConnection.sync().get(req.getBookId());
+        byte[] retrievedValue = redisConnection.sync().get(req.getSessionId());
 
         if (retrievedValue != null) {  // Check whether there is a Redis hit
             try {  // Try deserializing the retrieved value as JSONObject
-                JSONObject bookJO = new JSONObject(new String(retrievedValue, Charset.defaultCharset()));
-                reply = bookBuilder.setBook(bookJO.toString()).build();
+                JSONObject sessionJO = new JSONObject(new String(retrievedValue, Charset.defaultCharset()));
+                reply = sessionBuilder.setSession(sessionJO.toString()).build();
             } catch (JSONException e) {
                 String description = "Error deserializing retrievedValue: "
                         + Arrays.toString(retrievedValue) +
@@ -241,65 +244,33 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
                 respondWithError(responseObserver, description);
             }
         } else {
-            // Else make a call to the Hello service. The hello service always returns an error.
-            // This error will not be found no matter what bit is flipped since we only check whether the retrieved
-            // value is null
-            ManagedChannel helloChannel = ManagedChannelBuilder
-                    .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
-                    .usePlaintext()
-                    .build();
-            ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("api_server");
-            Channel channel = ClientInterceptors.intercept(helloChannel, clientInterceptor);
-
-            HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(channel);
-            Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName(req.getBookId()).build();
-            Hello.HelloReply helloReply = blockingStub.throwException(request);
-
-            // This line will never be reached since the hello service always returns an error
-            reply = bookBuilder.setBook(helloReply.getMessage()).build();
+            // If there is no hit in Redis, query the second level cache
+            // However, in this scenario, the second level cache is down, so we return an error
+            Status status = Status.INTERNAL.withDescription(new Exception("Redis second level cache is down.").toString());
+            responseObserver.onError(status.asRuntimeException());
         }
 
         responseObserver.onNext(reply);
         responseObserver.onCompleted();
     }
 
-
     @Override
-    public void getBookTitle(Hello.GetBookRequest req, StreamObserver<Hello.GetBookTitleResponse> responseObserver) {
-        Hello.GetBookTitleResponse reply = null;
+    public void getLocationFromSession(Hello.GetSessionRequest req, StreamObserver<Hello.GetLocationFromSessionResponse> responseObserver) {
+        Hello.GetLocationFromSessionResponse reply = null;
         RedisClientService redisService = RedisClientService.getInstance();
-        Hello.GetBookTitleResponse.Builder bookTitleBuilder = Hello.GetBookTitleResponse.newBuilder();
+        Hello.GetLocationFromSessionResponse.Builder sessionLocationBuilder = Hello.GetLocationFromSessionResponse.newBuilder();
 
         StatefulRedisConnection<String, byte[]> redisConnection = redisService.redisClient.connect(RedisCodec.of(new StringCodec(), new ByteArrayCodec()));
 
         redisConnection = DynamicProxyInterceptor.createInterceptor(redisConnection, redisService.connectionString);
 
-        byte[] retrievedValue = redisConnection.sync().get(req.getBookId());
+        byte[] retrievedValue = redisConnection.sync().get(req.getSessionId());
 
         if (retrievedValue != null) {  // Check whether there is a Redis hit
+            JSONObject sessionJO = null;
+
             try {  // Try deserializing the retrieved value as JSONObject
-
-                JSONObject bookJO = new JSONObject(new String(retrievedValue, Charset.defaultCharset()));
-
-                if (bookJO.has("title")) {  // Check whether the bookJO has a title field
-                    reply = bookTitleBuilder.setTitle(bookJO.getString("title")).build();
-                } else {
-                    // Else make a call to the Hello service. The hello service always returns an error.
-                    // This error will be found in the cases where a bit is transformed in the key of the title field
-                    ManagedChannel helloChannel = ManagedChannelBuilder
-                            .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
-                            .usePlaintext()
-                            .build();
-                    ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("api_server");
-                    Channel channel = ClientInterceptors.intercept(helloChannel, clientInterceptor);
-
-                    HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(channel);
-                    Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName(req.getBookId()).build();
-                    Hello.HelloReply helloReply = blockingStub.throwException(request);
-
-                    // This line will never be reached since the hello service always returns an error
-                    reply = bookTitleBuilder.setTitle(helloReply.getMessage()).build();
-                }
+                sessionJO = new JSONObject(new String(retrievedValue, Charset.defaultCharset()));
             } catch (JSONException e) {
                 String description = "Error deserializing retrievedValue: "
                         + Arrays.toString(retrievedValue) +
@@ -308,13 +279,68 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
                         + " - " + e.getMessage();
                 respondWithError(responseObserver, description);
             }
+
+            if (sessionJO != null && sessionJO.has("location")) {  // Check whether the sessionJO has a location field
+                reply = sessionLocationBuilder.setLocation(sessionJO.getString("location")).build();
+            } else {
+                // Else make a call to the Hello service to retrieve the last saved location for the sessionId.
+                ManagedChannel helloChannel = ManagedChannelBuilder
+                        .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
+                        .usePlaintext()
+                        .build();
+                ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("api_server");
+                Channel channel = ClientInterceptors.intercept(helloChannel, clientInterceptor);
+
+                HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(channel);
+                Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName(req.getSessionId()).build();
+                Hello.HelloReply helloReply = blockingStub.getLastSessionLocation(request);
+
+                reply = sessionLocationBuilder.setLocation(helloReply.getMessage()).build();
+                helloChannel.shutdownNow();
+            }
+
         } else {
-            String description = "Retrieved value is null. Book was not found";
+            String description = "Retrieved value is null. Session was not found";
             respondWithError(responseObserver, description);
         }
 
         responseObserver.onNext(reply);
         responseObserver.onCompleted();
+    }
+
+    @Override
+    public void createSession(Hello.CreateSessionRequest req, StreamObserver<Hello.CreateSessionResponse> responseObserver) {
+
+        // Create the session JSON object
+        JSONObject referenceSession = new JSONObject();
+        referenceSession.put("uid", req.getUserId());
+        referenceSession.put("location", req.getLocation());
+        referenceSession.put("iat", "123");  // Request timestamp
+        byte[] sessionBytes = referenceSession.toString().getBytes(Charset.defaultCharset());
+        Random rand = new Random(getRandomSeedProperty());
+        String sessionId = String.valueOf(100000 + rand.nextInt(900000));  // Generate a random 6 digit number
+
+        // Retrieve the Redis instance
+        RedisClientService redisService = RedisClientService.getInstance();
+        StatefulRedisConnection<String, byte[]> redisConnection = redisService.redisClient.connect(RedisCodec.of(new StringCodec(), new ByteArrayCodec()));
+        redisConnection = DynamicProxyInterceptor.createInterceptor(redisConnection, redisService.connectionString);
+
+        // Put the session in Redis
+        try {
+            redisConnection.async().set(sessionId, sessionBytes).get();
+        } catch (InterruptedException | ExecutionException e) {
+            String description = "Could not add session to Redis: " + e.getMessage();
+            respondWithError(responseObserver, description);
+        }
+
+        // Create the response
+        Hello.CreateSessionResponse.Builder sessionBuilder = Hello.CreateSessionResponse.newBuilder();
+        sessionBuilder.setSessionId(sessionId).setSessionSize(sessionBytes.length * 8);
+
+        // Send the response
+        responseObserver.onNext(sessionBuilder.build());
+        responseObserver.onCompleted();
+
     }
 
     private static void respondWithError(StreamObserver<?> responseObserver, String message) {

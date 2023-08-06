@@ -1,6 +1,7 @@
 package cloud.filibuster.junit.server.core.test_executions;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
+import com.google.gson.JsonParser;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
@@ -171,7 +172,7 @@ public abstract class TestExecution {
         }
 
         // Are the JSON objects similar for each key?
-        return this.faultsToInject.entrySet().stream().allMatch(e -> e.getValue().similar(te.faultsToInject.get(e.getKey())));
+        return this.faultsToInject.entrySet().stream().allMatch(e -> JsonParser.parseString(e.getValue().toString()).equals(JsonParser.parseString(te.faultsToInject.get(e.getKey()).toString())));
     }
 
     @Override

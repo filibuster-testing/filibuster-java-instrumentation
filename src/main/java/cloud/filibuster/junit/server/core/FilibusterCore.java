@@ -53,6 +53,7 @@ import static cloud.filibuster.junit.server.core.FilibusterCoreTransformerExtens
 import static cloud.filibuster.junit.server.core.FilibusterCoreTransformerExtension.setNextAccumulator;
 import static cloud.filibuster.junit.server.core.FilibusterCoreTransformerExtension.generateAndSetTransformerValue;
 
+import static cloud.filibuster.junit.server.core.FilibusterCoreTransformerExtension.setTransformerValue;
 import static cloud.filibuster.junit.server.core.test_executions.TestExecution.organicallyFailedInSourceConcreteTestExecution;
 
 @SuppressWarnings({"Varifier", "Var"})
@@ -302,7 +303,7 @@ public class FilibusterCore {
                 }
 
                 logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using transformer_fault: " + transformerFaultObject.toString(4));
-                transformerFaultObject.put("value", transformationResult.getResult() == null ? JSONObject.NULL : transformationResult.getResult());
+                setTransformerValue(transformerFaultObject, transformationResult.getResult());
                 response.put("transformer_fault", transformerFaultObject);
             } else if (faultObject.has("latency")) {
                 JSONObject latencyObject = faultObject.getJSONObject("latency");

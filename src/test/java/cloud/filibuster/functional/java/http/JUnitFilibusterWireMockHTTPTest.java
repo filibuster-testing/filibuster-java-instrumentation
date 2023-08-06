@@ -3,7 +3,6 @@ package cloud.filibuster.functional.java.http;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.integration.instrumentation.TestHelper;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.FilibusterWorldExtendedDefaultAnalysisConfigurationFile;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.AggregatedHttpResponse;
@@ -85,11 +84,11 @@ public class JUnitFilibusterWireMockHTTPTest {
         }
     }
 
-    @DisplayName("Verify correct number of generated Filibuster tests.")
+    @DisplayName("Verify correct number of injected error codes.")
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(2, testErrorCodesReceived.size());
+        assertEquals(validErrorCodes.size(), testErrorCodesReceived.size());
     }
 
     @DisplayName("Verify correct number of generated Filibuster tests.")

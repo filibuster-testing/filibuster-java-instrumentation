@@ -5,6 +5,7 @@ cloud.filibuster.exceptions
 cloud.filibuster.exceptions.distributed_execution_index
 cloud.filibuster.exceptions.filibuster
 cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException
+cloud.filibuster.exceptions.transformer
 cloud.filibuster.exceptions.vector_clock
 cloud.filibuster.instrumentation
 cloud.filibuster.instrumentation.datatypes
@@ -14,18 +15,19 @@ cloud.filibuster.instrumentation.instrumentors
 cloud.filibuster.instrumentation.libraries.armeria.http
 cloud.filibuster.instrumentation.libraries.dynamic.proxy
 cloud.filibuster.instrumentation.libraries.grpc
-cloud.filibuster.instrumentation.libraries.lettuce
 cloud.filibuster.instrumentation.storage
 cloud.filibuster.junit
 cloud.filibuster.junit.assertions
 cloud.filibuster.junit.configuration
 cloud.filibuster.junit.configuration.examples
+cloud.filibuster.junit.configuration.examples.armeria.http
 cloud.filibuster.junit.configuration.examples.db.byzantine.redis
 cloud.filibuster.junit.configuration.examples.db.byzantine.types
 cloud.filibuster.junit.configuration.examples.db.cassandra
 cloud.filibuster.junit.configuration.examples.db.dynamodb
 cloud.filibuster.junit.configuration.examples.db.postgresql
 cloud.filibuster.junit.configuration.examples.db.redis
+cloud.filibuster.junit.configuration.examples.grpc
 cloud.filibuster.junit.extensions
 cloud.filibuster.junit.filters
 cloud.filibuster.junit.formatters
@@ -41,6 +43,7 @@ cloud.filibuster.junit.server.core.profiles
 cloud.filibuster.junit.server.core.reports
 cloud.filibuster.junit.server.core.serializers
 cloud.filibuster.junit.server.core.test_executions
+cloud.filibuster.junit.server.core.transformers
 cloud.filibuster.junit.server.latency
 cloud.filibuster.junit.server.local
 cloud.filibuster.junit.statem

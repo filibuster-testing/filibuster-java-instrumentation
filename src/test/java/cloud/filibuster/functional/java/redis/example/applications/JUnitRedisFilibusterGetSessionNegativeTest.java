@@ -12,7 +12,6 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -39,18 +38,6 @@ public class JUnitRedisFilibusterGetSessionNegativeTest extends JUnitAnnotationB
     private static ManagedChannel apiChannel;
     private static int sessionSize;
     private static APIServiceGrpc.APIServiceBlockingStub apiService;
-    private static final JSONObject sessionJSON = new JSONObject();
-
-    @BeforeAll
-    public static void beforeAll() throws IOException, InterruptedException {
-        startAPIServerAndWaitUntilAvailable();
-        RedisClientService.getInstance();
-        apiChannel = ManagedChannelBuilder.forAddress(Networking.getHost("api_server"), Networking.getPort("api_server")).usePlaintext().build();
-        apiService = APIServiceGrpc.newBlockingStub(apiChannel);
-
-        sessionJSON.put("uid", "JohnS");
-        sessionJSON.put("location", "US");
-    }
 
     @AfterAll
     public static void destruct() {
@@ -62,22 +49,30 @@ public class JUnitRedisFilibusterGetSessionNegativeTest extends JUnitAnnotationB
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = RedisTransformBitInByteArrAnalysisConfigurationFile.class,
             maxIterations = 1000)
-    public void testCreateAndGetSessionFromRedis() {
+    public void testCreateAndGetSessionFromRedis() throws IOException, InterruptedException {
         numberOfTestExecutions++;
+
+        startAPIServerAndWaitUntilAvailable();
+        RedisClientService.getInstance();
+
+        // Initialize API channel and service
+        apiChannel = ManagedChannelBuilder.forAddress(Networking.getHost("api_server"), Networking.getPort("api_server")).usePlaintext().build();
+        apiService = APIServiceGrpc.newBlockingStub(apiChannel);
+
+        String uid = "JohnS";
+        String location = "US";
 
         try {
             // Create session
-            Hello.CreateSessionResponse session = createSession(
-                    sessionJSON.getString("uid"),
-                    sessionJSON.getString("location"));
+            Hello.CreateSessionResponse session = createSession(uid, location);
             assertNotNull(session);
             sessionSize = session.getSessionSize();
 
             // Retrieve session
             Hello.GetSessionResponse retrievedSession = getSession(session.getSessionId());
             JSONObject retrievedSessionJO = new JSONObject(retrievedSession.getSession());
-            assertEquals(sessionJSON.get("uid"), retrievedSessionJO.get("uid"));
-            assertEquals(sessionJSON.get("location"), retrievedSessionJO.get("location"));
+            assertEquals(uid, retrievedSessionJO.get("uid"));
+            assertEquals(location, retrievedSessionJO.get("location"));
 
         } catch (Throwable t) {
             testFaults.add(t.getMessage());
@@ -89,7 +84,7 @@ public class JUnitRedisFilibusterGetSessionNegativeTest extends JUnitAnnotationB
         }
     }
 
-    private Hello.CreateSessionResponse createSession(String userId, String location) {
+    private static Hello.CreateSessionResponse createSession(String userId, String location) {
         Hello.CreateSessionRequest sessionRequest = Hello.CreateSessionRequest.newBuilder()
                 .setUserId(userId)
                 .setLocation(location)

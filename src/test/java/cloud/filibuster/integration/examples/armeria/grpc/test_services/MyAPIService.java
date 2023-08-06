@@ -328,7 +328,7 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         // Put the session in Redis
         try {
             redisConnection.async().set(sessionId, sessionBytes).get();
-        } catch (Throwable e) {
+        } catch (InterruptedException | ExecutionException e) {
             String description = "Could not add session to Redis: " + e.getMessage();
             respondWithError(responseObserver, description);
         }

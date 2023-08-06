@@ -4,12 +4,14 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import javax.annotation.Nullable;
+import javax.sql.DataSource;
 
 import org.postgresql.ds.PGSimpleDataSource;
 
 public class CockroachClientService {
     private static final int DB_PORT = 26257;
     public PGSimpleDataSource cockroachClient;
+    public DataSource dataSource;
     public String connectionString;
     public BasicDAO dao;
     @Nullable
@@ -32,8 +34,10 @@ public class CockroachClientService {
         cockroachClient.setUrl(connectionString);
         cockroachClient.setApplicationName("SimpleCockroachApp");
 
+        dataSource = cockroachClient;
+
         // Create a basic DAO
-        dao = new BasicDAO(cockroachClient);
+        dao = new BasicDAO(dataSource);
     }
 
     // Static method to create instance of Singleton class

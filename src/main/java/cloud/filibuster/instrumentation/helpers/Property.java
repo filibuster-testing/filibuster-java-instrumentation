@@ -464,7 +464,73 @@ public class Property {
         if (isPropertyNull(propertyValue)) {
             return REDIS_PORT_NONDETERMINISM_DEFAULT;
         } else {
-            return Boolean.valueOf(propertyValue);
+            return Boolean.parseBoolean(propertyValue);
+        }
+    }
+
+    /***********************************************************************************
+     ** filibuster.random_seed
+     ***********************************************************************************/
+
+    public static final int RANDOM_SEED_DEFAULT = 0;
+
+    private final static String RANDOM_SEED = "filibuster.random_seed";
+
+    public static void setRandomSeedProperty(int value) {
+        System.setProperty(RANDOM_SEED, String.valueOf(value));
+    }
+
+    public static int getRandomSeedProperty() {
+        String propertyValue = System.getProperty(RANDOM_SEED);
+
+        if (isPropertyNull(propertyValue)) {
+            return RANDOM_SEED_DEFAULT;
+        } else {
+            return Integer.parseInt(propertyValue);
+        }
+    }
+
+    /***********************************************************************************
+     ** filibuster.test.fail_if_fault_not_injected
+     ***********************************************************************************/
+
+    public static final boolean FAIL_IF_FAULT_NOT_INJECTED_DEFAULT = false;
+
+    private final static String FAIL_IF_FAULT_NOT_INJECTED = "filibuster.test.fail_if_fault_not_injected";
+
+    public static void setFailIfFaultNotInjectedProperty(boolean value) {
+        System.setProperty(FAIL_IF_FAULT_NOT_INJECTED, String.valueOf(value));
+    }
+
+    public static boolean getFailIfFaultNotInjectedProperty() {
+        String propertyValue = System.getProperty(FAIL_IF_FAULT_NOT_INJECTED);
+
+        if (isPropertyNull(propertyValue)) {
+            return FAIL_IF_FAULT_NOT_INJECTED_DEFAULT;
+        } else {
+            return Boolean.parseBoolean(propertyValue);
+        }
+    }
+
+    /***********************************************************************************
+     ** filibuster.test.fail_if_fault_not_injected_and_a_tracked_method_is_invoked
+     ***********************************************************************************/
+
+    public static final boolean FAIL_IF_FAULT_NOT_INJECTED_AND_A_TRACKED_METHOD_IS_INVOKED_DEFAULT = false;
+
+    private final static String FAIL_IF_FAULT_NOT_INJECTED_AND_A_TRACKED_METHOD_IS_INVOKED = "filibuster.test.fail_if_fault_not_injected_and_a_tracked_method_is_invoked";
+
+    public static void setFailIfFaultNotInjectedAndATrackedMethodIsInvokedProperty(boolean value) {
+        System.setProperty(FAIL_IF_FAULT_NOT_INJECTED_AND_A_TRACKED_METHOD_IS_INVOKED, String.valueOf(value));
+    }
+
+    public static boolean getFailIfFaultNotInjectedAndATrackedMethodIsInvokedProperty() {
+        String propertyValue = System.getProperty(FAIL_IF_FAULT_NOT_INJECTED_AND_A_TRACKED_METHOD_IS_INVOKED);
+
+        if (isPropertyNull(propertyValue)) {
+            return FAIL_IF_FAULT_NOT_INJECTED_AND_A_TRACKED_METHOD_IS_INVOKED_DEFAULT;
+        } else {
+            return Boolean.parseBoolean(propertyValue);
         }
     }
 }

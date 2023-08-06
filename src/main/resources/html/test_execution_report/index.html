@@ -263,6 +263,16 @@
                 navigator.clipboard.writeText(copyText.value);
             }
 
+            function escapeHtml(unsafe)
+            {
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+
             function toggleDebug() {
                 $(".debug").toggle();
                 toggleCached();
@@ -433,7 +443,7 @@
                     row += '<td class="args">';
                     row += '<div class="class_name">' + substringNamespace(rpc.request.args.__class__) + '</div>';
                     row += '<textarea>';
-                    row += rpc.request.args.toString;
+                    row += escapeHtml(rpc.request.args.toString);
                     row += '</textarea>'
                     row += '</td>';
 
@@ -471,7 +481,6 @@
 
                         row += '</textarea></td>';
                     } else {
-                        console.log(rpc.response.return_value);
                         row += '<td class="response">';
                         row += '<div class="class_name">' + substringNamespace(rpc.response.return_value.__class__) + '</div>';
 
@@ -484,7 +493,7 @@
                                 row += rpc.response.return_value.value;
                             }
                         } else {
-                            row += rpc.response.return_value.toString;
+                            row += escapeHtml(rpc.response.return_value.toString);
                         }
                         row += '</textarea>'
                         row += '</td>';

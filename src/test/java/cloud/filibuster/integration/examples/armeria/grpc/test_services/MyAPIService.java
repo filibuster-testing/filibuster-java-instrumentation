@@ -34,6 +34,7 @@ import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.codec.StringCodec;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
@@ -470,7 +471,7 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
 
         worldManagedChannel.shutdownNow();
         try {
-            while (! worldManagedChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+            while (!worldManagedChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
                 Thread.sleep(4000);
             }
         } catch (InterruptedException ie) {

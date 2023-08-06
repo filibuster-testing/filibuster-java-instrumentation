@@ -21,8 +21,19 @@ service APIService {
   rpc SimulatePurchase (PurchaseRequest) returns (PurchaseResponse) {}
   rpc Purchase (PurchaseRequest) returns (PurchaseResponse) {}
   rpc RedisHelloRetry (RedisRequest) returns (RedisReply) {};
+  rpc CreateSession (CreateSessionRequest) returns (CreateSessionResponse) {};
   rpc GetSession (GetSessionRequest) returns (GetSessionResponse) {};
   rpc GetLocationFromSession (GetSessionRequest) returns (GetLocationFromSessionResponse) {};
+}
+
+message CreateSessionRequest {
+  string userId = 1;
+  string location = 2;
+}
+
+message CreateSessionResponse {
+  string sessionId = 1;
+  int32 sessionSize = 2;
 }
 
 message GetSessionRequest {

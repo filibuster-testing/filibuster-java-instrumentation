@@ -10,10 +10,6 @@ import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.db.redis.RedisTransformBitInByteArrAnalysisConfigurationFile;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.lettuce.core.api.StatefulRedisConnection;
-import io.lettuce.core.codec.ByteArrayCodec;
-import io.lettuce.core.codec.RedisCodec;
-import io.lettuce.core.codec.StringCodec;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -24,7 +20,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
@@ -39,31 +34,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class JUnitRedisFilibusterGetSessionNegativeTest extends JUnitAnnotationBaseTest {
-    static JSONObject referenceSession;
-    static byte[] sessionBytes;
-    static String sessionId = "abc123";
-    static StatefulRedisConnection<String, byte[]> statefulRedisConnection;
-    static String redisConnectionString;
     private final static ArrayList<String> testFaults = new ArrayList<>();
     private static int numberOfTestExecutions = 0;
     private static ManagedChannel apiChannel;
+    private static int sessionSize;
+    private static APIServiceGrpc.APIServiceBlockingStub apiService;
+    private static final JSONObject sessionJSON = new JSONObject();
 
     @BeforeAll
-    public static void primeCache() throws IOException, InterruptedException {
-        referenceSession = new JSONObject();
-        referenceSession.put("uid", "JohnS.");
-        referenceSession.put("location", "US");
-        referenceSession.put("iat", "123");
-
-        sessionBytes = referenceSession.toString().getBytes(Charset.defaultCharset());
-
-        statefulRedisConnection = RedisClientService.getInstance().redisClient.connect(RedisCodec.of(new StringCodec(), new ByteArrayCodec()));
-        redisConnectionString = RedisClientService.getInstance().connectionString;
-        statefulRedisConnection.sync().set(sessionId, sessionBytes);
-
+    public static void beforeAll() throws IOException, InterruptedException {
         startAPIServerAndWaitUntilAvailable();
-
+        RedisClientService.getInstance();
         apiChannel = ManagedChannelBuilder.forAddress(Networking.getHost("api_server"), Networking.getPort("api_server")).usePlaintext().build();
+        apiService = APIServiceGrpc.newBlockingStub(apiChannel);
+
+        sessionJSON.put("uid", "JohnS");
+        sessionJSON.put("location", "US");
     }
 
     @AfterAll
@@ -71,18 +57,28 @@ public class JUnitRedisFilibusterGetSessionNegativeTest extends JUnitAnnotationB
         apiChannel.shutdown();
     }
 
-    @DisplayName("Tests whether a session can be retrieved from Redis - Inject transformer faults where random bits are flipped in the byte array.")
+    @DisplayName("Tests whether a session can be retrieved from Redis - " +
+            "Inject transformer faults where random bits are flipped in the byte array.")
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = RedisTransformBitInByteArrAnalysisConfigurationFile.class,
             maxIterations = 1000)
-    public void testGetSessionFromRedis() {
+    public void testCreateAndGetSessionFromRedis() {
         numberOfTestExecutions++;
 
         try {
-            APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
-            Hello.GetSessionRequest sessionRequest = Hello.GetSessionRequest.newBuilder().setSessionId(sessionId).build();
-            Hello.GetSessionResponse reply = blockingStub.getSession(sessionRequest);
-            assertNotNull(reply.getSession());
+            // Create session
+            Hello.CreateSessionResponse session = createSession(
+                    sessionJSON.getString("uid"),
+                    sessionJSON.getString("location"));
+            assertNotNull(session);
+            sessionSize = session.getSessionSize();
+
+            // Retrieve session
+            Hello.GetSessionResponse retrievedSession = getSession(session.getSessionId());
+            JSONObject retrievedSessionJO = new JSONObject(retrievedSession.getSession());
+            assertEquals(sessionJSON.get("uid"), retrievedSessionJO.get("uid"));
+            assertEquals(sessionJSON.get("location"), retrievedSessionJO.get("location"));
+
         } catch (Throwable t) {
             testFaults.add(t.getMessage());
 
@@ -93,14 +89,29 @@ public class JUnitRedisFilibusterGetSessionNegativeTest extends JUnitAnnotationB
         }
     }
 
+    private Hello.CreateSessionResponse createSession(String userId, String location) {
+        Hello.CreateSessionRequest sessionRequest = Hello.CreateSessionRequest.newBuilder()
+                .setUserId(userId)
+                .setLocation(location)
+                .build();
+        return apiService.createSession(sessionRequest);
+    }
+
+    private Hello.GetSessionResponse getSession(String sessionId) {
+        Hello.GetSessionRequest sessionRequest = Hello.GetSessionRequest.newBuilder()
+                .setSessionId(sessionId)
+                .build();
+        return apiService.getSession(sessionRequest);
+    }
+
     @DisplayName("Verify correct number of test executions.")
     @Test
     @Order(2)
-    // Number of execution is |BFI fault space| + reference execution
-    // For the BFI fault space, we have a byte array with 44 bytes. Therefore, the fault space is 44 * 8 = 352
-    // In total, we have 352 + 1 = 353 test executions
+    // Number of execution is reference execution + |BFI fault space|
+    // For the BFI fault space, we can inject a fault at every bit in the session
+    // In total, we have 1 + 353 test executions
     public void testNumExecutions() {
-        assertEquals(1 + sessionBytes.length * 8, numberOfTestExecutions);
+        assertEquals(1 + sessionSize, numberOfTestExecutions);
     }
 
     @DisplayName("Assert all faults that occurred were deserialization faults")

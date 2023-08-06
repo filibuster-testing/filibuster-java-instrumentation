@@ -10,10 +10,6 @@ import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.db.redis.RedisTransformBitInByteArrAndGRPCExceptionAnalysisConfigurationFile;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.lettuce.core.api.StatefulRedisConnection;
-import io.lettuce.core.codec.ByteArrayCodec;
-import io.lettuce.core.codec.RedisCodec;
-import io.lettuce.core.codec.StringCodec;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -24,7 +20,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
@@ -40,32 +35,23 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class JUnitRedisFilibusterGetSessionLocationPositiveTest extends JUnitAnnotationBaseTest {
-    static JSONObject referenceSession;
-    static byte[] sessionBytes;
-    static String sessionId = "abc123";
-    static StatefulRedisConnection<String, byte[]> statefulRedisConnection;
-    static String redisConnectionString;
     private final static ArrayList<String> testFaults = new ArrayList<>();
     private static int numberOfTestExecutions = 0;
     private static ManagedChannel apiChannel;
+    private static int sessionSize;
+    private static APIServiceGrpc.APIServiceBlockingStub apiService;
+    private static final JSONObject sessionJSON = new JSONObject();
 
     @BeforeAll
-    public static void primeCache() throws IOException, InterruptedException {
-        referenceSession = new JSONObject();
-        referenceSession.put("uid", "JohnS.");
-        referenceSession.put("location", "US");
-        referenceSession.put("iat", "123");
-
-        sessionBytes = referenceSession.toString().getBytes(Charset.defaultCharset());
-
-        statefulRedisConnection = RedisClientService.getInstance().redisClient.connect(RedisCodec.of(new StringCodec(), new ByteArrayCodec()));
-        redisConnectionString = RedisClientService.getInstance().connectionString;
-        statefulRedisConnection.sync().set(sessionId, sessionBytes);
-
+    public static void beforeAll() throws IOException, InterruptedException {
         startAPIServerAndWaitUntilAvailable();
         startHelloServerAndWaitUntilAvailable();
-
+        RedisClientService.getInstance();
         apiChannel = ManagedChannelBuilder.forAddress(Networking.getHost("api_server"), Networking.getPort("api_server")).usePlaintext().build();
+        apiService = APIServiceGrpc.newBlockingStub(apiChannel);
+
+        sessionJSON.put("uid", "JohnS");
+        sessionJSON.put("location", "US");
     }
 
     @AfterAll
@@ -73,18 +59,25 @@ public class JUnitRedisFilibusterGetSessionLocationPositiveTest extends JUnitAnn
         apiChannel.shutdown();
     }
 
-    @DisplayName("Tests whether a session location can be retrieved from Redis - Inject transformer faults where random bits are flipped in the byte array.")
+    @DisplayName("Tests whether a session location can be created and then retrieved from Redis - " +
+            "Inject transformer faults where random bits are flipped in the byte array.")
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = RedisTransformBitInByteArrAndGRPCExceptionAnalysisConfigurationFile.class,
             maxIterations = 1000)
-    public void testGetSessionLocationFromRedis() {
+    public void testCreateAndGetSessionLocationFromRedis() {
         numberOfTestExecutions++;
 
         try {
-            APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
-            Hello.GetSessionRequest locationRequest = Hello.GetSessionRequest.newBuilder().setSessionId(sessionId).build();
-            Hello.GetLocationFromSessionResponse reply = blockingStub.getLocationFromSession(locationRequest);
-            assertNotNull(reply.getLocation());
+            // Create session
+            Hello.CreateSessionResponse session = createSession(
+                    sessionJSON.getString("uid"),
+                    sessionJSON.getString("location"));
+            assertNotNull(session);
+            sessionSize = session.getSessionSize();
+
+            // Retrieve session
+            Hello.GetLocationFromSessionResponse retrievedLocation = getLocation(session.getSessionId());
+            assertNotNull(retrievedLocation);
         } catch (Throwable t) {
             testFaults.add(t.getMessage());
 
@@ -95,16 +88,31 @@ public class JUnitRedisFilibusterGetSessionLocationPositiveTest extends JUnitAnn
         }
     }
 
+    private Hello.CreateSessionResponse createSession(String userId, String location) {
+        Hello.CreateSessionRequest sessionRequest = Hello.CreateSessionRequest.newBuilder()
+                .setUserId(userId)
+                .setLocation(location)
+                .build();
+        return apiService.createSession(sessionRequest);
+    }
+
+    private Hello.GetLocationFromSessionResponse getLocation(String sessionId) {
+        Hello.GetSessionRequest sessionRequest = Hello.GetSessionRequest.newBuilder()
+                .setSessionId(sessionId)
+                .build();
+        return apiService.getLocationFromSession(sessionRequest);
+    }
+
     @DisplayName("Verify correct number of test executions.")
     @Test
     @Order(2)
     // Number of execution is |BFI fault space| * |grpc fault space| + reference execution
-    // For the BFI fault space, we have a byte array with 44 bytes. Therefore, the fault space is 44 * 8 = 352
+    // For the BFI fault space, we have a byte array with 44 bytes. Therefore, the fault space is 43 * 8 = 344
     // For the gRPC fault space, we inject only one fault in the Hello service. Therefore, the fault space is 1 + 1 = 2
     // The +1 comes from the iteration where no gRPC fault is injected
-    // In total, we have 352 * 2 + 1 = 705 test executions
+    // In total, we have 344 * 2 + 1 = 689 test executions
     public void testNumExecutions() {
-        assertEquals(1 + (sessionBytes.length * 8) * 2, numberOfTestExecutions);
+        assertEquals(1 + sessionSize * 2, numberOfTestExecutions);
     }
 
     @DisplayName("Assert the exception UNAVAILABLE is found when a BFI and a GRPC fault are simultaneously injected")
@@ -114,7 +122,7 @@ public class JUnitRedisFilibusterGetSessionLocationPositiveTest extends JUnitAnn
         // This fault can only be detected in the iterations where a bit in the key "location" is mutated
         // and, simultaneously, a gRPC fault is injected.
         // The length of the key "location" is 8. Therefore, there are 8 * 8 = 64 iterations where the fault will be found
-        // That fault was found in 64 / 705 = 9% of the executions
+        // That fault was found in 64 / 689 = 9.3% of the executions
         int helloFaults = testFaults.stream().filter(e -> e.contains("UNAVAILABLE")).collect(Collectors.toList()).size();
         assertEquals(64, helloFaults);
     }
@@ -132,14 +140,14 @@ public class JUnitRedisFilibusterGetSessionLocationPositiveTest extends JUnitAnn
     @Test
     @Order(5)
     public void testNumDeserializationAndHelloFaults() {
-        // Out of 705 executions, 308 were deserialization faults (308 / 705 = 44%)
+        // Out of 689 executions, 308 were deserialization faults (308 / 705 = 44.7%)
         int deserializationFaults = testFaults.stream().filter(e -> e.contains("Error deserializing")).collect(Collectors.toList()).size();
 
         // 64 iterations where a gRPC fault and BFI fault at key "location" are simultaneously injected
         int combinedGrpcAndBFIFaults = testFaults.stream().filter(e -> e.contains("UNAVAILABLE")).collect(Collectors.toList()).size();
 
         // Total faults should be 308 + 64 = 372 faults
-        // This shows that only 248 / 705 = 35% of the executions were successful
+        // This shows that only 248 / 689 = 36% of the executions were successful
         // The rest of the executions were successful, although a bit was flipped
         assertEquals(372, deserializationFaults + combinedGrpcAndBFIFaults);
 

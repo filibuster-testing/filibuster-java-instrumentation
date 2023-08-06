@@ -37,11 +37,14 @@ import org.json.JSONObject;
 
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static cloud.filibuster.instrumentation.helpers.Property.getRandomSeedProperty;
 
 public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     private static final Logger logger = Logger.getLogger(MyAPIService.class.getName());
@@ -303,6 +306,41 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
 
         responseObserver.onNext(reply);
         responseObserver.onCompleted();
+    }
+
+    @Override
+    public void createSession(Hello.CreateSessionRequest req, StreamObserver<Hello.CreateSessionResponse> responseObserver) {
+
+        // Create the session JSON object
+        JSONObject referenceSession = new JSONObject();
+        referenceSession.put("uid", req.getUserId());
+        referenceSession.put("location", req.getLocation());
+        referenceSession.put("iat", "123");  // Request timestamp
+        byte[] sessionBytes = referenceSession.toString().getBytes(Charset.defaultCharset());
+        Random rand = new Random(getRandomSeedProperty());
+        String sessionId = String.valueOf(100000 + rand.nextInt(900000));  // Generate a random 6 digit number
+
+        // Retrieve the Redis instance
+        RedisClientService redisService = RedisClientService.getInstance();
+        StatefulRedisConnection<String, byte[]> redisConnection = redisService.redisClient.connect(RedisCodec.of(new StringCodec(), new ByteArrayCodec()));
+        redisConnection = DynamicProxyInterceptor.createInterceptor(redisConnection, redisService.connectionString);
+
+        // Put the session in Redis
+        try {
+            redisConnection.async().set(sessionId, sessionBytes).get();
+        } catch (Throwable e) {
+            String description = "Could not add session to Redis: " + e.getMessage();
+            respondWithError(responseObserver, description);
+        }
+
+        // Create the response
+        Hello.CreateSessionResponse.Builder sessionBuilder = Hello.CreateSessionResponse.newBuilder();
+        sessionBuilder.setSessionId(sessionId).setSessionSize(sessionBytes.length * 8);
+
+        // Send the response
+        responseObserver.onNext(sessionBuilder.build());
+        responseObserver.onCompleted();
+
     }
 
     private static void respondWithError(StreamObserver<?> responseObserver, String message) {

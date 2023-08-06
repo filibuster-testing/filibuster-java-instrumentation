@@ -1,3 +1,5 @@
+2.0.1:
+    - (MichaelA-ops) Add tests combining GRPC and Byzantine transformer faults
 2.0.0:
     - (MichaelA-ops) Use dynamic proxy interceptor for Redis and Cockroach
     - (MichaelA-ops) Introduce transformer faults

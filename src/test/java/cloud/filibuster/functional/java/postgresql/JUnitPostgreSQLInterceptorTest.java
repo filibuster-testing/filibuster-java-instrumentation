@@ -5,7 +5,7 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.PostgreSQLClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.db.postgresql.PostgreSQLSingleFaultPSQLExceptionAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.db.postgresql.PostgresAnalysisConfigurationFile;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -16,6 +16,8 @@ import org.postgresql.ds.PGSimpleDataSource;
 import org.postgresql.util.PSQLException;
 
 import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
@@ -45,20 +47,26 @@ public class JUnitPostgreSQLInterceptorTest extends JUnitAnnotationBaseTest {
 
     @DisplayName("Inject basic PSQLException in native PostgreSQL.")
     @Order(1)
-    @TestWithFilibuster(analysisConfigurationFile = PostgreSQLSingleFaultPSQLExceptionAnalysisConfigurationFile.class)
+    @TestWithFilibuster(analysisConfigurationFile = PostgresAnalysisConfigurationFile.class)
     public void testPostgresConnection() {
         try {
             numberOfTestExecutions++;
 
             Connection interceptedConnection = DynamicProxyInterceptor.createInterceptor(pgConnection, pgString);
             interceptedConnection.getSchema();
+
+            Driver driver = DriverManager.getDriver(pgString);
+            Driver interceptedDriver = DynamicProxyInterceptor.createInterceptor(driver, pgString);
+
+            interceptedDriver.connect(pgString, null);
+
             assertFalse(wasFaultInjected());
         } catch (Exception t) {
             testExceptionsThrown.add(t.getMessage());
 
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
             assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService("java.sql.Connection"), "Expected FilibusterUnsupportedAPIException to be thrown: " + t);
-            assertTrue(wasFaultInjectedOnMethod("java.sql.Connection/getSchema"), "Fault was not injected on the expected method: " + t);
+            assertTrue(wasFaultInjectedOnMethod("java.sql.Connection/getSchema") || wasFaultInjectedOnMethod("java.sql.Driver/connect"), "Fault was not injected on the expected method: " + t);
             assertTrue(t instanceof PSQLException, "Fault was not of the correct type: " + t);
         }
     }
@@ -67,14 +75,14 @@ public class JUnitPostgreSQLInterceptorTest extends JUnitAnnotationBaseTest {
     @Test
     @Order(2)
     public void testNumExecutions() {
-        // 1 fault free execution + 1 fault injected execution
-        assertEquals(2, numberOfTestExecutions);
+        // 1 fault free execution + 4 execution with injected faults
+        assertEquals(5, numberOfTestExecutions);
     }
 
     @DisplayName("Verify correct number of generated Filibuster tests.")
     @Test
     @Order(3)
     public void testNumExceptions() {
-        assertEquals(1, testExceptionsThrown.size());
+        assertEquals(2, testExceptionsThrown.size());
     }
 }

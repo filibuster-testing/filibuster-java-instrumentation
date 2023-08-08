@@ -116,6 +116,10 @@ public class TestExecutionReport {
         return deiResponses.get(distributedExecutionIndex);
     }
 
+    public HashMap<DistributedExecutionIndex, JSONObject> getResponses() {
+        return deiResponses;
+    }
+
     public JSONObject getFaultObject(DistributedExecutionIndex distributedExecutionIndex) {
         return deiFaultsInjected.get(distributedExecutionIndex);
     }

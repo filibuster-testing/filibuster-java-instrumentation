@@ -1,30 +1,21 @@
-package cloud.filibuster.junit.configuration.examples.db.cassandra;
+package cloud.filibuster.junit.configuration.examples.db.redis;
 
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
+import cloud.filibuster.junit.server.core.transformers.BitInByteArrTransformer;
 
-import java.util.HashMap;
-import java.util.Map;
-
-public class CassandraSingleFaultOverloadedExceptionAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
+public class RedisTransformBitInByteArrAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
-
-    private static Map<String, String> createErrorMap() {
-        Map<String, String> myMap = new HashMap<>();
-        myMap.put("cause", "Queried host was overloaded: I'm busy");
-        myMap.put("code", "");
-        return myMap;
-    }
 
     static {
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
-                .name("java.cassandra.exceptions.OverloadedException")
-                .pattern("com.datastax.oss.driver.api.core.CqlSession/execute\\b");
+                .name("java.transformers.transform_bit_in_byte_arr.redis")
+                .pattern("io.lettuce.core.api.sync.RedisStringCommands/get\\b");
 
-        filibusterAnalysisConfigurationBuilderRedisExceptions.exception("com.datastax.oss.driver.api.core.servererrors.OverloadedException", createErrorMap());
+        filibusterAnalysisConfigurationBuilderRedisExceptions.transformer(BitInByteArrTransformer.class);
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());
 

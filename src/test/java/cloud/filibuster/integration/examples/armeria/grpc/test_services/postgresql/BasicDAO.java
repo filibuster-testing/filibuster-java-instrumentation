@@ -25,7 +25,6 @@ public class BasicDAO {
     private static final String RETRY_SQL_STATE = "40001";
     private static final boolean FORCE_RETRY = false;
     private DataSource ds;
-    private Connection connection;
     private static final Logger logger = Logger.getLogger(BasicDAO.class.getName());
 
     private final Random rand = new Random();
@@ -44,23 +43,8 @@ public class BasicDAO {
     }
 
     /**
-     * Set the connection of the DAO.
-     */
-    public void setConnection(Connection connection) {
-        this.connection = connection;
-    }
-
-    private Connection getConnection() throws SQLException {
-        if (this.connection != null) {
-            return this.connection;
-        }
-
-        return ds.getConnection();
-    }
-
-    /**
      * Run SQL code in a way that automatically handles the
-     * transaction retry logic so we don't have to duplicate it in
+     * transaction retry logic, so we don't have to duplicate it in
      * various places.
      *
      * @param sqlCode a String containing the SQL code you want to
@@ -79,7 +63,7 @@ public class BasicDAO {
         String callerClass = elem.getClassName();
         String callerMethod = elem.getMethodName();
 
-        try (Connection connection = getConnection()) {
+        try (Connection connection = ds.getConnection()) {
 
             // We're managing the commit lifecycle ourselves so we can
             // automatically issue transaction retries.

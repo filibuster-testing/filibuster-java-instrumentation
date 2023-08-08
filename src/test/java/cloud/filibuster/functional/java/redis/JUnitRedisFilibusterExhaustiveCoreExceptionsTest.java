@@ -2,17 +2,22 @@ package cloud.filibuster.functional.java.redis;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedAPIException;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
-import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
+import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.db.redis.RedisExhaustiveAnalysisConfigurationFile;
+import io.lettuce.core.ConnectionFuture;
 import io.lettuce.core.RedisBusyException;
 import io.lettuce.core.RedisCommandExecutionException;
 import io.lettuce.core.RedisCommandInterruptedException;
 import io.lettuce.core.RedisCommandTimeoutException;
+import io.lettuce.core.RedisConnectionException;
+import io.lettuce.core.RedisFuture;
+import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.sync.RedisCommands;
+import io.lettuce.core.codec.StringCodec;
 import junit.framework.AssertionFailedError;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,7 +49,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@SuppressWarnings("unchecked")
 public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnotationBaseTest {
     static final String key = "test";
     static final String value = "example";
@@ -76,7 +80,7 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
     static {
         allowedExceptions.put(RedisCommandTimeoutException.class,
                 new SimpleEntry<>(ImmutableMap.of("io.lettuce.core.api.sync.RedisStringCommands", Collections.singletonList("get"),
-                        "io.lettuce.core.api.async.RedisStringAsyncCommands", Collections.singletonList("get"),
+                        "io.lettuce.core.api.async.RedisStringAsyncCommands", ImmutableList.of("get", "set"),
                         "io.lettuce.core.api.sync.RedisHashCommands", ImmutableList.of("hgetall", "hset")), "Command timed out after 100 millisecond(s)"));
 
         allowedExceptions.put(RedisBusyException.class,
@@ -91,16 +95,19 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
                 new SimpleEntry<>(ImmutableMap.of("io.lettuce.core.RedisFuture", Collections.singletonList("await")),
                         "Command interrupted"));
 
+        allowedExceptions.put(RedisConnectionException.class,
+                new SimpleEntry<>(ImmutableMap.of("io.lettuce.core.ConnectionFuture", Collections.singletonList("get")),
+                        "Unable to connect"));
     }
 
     @DisplayName("Exhaustive Core Redis fault injections")
     @Order(1)
-    @TestWithFilibuster(analysisConfigurationFile = RedisExhaustiveAnalysisConfigurationFile.class)
+    @TestWithFilibuster(analysisConfigurationFile = RedisExhaustiveAnalysisConfigurationFile.class, suppressCombinations = true)
     public void testRedisExhaustiveCoreTests() {
         try {
             numberOfTestExecutions++;
 
-            StatefulRedisConnection<String, String> myStatefulRedisConnection = new RedisInterceptorFactory<>(statefulRedisConnection, redisConnectionString).getProxy(StatefulRedisConnection.class);
+            StatefulRedisConnection<String, String> myStatefulRedisConnection = DynamicProxyInterceptor.createInterceptor(statefulRedisConnection, redisConnectionString);
 
             RedisCommands<String, String> myRedisCommands = myStatefulRedisConnection.sync();
 
@@ -116,9 +123,22 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
             myRedisCommands.hset(key, key, value);
             myRedisCommands.hgetall(key);
 
-            // Test RedisCommandInterruptedException
             RedisAsyncCommands<String, String> myRedisAsyncCommands = myStatefulRedisConnection.async();
-            myRedisAsyncCommands.get(key).await(10, java.util.concurrent.TimeUnit.SECONDS);
+            RedisFuture<String> setResult = myRedisAsyncCommands.set(key, value);
+            RedisFuture<String> getResult = myRedisAsyncCommands.get(key);
+
+            // Test RedisCommandInterruptedException
+            setResult.await(10, java.util.concurrent.TimeUnit.SECONDS);
+            getResult.await(10, java.util.concurrent.TimeUnit.SECONDS);
+
+            // Test RedisCommandTimeoutException
+            setResult.get();
+            getResult.get();
+
+            // Test RedisConnectionException
+            ConnectionFuture<StatefulRedisConnection<String, String>> connectionFuture = RedisClientService.getInstance().redisClient.connectAsync(new StringCodec(), RedisURI.create(redisConnectionString));
+            ConnectionFuture<StatefulRedisConnection<String, String>> myConnectionFuture = DynamicProxyInterceptor.createInterceptor(connectionFuture, redisConnectionString);
+            myConnectionFuture.get();
 
             assertFalse(wasFaultInjected());
         } catch (@SuppressWarnings("InterruptedExceptionSwallowed") Throwable t) {
@@ -141,7 +161,7 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
                     String className = mapEntry.getKey();
                     List<String> methodNames = mapEntry.getValue();
 
-                    if(methodNames.stream().anyMatch(method -> wasFaultInjectedOnMethod(className + "/" + method))) {
+                    if (methodNames.stream().anyMatch(method -> wasFaultInjectedOnMethod(className + "/" + method))) {
                         assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService(className), "Expected FilibusterUnsupportedAPIException to be thrown");
                         injectedMethodFound = true;
                         break;
@@ -149,7 +169,7 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
                 }
 
                 // Assert that the fault was injected on one of the expected methods of the given class
-                if(!injectedMethodFound) {
+                if (!injectedMethodFound) {
                     throw new AssertionFailedError("Fault was not injected on any of the expected methods: " + t);
                 }
             } else {
@@ -162,7 +182,7 @@ public class JUnitRedisFilibusterExhaustiveCoreExceptionsTest extends JUnitAnnot
     @Test
     @Order(2)
     public void testNumExecutions() {
-        assertEquals(11, numberOfTestExecutions);
+        assertEquals(14, numberOfTestExecutions);
     }
 
     @DisplayName("Verify correct number of Filibuster exceptions.")

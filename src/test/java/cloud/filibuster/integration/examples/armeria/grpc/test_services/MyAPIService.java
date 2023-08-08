@@ -362,7 +362,9 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
                 return;
             }
         } catch (InterruptedException | ExecutionException e) {
-            // Ignore for now, we only care about executing the request.
+            Status status = Status.INTERNAL.withDescription("Second RPC request to /world failed!");
+            responseObserver.onError(status.asRuntimeException());
+            return;
         }
 
         // Add a GRPC in here just to mix things up.

@@ -61,23 +61,14 @@ public class WorldTest {
         stopAPIServerAndWaitUntilUnavailable();
     }
 
-    private static int invocationCount = 0;
-
     @TestWithFilibuster
     public void testWorld() {
-        invocationCount++;
-
         try {
             APIServiceGrpc.APIServiceBlockingStub apiServiceBlockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Chris").build();
             Hello.HelloReply reply = apiServiceBlockingStub.world(request);
             assertEquals("Hello!", reply.getMessage());
-
-            if (invocationCount == 1) {
-                assertFalse(wasFaultInjected());
-            } else {
-                assertTrue(wasFaultInjected());
-            }
+            assertFalse(wasFaultInjected());
         } catch (StatusRuntimeException sre) {
             assertTrue(wasFaultInjected());
         }

@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.http;
+package cloud.filibuster.functional.java.basic;
 
 import cloud.filibuster.examples.APIServiceGrpc;
 import cloud.filibuster.examples.Hello;
@@ -72,7 +72,6 @@ public class WorldTest {
             assertFalse(wasFaultInjected);
         } catch (StatusRuntimeException sre) {
             assertTrue(wasFaultInjected());
-            // TODO: Needs more assertions.
         }
     }
 }

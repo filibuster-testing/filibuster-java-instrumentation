@@ -34,11 +34,12 @@ import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.codec.StringCodec;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Random;
+
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;

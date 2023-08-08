@@ -5,11 +5,20 @@ import cloud.filibuster.examples.CartServiceGrpc;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.examples.UserServiceGrpc;
+import cloud.filibuster.examples.WorldServiceGrpc;
 import cloud.filibuster.exceptions.CircuitBreakerException;
+import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
 import cloud.filibuster.instrumentation.libraries.lettuce.RedisInterceptorFactory;
 import cloud.filibuster.functional.java.purchase.PurchaseWorkflow;
+import cloud.filibuster.integration.instrumentation.TestHelper;
+import com.linecorp.armeria.client.WebClient;
+import com.linecorp.armeria.common.AggregatedHttpResponse;
+import com.linecorp.armeria.common.HttpHeaderNames;
+import com.linecorp.armeria.common.HttpMethod;
+import com.linecorp.armeria.common.RequestHeaders;
+import com.linecorp.armeria.common.ResponseHeaders;
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
 import io.grpc.ClientInterceptors;
@@ -21,6 +30,8 @@ import io.grpc.stub.StreamObserver;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.StatefulRedisConnection;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -308,5 +319,69 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
                 responseObserver.onError(status.asRuntimeException());
                 break;
         }
+    }
+
+    @Override
+    public void world(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
+        String helloBaseUri = "http://" + Networking.getHost("hello") + ":" + Networking.getPort("hello") + "/";
+        WebClient helloWebClient = TestHelper.getTestWebClient(helloBaseUri, "api-service");
+
+        // Issue GET To http://hello/world, which will issue a transitive GET to http://world.
+        CompletableFuture<String> firstRequestFuture = CompletableFuture.supplyAsync(() -> {
+            RequestHeaders getHeaders = RequestHeaders.of(HttpMethod.GET, "/world", HttpHeaderNames.ACCEPT, "application/json");
+            AggregatedHttpResponse response = helloWebClient.execute(getHeaders).aggregate().join();
+            ResponseHeaders headers = response.headers();
+            return headers.get(HttpHeaderNames.STATUS);
+        }, FilibusterExecutor.getExecutorService());
+
+        try {
+            firstRequestFuture.get();
+        } catch (InterruptedException | ExecutionException e) {
+            // Ignore for now, we only care about executing the request.
+        }
+
+        // Issue POST to http://hello/external-post, which will issue a transitive POST to http://external.
+        CompletableFuture<String> secondRequestFuture = CompletableFuture.supplyAsync(() -> {
+            RequestHeaders getHeaders = RequestHeaders.of(HttpMethod.GET, "/external-post", HttpHeaderNames.ACCEPT, "application/json");
+            AggregatedHttpResponse response = helloWebClient.execute(getHeaders).aggregate().join();
+            ResponseHeaders headers = response.headers();
+            return headers.get(HttpHeaderNames.STATUS);
+        }, FilibusterExecutor.getExecutorService());
+
+        try {
+            secondRequestFuture.get();
+        } catch (InterruptedException | ExecutionException e) {
+            // Ignore for now, we only care about executing the request.
+        }
+
+        // Add a GRPC in here just to mix things up.
+        ManagedChannel worldManagedChannel = ManagedChannelBuilder
+                .forAddress(Networking.getHost("world"), Networking.getPort("world"))
+                .usePlaintext()
+                .build();
+        ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("hello");
+        Channel worldChannel = ClientInterceptors.intercept(worldManagedChannel, clientInterceptor);
+
+        try {
+            WorldServiceGrpc.WorldServiceBlockingStub worldServiceBlockingStub = WorldServiceGrpc.newBlockingStub(worldChannel);
+            Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(req.getName()).build();
+            worldServiceBlockingStub.world(request);
+        } catch (RuntimeException e) {
+            // Ignore for now, we only care about executing the request.
+        }
+
+        worldManagedChannel.shutdownNow();
+        try {
+            while (!worldManagedChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+                Thread.sleep(4000);
+            }
+        } catch (InterruptedException ie) {
+            logger.log(Level.SEVERE, "Failed to terminate channel: " + ie);
+        }
+
+        // Return stock response.
+        Hello.HelloReply helloReply = Hello.HelloReply.newBuilder().setMessage("Hello!").build();
+        responseObserver.onNext(helloReply);
+        responseObserver.onCompleted();
     }
 }

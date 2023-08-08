@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethodWherePayloadContains;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnRequest;
+import static cloud.filibuster.junit.assertions.GrpcAssertions.wasFaultInjectedOnRequest;
 import static cloud.filibuster.junit.assertions.GrpcAssertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -95,7 +95,7 @@ public class JUnitFilibusterHelloUnimplementedTest extends JUnitAnnotationBaseTe
                 boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World");
                 assertTrue(wasFaultInjectedOnWorldMethod);
 
-                boolean wasFaultInjectedOnRequest = wasFaultInjectedOnRequest(request.toString());
+                boolean wasFaultInjectedOnRequest = wasFaultInjectedOnRequest(request);
                 assertTrue(wasFaultInjectedOnRequest);
 
                 boolean wasFaultInjectedOnWorldMethodWithPayload = wasFaultInjectedOnMethodWherePayloadContains("cloud.filibuster.examples.WorldService/World", request.toString());

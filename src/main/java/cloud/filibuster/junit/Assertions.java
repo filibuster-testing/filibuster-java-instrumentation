@@ -1,88 +1,16 @@
 package cloud.filibuster.junit;
 
-import cloud.filibuster.exceptions.filibuster.FilibusterAllowedTimeExceededException;
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedAPIException;
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedByHTTPServerException;
 import cloud.filibuster.junit.server.core.FilibusterCore;
-import org.junit.jupiter.api.function.ThrowingConsumer;
 
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendCanInvokeDirectlyProperty;
-import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
 import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjectedHelper;
 
 /**
  * Assertions provided by Filibuster for writing conditional, fault-based assertions.
  */
 public class Assertions {
-
-    /**
-     * Asserts the fault-free execution passes and that the fault executions pass or throw a given exception.
-     *
-     * @param milliseconds time the passing executions must be executed within.
-     * @param throwable class of exception thrown whenever an exception is thrown.
-     * @param testBlock block containing the test code to execute.
-     */
-    public static void assertPassesWithinMsOrThrowsUnderFault(int milliseconds, Class<? extends Throwable> throwable, Runnable testBlock) {
-        try {
-            long startTime = System.nanoTime();
-            testBlock.run();
-            long endTime = System.nanoTime();
-
-            long duration = (endTime - startTime);
-            long durationMs = duration / 1000000;
-            if (durationMs > milliseconds) {
-                throw new FilibusterAllowedTimeExceededException("Test completed in " + durationMs +" milliseconds, exceeding allowed " + milliseconds + " milliseconds.");
-            }
-        } catch (Throwable t) {
-            if (wasFaultInjected()) {
-                if (!throwable.isInstance(t)) {
-                    // Test threw, we didn't expect it: throw.
-                    throw t;
-                }
-
-                // Test threw, we expected it: do nothing.
-            } else {
-                // Test threw, we didn't inject a fault: throw.
-                throw t;
-            }
-        }
-    }
-
-    /**
-     * Asserts the fault-free execution passes and that the fault executions pass or throw a given exception.
-     *
-     * @param milliseconds time the passing executions must be executed within.
-     * @param throwable class of exception thrown whenever an exception is thrown.
-     * @param testBlock block containing the test code to execute.
-     * @param assertionBlock block containing the conditional assertions to execute (throws, takes one parameter containing the @Throwable.)
-     */
-    public static void assertPassesWithinMsOrThrowsUnderFault(int milliseconds, Class<? extends Throwable> throwable, Runnable testBlock, ThrowingConsumer<Throwable> assertionBlock) throws Throwable {
-        try {
-            long startTime = System.nanoTime();
-            testBlock.run();
-            long endTime = System.nanoTime();
-
-            long duration = (endTime - startTime);
-            long durationMs = duration / 1000000;
-            if (durationMs > milliseconds) {
-                throw new FilibusterAllowedTimeExceededException("Test completed in " + durationMs +" milliseconds, exceeding allowed " + milliseconds + " milliseconds.");
-            }
-        } catch (Throwable t) {
-            if (wasFaultInjected()) {
-                if (!throwable.isInstance(t)) {
-                    // Test threw, we didn't expect it: throw.
-                    throw t;
-                }
-
-                // Test threw, we expected it: now check the conditional, user-provided, assertions.
-                assertionBlock.accept(t);
-            } else {
-                // Test threw, we didn't inject a fault: throw.
-                throw t;
-            }
-        }
-    }
-
     /**
      * Determine if a fault was injected during the current test execution for a particular request and method.
      *
@@ -101,24 +29,6 @@ public class Assertions {
             }
         } else {
             throw new FilibusterUnsupportedByHTTPServerException("wasFaultInjectedOnMethodWherePayloadContains only supported with local server.");
-        }
-    }
-
-    /**
-     * Determine if a fault was injected during the current test execution for a particular request.
-     *
-     * @param serializedRequest the @toString of the request.
-     * @return was fault injected
-     */
-    public static boolean wasFaultInjectedOnRequest(String serializedRequest) {
-        if (getServerBackendCanInvokeDirectlyProperty()) {
-            if (FilibusterCore.hasCurrentInstance()) {
-                return FilibusterCore.getCurrentInstance().wasFaultInjectedOnRequest(serializedRequest);
-            } else {
-                return false;
-            }
-        } else {
-            throw new FilibusterUnsupportedByHTTPServerException("wasFaultInjectedOnRequest only supported with local server.");
         }
     }
 

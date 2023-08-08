@@ -23,8 +23,8 @@ import java.util.List;
 import java.util.Set;
 
 import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
+import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjectedOnJavaClassAndMethod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -73,14 +73,14 @@ public class JUnitRedisFilibusterAsyncGetTest extends JUnitAnnotationBaseTest {
             if (wasFaultInjected()) {
                 // In this test, the set method is async. The fault injected on the async set should only reflect on a potential Future.get.
                 // Since Future.get is not called on the set method, the injected exception is swallowed and the catch block is not invoked.
-                assertTrue(wasFaultInjectedOnMethod("io.lettuce.core.api.async.RedisStringAsyncCommands/set"));
+                assertTrue(wasFaultInjectedOnJavaClassAndMethod("io.lettuce.core.api.async.RedisStringAsyncCommands/set"));
             }
         } catch (@SuppressWarnings("InterruptedExceptionSwallowed") Throwable t) {
             testExceptionsThrown.add(t.getMessage());
 
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
             assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService("io.lettuce.core.api.async.RedisStringAsyncCommands/get"), "Expected FilibusterUnsupportedAPIException to be thrown: " + t);
-            assertTrue(wasFaultInjectedOnMethod("io.lettuce.core.api.async.RedisStringAsyncCommands/get"), "Fault was not injected on the expected Redis method: " + t);
+            assertTrue(wasFaultInjectedOnJavaClassAndMethod("io.lettuce.core.api.async.RedisStringAsyncCommands/get"), "Fault was not injected on the expected Redis method: " + t);
             assertTrue(t instanceof RedisCommandTimeoutException, "Fault was not of the correct type: " + t);
             assertTrue(allowedExceptionMessages.contains(t.getMessage()), "Unexpected fault message: " + t);
         }

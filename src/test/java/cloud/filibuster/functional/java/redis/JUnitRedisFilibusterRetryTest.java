@@ -19,8 +19,8 @@ import java.util.concurrent.TimeUnit;
 import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
 import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
+import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjectedOnJavaClassAndMethod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -53,7 +53,7 @@ public class JUnitRedisFilibusterRetryTest {
         } catch (Throwable t) {
             if (wasFaultInjected()) {
                 assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService("io.lettuce.core.RedisFuture"), "Expected FilibusterUnsupportedAPIException to be thrown: " + t);
-                assertTrue(wasFaultInjectedOnMethod("io.lettuce.core.RedisFuture/await"), "Fault was not injected on the expected Redis method");
+                assertTrue(wasFaultInjectedOnJavaClassAndMethod("io.lettuce.core.RedisFuture/await"), "Fault was not injected on the expected Redis method");
                 String expectedErrorMessage = "Command interrupted";
                 assertTrue(t.getMessage().contains(expectedErrorMessage), "Unexpected return error message for injected byzantine fault");
             } else {

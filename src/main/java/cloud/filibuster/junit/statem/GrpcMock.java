@@ -3,7 +3,6 @@ package cloud.filibuster.junit.statem;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestInternalRuntimeException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcStubForUsedOutsideStubBlockException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcVerifyThatUsedOutsideAssertStubException;
-import cloud.filibuster.junit.Assertions;
 import com.google.protobuf.GeneratedMessage;
 import com.google.protobuf.GeneratedMessageV3;
 import io.grpc.MethodDescriptor;
@@ -12,6 +11,7 @@ import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 
+import static cloud.filibuster.junit.assertions.GrpcAssertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.assertions.GrpcAssertions.wasFaultInjectedOnRequest;
 import static cloud.filibuster.junit.statem.GrpcTestUtils.getInsideOfAssertStubBlock;
 import static cloud.filibuster.junit.statem.GrpcTestUtils.isInsideOfStubBlock;
@@ -133,7 +133,7 @@ public class GrpcMock {
         if (getInsideOfAssertStubBlock()) {
             verifyThatMapping.put(method.getFullMethodName(), true);
 
-            if (Assertions.wasFaultInjectedOnMethod(method.getFullMethodName())) {
+            if (wasFaultInjectedOnMethod(method)) {
                 if (count > 0) {
                     count = count - 1;
                 }

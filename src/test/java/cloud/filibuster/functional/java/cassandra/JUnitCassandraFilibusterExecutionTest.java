@@ -25,8 +25,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
+import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjectedOnJavaClassAndMethod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -66,7 +66,7 @@ public class JUnitCassandraFilibusterExecutionTest extends JUnitAnnotationBaseTe
 
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
             assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService("com.datastax.oss.driver.api.core.CqlSession"), "Expected FilibusterUnsupportedAPIException to be thrown: " + t);
-            assertTrue(wasFaultInjectedOnMethod("com.datastax.oss.driver.api.core.CqlSession/execute"), "Fault was not injected on the expected method: " + t);
+            assertTrue(wasFaultInjectedOnJavaClassAndMethod("com.datastax.oss.driver.api.core.CqlSession/execute"), "Fault was not injected on the expected method: " + t);
             assertTrue(t instanceof OverloadedException || t instanceof InvalidQueryException || t instanceof ReadFailureException || t instanceof ReadTimeoutException || t instanceof WriteFailureException || t instanceof WriteTimeoutException,
                     "Fault was not of the correct type: " + t);
         }

@@ -3,6 +3,7 @@ package cloud.filibuster.functional.java.compositional;
 import cloud.filibuster.examples.APIServiceGrpc;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
+import cloud.filibuster.examples.WorldServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.MyHelloService;
@@ -42,7 +43,7 @@ import static cloud.filibuster.integration.instrumentation.TestHelper.stopExtern
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopHelloServerAndWaitUntilUnavailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopWorldServerAndWaitUntilUnavailable;
 import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
+import static cloud.filibuster.junit.assertions.GrpcAssertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.assertions.GrpcAssertions.wasFaultInjectedOnService;
 import static org.grpcmock.GrpcMock.stubFor;
 import static org.grpcmock.GrpcMock.unaryMethod;
@@ -305,7 +306,7 @@ public class JUnitFilibusterTestWithServiceFaultProfile {
                 boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("WorldService");
                 assertTrue(wasFaultInjectedOnWorldService);
 
-                boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World");
+                boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod(WorldServiceGrpc.getWorldMethod());
                 assertTrue(wasFaultInjectedOnWorldMethod);
 
                 if (! expected) {

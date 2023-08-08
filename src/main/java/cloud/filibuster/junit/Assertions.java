@@ -68,24 +68,4 @@ public class Assertions {
             return wasFaultInjectedHelper("/filibuster/fault-injected/method/" + serviceName + "/" + methodName);
         }
     }
-
-    /**
-     * Determine if a fault was injected during the current test execution.
-     *
-     * @param fullyQualifiedMethodName fully qualified RPC method name (e.g., cloud.filibuster.WorldService/World)
-     * @return was fault injected
-     */
-    public static boolean wasFaultInjectedOnMethod(String fullyQualifiedMethodName) {
-        if (getServerBackendCanInvokeDirectlyProperty()) {
-            String[] split = fullyQualifiedMethodName.split("/", 2);
-
-            if (FilibusterCore.hasCurrentInstance()) {
-                return FilibusterCore.getCurrentInstance().wasFaultInjectedOnMethod(split[0], split[1]);
-            } else {
-                return false;
-            }
-        } else {
-            return wasFaultInjectedHelper("/filibuster/fault-injected/method/" + fullyQualifiedMethodName);
-        }
-    }
 }

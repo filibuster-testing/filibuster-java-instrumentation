@@ -4,6 +4,7 @@ import cloud.filibuster.examples.Hello.HelloReply;
 import cloud.filibuster.examples.Hello.HelloRequest;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.examples.HelloServiceGrpc.HelloServiceBlockingStub;
+import cloud.filibuster.examples.WorldServiceGrpc;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
@@ -21,7 +22,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
+import static cloud.filibuster.junit.assertions.GrpcAssertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethodWherePayloadContains;
 import static cloud.filibuster.junit.assertions.GrpcAssertions.wasFaultInjectedOnRequest;
 import static cloud.filibuster.junit.assertions.GrpcAssertions.wasFaultInjectedOnService;
@@ -92,7 +93,7 @@ public class JUnitFilibusterHelloUnimplementedTest extends JUnitAnnotationBaseTe
                 boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("WorldService");
                 assertTrue(wasFaultInjectedOnWorldService);
 
-                boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World");
+                boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod(WorldServiceGrpc.getWorldMethod());
                 assertTrue(wasFaultInjectedOnWorldMethod);
 
                 boolean wasFaultInjectedOnRequest = wasFaultInjectedOnRequest(request);

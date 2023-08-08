@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
+import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjectedOnJavaClassAndMethod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -50,7 +50,7 @@ public class JUnitRedisFilibusterAsyncSetTest extends JUnitAnnotationBaseTest {
         myRedisCommands.set(key, value);
 
         if (wasFaultInjected()) {
-            assertTrue(wasFaultInjectedOnMethod("io.lettuce.core.api.async.RedisStringAsyncCommands/set"));
+            assertTrue(wasFaultInjectedOnJavaClassAndMethod("io.lettuce.core.api.async.RedisStringAsyncCommands/set"));
         }
     }
 

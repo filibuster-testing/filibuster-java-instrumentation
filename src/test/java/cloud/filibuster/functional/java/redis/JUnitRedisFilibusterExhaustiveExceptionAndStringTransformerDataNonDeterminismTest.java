@@ -20,8 +20,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
+import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjectedOnJavaClassAndMethod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -79,8 +79,8 @@ public class JUnitRedisFilibusterExhaustiveExceptionAndStringTransformerDataNonD
 
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
             assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService("io.lettuce.core.api.sync.RedisStringCommands"), "Expected FilibusterUnsupportedAPIException to be thrown: " + t);
-            assertTrue(wasFaultInjectedOnMethod("io.lettuce.core.api.sync.RedisStringCommands/get") ||
-                            wasFaultInjectedOnMethod("io.lettuce.core.api.sync.RedisStringCommands/set"),
+            assertTrue(wasFaultInjectedOnJavaClassAndMethod("io.lettuce.core.api.sync.RedisStringCommands/get") ||
+                            wasFaultInjectedOnJavaClassAndMethod("io.lettuce.core.api.sync.RedisStringCommands/set"),
                     "Fault was not injected on the expected Redis method: " + t);
         }
     }

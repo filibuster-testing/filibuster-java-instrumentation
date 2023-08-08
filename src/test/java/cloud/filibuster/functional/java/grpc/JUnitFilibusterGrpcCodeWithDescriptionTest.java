@@ -2,6 +2,7 @@ package cloud.filibuster.functional.java.grpc;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
+import cloud.filibuster.examples.WorldServiceGrpc;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.TestWithFilibuster;
@@ -19,7 +20,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
+import static cloud.filibuster.junit.assertions.GrpcAssertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.assertions.GrpcAssertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -59,7 +60,7 @@ public class JUnitFilibusterGrpcCodeWithDescriptionTest extends JUnitAnnotationB
                 boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("WorldService");
                 assertTrue(wasFaultInjectedOnWorldService);
 
-                boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World");
+                boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod(WorldServiceGrpc.getWorldMethod());
                 assertTrue(wasFaultInjectedOnWorldMethod);
 
                 if (! expected) {

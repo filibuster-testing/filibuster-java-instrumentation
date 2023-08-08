@@ -23,8 +23,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
+import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjectedOnJavaClassAndMethod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -66,7 +66,7 @@ public class JUnitPostgreSQLInterceptorTest extends JUnitAnnotationBaseTest {
 
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
             assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService("java.sql.Connection"), "Expected FilibusterUnsupportedAPIException to be thrown: " + t);
-            assertTrue(wasFaultInjectedOnMethod("java.sql.Connection/getSchema") || wasFaultInjectedOnMethod("java.sql.Driver/connect"), "Fault was not injected on the expected method: " + t);
+            assertTrue(wasFaultInjectedOnJavaClassAndMethod("java.sql.Connection/getSchema") || wasFaultInjectedOnJavaClassAndMethod("java.sql.Driver/connect"), "Fault was not injected on the expected method: " + t);
             assertTrue(t instanceof PSQLException, "Fault was not of the correct type: " + t);
         }
     }

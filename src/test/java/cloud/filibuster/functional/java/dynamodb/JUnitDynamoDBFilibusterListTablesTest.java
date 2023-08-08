@@ -39,8 +39,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
+import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjectedOnJavaClassAndMethod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -148,7 +148,7 @@ public class JUnitDynamoDBFilibusterListTablesTest extends JUnitAnnotationBaseTe
                     String className = mapEntry.getKey();
                     List<String> methodNames = mapEntry.getValue();
 
-                    if (methodNames.stream().anyMatch(method -> wasFaultInjectedOnMethod(className + "/" + method))) {
+                    if (methodNames.stream().anyMatch(method -> wasFaultInjectedOnJavaClassAndMethod(className + "/" + method))) {
                         assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService(className), "Expected FilibusterUnsupportedAPIException to be thrown");
                         injectedMethodFound = true;
                         break;

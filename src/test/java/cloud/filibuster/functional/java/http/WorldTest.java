@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.basic;
+package cloud.filibuster.functional.java.http;
 
 import cloud.filibuster.examples.APIServiceGrpc;
 import cloud.filibuster.examples.Hello;
@@ -68,7 +68,8 @@ public class WorldTest {
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Chris").build();
             Hello.HelloReply reply = apiServiceBlockingStub.world(request);
             assertEquals("Hello!", reply.getMessage());
-            assertFalse(wasFaultInjected());
+            boolean wasFaultInjected = wasFaultInjected();
+            assertFalse(wasFaultInjected);
         } catch (StatusRuntimeException sre) {
             assertTrue(wasFaultInjected());
             // TODO: Needs more assertions.

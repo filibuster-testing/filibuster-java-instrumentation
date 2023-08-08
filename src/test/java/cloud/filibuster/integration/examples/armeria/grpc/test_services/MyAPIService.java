@@ -37,6 +37,7 @@ import org.json.JSONObject;
 
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -472,9 +473,15 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         }, FilibusterExecutor.getExecutorService());
 
         try {
-            firstRequestFuture.get();
+            if (!Objects.equals(firstRequestFuture.get(), "200")) {
+                Status status = Status.UNAVAILABLE.withDescription("First RPC request to /world failed!");
+                responseObserver.onError(status.asRuntimeException());
+                return;
+            }
         } catch (InterruptedException | ExecutionException e) {
-            // Ignore for now, we only care about executing the request.
+            Status status = Status.INTERNAL.withDescription("First RPC request to /world failed!");
+            responseObserver.onError(status.asRuntimeException());
+            return;
         }
 
         // Issue POST to http://hello/external-post, which will issue a transitive POST to http://external.
@@ -486,9 +493,15 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         }, FilibusterExecutor.getExecutorService());
 
         try {
-            secondRequestFuture.get();
+            if (!Objects.equals(secondRequestFuture.get(), "200")) {
+                Status status = Status.UNAVAILABLE.withDescription("Second RPC request to /world failed!");
+                responseObserver.onError(status.asRuntimeException());
+                return;
+            }
         } catch (InterruptedException | ExecutionException e) {
-            // Ignore for now, we only care about executing the request.
+            Status status = Status.INTERNAL.withDescription("Second RPC request to /world failed!");
+            responseObserver.onError(status.asRuntimeException());
+            return;
         }
 
         // Add a GRPC in here just to mix things up.
@@ -504,7 +517,9 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
             Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(req.getName()).build();
             worldServiceBlockingStub.world(request);
         } catch (RuntimeException e) {
-            // Ignore for now, we only care about executing the request.
+            Status status = Status.INTERNAL.withDescription("Third RPC request to HelloService.world failed!");
+            responseObserver.onError(status.asRuntimeException());
+            return;
         }
 
         worldManagedChannel.shutdownNow();

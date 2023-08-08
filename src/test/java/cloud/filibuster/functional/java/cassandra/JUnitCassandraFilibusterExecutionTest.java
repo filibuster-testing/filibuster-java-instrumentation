@@ -1,6 +1,5 @@
 package cloud.filibuster.functional.java.cassandra;
 
-import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedAPIException;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.CassandraClientService;
@@ -24,12 +23,10 @@ import org.junit.jupiter.api.TestMethodOrder;
 import java.util.HashSet;
 import java.util.Set;
 
-import static cloud.filibuster.junit.Assertions.wasFaultInjected;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
+import static cloud.filibuster.junit.assertions.protocols.GenericAssertions.wasFaultInjected;
+import static cloud.filibuster.junit.assertions.protocols.GenericAssertions.wasFaultInjectedOnJavaClassAndMethod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -65,8 +62,7 @@ public class JUnitCassandraFilibusterExecutionTest extends JUnitAnnotationBaseTe
             testExceptionsThrown.add(t.getMessage());
 
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
-            assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService("com.datastax.oss.driver.api.core.CqlSession"), "Expected FilibusterUnsupportedAPIException to be thrown: " + t);
-            assertTrue(wasFaultInjectedOnMethod("com.datastax.oss.driver.api.core.CqlSession/execute"), "Fault was not injected on the expected method: " + t);
+            assertTrue(wasFaultInjectedOnJavaClassAndMethod("com.datastax.oss.driver.api.core.CqlSession/execute"), "Fault was not injected on the expected method: " + t);
             assertTrue(t instanceof OverloadedException || t instanceof InvalidQueryException || t instanceof ReadFailureException || t instanceof ReadTimeoutException || t instanceof WriteFailureException || t instanceof WriteTimeoutException,
                     "Fault was not of the correct type: " + t);
         }

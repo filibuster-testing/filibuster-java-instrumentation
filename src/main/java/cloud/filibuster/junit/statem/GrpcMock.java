@@ -1,14 +1,18 @@
 package cloud.filibuster.junit.statem;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestInternalRuntimeException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcStubForUsedOutsideStubBlockException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcVerifyThatUsedOutsideAssertStubException;
-import cloud.filibuster.junit.Assertions;
+import com.google.protobuf.GeneratedMessage;
+import com.google.protobuf.GeneratedMessageV3;
 import io.grpc.MethodDescriptor;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 
+import static cloud.filibuster.junit.assertions.protocols.GrpcAssertions.wasFaultInjectedOnMethod;
+import static cloud.filibuster.junit.assertions.protocols.GrpcAssertions.wasFaultInjectedOnRequest;
 import static cloud.filibuster.junit.statem.GrpcTestUtils.getInsideOfAssertStubBlock;
 import static cloud.filibuster.junit.statem.GrpcTestUtils.isInsideOfStubBlock;
 import static org.grpcmock.GrpcMock.calledMethod;
@@ -129,7 +133,7 @@ public class GrpcMock {
         if (getInsideOfAssertStubBlock()) {
             verifyThatMapping.put(method.getFullMethodName(), true);
 
-            if (Assertions.wasFaultInjectedOnMethod(method.getFullMethodName())) {
+            if (wasFaultInjectedOnMethod(method)) {
                 if (count > 0) {
                     count = count - 1;
                 }
@@ -165,13 +169,22 @@ public class GrpcMock {
             int count
     ) {
         if (getInsideOfAssertStubBlock()) {
-        verifyThatMapping.put(method.getFullMethodName(), true);
+            verifyThatMapping.put(method.getFullMethodName(), true);
+            boolean wasFaultInjected = false;
 
-        if (Assertions.wasFaultInjectedOnRequest(request.toString())) {
-            if (count > 0) {
-                count = count - 1;
+            if (request instanceof GeneratedMessageV3) {
+                wasFaultInjected = wasFaultInjectedOnRequest((GeneratedMessageV3) request);
+            } else if (request instanceof GeneratedMessage) {
+                wasFaultInjected = wasFaultInjectedOnRequest((GeneratedMessage) request);
+            } else {
+                throw new FilibusterGrpcTestInternalRuntimeException("Something went wrong, message isn't a GeneratedMessage or GeneratedMessageV3: " + request);
             }
-        }
+
+            if (wasFaultInjected) {
+                if (count > 0) {
+                    count = count - 1;
+                }
+            }
 
             for (Map.Entry<String, Integer> adjustedExpectationsForRequest : adjustedExpectationsForRequests.entrySet()) {
                 if (adjustedExpectationsForRequest.getKey().equals(method.getFullMethodName() + request)) {

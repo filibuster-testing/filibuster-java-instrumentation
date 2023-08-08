@@ -24,8 +24,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.integration.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
-import static cloud.filibuster.junit.Assertions.wasFaultInjected;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
+import static cloud.filibuster.junit.assertions.protocols.GenericAssertions.wasFaultInjected;
+import static cloud.filibuster.junit.assertions.protocols.GrpcAssertions.wasFaultInjectedOnMethod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -65,7 +65,7 @@ public class JUnitFilibusterTransformerGRPCTest {
             testExceptionsThrown.add(t.getMessage());
 
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
-            assertTrue(wasFaultInjectedOnMethod("cloud.filibuster.examples.HelloService/Hello"),
+            assertTrue(wasFaultInjectedOnMethod(HelloServiceGrpc.getHelloMethod()),
                     "Fault was not injected on the expected HelloService/Hello: " + t);
         }
 

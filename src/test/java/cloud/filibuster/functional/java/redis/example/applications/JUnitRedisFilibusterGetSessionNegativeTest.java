@@ -59,7 +59,7 @@ public class JUnitRedisFilibusterGetSessionNegativeTest extends JUnitAnnotationB
         apiChannel = ManagedChannelBuilder.forAddress(Networking.getHost("api_server"), Networking.getPort("api_server")).usePlaintext().build();
         apiService = APIServiceGrpc.newBlockingStub(apiChannel);
 
-        String uid = "JohnS";
+        String uid = "Joe";
         String location = "US";
 
         try {
@@ -103,7 +103,7 @@ public class JUnitRedisFilibusterGetSessionNegativeTest extends JUnitAnnotationB
     @Order(2)
     // Number of execution is reference execution + |BFI fault space|
     // For the BFI fault space, we can inject a fault at every bit in the session
-    // In total, we have 1 + 353 = 354 test executions
+    // In total, we have 1 + 288 = 289 test executions
     public void testNumExecutions() {
         assertEquals(1 + sessionSize, numberOfTestExecutions);
     }
@@ -115,8 +115,8 @@ public class JUnitRedisFilibusterGetSessionNegativeTest extends JUnitAnnotationB
         // In this scenario, the bit transformations should only cause deserialization faults
         int deserializationFaults = testFaults.stream().filter(e -> e.contains("Error deserializing")).collect(Collectors.toList()).size();
 
-        // Out of 354 executions, 154 were deserialization faults
-        // This shows that only 154 / 354 = 43.5% of the executions actually caused faults
+        // Out of 289 executions, 154 were deserialization faults
+        // This shows that only 154 / 289 = 53% of the executions actually caused faults
         // The rest of the executions were successful, although a bit was flipped
         assertEquals(154, deserializationFaults);
 
@@ -129,7 +129,7 @@ public class JUnitRedisFilibusterGetSessionNegativeTest extends JUnitAnnotationB
     @Order(4)
     public void testSecondLevelCacheFaultNotFound() {
         // The bit transformations should only cause deserialization faults
-        // In all the 705 executions, none of the injected faults leads us to discover the
+        // In all the 289 executions, none of the injected faults leads us to discover the
         // second level cache down fault
         int cacheDownFault = testFaults.stream().filter(e -> e.contains("Redis second level cache is down.")).collect(Collectors.toList()).size();
         assertEquals(0, cacheDownFault);

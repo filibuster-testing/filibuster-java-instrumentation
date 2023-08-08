@@ -29,9 +29,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import static cloud.filibuster.junit.Assertions.wasFaultInjected;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
+import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
+import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjectedOnJavaClassAndMethod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -109,7 +109,7 @@ public class JUnitRedisFilibusterTrackedMethodsExceptionsTest extends JUnitAnnot
                     String className = mapEntry.getKey();
                     List<String> methodNames = mapEntry.getValue();
 
-                    if (methodNames.stream().anyMatch(method -> wasFaultInjectedOnMethod(className + "/" + method))) {
+                    if (methodNames.stream().anyMatch(method -> wasFaultInjectedOnJavaClassAndMethod(className + "/" + method))) {
                         assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService(className), "Expected FilibusterUnsupportedAPIException to be thrown");
                         injectedMethodFound = true;
                         break;

@@ -22,9 +22,9 @@ import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
-import static cloud.filibuster.junit.Assertions.wasFaultInjected;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
+import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
+import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjectedOnJavaClassAndMethod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -75,7 +75,7 @@ public class JUnitRedisFilibusterGetSessionLocationPositiveTest extends JUnitAnn
 
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
             assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService("io.lettuce.core.api.sync.RedisStringCommands"), "Expected FilibusterUnsupportedAPIException to be thrown: " + t);
-            assertTrue(wasFaultInjectedOnMethod("io.lettuce.core.api.sync.RedisStringCommands/get"), "Fault was not injected on the expected Redis method: " + t);
+            assertTrue(wasFaultInjectedOnJavaClassAndMethod("io.lettuce.core.api.sync.RedisStringCommands/get"), "Fault was not injected on the expected Redis method: " + t);
 
         }
     }
@@ -88,7 +88,7 @@ public class JUnitRedisFilibusterGetSessionLocationPositiveTest extends JUnitAnn
         return apiService.createSession(sessionRequest);
     }
 
-    private Hello.GetLocationFromSessionResponse getLocation(String sessionId) {
+    private static Hello.GetLocationFromSessionResponse getLocation(String sessionId) {
         Hello.GetSessionRequest sessionRequest = Hello.GetSessionRequest.newBuilder()
                 .setSessionId(sessionId)
                 .build();

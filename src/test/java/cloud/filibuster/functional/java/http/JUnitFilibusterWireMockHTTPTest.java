@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Set;
 
 import static cloud.filibuster.integration.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
-import static cloud.filibuster.junit.Assertions.wasFaultInjected;
+import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;

@@ -17,11 +17,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import static cloud.filibuster.junit.Assertions.wasFaultInjected;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
+import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
+import static cloud.filibuster.junit.assertions.GrpcAssertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethodWherePayloadContains;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnRequest;
-import static cloud.filibuster.junit.assertions.Grpc.wasFaultInjectedOnService;
+import static cloud.filibuster.junit.assertions.GrpcAssertions.wasFaultInjectedOnRequest;
+import static cloud.filibuster.junit.assertions.GrpcAssertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -97,10 +97,7 @@ public class JUnitFilibusterHelloPartialHelloExternalGrpcTest extends JUnitAnnot
                     boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("WorldService");
                     assertTrue(wasFaultInjectedOnWorldService);
 
-                    boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World");
-                    assertTrue(wasFaultInjectedOnWorldMethod);
-
-                    boolean wasFaultInjectedOnRequestString = wasFaultInjectedOnRequest(request.toString());
+                    boolean wasFaultInjectedOnRequestString = wasFaultInjectedOnRequest(request);
                     assertTrue(wasFaultInjectedOnRequestString);
 
                     boolean wasFaultInjectedOnRequest = wasFaultInjectedOnRequest(request);
@@ -141,7 +138,7 @@ public class JUnitFilibusterHelloPartialHelloExternalGrpcTest extends JUnitAnnot
                     boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("HelloService");
                     assertTrue(wasFaultInjectedOnWorldService);
 
-                    boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod("cloud.filibuster.examples.HelloService/Hello");
+                    boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod(HelloServiceGrpc.getHelloMethod());
                     assertTrue(wasFaultInjectedOnWorldMethod);
                 }
 

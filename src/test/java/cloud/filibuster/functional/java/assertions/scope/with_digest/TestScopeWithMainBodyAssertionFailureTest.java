@@ -5,6 +5,7 @@ import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.TestWithFilibuster;
+import cloud.filibuster.junit.assertions.BlockType;
 import cloud.filibuster.junit.configuration.examples.FilibusterSingleFaultUnavailableAnalysisConfigurationFile;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -18,8 +19,8 @@ import org.junit.jupiter.api.TestMethodOrder;
 import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.dei.implementations.DistributedExecutionIndexV1.Properties.TestScope.setTestScopeCounter;
-import static cloud.filibuster.junit.assertions.Grpc.executeGrpcWithoutFaults;
-import static cloud.filibuster.junit.assertions.Grpc.tryGrpcAndCatchGrpcExceptions;
+import static cloud.filibuster.junit.assertions.GrpcAssertions.tryGrpcAndCatchGrpcExceptions;
+import static cloud.filibuster.junit.assertions.Helpers.executeWithoutFaultInjection;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -50,7 +51,7 @@ public class TestScopeWithMainBodyAssertionFailureTest extends JUnitAnnotationBa
                 .usePlaintext()
                 .build();
 
-        executeGrpcWithoutFaults(() -> {
+        executeWithoutFaultInjection(BlockType.TEST, () -> {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
             Hello.HelloReply reply = blockingStub.partialHello(request);
@@ -67,7 +68,7 @@ public class TestScopeWithMainBodyAssertionFailureTest extends JUnitAnnotationBa
             exceptionsThrown++;
         });
 
-        executeGrpcWithoutFaults(() -> {
+        executeWithoutFaultInjection(BlockType.TEST, () -> {
             HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(helloChannel);
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
             Hello.HelloReply reply = blockingStub.partialHello(request);

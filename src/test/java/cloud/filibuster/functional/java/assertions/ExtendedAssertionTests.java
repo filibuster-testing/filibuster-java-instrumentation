@@ -17,9 +17,9 @@ import org.opentest4j.AssertionFailedError;
 
 import java.util.concurrent.TimeUnit;
 
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
-import static cloud.filibuster.junit.assertions.Grpc.tryGrpcAndCatchGrpcExceptions;
-import static cloud.filibuster.junit.assertions.Grpc.wasFaultInjectedOnService;
+import static cloud.filibuster.junit.assertions.GrpcAssertions.wasFaultInjectedOnMethod;
+import static cloud.filibuster.junit.assertions.GrpcAssertions.tryGrpcAndCatchGrpcExceptions;
+import static cloud.filibuster.junit.assertions.GrpcAssertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -69,9 +69,6 @@ public class ExtendedAssertionTests extends JUnitAnnotationBaseTest {
 
             boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("WorldService");
             assertTrue(wasFaultInjectedOnWorldService);
-
-            boolean wasFaultInjectedOnWorldMethodByString = wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World");
-            assertTrue(wasFaultInjectedOnWorldMethodByString);
 
             boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod(WorldServiceGrpc.getWorldMethod());
             assertTrue(wasFaultInjectedOnWorldMethod);

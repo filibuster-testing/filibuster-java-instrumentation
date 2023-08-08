@@ -3,52 +3,17 @@ package cloud.filibuster.junit;
 import cloud.filibuster.exceptions.filibuster.FilibusterAllowedTimeExceededException;
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedAPIException;
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedByHTTPServerException;
-import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
-import cloud.filibuster.instrumentation.helpers.Networking;
-import cloud.filibuster.instrumentation.helpers.Response;
-import cloud.filibuster.exceptions.filibuster.FilibusterServerBadResponseException;
 import cloud.filibuster.junit.server.core.FilibusterCore;
-import com.google.protobuf.GeneratedMessage;
-import com.google.protobuf.GeneratedMessageV3;
-import com.linecorp.armeria.client.WebClient;
-import com.linecorp.armeria.common.AggregatedHttpResponse;
-import com.linecorp.armeria.common.HttpHeaderNames;
-import com.linecorp.armeria.common.HttpMethod;
-import com.linecorp.armeria.common.RequestHeaders;
-import com.linecorp.armeria.common.ResponseHeaders;
-
-import org.json.JSONObject;
 import org.junit.jupiter.api.function.ThrowingConsumer;
-import io.grpc.MethodDescriptor;
-
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendCanInvokeDirectlyProperty;
+import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
+import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjectedHelper;
 
 /**
  * Assertions provided by Filibuster for writing conditional, fault-based assertions.
  */
 public class Assertions {
-    private static final Logger logger = Logger.getLogger(Assertions.class.getName());
-
-    private static String getFilibusterBaseUri() {
-        return "http://" + Networking.getFilibusterHost() + ":" + Networking.getFilibusterPort() + "/";
-    }
-
-    public static void assertPassesWithinMs(int milliseconds, Runnable testBlock) {
-        long startTime = System.nanoTime();
-        testBlock.run();
-        long endTime = System.nanoTime();
-
-        long duration = (endTime - startTime);
-        long durationMs = duration / 1000000;
-        if (durationMs > milliseconds) {
-            throw new FilibusterAllowedTimeExceededException("Test completed in " + durationMs +" milliseconds, exceeding allowed " + milliseconds + " milliseconds.");
-        }
-    }
 
     /**
      * Asserts the fault-free execution passes and that the fault executions pass or throw a given exception.
@@ -157,50 +122,6 @@ public class Assertions {
         }
     }
 
-    public static boolean wasFaultInjectedOnRequest(GeneratedMessage generatedMessage) {
-        return wasFaultInjectedOnRequest(generatedMessage.toString());
-    }
-
-    public static boolean wasFaultInjectedOnRequest(GeneratedMessageV3 generatedMessageV3) {
-        return wasFaultInjectedOnRequest(generatedMessageV3.toString());
-    }
-
-    /**
-     * Determine if a fault was injected during the current test execution.
-     *
-     * @return was fault injected
-     */
-    public static boolean wasFaultInjected() {
-        return wasFaultInjected("/filibuster/fault-injected");
-    }
-
-    public static boolean wasFaultInjected(String uri) {
-        String filibusterBaseUri = getFilibusterBaseUri();
-        WebClient webClient = FilibusterExecutor.getWebClient(filibusterBaseUri);
-        RequestHeaders getHeaders = RequestHeaders.of(HttpMethod.GET, uri, HttpHeaderNames.ACCEPT, "application/json");
-
-        try {
-            AggregatedHttpResponse response = webClient.execute(getHeaders).aggregate().join();
-            ResponseHeaders headers = response.headers();
-            String statusCode = headers.get(HttpHeaderNames.STATUS);
-
-            if (statusCode == null) {
-                FilibusterServerBadResponseException.logAndThrow("wasFaultInjected, statusCode: null");
-            }
-
-            if (!Objects.equals(statusCode, "200")) {
-                FilibusterServerBadResponseException.logAndThrow("wasFaultInjected, statusCode: " + statusCode);
-            }
-
-            // Get body and verify the proper response.
-            JSONObject jsonObject = Response.aggregatedHttpResponseToJsonObject(response);
-            return jsonObject.getBoolean("result");
-        } catch (RuntimeException e) {
-            logger.log(Level.SEVERE, "Couldn't connect to Filibuster server, assuming no fault was injected: " + e);
-            return false;
-        }
-    }
-
     /**
      * Determine if a fault was injected during the current test execution.
      *
@@ -213,7 +134,7 @@ public class Assertions {
         if (getServerBackendCanInvokeDirectlyProperty()) {
             throw new FilibusterUnsupportedAPIException("This API is currently not supported. If applicable, please import the GRPC variant of this method instead.");
         } else {
-            return wasFaultInjected("/filibuster/fault-injected/service/" + serviceName);
+            return wasFaultInjectedHelper("/filibuster/fault-injected/service/" + serviceName);
         }
     }
 
@@ -234,7 +155,7 @@ public class Assertions {
                 return false;
             }
         } else {
-            return wasFaultInjected("/filibuster/fault-injected/method/" + serviceName + "/" + methodName);
+            return wasFaultInjectedHelper("/filibuster/fault-injected/method/" + serviceName + "/" + methodName);
         }
     }
 
@@ -254,23 +175,7 @@ public class Assertions {
                 return false;
             }
         } else {
-            return wasFaultInjected("/filibuster/fault-injected/method/" + fullyQualifiedMethodName);
-        }
-    }
-
-    public static boolean wasFaultInjectedOnMethod(MethodDescriptor methodDescriptor) {
-        String fullyQualifiedMethodName = methodDescriptor.getFullMethodName();
-
-        if (getServerBackendCanInvokeDirectlyProperty()) {
-            String[] split = fullyQualifiedMethodName.split("/", 2);
-
-            if (FilibusterCore.hasCurrentInstance()) {
-                return FilibusterCore.getCurrentInstance().wasFaultInjectedOnMethod(split[0], split[1]);
-            } else {
-                return false;
-            }
-        } else {
-            return wasFaultInjected("/filibuster/fault-injected/method/" + fullyQualifiedMethodName);
+            return wasFaultInjectedHelper("/filibuster/fault-injected/method/" + fullyQualifiedMethodName);
         }
     }
 }

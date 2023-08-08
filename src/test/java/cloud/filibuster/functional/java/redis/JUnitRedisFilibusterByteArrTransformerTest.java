@@ -21,7 +21,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 
-import static cloud.filibuster.junit.Assertions.wasFaultInjected;
+import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;

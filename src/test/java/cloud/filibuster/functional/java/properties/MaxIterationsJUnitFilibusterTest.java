@@ -25,10 +25,10 @@ import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.instrumentation.helpers.Property.MAX_ITERATIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.setTestMaxIterationsProperty;
-import static cloud.filibuster.junit.Assertions.wasFaultInjected;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
-import static cloud.filibuster.junit.assertions.Grpc.wasFaultInjectedOnService;
-import static cloud.filibuster.junit.assertions.Grpc.tryGrpcAndCatchGrpcExceptions;
+import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
+import static cloud.filibuster.junit.assertions.GrpcAssertions.wasFaultInjectedOnMethod;
+import static cloud.filibuster.junit.assertions.GrpcAssertions.wasFaultInjectedOnService;
+import static cloud.filibuster.junit.assertions.GrpcAssertions.tryGrpcAndCatchGrpcExceptions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -80,7 +80,6 @@ public class MaxIterationsJUnitFilibusterTest extends JUnitAnnotationBaseTest {
 
             assertTrue(wasFaultInjected());
             assertTrue(wasFaultInjectedOnService("WorldService"));
-            assertTrue(wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World"));
             assertTrue(wasFaultInjectedOnMethod(WorldServiceGrpc.getWorldMethod()));
 
             assertTrue(t instanceof StatusRuntimeException);

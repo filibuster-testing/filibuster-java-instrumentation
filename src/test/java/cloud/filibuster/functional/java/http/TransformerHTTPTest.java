@@ -10,6 +10,7 @@ import com.linecorp.armeria.common.HttpHeaderNames;
 import com.linecorp.armeria.common.HttpMethod;
 import com.linecorp.armeria.common.RequestHeaders;
 import com.linecorp.armeria.common.ResponseHeaders;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -22,6 +23,8 @@ import java.util.Random;
 
 import static cloud.filibuster.integration.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.startWorldServerAndWaitUntilAvailable;
+import static cloud.filibuster.integration.instrumentation.TestHelper.stopHelloServerAndWaitUntilUnavailable;
+import static cloud.filibuster.integration.instrumentation.TestHelper.stopWorldServerAndWaitUntilUnavailable;
 import static cloud.filibuster.junit.assertions.protocols.GenericAssertions.wasFaultInjected;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -31,9 +34,15 @@ public class TransformerHTTPTest {
     private static int numberOfTestsExecuted = 0;
 
     @BeforeAll
-    public static void startHelloService() throws IOException, InterruptedException {
+    public static void startHelloAndWorldServices() throws IOException, InterruptedException {
         startHelloServerAndWaitUntilAvailable();
         startWorldServerAndWaitUntilAvailable();
+    }
+
+    @AfterAll
+    public static void stopHelloAndWorldServices() throws InterruptedException {
+        stopHelloServerAndWaitUntilUnavailable();
+        stopWorldServerAndWaitUntilUnavailable();
     }
 
     @DisplayName("Test injecting 'null' as HTTP response using transformers.")

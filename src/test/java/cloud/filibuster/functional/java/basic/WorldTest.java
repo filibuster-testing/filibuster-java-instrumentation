@@ -1,8 +1,12 @@
 package cloud.filibuster.functional.java.basic;
 
+import cloud.filibuster.examples.APIServiceGrpc;
+import cloud.filibuster.examples.Hello;
 import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.junit.TestWithFilibuster;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -19,6 +23,10 @@ import static cloud.filibuster.integration.instrumentation.TestHelper.stopAPISer
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopExternalServerAndWaitUntilUnavailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopHelloServerAndWaitUntilUnavailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopWorldServerAndWaitUntilUnavailable;
+import static cloud.filibuster.junit.assertions.protocols.GenericAssertions.wasFaultInjected;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class WorldTest {
     public static ManagedChannel apiChannel;
@@ -53,17 +61,17 @@ public class WorldTest {
         stopAPIServerAndWaitUntilUnavailable();
     }
 
-//    @TestWithFilibuster
-//    public void testWorld() {
-//        try {
-//            APIServiceGrpc.APIServiceBlockingStub apiServiceBlockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
-//            Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Chris").build();
-//            Hello.HelloReply reply = apiServiceBlockingStub.world(request);
-//            assertEquals("Hello!", reply.getMessage());
-//            assertFalse(wasFaultInjected());
-//        } catch (StatusRuntimeException sre) {
-//            assertTrue(wasFaultInjected());
-//            // TODO: Needs more assertions.
-//        }
-//    }
+    @TestWithFilibuster
+    public void testWorld() {
+        try {
+            APIServiceGrpc.APIServiceBlockingStub apiServiceBlockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
+            Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Chris").build();
+            Hello.HelloReply reply = apiServiceBlockingStub.world(request);
+            assertEquals("Hello!", reply.getMessage());
+            assertFalse(wasFaultInjected());
+        } catch (StatusRuntimeException sre) {
+            assertTrue(wasFaultInjected());
+            // TODO: Needs more assertions.
+        }
+    }
 }

@@ -1,4 +1,4 @@
-package cloud.filibuster.junit.assertions;
+package cloud.filibuster.junit.assertions.protocols;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterServerBadResponseException;
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;

@@ -11,8 +11,8 @@ import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 
-import static cloud.filibuster.junit.assertions.GrpcAssertions.wasFaultInjectedOnMethod;
-import static cloud.filibuster.junit.assertions.GrpcAssertions.wasFaultInjectedOnRequest;
+import static cloud.filibuster.junit.assertions.protocols.GrpcAssertions.wasFaultInjectedOnMethod;
+import static cloud.filibuster.junit.assertions.protocols.GrpcAssertions.wasFaultInjectedOnRequest;
 import static cloud.filibuster.junit.statem.GrpcTestUtils.getInsideOfAssertStubBlock;
 import static cloud.filibuster.junit.statem.GrpcTestUtils.isInsideOfStubBlock;
 import static org.grpcmock.GrpcMock.calledMethod;

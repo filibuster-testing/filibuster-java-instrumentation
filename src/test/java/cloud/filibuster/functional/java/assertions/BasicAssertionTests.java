@@ -15,7 +15,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 
 import java.util.concurrent.TimeUnit;
 
-import static cloud.filibuster.junit.assertions.GrpcAssertions.tryGrpcAndCatchGrpcExceptions;
+import static cloud.filibuster.junit.assertions.protocols.GrpcAssertions.tryGrpcAndCatchGrpcExceptions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

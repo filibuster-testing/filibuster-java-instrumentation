@@ -1,9 +1,9 @@
-package cloud.filibuster.junit.assertions;
+package cloud.filibuster.junit.assertions.protocols;
 
 import cloud.filibuster.junit.server.core.FilibusterCore;
 
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendCanInvokeDirectlyProperty;
-import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjectedHelper;
+import static cloud.filibuster.junit.assertions.protocols.GenericAssertions.wasFaultInjectedHelper;
 
 public class HttpAssertions {
     // TODO

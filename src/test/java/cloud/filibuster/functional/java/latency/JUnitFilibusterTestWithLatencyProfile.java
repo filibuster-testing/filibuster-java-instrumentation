@@ -19,7 +19,7 @@ import org.junit.jupiter.api.function.ThrowingConsumer;
 
 import java.util.concurrent.TimeUnit;
 
-import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
+import static cloud.filibuster.junit.assertions.protocols.GenericAssertions.wasFaultInjected;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 

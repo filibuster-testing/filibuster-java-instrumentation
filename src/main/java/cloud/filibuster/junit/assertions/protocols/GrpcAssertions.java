@@ -1,6 +1,8 @@
-package cloud.filibuster.junit.assertions;
+package cloud.filibuster.junit.assertions.protocols;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedByHTTPServerException;
+import cloud.filibuster.junit.assertions.BlockType;
+import cloud.filibuster.junit.assertions.protocols.GenericAssertions;
 import cloud.filibuster.junit.server.core.FilibusterCore;
 import com.google.protobuf.GeneratedMessage;
 import com.google.protobuf.GeneratedMessageV3;

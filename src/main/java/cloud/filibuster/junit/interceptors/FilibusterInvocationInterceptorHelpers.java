@@ -1,5 +1,6 @@
 package cloud.filibuster.junit.interceptors;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterFaultNotInjectedAndATrackedMethodInvokedException;
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultNotInjectedException;
 import cloud.filibuster.exceptions.filibuster.FilibusterOrganicFailuresPresentException;
 import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
@@ -80,9 +81,9 @@ public class FilibusterInvocationInterceptorHelpers {
             Class<? extends Throwable> expectedExceptionClass = filibusterConfiguration.getExpected();
 
             if (expectedExceptionClass != FilibusterNoopException.class && expectedExceptionClass.isInstance(t)) {
-                // FilibusterFaultNotInjectedException is thrown by recordIterationComplete -> FilibusterCore.completeIteration
+                // FilibusterFaultNotInjectedException and FilibusterFaultNotInjectedAndATrackedMethodInvokedException are thrown by recordIterationComplete -> FilibusterCore.completeIteration
                 // In this case, we do not need to call recordIterationComplete again since invocation has already been recorded
-                if (!expectedExceptionClass.equals(FilibusterFaultNotInjectedException.class)) {
+                if (!expectedExceptionClass.equals(FilibusterFaultNotInjectedException.class) && !expectedExceptionClass.equals(FilibusterFaultNotInjectedAndATrackedMethodInvokedException.class)) {
                     FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */false, null, shouldPrintRPCSummary);
                 }
             } else {

@@ -511,4 +511,26 @@ public class Property {
             return Boolean.parseBoolean(propertyValue);
         }
     }
+
+    /***********************************************************************************
+     ** filibuster.test.fail_if_fault_not_injected_and_a_tracked_method_is_invoked
+     ***********************************************************************************/
+
+    public static final boolean FAIL_IF_FAULT_NOT_INJECTED_AND_A_TRACKED_METHOD_IS_INVOKED_DEFAULT = false;
+
+    private final static String FAIL_IF_FAULT_NOT_INJECTED_AND_A_TRACKED_METHOD_IS_INVOKED = "filibuster.test.fail_if_fault_not_injected_and_a_tracked_method_is_invoked";
+
+    public static void setFailIfFaultNotInjectedAndATrackedMethodIsInvokedProperty(boolean value) {
+        System.setProperty(FAIL_IF_FAULT_NOT_INJECTED_AND_A_TRACKED_METHOD_IS_INVOKED, String.valueOf(value));
+    }
+
+    public static boolean getFailIfFaultNotInjectedAndATrackedMethodIsInvokedProperty() {
+        String propertyValue = System.getProperty(FAIL_IF_FAULT_NOT_INJECTED_AND_A_TRACKED_METHOD_IS_INVOKED);
+
+        if (isPropertyNull(propertyValue)) {
+            return FAIL_IF_FAULT_NOT_INJECTED_AND_A_TRACKED_METHOD_IS_INVOKED_DEFAULT;
+        } else {
+            return Boolean.parseBoolean(propertyValue);
+        }
+    }
 }

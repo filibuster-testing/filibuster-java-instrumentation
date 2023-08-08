@@ -1,3 +1,5 @@
+2.0.1:
+    - (MichaelA-ops) Add tests combining GRPC and Byzantine transformer faults
 2.0.0:
     - (MichaelA-ops) Use dynamic proxy interceptor for Redis and Cockroach
     - (MichaelA-ops) Introduce transformer faults
@@ -12,6 +14,10 @@
     - (MichaelA-ops) Add exception config files for DynamoDB, Cassandra, CockroachDB and Postgres
     - (MichaelA-ops) Inject RedisConnectionException
     - (MichaelA-ops) Support null transformer fault injection for HTTP and GRPC
+    - (MichaelA-ops) Inject faults on Future objects when they are resolved at a later point
+    - (MichaelA-ops) Add Filibuster option and property FailIfFaultNotInjected
+    - (MichaelA-ops) Implement feature to track invocations of a specific method on an intercepted object
+    - (MichaelA-ops) Add Filibuster option and property FailIfFaultNotInjectedAndATrackedMethodIsInvoked
 1.9.13:
    - (cmeiklejohn) Don't assume class name is the service name.
 1.9.12:

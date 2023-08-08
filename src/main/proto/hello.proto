@@ -21,20 +21,31 @@ service APIService {
   rpc SimulatePurchase (PurchaseRequest) returns (PurchaseResponse) {}
   rpc Purchase (PurchaseRequest) returns (PurchaseResponse) {}
   rpc RedisHelloRetry (RedisRequest) returns (RedisReply) {};
-  rpc GetBook (GetBookRequest) returns (GetBookResponse) {};
-  rpc GetBookTitle (GetBookRequest) returns (GetBookTitleResponse) {};
+  rpc CreateSession (CreateSessionRequest) returns (CreateSessionResponse) {};
+  rpc GetSession (GetSessionRequest) returns (GetSessionResponse) {};
+  rpc GetLocationFromSession (GetSessionRequest) returns (GetLocationFromSessionResponse) {};
 }
 
-message GetBookRequest {
-  string book_id = 1;
+message CreateSessionRequest {
+  string userId = 1;
+  string location = 2;
 }
 
-message GetBookTitleResponse {
-  string title = 1;
+message CreateSessionResponse {
+  string sessionId = 1;
+  int32 sessionSize = 2;
 }
 
-message GetBookResponse {
-  string book = 1;
+message GetSessionRequest {
+  string session_id = 1;
+}
+
+message GetLocationFromSessionResponse {
+  string location = 1;
+}
+
+message GetSessionResponse {
+  string session = 1;
 }
 
 message GetUserRequest {
@@ -111,6 +122,7 @@ service HelloService {
   rpc CompositionalHello (HelloExtendedRequest) returns (HelloExtendedReply) {}
   rpc SimplePartialHello (HelloRequest) returns (HelloReply) {}
   rpc ThrowException (HelloRequest) returns (HelloReply) {}
+  rpc GetLastSessionLocation (HelloRequest) returns (HelloReply) {}
 }
 
 message HelloRequest {

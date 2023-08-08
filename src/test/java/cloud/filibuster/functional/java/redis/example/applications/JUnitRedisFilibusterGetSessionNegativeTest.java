@@ -10,13 +10,8 @@ import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.db.redis.RedisTransformBitInByteArrAnalysisConfigurationFile;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.lettuce.core.api.StatefulRedisConnection;
-import io.lettuce.core.codec.ByteArrayCodec;
-import io.lettuce.core.codec.RedisCodec;
-import io.lettuce.core.codec.StringCodec;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -24,14 +19,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
-import static cloud.filibuster.integration.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
-import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
+import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
 import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjectedOnJavaClassAndMethod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -39,53 +32,47 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitRedisFilibusterGetBookNegativeTest extends JUnitAnnotationBaseTest {
-    static JSONObject referenceBook;
-    static byte[] bookBytes;
-    static String bookId = "abc123";
-    static StatefulRedisConnection<String, byte[]> statefulRedisConnection;
-    static String redisConnectionString;
+public class JUnitRedisFilibusterGetSessionNegativeTest extends JUnitAnnotationBaseTest {
     private final static ArrayList<String> testFaults = new ArrayList<>();
     private static int numberOfTestExecutions = 0;
     private static ManagedChannel apiChannel;
-
-    @BeforeAll
-    public static void primeCache() throws IOException, InterruptedException {
-        referenceBook = new JSONObject();
-        referenceBook.put("title", "dist sys");
-        referenceBook.put("isbn", "12-34");
-        referenceBook.put("author", "j. smith");
-        referenceBook.put("pages", "230");
-
-        bookBytes = referenceBook.toString().getBytes(Charset.defaultCharset());
-
-        statefulRedisConnection = RedisClientService.getInstance().redisClient.connect(RedisCodec.of(new StringCodec(), new ByteArrayCodec()));
-        redisConnectionString = RedisClientService.getInstance().connectionString;
-        statefulRedisConnection.sync().set(bookId, bookBytes);
-
-        startAPIServerAndWaitUntilAvailable();
-        startHelloServerAndWaitUntilAvailable();
-
-        apiChannel = ManagedChannelBuilder.forAddress(Networking.getHost("api_server"), Networking.getPort("api_server")).usePlaintext().build();
-    }
+    private static int sessionSize;
+    private static APIServiceGrpc.APIServiceBlockingStub apiService;
 
     @AfterAll
     public static void destruct() {
         apiChannel.shutdown();
     }
 
-    @DisplayName("Tests whether a book can be retrieved from Redis - Inject transformer faults where random bits are flipped in the byte array.")
+    @DisplayName("Tests whether a session can be retrieved from Redis - " +
+            "Inject transformer faults where random bits are flipped in the byte array.")
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = RedisTransformBitInByteArrAnalysisConfigurationFile.class,
             maxIterations = 1000)
-    public void testGetBookFromRedis() {
+    public void testCreateAndGetSessionFromRedis() throws IOException, InterruptedException {
         numberOfTestExecutions++;
 
+        startAPIServerAndWaitUntilAvailable();
+        RedisClientService.getInstance();
+
+        // Initialize API channel and service
+        apiChannel = ManagedChannelBuilder.forAddress(Networking.getHost("api_server"), Networking.getPort("api_server")).usePlaintext().build();
+        apiService = APIServiceGrpc.newBlockingStub(apiChannel);
+
+        String uid = "JohnS";
+        String location = "US";
+
         try {
-            APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
-            Hello.GetBookRequest bookRequest = Hello.GetBookRequest.newBuilder().setBookId(bookId).build();
-            Hello.GetBookResponse reply = blockingStub.getBook(bookRequest);
-            assertNotNull(reply.getBook());
+            // Create session
+            Hello.CreateSessionResponse session = createSession(uid, location);
+            assertNotNull(session);
+            sessionSize = session.getSessionSize();
+
+            // Retrieve session
+            Hello.GetSessionResponse retrievedSession = getSession(session.getSessionId());
+            JSONObject retrievedSessionJO = new JSONObject(retrievedSession.getSession());
+            assertNotNull(retrievedSessionJO);
+
         } catch (Throwable t) {
             testFaults.add(t.getMessage());
 
@@ -96,13 +83,29 @@ public class JUnitRedisFilibusterGetBookNegativeTest extends JUnitAnnotationBase
         }
     }
 
+    private static Hello.CreateSessionResponse createSession(String userId, String location) {
+        Hello.CreateSessionRequest sessionRequest = Hello.CreateSessionRequest.newBuilder()
+                .setUserId(userId)
+                .setLocation(location)
+                .build();
+        return apiService.createSession(sessionRequest);
+    }
+
+    private static Hello.GetSessionResponse getSession(String sessionId) {
+        Hello.GetSessionRequest sessionRequest = Hello.GetSessionRequest.newBuilder()
+                .setSessionId(sessionId)
+                .build();
+        return apiService.getSession(sessionRequest);
+    }
+
     @DisplayName("Verify correct number of test executions.")
     @Test
     @Order(2)
-    // 1 for the reference execution and +1 for each bit in the byte array
-    // => 1 + bookBytes.length * 8 = 1 + 69 * 8 = 553
+    // Number of execution is reference execution + |BFI fault space|
+    // For the BFI fault space, we can inject a fault at every bit in the session
+    // In total, we have 1 + 353 = 354 test executions
     public void testNumExecutions() {
-        assertEquals(1 + bookBytes.length * 8, numberOfTestExecutions);
+        assertEquals(1 + sessionSize, numberOfTestExecutions);
     }
 
     @DisplayName("Assert all faults that occurred were deserialization faults")
@@ -112,24 +115,24 @@ public class JUnitRedisFilibusterGetBookNegativeTest extends JUnitAnnotationBase
         // In this scenario, the bit transformations should only cause deserialization faults
         int deserializationFaults = testFaults.stream().filter(e -> e.contains("Error deserializing")).collect(Collectors.toList()).size();
 
-        // Out of 553 executions, 208 caused deserialization faults
-        // This shows that only 208 / 554 = 37.6% of the executions actually caused faults
+        // Out of 354 executions, 154 were deserialization faults
+        // This shows that only 154 / 354 = 43.5% of the executions actually caused faults
         // The rest of the executions were successful, although a bit was flipped
-        assertEquals(208, deserializationFaults);
+        assertEquals(154, deserializationFaults);
 
         // All faults should be deserialization faults
         assertEquals(testFaults.size(), deserializationFaults);
     }
 
-    @DisplayName("Assert the fault at the hello service was not found")
+    @DisplayName("Assert the second level cache fault was not found")
     @Test
     @Order(4)
-    public void testHelloFaultNotFound() {
+    public void testSecondLevelCacheFaultNotFound() {
         // The bit transformations should only cause deserialization faults
-        // In all the 553 executions, none of the injected faults leads us to discover the
-        // fault at the hello service
-        int helloFaults = testFaults.stream().filter(e -> e.contains("An exception was thrown at Hello service")).collect(Collectors.toList()).size();
-        assertEquals(0, helloFaults);
+        // In all the 705 executions, none of the injected faults leads us to discover the
+        // second level cache down fault
+        int cacheDownFault = testFaults.stream().filter(e -> e.contains("Redis second level cache is down.")).collect(Collectors.toList()).size();
+        assertEquals(0, cacheDownFault);
     }
 
 }

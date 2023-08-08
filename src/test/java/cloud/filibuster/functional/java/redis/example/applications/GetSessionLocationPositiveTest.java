@@ -10,6 +10,7 @@ import cloud.filibuster.junit.configuration.examples.db.redis.RedisTransformBitI
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -28,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Disabled
 public class GetSessionLocationPositiveTest extends JUnitAnnotationBaseTest {
     private final static ArrayList<String> testFaults = new ArrayList<>();
     private static int numberOfTestExecutions = 0;

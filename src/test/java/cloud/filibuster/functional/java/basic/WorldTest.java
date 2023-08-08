@@ -68,8 +68,7 @@ public class WorldTest {
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Chris").build();
             Hello.HelloReply reply = apiServiceBlockingStub.world(request);
             assertEquals("Hello!", reply.getMessage());
-            boolean wasFaultInjected = wasFaultInjected();
-            assertFalse(wasFaultInjected);
+            assertFalse(wasFaultInjected());
         } catch (StatusRuntimeException sre) {
             assertTrue(wasFaultInjected());
         }

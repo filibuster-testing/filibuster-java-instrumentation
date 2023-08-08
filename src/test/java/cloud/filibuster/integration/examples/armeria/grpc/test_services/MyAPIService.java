@@ -356,7 +356,11 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         }, FilibusterExecutor.getExecutorService());
 
         try {
-            secondRequestFuture.get();
+            if (!Objects.equals(secondRequestFuture.get(), "200")) {
+                Status status = Status.UNAVAILABLE.withDescription("Second RPC request to /world failed!");
+                responseObserver.onError(status.asRuntimeException());
+                return;
+            }
         } catch (InterruptedException | ExecutionException e) {
             // Ignore for now, we only care about executing the request.
         }

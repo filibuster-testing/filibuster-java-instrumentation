@@ -479,7 +479,9 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
                 return;
             }
         } catch (InterruptedException | ExecutionException e) {
-            // Ignore for now, we only care about executing the request.
+            Status status = Status.INTERNAL.withDescription("First RPC request to /world failed!");
+            responseObserver.onError(status.asRuntimeException());
+            return;
         }
 
         // Issue POST to http://hello/external-post, which will issue a transitive POST to http://external.

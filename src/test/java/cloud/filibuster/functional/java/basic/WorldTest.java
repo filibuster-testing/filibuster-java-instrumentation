@@ -6,6 +6,7 @@ import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.TestWithFilibuster;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -66,14 +67,18 @@ public class WorldTest {
     public void testWorld() {
         invocationCount++;
 
-        APIServiceGrpc.APIServiceBlockingStub apiServiceBlockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
-        Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Chris").build();
-        Hello.HelloReply reply = apiServiceBlockingStub.world(request);
-        assertEquals("Hello!", reply.getMessage());
+        try {
+            APIServiceGrpc.APIServiceBlockingStub apiServiceBlockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
+            Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Chris").build();
+            Hello.HelloReply reply = apiServiceBlockingStub.world(request);
+            assertEquals("Hello!", reply.getMessage());
 
-        if (invocationCount == 1) {
-            assertFalse(wasFaultInjected());
-        } else {
+            if (invocationCount == 1) {
+                assertFalse(wasFaultInjected());
+            } else {
+                assertTrue(wasFaultInjected());
+            }
+        } catch (StatusRuntimeException sre) {
             assertTrue(wasFaultInjected());
         }
     }

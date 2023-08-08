@@ -15,6 +15,7 @@ message PurchaseResponse {
 
 service APIService {
   rpc Hello (HelloRequest) returns (HelloReply) {};
+  rpc World (HelloRequest) returns (HelloReply) {}
   rpc HelloWithMock (HelloRequest) returns (HelloReply) {};
   rpc RedisHello (RedisRequest) returns (RedisReply) {};
   rpc SimulatePurchase (PurchaseRequest) returns (PurchaseResponse) {}

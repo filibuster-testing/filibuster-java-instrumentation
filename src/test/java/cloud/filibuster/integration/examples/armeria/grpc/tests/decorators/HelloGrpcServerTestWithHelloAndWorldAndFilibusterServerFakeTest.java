@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
+import static cloud.filibuster.junit.assertions.GrpcAssertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -177,7 +177,7 @@ public class HelloGrpcServerTestWithHelloAndWorldAndFilibusterServerFakeTest ext
         assertEquals("DATA_LOSS: io.grpc.StatusRuntimeException: NOT_FOUND: Injected fault from Filibuster, status code: 5", re.getMessage());
 
         assertTrue(wasFaultInjected());
-        assertTrue(wasFaultInjectedOnService("world"));
+        assertTrue(wasFaultInjectedOnService("World"));
 
         helloChannel.shutdownNow();
         helloChannel.awaitTermination(1000, TimeUnit.SECONDS);

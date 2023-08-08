@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
 import static cloud.filibuster.junit.assertions.GrpcAssertions.wasFaultInjectedOnMethod;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
+import static cloud.filibuster.junit.assertions.GrpcAssertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -82,7 +82,7 @@ public class JUnitFilibusterFailingTest extends JUnitBaseTest {
                     expected = true;
                 }
 
-                boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("world");
+                boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("World");
                 assertTrue(wasFaultInjectedOnWorldService);
 
                 boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod(WorldServiceGrpc.getWorldMethod());

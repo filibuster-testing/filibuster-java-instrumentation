@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterTransformerHTTPTest {
+public class TransformerHTTPTest {
     private static int numberOfTestsExecuted = 0;
 
     @BeforeAll

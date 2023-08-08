@@ -1,6 +1,5 @@
 package cloud.filibuster.junit;
 
-import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.exceptions.filibuster.FilibusterAllowedTimeExceededException;
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedAPIException;
 import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedByHTTPServerException;
@@ -272,42 +271,6 @@ public class Assertions {
             }
         } else {
             return wasFaultInjected("/filibuster/fault-injected/method/" + fullyQualifiedMethodName);
-        }
-    }
-
-    public static HashMap<DistributedExecutionIndex, JSONObject> getFaultsInjected() {
-        if (getServerBackendCanInvokeDirectlyProperty()) {
-            if (FilibusterCore.hasCurrentInstance()) {
-                return FilibusterCore.getCurrentInstance().faultsInjected();
-            } else {
-                return new HashMap<>();
-            }
-        } else {
-            throw new FilibusterUnsupportedAPIException("This API is currently not supported. If applicable, please import the GRPC variant of this method instead.");
-        }
-    }
-
-    public static HashMap<DistributedExecutionIndex, JSONObject> getExecutedRPCs() {
-        if (getServerBackendCanInvokeDirectlyProperty()) {
-            if (FilibusterCore.hasCurrentInstance()) {
-                return FilibusterCore.getCurrentInstance().executedRPCs();
-            } else {
-                return new HashMap<>();
-            }
-        } else {
-            throw new FilibusterUnsupportedAPIException("This API is currently not supported. If applicable, please import the GRPC variant of this method instead.");
-        }
-    }
-
-    public static HashMap<DistributedExecutionIndex, JSONObject> getFailedRPCs() {
-        if (getServerBackendCanInvokeDirectlyProperty()) {
-            if (FilibusterCore.hasCurrentInstance()) {
-                return FilibusterCore.getCurrentInstance().failedRPCs();
-            } else {
-                return new HashMap<>();
-            }
-        } else {
-            throw new FilibusterUnsupportedAPIException("This API is currently not supported. If applicable, please import the GRPC variant of this method instead.");
         }
     }
 }

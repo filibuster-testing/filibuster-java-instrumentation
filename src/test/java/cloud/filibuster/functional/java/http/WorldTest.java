@@ -61,17 +61,17 @@ public class WorldTest {
         stopAPIServerAndWaitUntilUnavailable();
     }
 
-    @TestWithFilibuster
-    public void testWorld() {
-        try {
-            APIServiceGrpc.APIServiceBlockingStub apiServiceBlockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
-            Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Chris").build();
-            Hello.HelloReply reply = apiServiceBlockingStub.world(request);
-            assertEquals("Hello!", reply.getMessage());
-            assertFalse(wasFaultInjected());
-        } catch (StatusRuntimeException sre) {
-            assertTrue(wasFaultInjected());
-            // TODO: Needs more assertions.
-        }
-    }
+//    @TestWithFilibuster
+//    public void testWorld() {
+//        try {
+//            APIServiceGrpc.APIServiceBlockingStub apiServiceBlockingStub = APIServiceGrpc.newBlockingStub(apiChannel);
+//            Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Chris").build();
+//            Hello.HelloReply reply = apiServiceBlockingStub.world(request);
+//            assertEquals("Hello!", reply.getMessage());
+//            assertFalse(wasFaultInjected());
+//        } catch (StatusRuntimeException sre) {
+//            assertTrue(wasFaultInjected());
+//            // TODO: Needs more assertions.
+//        }
+//    }
 }

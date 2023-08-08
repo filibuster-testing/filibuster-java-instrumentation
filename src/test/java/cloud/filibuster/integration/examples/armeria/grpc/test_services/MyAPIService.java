@@ -517,7 +517,9 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
             Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(req.getName()).build();
             worldServiceBlockingStub.world(request);
         } catch (RuntimeException e) {
-            // Ignore for now, we only care about executing the request.
+            Status status = Status.INTERNAL.withDescription("Third RPC request to HelloService.world failed!");
+            responseObserver.onError(status.asRuntimeException());
+            return;
         }
 
         worldManagedChannel.shutdownNow();

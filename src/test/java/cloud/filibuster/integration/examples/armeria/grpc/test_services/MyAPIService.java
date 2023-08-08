@@ -336,7 +336,11 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         }, FilibusterExecutor.getExecutorService());
 
         try {
-            firstRequestFuture.get();
+            if (!Objects.equals(firstRequestFuture.get(), "200")) {
+                Status status = Status.UNAVAILABLE.withDescription("First RPC request to /world failed!");
+                responseObserver.onError(status.asRuntimeException());
+                return;
+            }
         } catch (InterruptedException | ExecutionException e) {
             // Ignore for now, we only care about executing the request.
         }

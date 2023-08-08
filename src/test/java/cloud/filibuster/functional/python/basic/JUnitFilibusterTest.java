@@ -81,7 +81,7 @@ public class JUnitFilibusterTest extends JUnitBaseTest {
                     expected = true;
                 }
 
-                boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("World");
+                boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("world");
                 assertTrue(wasFaultInjectedOnWorldService);
 
                 boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod(WorldServiceGrpc.getWorldMethod());

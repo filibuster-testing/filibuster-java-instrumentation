@@ -47,25 +47,4 @@ public class Assertions {
             return wasFaultInjectedHelper("/filibuster/fault-injected/service/" + serviceName);
         }
     }
-
-    /**
-     * Determine if a fault was injected during the current test execution.
-     *
-     * Does not require server instrumentor usage, as service name is determined by invoking stub if using stubs. (i.e., Google gRPC)
-     *
-     * @param serviceName service name (e.g., cloud.filibuster.WorldService)
-     * @param methodName method name (e.g., World)
-     * @return was fault injected
-     */
-    public static boolean wasFaultInjectedOnMethod(String serviceName, String methodName) {
-        if (getServerBackendCanInvokeDirectlyProperty()) {
-            if (FilibusterCore.hasCurrentInstance()) {
-                return FilibusterCore.getCurrentInstance().wasFaultInjectedOnMethod(serviceName, methodName);
-            } else {
-                return false;
-            }
-        } else {
-            return wasFaultInjectedHelper("/filibuster/fault-injected/method/" + serviceName + "/" + methodName);
-        }
-    }
 }

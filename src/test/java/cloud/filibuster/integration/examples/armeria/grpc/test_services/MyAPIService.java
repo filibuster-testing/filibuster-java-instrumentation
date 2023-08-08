@@ -282,8 +282,8 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
                 respondWithError(responseObserver, description);
             }
 
-            if (sessionJO != null && sessionJO.has("location")) {  // Check whether the sessionJO has a location field
-                reply = sessionLocationBuilder.setLocation(sessionJO.getString("location")).build();
+            if (sessionJO != null && sessionJO.has("loc")) {  // Check whether the sessionJO has a location field
+                reply = sessionLocationBuilder.setLocation(sessionJO.getString("loc")).build();
             } else {
                 // Else make a call to the Hello service to retrieve the last saved location for the sessionId.
                 ManagedChannel helloChannel = ManagedChannelBuilder
@@ -316,7 +316,7 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         // Create the session JSON object
         JSONObject referenceSession = new JSONObject();
         referenceSession.put("uid", req.getUserId());
-        referenceSession.put("location", req.getLocation());
+        referenceSession.put("loc", req.getLocation());
         referenceSession.put("iat", "123");  // Request timestamp
         byte[] sessionBytes = referenceSession.toString().getBytes(Charset.defaultCharset());
         Random rand = new Random(getRandomSeedProperty());

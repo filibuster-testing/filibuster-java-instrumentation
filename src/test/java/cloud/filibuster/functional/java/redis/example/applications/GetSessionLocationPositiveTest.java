@@ -55,7 +55,7 @@ public class GetSessionLocationPositiveTest extends JUnitAnnotationBaseTest {
         apiChannel = ManagedChannelBuilder.forAddress(Networking.getHost("api_server"), Networking.getPort("api_server")).usePlaintext().build();
         apiService = APIServiceGrpc.newBlockingStub(apiChannel);
 
-        String uid = "JohnS";
+        String uid = "Joe";
         String location = "US";
 
         try {
@@ -95,10 +95,10 @@ public class GetSessionLocationPositiveTest extends JUnitAnnotationBaseTest {
     @Test
     @Order(2)
     // Number of execution is |BFI fault space| * |grpc fault space| + reference execution
-    // For the BFI fault space, we have a byte array with 44 bytes. Therefore, the fault space is 43 * 8 = 344
+    // For the BFI fault space, we have a byte array with 44 bytes. Therefore, the fault space is 36 * 8 = 288
     // For the gRPC fault space, we inject only one fault in the Hello service. Therefore, the fault space is 1 + 1 = 2
     // The +1 comes from the iteration where no gRPC fault is injected
-    // In total, we have 344 * 2 + 1 = 689 test executions
+    // In total, we have 288 * 2 + 1 = 577 test executions
     public void testNumExecutions() {
         assertEquals(1 + sessionSize * 2, numberOfTestExecutions);
     }
@@ -107,12 +107,12 @@ public class GetSessionLocationPositiveTest extends JUnitAnnotationBaseTest {
     @Test
     @Order(3)
     public void testGRPCAndBFIFaultFound() {
-        // This fault can only be detected in the iterations where a bit in the key "location" is mutated
+        // This fault can only be detected in the iterations where a bit in the key "loc" is mutated
         // and, simultaneously, a gRPC fault is injected.
-        // The length of the key "location" is 8. Therefore, there are 8 * 8 = 64 iterations where the fault will be found
-        // That fault was found in 64 / 689 = 9.3% of the executions
+        // The length of the key "loc" is 3. Therefore, there are 3 * 8 = 24 iterations where the fault will be found
+        // That fault was found in 24 / 577 = 4.2% of the executions
         int helloFaults = testFaults.stream().filter(e -> e.contains("UNAVAILABLE")).collect(Collectors.toList()).size();
-        assertEquals(64, helloFaults);
+        assertEquals(24, helloFaults);
     }
 
     @DisplayName("Assert the exception 'session not found' was not found")
@@ -128,16 +128,16 @@ public class GetSessionLocationPositiveTest extends JUnitAnnotationBaseTest {
     @Test
     @Order(5)
     public void testNumDeserializationAndHelloFaults() {
-        // Out of 689 executions, 308 were deserialization faults (308 / 705 = 44.7%)
+        // Out of 577 executions, 308 were deserialization faults (308 / 577 = 53%)
         int deserializationFaults = testFaults.stream().filter(e -> e.contains("Error deserializing")).collect(Collectors.toList()).size();
 
-        // 64 iterations where a gRPC fault and BFI fault at key "location" are simultaneously injected
+        // 24 iterations where a gRPC fault and BFI fault at key "loc" are simultaneously injected
         int combinedGrpcAndBFIFaults = testFaults.stream().filter(e -> e.contains("UNAVAILABLE")).collect(Collectors.toList()).size();
 
-        // Total faults should be 308 + 64 = 372 faults
-        // This shows that only 248 / 689 = 36% of the executions were successful
+        // Total faults should be 308 + 24 = 332 faults
+        // This shows that only 332 / 577 = 57% of the executions actually invoked exceptions
         // The rest of the executions were successful, although a bit was flipped
-        assertEquals(372, deserializationFaults + combinedGrpcAndBFIFaults);
+        assertEquals(332, deserializationFaults + combinedGrpcAndBFIFaults);
 
         // All faults should be either deserialization faults or from the hello service
         assertEquals(testFaults.size(), deserializationFaults + combinedGrpcAndBFIFaults);

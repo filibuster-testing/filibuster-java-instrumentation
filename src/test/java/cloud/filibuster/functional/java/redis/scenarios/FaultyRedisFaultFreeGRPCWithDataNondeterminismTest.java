@@ -42,10 +42,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFaultyRedisFaultFreeGRPCWithDataNondeterminismTest extends JUnitAnnotationBaseTest {
+public class FaultyRedisFaultFreeGRPCWithDataNondeterminismTest extends JUnitAnnotationBaseTest {
     static StatefulRedisConnection<String, String> statefulRedisConnection;
     static String redisConnectionString;
-    private static final Logger logger = Logger.getLogger(JUnitFaultyRedisFaultFreeGRPCWithDataNondeterminismTest.class.getName());
+    private static final Logger logger = Logger.getLogger(FaultyRedisFaultFreeGRPCWithDataNondeterminismTest.class.getName());
     private static final ArrayList<String> keys = new ArrayList<>();
     private static final ArrayList<String> values = new ArrayList<>();
     private static int numberOfExecution = 0;

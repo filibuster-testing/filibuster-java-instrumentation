@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterHelloParallelPartialHelloWithSuppressCombinationsTest extends JUnitAnnotationBaseTest {
+public class HelloParallelPartialHelloWithSuppressCombinationsTest extends JUnitAnnotationBaseTest {
     private final static Set<String> responsesReceived = new HashSet<>();
 
     private final List possibleResponses = Arrays.asList(

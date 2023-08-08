@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.testcontainers.shaded.com.google.common.base.Stopwatch.createStarted;
 
-public class JUnitRedisFilibusterRetryTest {
+public class RedisFilibusterRetryTest {
     private static final String key = "username";
     private static final String value = "Filibuster";
 

@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterHelloPartialHelloExternalHttpWithSuppressCombinationsTest extends JUnitAnnotationBaseTest {
+public class HelloPartialHelloExternalGrpcWithSuppressCombinationsTest extends JUnitAnnotationBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     private static int numberOfTestsExecuted = 0;
@@ -39,7 +39,7 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpWithSuppressCombination
     private static int numberOfExceptionsThrown = 0;
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @TestWithFilibuster(suppressCombinations=true, maxIterations=10)
+    @TestWithFilibuster(suppressCombinations=true, maxIterations=30)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -55,8 +55,8 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpWithSuppressCombination
         Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
 
         try {
-            Hello.HelloReply reply = blockingStub.partialHelloExternalHttp(request);
-            assertEquals("Hello, Armerian World!!", reply.getMessage());
+            Hello.HelloReply reply = blockingStub.partialHelloExternalGrpc(request);
+            assertEquals("Hello, Hello, Hello, Armerian!!", reply.getMessage());
             assertFalse(wasFaultInjected());
         } catch (Throwable t) {
             numberOfExceptionsThrown++;
@@ -65,6 +65,7 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpWithSuppressCombination
             boolean wasFaultInjected = wasFaultInjected();
 
             boolean firstRPCFailed = false;
+            boolean secondRPCFailed = false;
 
             if (wasFaultInjected) {
                 // First RPC failed.
@@ -88,6 +89,11 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpWithSuppressCombination
                     firstRPCFailed = true;
                 }
 
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNKNOWN")) {
+                    expected = true;
+                    firstRPCFailed = true;
+                }
+
                 if (firstRPCFailed) {
                     boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("WorldService");
                     assertTrue(wasFaultInjectedOnWorldService);
@@ -104,27 +110,46 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpWithSuppressCombination
 
                 // Second RPC failed.
 
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNKNOWN")) {
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: UNIMPLEMENTED")) {
                     expected = true;
+                    secondRPCFailed = true;
                 }
 
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: FAILED_PRECONDITION: HTTP RPC returned: 500")) {
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: INTERNAL")) {
                     expected = true;
+                    secondRPCFailed = true;
                 }
 
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: FAILED_PRECONDITION: HTTP RPC returned: 502")) {
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: UNAVAILABLE")) {
                     expected = true;
+                    secondRPCFailed = true;
                 }
 
-                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: FAILED_PRECONDITION: HTTP RPC returned: 503")) {
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED")) {
                     expected = true;
+                    secondRPCFailed = true;
+                }
+
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: DATA_LOSS: io.grpc.StatusRuntimeException: UNKNOWN")) {
+                    expected = true;
+                    secondRPCFailed = true;
+                }
+
+                if (secondRPCFailed) {
+                    boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("HelloService");
+                    assertTrue(wasFaultInjectedOnWorldService);
+
+                    boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod(HelloServiceGrpc.getHelloMethod());
+                    assertTrue(wasFaultInjectedOnWorldMethod);
                 }
 
                 if (!expected) {
                     throw t;
                 }
             } else {
-                throw t;
+                if (!expected) {
+                    throw t;
+                }
             }
         }
 
@@ -136,20 +161,20 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpWithSuppressCombination
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(8, testExceptionsThrown.size());
+        assertEquals(10, testExceptionsThrown.size());
     }
 
     @DisplayName("Verify correct number of executed tests.")
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEquals(10, numberOfTestsExecuted);
+        assertEquals(11, numberOfTestsExecuted);
     }
 
     @DisplayName("Verify correct number of exceptions thrown.")
     @Test
     @Order(4)
     public void numberOfExceptionsThrown() {
-        assertEquals(9, numberOfExceptionsThrown);
+        assertEquals(10, numberOfExceptionsThrown);
     }
 }

@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitRedisFilibusterByzantineByteArrTest extends JUnitAnnotationBaseTest {
+public class RedisFilibusterByzantineByteArrTest extends JUnitAnnotationBaseTest {
     static final String key = "test";
     static final byte[] value = "example".getBytes(Charset.defaultCharset());
     static StatefulRedisConnection<String, byte[]> statefulRedisConnection;

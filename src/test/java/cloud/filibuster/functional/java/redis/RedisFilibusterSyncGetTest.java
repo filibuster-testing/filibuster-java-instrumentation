@@ -5,12 +5,10 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.db.redis.RedisTransformBitInByteArrAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.db.redis.RedisSingleFaultCommandTimeoutExceptionAnalysisConfigurationFile;
+import io.lettuce.core.RedisCommandTimeoutException;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
-import io.lettuce.core.codec.ByteArrayCodec;
-import io.lettuce.core.codec.RedisCodec;
-import io.lettuce.core.codec.StringCodec;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -18,46 +16,53 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
-import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
 import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjectedOnJavaClassAndMethod;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitRedisFilibusterByteArrTransformerTest extends JUnitAnnotationBaseTest {
+public class RedisFilibusterSyncGetTest extends JUnitAnnotationBaseTest {
     static final String key = "test";
-    static final byte[] value = "example".getBytes(Charset.defaultCharset());
-    static StatefulRedisConnection<String, byte[]> statefulRedisConnection;
+    static final String value = "example";
+    static StatefulRedisConnection<String, String> statefulRedisConnection;
     static String redisConnectionString;
-    private final static ArrayList<String> testExceptionsThrown = new ArrayList<>();
+    private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     private static int numberOfTestExecutions = 0;
 
+    private static final List<String> allowedExceptionMessages = new ArrayList<>();
+
     @BeforeAll
     public static void primeCache() {
-        statefulRedisConnection = RedisClientService.getInstance().redisClient.connect(RedisCodec.of(new StringCodec(), new ByteArrayCodec()));
+        statefulRedisConnection = RedisClientService.getInstance().redisClient.connect();
         redisConnectionString = RedisClientService.getInstance().connectionString;
         statefulRedisConnection.sync().set(key, value);
     }
 
-    @DisplayName("Tests whether Redis sync interceptor can read from existing key - Byte Array transformer faults.")
+    static {
+        allowedExceptionMessages.add("Command timed out after 100 millisecond(s)");
+    }
+
+    @DisplayName("Tests whether Redis sync interceptor can read from existing key - Single fault injection")
     @Order(1)
-    @TestWithFilibuster(analysisConfigurationFile = RedisTransformBitInByteArrAnalysisConfigurationFile.class)
-    public void testRedisByteArrTransformation() {
+    @TestWithFilibuster(analysisConfigurationFile = RedisSingleFaultCommandTimeoutExceptionAnalysisConfigurationFile.class)
+    public void testRedisSyncGet() {
         try {
             numberOfTestExecutions++;
 
-            StatefulRedisConnection<String, byte[]> myStatefulRedisConnection = DynamicProxyInterceptor.createInterceptor(statefulRedisConnection, redisConnectionString);
-            RedisCommands<String, byte[]> myRedisCommands = myStatefulRedisConnection.sync();
-            byte[] returnVal = myRedisCommands.get(key);
-            assertArrayEquals(value, returnVal);
+            StatefulRedisConnection<String, String> myStatefulRedisConnection = DynamicProxyInterceptor.createInterceptor(statefulRedisConnection, redisConnectionString);
+            RedisCommands<String, String> myRedisCommands = myStatefulRedisConnection.sync();
+            String returnVal = myRedisCommands.get(key);
+            assertEquals(value, returnVal);
             assertFalse(wasFaultInjected());
         } catch (Throwable t) {
             testExceptionsThrown.add(t.getMessage());
@@ -65,23 +70,23 @@ public class JUnitRedisFilibusterByteArrTransformerTest extends JUnitAnnotationB
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
             assertThrows(FilibusterUnsupportedAPIException.class, () -> wasFaultInjectedOnService("io.lettuce.core.api.sync.RedisStringCommands"), "Expected FilibusterUnsupportedAPIException to be thrown: " + t);
             assertTrue(wasFaultInjectedOnJavaClassAndMethod("io.lettuce.core.api.sync.RedisStringCommands/get"), "Fault was not injected on the expected Redis method: " + t);
+            assertTrue(t instanceof RedisCommandTimeoutException, "Fault was not of the correct type: " + t);
+            assertTrue(allowedExceptionMessages.contains(t.getMessage()), "Unexpected fault message: " + t);
         }
     }
 
     @DisplayName("Verify correct number of test executions.")
     @Test
     @Order(2)
-    // 1 for the original test and +1 for each bit in the byte array
     public void testNumExecutions() {
-        assertEquals(value.length * 8 + 1, numberOfTestExecutions);
+        assertEquals(2, numberOfTestExecutions);
     }
 
-    @DisplayName("Verify correct number of faults.")
+    @DisplayName("Verify correct number of generated Filibuster tests.")
     @Test
     @Order(3)
-    // 1 fault per bit per byte in the byte array
-    public void testNumFaults() {
-        assertEquals(value.length * 8, testExceptionsThrown.size());
+    public void testNumExceptions() {
+        assertEquals(1, testExceptionsThrown.size());
     }
 
 }

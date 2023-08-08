@@ -7,9 +7,10 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.db.redis.RedisTransformBitInByteArrAndGRPCExceptionAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.db.redis.RedisTransformBitInByteArrAnalysisConfigurationFile;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import org.json.JSONObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -31,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitRedisFilibusterGetSessionLocationPositiveTest extends JUnitAnnotationBaseTest {
+public class GetSessionNegativeTest extends JUnitAnnotationBaseTest {
     private final static ArrayList<String> testFaults = new ArrayList<>();
     private static int numberOfTestExecutions = 0;
     private static ManagedChannel apiChannel;
@@ -43,12 +44,12 @@ public class JUnitRedisFilibusterGetSessionLocationPositiveTest extends JUnitAnn
         apiChannel.shutdown();
     }
 
-    @DisplayName("Tests whether a session location can be created and then retrieved from Redis - " +
+    @DisplayName("Tests whether a session can be retrieved from Redis - " +
             "Inject transformer faults where random bits are flipped in the byte array.")
     @Order(1)
-    @TestWithFilibuster(analysisConfigurationFile = RedisTransformBitInByteArrAndGRPCExceptionAnalysisConfigurationFile.class,
+    @TestWithFilibuster(analysisConfigurationFile = RedisTransformBitInByteArrAnalysisConfigurationFile.class,
             maxIterations = 1000)
-    public void testCreateAndGetSessionLocationFromRedis() throws IOException, InterruptedException {
+    public void testCreateAndGetSessionFromRedis() throws IOException, InterruptedException {
         numberOfTestExecutions++;
 
         startAPIServerAndWaitUntilAvailable();
@@ -68,8 +69,10 @@ public class JUnitRedisFilibusterGetSessionLocationPositiveTest extends JUnitAnn
             sessionSize = session.getSessionSize();
 
             // Retrieve session
-            Hello.GetLocationFromSessionResponse retrievedLocation = getLocation(session.getSessionId());
-            assertNotNull(retrievedLocation);
+            Hello.GetSessionResponse retrievedSession = getSession(session.getSessionId());
+            JSONObject retrievedSessionJO = new JSONObject(retrievedSession.getSession());
+            assertNotNull(retrievedSessionJO);
+
         } catch (Throwable t) {
             testFaults.add(t.getMessage());
 
@@ -88,63 +91,48 @@ public class JUnitRedisFilibusterGetSessionLocationPositiveTest extends JUnitAnn
         return apiService.createSession(sessionRequest);
     }
 
-    private static Hello.GetLocationFromSessionResponse getLocation(String sessionId) {
+    private static Hello.GetSessionResponse getSession(String sessionId) {
         Hello.GetSessionRequest sessionRequest = Hello.GetSessionRequest.newBuilder()
                 .setSessionId(sessionId)
                 .build();
-        return apiService.getLocationFromSession(sessionRequest);
+        return apiService.getSession(sessionRequest);
     }
 
     @DisplayName("Verify correct number of test executions.")
     @Test
     @Order(2)
-    // Number of execution is |BFI fault space| * |grpc fault space| + reference execution
-    // For the BFI fault space, we have a byte array with 44 bytes. Therefore, the fault space is 43 * 8 = 344
-    // For the gRPC fault space, we inject only one fault in the Hello service. Therefore, the fault space is 1 + 1 = 2
-    // The +1 comes from the iteration where no gRPC fault is injected
-    // In total, we have 344 * 2 + 1 = 689 test executions
+    // Number of execution is reference execution + |BFI fault space|
+    // For the BFI fault space, we can inject a fault at every bit in the session
+    // In total, we have 1 + 353 = 354 test executions
     public void testNumExecutions() {
-        assertEquals(1 + sessionSize * 2, numberOfTestExecutions);
+        assertEquals(1 + sessionSize, numberOfTestExecutions);
     }
 
-    @DisplayName("Assert the exception UNAVAILABLE is found when a BFI and a GRPC fault are simultaneously injected")
+    @DisplayName("Assert all faults that occurred were deserialization faults")
     @Test
     @Order(3)
-    public void testGRPCAndBFIFaultFound() {
-        // This fault can only be detected in the iterations where a bit in the key "location" is mutated
-        // and, simultaneously, a gRPC fault is injected.
-        // The length of the key "location" is 8. Therefore, there are 8 * 8 = 64 iterations where the fault will be found
-        // That fault was found in 64 / 689 = 9.3% of the executions
-        int helloFaults = testFaults.stream().filter(e -> e.contains("UNAVAILABLE")).collect(Collectors.toList()).size();
-        assertEquals(64, helloFaults);
-    }
-
-    @DisplayName("Assert the exception 'session not found' was not found")
-    @Test
-    @Order(4)
-    public void testSessionNotFound() {
-        // Assert that the "session not found" exception was not found.
-        int sessionNotFound = testFaults.stream().filter(e -> e.contains("Retrieved value is null. Session was not found")).collect(Collectors.toList()).size();
-        assertEquals(0, sessionNotFound);
-    }
-
-    @DisplayName("Assert all faults were deserialization faults or from the hello service")
-    @Test
-    @Order(5)
-    public void testNumDeserializationAndHelloFaults() {
-        // Out of 689 executions, 308 were deserialization faults (308 / 705 = 44.7%)
+    public void testNumDeserializationFaults() {
+        // In this scenario, the bit transformations should only cause deserialization faults
         int deserializationFaults = testFaults.stream().filter(e -> e.contains("Error deserializing")).collect(Collectors.toList()).size();
 
-        // 64 iterations where a gRPC fault and BFI fault at key "location" are simultaneously injected
-        int combinedGrpcAndBFIFaults = testFaults.stream().filter(e -> e.contains("UNAVAILABLE")).collect(Collectors.toList()).size();
-
-        // Total faults should be 308 + 64 = 372 faults
-        // This shows that only 248 / 689 = 36% of the executions were successful
+        // Out of 354 executions, 154 were deserialization faults
+        // This shows that only 154 / 354 = 43.5% of the executions actually caused faults
         // The rest of the executions were successful, although a bit was flipped
-        assertEquals(372, deserializationFaults + combinedGrpcAndBFIFaults);
+        assertEquals(154, deserializationFaults);
 
-        // All faults should be either deserialization faults or from the hello service
-        assertEquals(testFaults.size(), deserializationFaults + combinedGrpcAndBFIFaults);
+        // All faults should be deserialization faults
+        assertEquals(testFaults.size(), deserializationFaults);
+    }
+
+    @DisplayName("Assert the second level cache fault was not found")
+    @Test
+    @Order(4)
+    public void testSecondLevelCacheFaultNotFound() {
+        // The bit transformations should only cause deserialization faults
+        // In all the 705 executions, none of the injected faults leads us to discover the
+        // second level cache down fault
+        int cacheDownFault = testFaults.stream().filter(e -> e.contains("Redis second level cache is down.")).collect(Collectors.toList()).size();
+        assertEquals(0, cacheDownFault);
     }
 
 }

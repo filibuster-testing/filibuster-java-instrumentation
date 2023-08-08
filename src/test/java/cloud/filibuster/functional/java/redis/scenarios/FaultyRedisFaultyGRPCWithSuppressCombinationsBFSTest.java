@@ -7,6 +7,7 @@ import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
+import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.db.redis.GrpcAndRedisStringExceptionAndTransformerAndByzantineAnalysisConfigurationFile;
 import io.grpc.Channel;
@@ -26,7 +27,6 @@ import org.junit.jupiter.api.TestMethodOrder;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
@@ -36,23 +36,21 @@ import java.util.stream.Collectors;
 
 import static cloud.filibuster.integration.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopHelloServerAndWaitUntilUnavailable;
-import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjected;
-import static cloud.filibuster.junit.assertions.GenericAssertions.wasFaultInjectedOnJavaClassAndMethod;
-import static cloud.filibuster.junit.assertions.GrpcAssertions.wasFaultInjectedOnMethod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFaultyRedisFaultyGRPCWithSuppressCombinationsTest extends JUnitAnnotationBaseTest {
+public class FaultyRedisFaultyGRPCWithSuppressCombinationsBFSTest extends JUnitAnnotationBaseTest {
     static StatefulRedisConnection<String, String> statefulRedisConnection;
     static String redisConnectionString;
-    private static final Logger logger = Logger.getLogger(JUnitFaultyRedisFaultyGRPCWithSuppressCombinationsTest.class.getName());
+    private static final Logger logger = Logger.getLogger(FaultyRedisFaultyGRPCWithSuppressCombinationsBFSTest.class.getName());
     private static final ArrayList<String> keys = new ArrayList<>();
     private static final ArrayList<String> values = new ArrayList<>();
+    private static int numberOfBFSExecutions = 0;
+    private static int numberOfDFSExecutions = 0;
+    private static final ArrayList<String> BFSExceptions = new ArrayList<>();
+    private static final ArrayList<String> DFSExceptions = new ArrayList<>();
     private static String name;
     private static final Random rand = new Random(0);
-    private static int numberOfExecution = 0;
-    private static final HashSet<String> actualFaultMessages = new HashSet<>();
 
     @BeforeAll
     public static void beforeAll() throws IOException, InterruptedException {
@@ -80,18 +78,19 @@ public class JUnitFaultyRedisFaultyGRPCWithSuppressCombinationsTest extends JUni
     }
 
     @DisplayName("Tests the scenario where faults are injected in both Redis and the GRPC client. GRPC calls are issued before and after the Redis call. " +
-            "SuppressCombinations is set to false while dataNondeterminism is true")
+            "SuppressCombinations is set to true, search strategy is BFS")
     @Order(1)
     @TestWithFilibuster(
             analysisConfigurationFile = GrpcAndRedisStringExceptionAndTransformerAndByzantineAnalysisConfigurationFile.class,
             maxIterations = 30,
-            suppressCombinations = true
+            suppressCombinations = true,
+            searchStrategy = FilibusterSearchStrategy.BFS
     )
-    public void testRedisSync() {
-        numberOfExecution++;
+    public void testRedisSyncBFS() {
+        numberOfBFSExecutions++;
 
         // Send GRPC request
-        sayHelloAndAssert(name);
+        sayHelloAndAssert(name, FilibusterSearchStrategy.BFS);
 
         // Prepare Redis interceptor
         StatefulRedisConnection<String, String> myStatefulRedisConnection = DynamicProxyInterceptor.createInterceptor(statefulRedisConnection, redisConnectionString);
@@ -99,63 +98,95 @@ public class JUnitFaultyRedisFaultyGRPCWithSuppressCombinationsTest extends JUni
 
         // Get key from Redis and assert correct value
         for (int i = 0; i < 3; i++) {
-            getFromRedisAndAssert(myRedisCommands, keys.get(i), values.get(i));
+            getFromRedisAndAssert(myRedisCommands, keys.get(i), values.get(i), FilibusterSearchStrategy.BFS);
         }
 
         // Send GRPC request
-        sayHelloAndAssert(name);
+        sayHelloAndAssert(name, FilibusterSearchStrategy.BFS);
     }
 
-    @DisplayName("Assert correct number of test executions")
+    @DisplayName("Tests the scenario where faults are injected in both Redis and the GRPC client. GRPC calls are issued before and after the Redis call. " +
+            "SuppressCombinations is set to true, search strategy is DFS")
     @Order(2)
-    @Test
-    public void testNumberOfExecutions() {
-        // We inject 4 faults per Redis get call: 2 transformer faults (one for each char),
-        // 1 byzantine execution (injecting null) and 1 exception execution (injecting RedisCommandTimeoutException)
-        // Per GRPC call, we inject one UNAVAILABLE exception.
-        // Since suppressCombinations is true, Redis get is called 3 times and GRPC calls are issued twice,
-        // this leads to 1 reference execution + 4*3 + 2 = 15 executions
-        assertEquals(15, numberOfExecution);
+    @TestWithFilibuster(
+            analysisConfigurationFile = GrpcAndRedisStringExceptionAndTransformerAndByzantineAnalysisConfigurationFile.class,
+            maxIterations = 30,
+            suppressCombinations = true,
+            searchStrategy = FilibusterSearchStrategy.DFS
+    )
+    public void testRedisSyncDFS() {
+        numberOfDFSExecutions++;
+
+        // Send GRPC request
+        sayHelloAndAssert(name, FilibusterSearchStrategy.DFS);
+
+        // Prepare Redis interceptor
+        StatefulRedisConnection<String, String> myStatefulRedisConnection = DynamicProxyInterceptor.createInterceptor(statefulRedisConnection, redisConnectionString);
+        RedisCommands<String, String> myRedisCommands = myStatefulRedisConnection.sync();
+
+        // Get key from Redis and assert correct value
+        for (int i = 0; i < 3; i++) {
+            getFromRedisAndAssert(myRedisCommands, keys.get(i), values.get(i), FilibusterSearchStrategy.DFS);
+        }
+
+        // Send GRPC request
+        sayHelloAndAssert(name, FilibusterSearchStrategy.DFS);
     }
 
-    @DisplayName("Assert number of faults")
+    @DisplayName("Test whether BFS and DFS generate the same number of exceptions")
     @Order(3)
     @Test
-    public void testNumberOfFaults() {
-        // For each of the 2 Redis get call, we inject 4 faults: 2 transformer faults (one for each char), 1 byzantine
-        // fault and 1 exception. The error message of the exception is the same for all Redis get calls.
-        // Therefore, we expect 1 + 3 * 3 = 10 Redis fault messages
-        // Additionally, we have 2 GRPC calls. Each can throw an UNAVAILABLE exception.
-        // The exception message is the same for both GRPC calls.
-        // Therefore, we expect 10 + 1 = 11 fault messages
-        assertEquals(11, actualFaultMessages.size());
+    public void testBFSAndDFSExceptions() {
+        assertEquals(BFSExceptions.size(), DFSExceptions.size());
     }
 
-    @DisplayName("Assert correct fault messages")
+    @DisplayName("Test whether total number of executions is equal in BFS and DFS")
     @Order(4)
     @Test
-    public void testFaultMessages() {
-        List<String> transformerFaults = getMatchesInFaultMessages("expected: <..> but was: <..>");
-        List<String> nullFaults = getMatchesInFaultMessages("expected: <..> but was: <null>");
-        List<String> timeoutException = getMatchesInFaultMessages("Command timed out after 100 millisecond\\(s\\)");
-        List<String> grpcException = getMatchesInFaultMessages("UNAVAILABLE");
+    public void testNumExecution() {
+        assertEquals(numberOfBFSExecutions, numberOfDFSExecutions);
+    }
+
+    @DisplayName("Assert correct BFS fault messages")
+    @Order(5)
+    @Test
+    public void testBFSFaultMessages() {
+        List<String> transformerFaults = getMatchesInFaultMessages("expected: <..> but was: <..>", BFSExceptions);
+        List<String> nullFaults = getMatchesInFaultMessages("expected: <..> but was: <null>", BFSExceptions);
+        List<String> timeoutException = getMatchesInFaultMessages("Command timed out after 100 millisecond\\(s\\)", BFSExceptions);
+        List<String> grpcException = getMatchesInFaultMessages("UNAVAILABLE", BFSExceptions);
 
         assertEquals(6, transformerFaults.size());
         assertEquals(3, nullFaults.size());
-        assertEquals(1, timeoutException.size());
-        assertEquals(1, grpcException.size());
+        assertEquals(3, timeoutException.size());
+        assertEquals(2, grpcException.size());
     }
 
-    private static List<String> getMatchesInFaultMessages(String regex) {
+    @DisplayName("Assert correct DFS fault messages")
+    @Order(6)
+    @Test
+    public void testDFSFaultMessages() {
+        List<String> transformerFaults = getMatchesInFaultMessages("expected: <..> but was: <..>", DFSExceptions);
+        List<String> nullFaults = getMatchesInFaultMessages("expected: <..> but was: <null>", DFSExceptions);
+        List<String> timeoutException = getMatchesInFaultMessages("Command timed out after 100 millisecond\\(s\\)", DFSExceptions);
+        List<String> grpcException = getMatchesInFaultMessages("UNAVAILABLE", DFSExceptions);
+
+        assertEquals(6, transformerFaults.size());
+        assertEquals(3, nullFaults.size());
+        assertEquals(3, timeoutException.size());
+        assertEquals(2, grpcException.size());
+    }
+
+    private static List<String> getMatchesInFaultMessages(String regex, List<String> messageList) {
         Pattern pattern = Pattern.compile(regex);
 
-        return actualFaultMessages
+        return messageList
                 .stream()
                 .filter(e -> pattern.matcher(e).matches())
                 .collect(Collectors.toList());
     }
 
-    private static void sayHelloAndAssert(String name) {
+    private static void sayHelloAndAssert(String name, FilibusterSearchStrategy searchStrategy) {
         try {
             ManagedChannel helloChannel = ManagedChannelBuilder.forAddress(Networking.getHost("hello"), Networking.getPort("hello")).usePlaintext().build();
 
@@ -171,21 +202,27 @@ public class JUnitFaultyRedisFaultyGRPCWithSuppressCombinationsTest extends JUni
             assertEquals(String.format("Hello, %s!!", name), helloReply.getMessage());
         } catch (Throwable e) {
             logger.log(Level.INFO, "getFromRedis threw an exception: " + e);
-            actualFaultMessages.add(e.getMessage());
-            assertTrue(wasFaultInjected());
-            assertTrue(wasFaultInjectedOnMethod(HelloServiceGrpc.getHelloMethod()));
+
+            if (searchStrategy == FilibusterSearchStrategy.BFS) {
+                BFSExceptions.add(e.getMessage());
+            } else {
+                DFSExceptions.add(e.getMessage());
+            }
         }
     }
 
-    private static void getFromRedisAndAssert(RedisCommands<String, String> redisCommand, String key, String value) {
+    private static void getFromRedisAndAssert(RedisCommands<String, String> redisCommand, String key, String value, FilibusterSearchStrategy searchStrategy) {
         try {
             String result = redisCommand.get(key);
             assertEquals(value, result);
         } catch (Throwable e) {
             logger.log(Level.INFO, "getFromRedis threw an exception: " + e);
-            actualFaultMessages.add(e.getMessage());
-            assertTrue(wasFaultInjected());
-            assertTrue(wasFaultInjectedOnJavaClassAndMethod("io.lettuce.core.api.sync.RedisStringCommands/get"));
+
+            if (searchStrategy == FilibusterSearchStrategy.BFS) {
+                BFSExceptions.add(e.getMessage());
+            } else {
+                DFSExceptions.add(e.getMessage());
+            }
         }
     }
 

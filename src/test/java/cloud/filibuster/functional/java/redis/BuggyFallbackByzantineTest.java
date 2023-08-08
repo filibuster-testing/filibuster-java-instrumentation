@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class JUnitRedisFilibusterBuggyFallbackByzantineTest {
+public class BuggyFallbackByzantineTest {
     static final String key = "test";
     static final String value = "example";
 

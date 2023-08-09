@@ -1,5 +1,6 @@
 package cloud.filibuster.instrumentation.libraries.armeria.http;
 
+import cloud.filibuster.RpcType;
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
@@ -221,7 +222,7 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
         // ******************************************************************************************
 
         if (grpcRpcType) {
-            filibusterClientInstrumentor.setRpcType("grpc"); // TODO, enum?
+            filibusterClientInstrumentor.setRpcType(RpcType.GRPC);
         }
         filibusterClientInstrumentor.beforeInvocation();
 

@@ -11,6 +11,7 @@ import cloud.filibuster.junit.configuration.examples.db.redis.RedisTransformBitI
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -22,6 +23,9 @@ import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
+import static cloud.filibuster.integration.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
+import static cloud.filibuster.integration.instrumentation.TestHelper.stopAPIServerAndWaitUntilUnavailable;
+import static cloud.filibuster.integration.instrumentation.TestHelper.stopHelloServerAndWaitUntilUnavailable;
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
@@ -38,8 +42,21 @@ public class JUnitRedisFilibusterGetSessionLocationPositiveTest extends JUnitAnn
     private static int sessionSize;
     private static APIServiceGrpc.APIServiceBlockingStub apiService;
 
+    @BeforeAll
+    public static void beforeAll() throws IOException, InterruptedException {
+        startAPIServerAndWaitUntilAvailable();
+        startHelloServerAndWaitUntilAvailable();
+        RedisClientService.getInstance();
+
+        // Initialize API channel and service
+        apiChannel = ManagedChannelBuilder.forAddress(Networking.getHost("api_server"), Networking.getPort("api_server")).usePlaintext().build();
+        apiService = APIServiceGrpc.newBlockingStub(apiChannel);
+    }
+
     @AfterAll
-    public static void destruct() {
+    public static void destruct() throws InterruptedException {
+        stopAPIServerAndWaitUntilUnavailable();
+        stopHelloServerAndWaitUntilUnavailable();
         apiChannel.shutdown();
     }
 
@@ -48,15 +65,8 @@ public class JUnitRedisFilibusterGetSessionLocationPositiveTest extends JUnitAnn
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = RedisTransformBitInByteArrAndGRPCExceptionAnalysisConfigurationFile.class,
             maxIterations = 1000)
-    public void testCreateAndGetSessionLocationFromRedis() throws IOException, InterruptedException {
+    public void testCreateAndGetSessionLocationFromRedis() {
         numberOfTestExecutions++;
-
-        startAPIServerAndWaitUntilAvailable();
-        RedisClientService.getInstance();
-
-        // Initialize API channel and service
-        apiChannel = ManagedChannelBuilder.forAddress(Networking.getHost("api_server"), Networking.getPort("api_server")).usePlaintext().build();
-        apiService = APIServiceGrpc.newBlockingStub(apiChannel);
 
         String uid = "JohnS";
         String location = "US";

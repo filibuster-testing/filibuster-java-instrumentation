@@ -297,7 +297,16 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
                 Hello.HelloReply helloReply = blockingStub.getLastSessionLocation(request);
 
                 reply = sessionLocationBuilder.setLocation(helloReply.getMessage()).build();
+
+                // Teardown the channel.
                 helloChannel.shutdownNow();
+                try {
+                    while (!helloChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+                        Thread.sleep(4000);
+                    }
+                } catch (InterruptedException ie) {
+                    logger.log(Level.SEVERE, "Failed to terminate channel: " + ie);
+                }
             }
 
         } else {

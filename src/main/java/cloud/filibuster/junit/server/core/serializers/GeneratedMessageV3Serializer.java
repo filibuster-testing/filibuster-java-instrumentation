@@ -1,6 +1,7 @@
 package cloud.filibuster.junit.server.core.serializers;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterDeserializationError;
+import cloud.filibuster.exceptions.filibuster.FilibusterMessageSerializationException;
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.protobuf.GeneratedMessageV3;
@@ -36,7 +37,7 @@ public class GeneratedMessageV3Serializer {
             } catch (InvalidProtocolBufferException e) {
                 // If that fails as well, throw an exception and log it
                 logger.log(Level.SEVERE, "[toJSONObjectWithOnlyGsonPayload]: Failed to serialize message using JsonFormat. Throwing... " + generatedMessageV3, e);
-                throw new RuntimeException("Failed to serialize message using JsonFormat: " + generatedMessageV3, e);
+                throw new FilibusterMessageSerializationException("Failed to serialize message using JsonFormat: " + generatedMessageV3, e);
             }
         }
         return new JSONObject(serializedMessage);

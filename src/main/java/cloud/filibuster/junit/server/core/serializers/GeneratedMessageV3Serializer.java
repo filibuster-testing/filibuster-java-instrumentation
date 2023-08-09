@@ -2,7 +2,6 @@ package cloud.filibuster.junit.server.core.serializers;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterDeserializationError;
 import cloud.filibuster.exceptions.filibuster.FilibusterMessageSerializationException;
-import com.google.gson.Gson;
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.GeneratedMessageV3;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -14,7 +13,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class GeneratedMessageV3Serializer {
-    private static final Gson gson = new Gson();
     private static final Logger logger = Logger.getLogger(GeneratedMessageV3Serializer.class.getName());
 
     static class Keys {
@@ -23,7 +21,7 @@ public class GeneratedMessageV3Serializer {
         public static final String TO_STRING_KEY = "toString";
     }
 
-    public static JSONObject toJSONObjectWithOnlyGsonPayload(GeneratedMessageV3 generatedMessageV3) {
+    public static JSONObject toJSONObjectWithOnlyPayload(GeneratedMessageV3 generatedMessageV3) {
         try {
             String serializedMessage = JsonFormat.printer().preservingProtoFieldNames().includingDefaultValueFields().print(generatedMessageV3);
             return new JSONObject(serializedMessage);
@@ -37,7 +35,7 @@ public class GeneratedMessageV3Serializer {
     public static JSONObject toJSONObjectWithClassIncluded(GeneratedMessageV3 generatedMessageV3) {
         JSONObject newJSONObject = new JSONObject();
         newJSONObject.put(Keys.CLASS_KEY, generatedMessageV3.getClass().getName());
-        newJSONObject.put(Keys.GSON_KEY, toJSONObjectWithOnlyGsonPayload(generatedMessageV3));
+        newJSONObject.put(Keys.GSON_KEY, toJSONObjectWithOnlyPayload(generatedMessageV3));
         newJSONObject.put(Keys.TO_STRING_KEY, generatedMessageV3.toString());
         return newJSONObject;
     }

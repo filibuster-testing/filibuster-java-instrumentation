@@ -53,15 +53,13 @@ public class SerializersTest {
         Status responseStatus = generateResponseStatus();
         GeneratedMessageV3 responseMessage = generateResponseMessage();
 
-        ServerInvocationAndResponse sir = new ServerInvocationAndResponse(
+        return new ServerInvocationAndResponse(
                 requestId,
                 fullMethodName,
                 requestMessage,
                 responseStatus,
                 responseMessage
         );
-
-        return sir;
     }
 
     private static ServerInvocationAndResponse generateServerInvocationAndResponseWithFailureCodeAndDescription() {
@@ -71,15 +69,13 @@ public class SerializersTest {
         Status responseStatus = generateResponseStatusWithFailureCodeAndDescription();
         GeneratedMessageV3 responseMessage = generateResponseMessage();
 
-        ServerInvocationAndResponse sir = new ServerInvocationAndResponse(
+        return new ServerInvocationAndResponse(
                 requestId,
                 fullMethodName,
                 requestMessage,
                 responseStatus,
                 responseMessage
         );
-
-        return sir;
     }
 
     private static ServerInvocationAndResponse generateServerInvocationAndResponseWithFailureCause() {
@@ -89,15 +85,13 @@ public class SerializersTest {
         Status responseStatus = generateResponseStatusWithFailureCause();
         GeneratedMessageV3 responseMessage = generateResponseMessage();
 
-        ServerInvocationAndResponse sir = new ServerInvocationAndResponse(
+        return new ServerInvocationAndResponse(
                 requestId,
                 fullMethodName,
                 requestMessage,
                 responseStatus,
                 responseMessage
         );
-
-        return sir;
     }
 
     @Test
@@ -130,13 +124,13 @@ public class SerializersTest {
         JSONObject expectedRequestMessageJSONObject = new JSONObject();
         expectedRequestMessageJSONObject.put("name", "Chris");
 
-        JSONObject requestMessageJSONObject = GeneratedMessageV3Serializer.toJSONObjectWithOnlyGsonPayload(sir.getRequestMessage());
+        JSONObject requestMessageJSONObject = GeneratedMessageV3Serializer.toJSONObjectWithOnlyPayload(sir.getRequestMessage());
         assertTrue(requestMessageJSONObject.similar(expectedRequestMessageJSONObject));
 
         JSONObject expectedResponseMessageJSONObject = new JSONObject();
         expectedResponseMessageJSONObject.put("message", "Hi, Chris!");
 
-        JSONObject responseMessageJSONObject = GeneratedMessageV3Serializer.toJSONObjectWithOnlyGsonPayload(sir.getResponseMessage());
+        JSONObject responseMessageJSONObject = GeneratedMessageV3Serializer.toJSONObjectWithOnlyPayload(sir.getResponseMessage());
         assertTrue(responseMessageJSONObject.similar(expectedResponseMessageJSONObject));
     }
 

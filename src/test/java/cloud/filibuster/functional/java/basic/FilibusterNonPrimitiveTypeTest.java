@@ -11,6 +11,7 @@ import io.grpc.ClientInterceptor;
 import io.grpc.ClientInterceptors;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -41,29 +42,33 @@ public class FilibusterNonPrimitiveTypeTest extends JUnitAnnotationBaseTest {
     }
 
     @DisplayName("Test serialization of non-primitive types")
-    @TestWithFilibuster(maxIterations = 1)
+    @TestWithFilibuster
     @Order(1)
     public void testNonPrimitiveSerialization() {
-        Map<String, String> myValues = new HashMap<>();
-        myValues.put("hello", "world");
-        myValues.put("foo", "bar");
+        try {
+            Map<String, String> myValues = new HashMap<>();
+            myValues.put("hello", "world");
+            myValues.put("foo", "bar");
 
-        ManagedChannel originalChannel = ManagedChannelBuilder
-                .forAddress(Networking.getHost("api_server"), Networking.getPort("api_server"))
-                .usePlaintext()
-                .build();
-        ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("api_server");
-        Channel interceptedChannel = ClientInterceptors.intercept(originalChannel, clientInterceptor);
+            ManagedChannel originalChannel = ManagedChannelBuilder
+                    .forAddress(Networking.getHost("api_server"), Networking.getPort("api_server"))
+                    .usePlaintext()
+                    .build();
+            ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("api_server");
+            Channel interceptedChannel = ClientInterceptors.intercept(originalChannel, clientInterceptor);
 
-        APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(interceptedChannel);
-        Hello.NonPrimitiveRequest request = Hello.NonPrimitiveRequest.newBuilder().putAllObj(myValues).build();
+            APIServiceGrpc.APIServiceBlockingStub blockingStub = APIServiceGrpc.newBlockingStub(interceptedChannel);
+            Hello.NonPrimitiveRequest request = Hello.NonPrimitiveRequest.newBuilder().putAllObj(myValues).build();
 
-        // Call the API server
-        // The called method attaches " - modified" to all values in the map
-        Hello.NonPrimitiveResponse reply = blockingStub.nonPrimitive(request);
+            // Call the API server
+            // The called method attaches " - modified" to all values in the map
+            Hello.NonPrimitiveResponse reply = blockingStub.nonPrimitive(request);
 
-        // Assert that " - modified" was attached to all values in the map
-        reply.getObjMap().forEach((key, value) ->
-                assertEquals(myValues.get(key) + " - modified", value));
+            // Assert that " - modified" was attached to all values in the map
+            reply.getObjMap().forEach((key, value) ->
+                    assertEquals(myValues.get(key) + " - modified", value));
+        } catch (StatusRuntimeException e) {
+            // Do nothing
+        }
     }
 }

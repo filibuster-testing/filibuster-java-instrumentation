@@ -642,7 +642,12 @@ final public class FilibusterClientInstrumentor {
         logger.log(Level.INFO, "beforeInvocation: about to make call.");
 
         JSONObject invocationMetadata = new JSONObject();
-        invocationMetadata.put("rpc_type", rpcType.toString());
+
+        if (rpcType != null) {
+            invocationMetadata.put("rpc_type", rpcType.toString());
+        } else {
+            invocationMetadata.put("rpc_type", "");
+        }
 
         JSONObject invocationPayload = new JSONObject();
         invocationPayload.put("instrumentation_type", "invocation");

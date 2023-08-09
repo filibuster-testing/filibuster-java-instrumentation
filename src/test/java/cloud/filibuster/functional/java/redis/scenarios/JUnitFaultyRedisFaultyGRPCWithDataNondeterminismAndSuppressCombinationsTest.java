@@ -154,7 +154,7 @@ public class JUnitFaultyRedisFaultyGRPCWithDataNondeterminismAndSuppressCombinat
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName(name).build();
             Hello.HelloReply helloReply = blockingStub.hello(request);
 
-            helloChannel.shutdown();
+            helloChannel.shutdownNow();
 
             assertEquals(String.format("Hello, %s!!", name), helloReply.getMessage());
         } catch (Throwable e) {

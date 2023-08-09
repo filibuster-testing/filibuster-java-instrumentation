@@ -57,7 +57,7 @@ public class JUnitRedisFilibusterGetSessionLocationPositiveTest extends JUnitAnn
     public static void destruct() throws InterruptedException {
         stopAPIServerAndWaitUntilUnavailable();
         stopHelloServerAndWaitUntilUnavailable();
-        apiChannel.shutdown();
+        apiChannel.shutdownNow();
     }
 
     @DisplayName("Tests whether a session location can be created and then retrieved from Redis - " +

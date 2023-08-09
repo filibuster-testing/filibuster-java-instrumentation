@@ -54,7 +54,7 @@ public class JUnitRedisFilibusterGetSessionNegativeTest extends JUnitAnnotationB
     @AfterAll
     public static void destruct() throws InterruptedException {
         stopAPIServerAndWaitUntilUnavailable();
-        apiChannel.shutdown();
+        apiChannel.shutdownNow();
     }
 
     @DisplayName("Tests whether a session can be retrieved from Redis - " +

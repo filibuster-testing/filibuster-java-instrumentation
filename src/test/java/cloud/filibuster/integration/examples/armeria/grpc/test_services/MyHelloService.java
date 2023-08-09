@@ -806,4 +806,15 @@ public class MyHelloService extends HelloServiceGrpc.HelloServiceImplBase {
         Status status = Status.INTERNAL.withDescription(new Exception("An exception was thrown at Hello service").toString());
         responseObserver.onError(status.asRuntimeException());
     }
+
+    @Override
+    public void getLastSessionLocation(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
+        // Returns a random element from the list of countries
+        String[] countries = {"USA", "Germany", "Canada", "Brazil", "France", "Italy", "Spain", "UK", "China", "Japan"};
+        Hello.HelloReply reply = Hello.HelloReply.newBuilder()
+                .setMessage(countries[(int) (Math.random() * (countries.length - 1))])
+                .build();
+        responseObserver.onNext(reply);
+        responseObserver.onCompleted();
+    }
 }

@@ -37,12 +37,15 @@ import org.json.JSONObject;
 
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static cloud.filibuster.instrumentation.helpers.Property.getRandomSeedProperty;
 
 public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     private static final Logger logger = Logger.getLogger(MyAPIService.class.getName());
@@ -215,6 +218,135 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
                             "The Redis return value is: " + retrievedValue);
             responseObserver.onError(status.asRuntimeException());
         }
+    }
+
+
+    @Override
+    public void getSession(Hello.GetSessionRequest req, StreamObserver<Hello.GetSessionResponse> responseObserver) {
+        Hello.GetSessionResponse reply = null;
+        RedisClientService redisService = RedisClientService.getInstance();
+        Hello.GetSessionResponse.Builder sessionBuilder = Hello.GetSessionResponse.newBuilder();
+
+        StatefulRedisConnection<String, byte[]> redisConnection = redisService.redisClient.connect(RedisCodec.of(new StringCodec(), new ByteArrayCodec()));
+
+        redisConnection = DynamicProxyInterceptor.createInterceptor(redisConnection, redisService.connectionString);
+
+        byte[] retrievedValue = redisConnection.sync().get(req.getSessionId());
+
+        if (retrievedValue != null) {  // Check whether there is a Redis hit
+            try {  // Try deserializing the retrieved value as JSONObject
+                JSONObject sessionJO = new JSONObject(new String(retrievedValue, Charset.defaultCharset()));
+                reply = sessionBuilder.setSession(sessionJO.toString()).build();
+            } catch (JSONException e) {
+                String description = "Error deserializing retrievedValue: "
+                        + Arrays.toString(retrievedValue) +
+                        " which reads: " + new String(retrievedValue, Charset.defaultCharset())
+                        + " - " + e.getMessage();
+                respondWithError(responseObserver, description);
+            }
+        } else {
+            // If there is no hit in Redis, query the second level cache
+            // However, in this scenario, the second level cache is down, so we return an error
+            Status status = Status.INTERNAL.withDescription(new Exception("Redis second level cache is down.").toString());
+            responseObserver.onError(status.asRuntimeException());
+        }
+
+        responseObserver.onNext(reply);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getLocationFromSession(Hello.GetSessionRequest req, StreamObserver<Hello.GetLocationFromSessionResponse> responseObserver) {
+        Hello.GetLocationFromSessionResponse reply = null;
+        RedisClientService redisService = RedisClientService.getInstance();
+        Hello.GetLocationFromSessionResponse.Builder sessionLocationBuilder = Hello.GetLocationFromSessionResponse.newBuilder();
+
+        StatefulRedisConnection<String, byte[]> redisConnection = redisService.redisClient.connect(RedisCodec.of(new StringCodec(), new ByteArrayCodec()));
+
+        redisConnection = DynamicProxyInterceptor.createInterceptor(redisConnection, redisService.connectionString);
+
+        byte[] retrievedValue = redisConnection.sync().get(req.getSessionId());
+
+        if (retrievedValue != null) {  // Check whether there is a Redis hit
+            JSONObject sessionJO = null;
+
+            try {  // Try deserializing the retrieved value as JSONObject
+                sessionJO = new JSONObject(new String(retrievedValue, Charset.defaultCharset()));
+            } catch (JSONException e) {
+                String description = "Error deserializing retrievedValue: "
+                        + Arrays.toString(retrievedValue) +
+                        " which reads: "
+                        + new String(retrievedValue, Charset.defaultCharset())
+                        + " - " + e.getMessage();
+                respondWithError(responseObserver, description);
+            }
+
+            if (sessionJO != null && sessionJO.has("location")) {  // Check whether the sessionJO has a location field
+                reply = sessionLocationBuilder.setLocation(sessionJO.getString("location")).build();
+            } else {
+                // Else make a call to the Hello service to retrieve the last saved location for the sessionId.
+                ManagedChannel helloChannel = ManagedChannelBuilder
+                        .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
+                        .usePlaintext()
+                        .build();
+                ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("api_server");
+                Channel channel = ClientInterceptors.intercept(helloChannel, clientInterceptor);
+
+                HelloServiceGrpc.HelloServiceBlockingStub blockingStub = HelloServiceGrpc.newBlockingStub(channel);
+                Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName(req.getSessionId()).build();
+                Hello.HelloReply helloReply = blockingStub.getLastSessionLocation(request);
+
+                reply = sessionLocationBuilder.setLocation(helloReply.getMessage()).build();
+                helloChannel.shutdownNow();
+            }
+
+        } else {
+            String description = "Retrieved value is null. Session was not found";
+            respondWithError(responseObserver, description);
+        }
+
+        responseObserver.onNext(reply);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void createSession(Hello.CreateSessionRequest req, StreamObserver<Hello.CreateSessionResponse> responseObserver) {
+
+        // Create the session JSON object
+        JSONObject referenceSession = new JSONObject();
+        referenceSession.put("uid", req.getUserId());
+        referenceSession.put("location", req.getLocation());
+        referenceSession.put("iat", "123");  // Request timestamp
+        byte[] sessionBytes = referenceSession.toString().getBytes(Charset.defaultCharset());
+        Random rand = new Random(getRandomSeedProperty());
+        String sessionId = String.valueOf(100000 + rand.nextInt(900000));  // Generate a random 6 digit number
+
+        // Retrieve the Redis instance
+        RedisClientService redisService = RedisClientService.getInstance();
+        StatefulRedisConnection<String, byte[]> redisConnection = redisService.redisClient.connect(RedisCodec.of(new StringCodec(), new ByteArrayCodec()));
+        redisConnection = DynamicProxyInterceptor.createInterceptor(redisConnection, redisService.connectionString);
+
+        // Put the session in Redis
+        try {
+            redisConnection.async().set(sessionId, sessionBytes).get();
+        } catch (InterruptedException | ExecutionException e) {
+            String description = "Could not add session to Redis: " + e.getMessage();
+            respondWithError(responseObserver, description);
+        }
+
+        // Create the response
+        Hello.CreateSessionResponse.Builder sessionBuilder = Hello.CreateSessionResponse.newBuilder();
+        sessionBuilder.setSessionId(sessionId).setSessionSize(sessionBytes.length * 8);
+
+        // Send the response
+        responseObserver.onNext(sessionBuilder.build());
+        responseObserver.onCompleted();
+
+    }
+
+    private static void respondWithError(StreamObserver<?> responseObserver, String message) {
+        Status status = Status.INTERNAL.withDescription(message);
+        responseObserver.onError(status.asException());
     }
 
     private static String getUserFromSession(Channel channel, String sessionId) {

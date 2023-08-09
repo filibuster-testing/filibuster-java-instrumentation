@@ -246,11 +246,7 @@ public class FilibusterCore {
                 JSONObject payloadMetadata = payload.getJSONObject("metadata");
                 if (payloadMetadata.has("rpc_type")) {
                     String sRpcType = payloadMetadata.getString("rpc_type");
-                    try {
-                        rpcType = RpcType.valueOf(sRpcType);
-                    } catch (IllegalArgumentException iae) {
-                        throw new FilibusterCoreLogicException("could not figure out the rpc type: " + sRpcType + ", " + iae);
-                    }
+                    rpcType = toRpcType(sRpcType);
                 }
             }
 
@@ -838,12 +834,9 @@ public class FilibusterCore {
 
             if (nameObject.has("rpc_type")) {
                 String sRpcType = nameObject.getString("rpc_type");
-
-                try {
-                    RpcType rpcType = RpcType.valueOf(sRpcType);
+                RpcType rpcType = toRpcType(sRpcType);
+                if (rpcType != null) {
                     filibusterAnalysisConfigurationBuilder.rpcType(rpcType);
-                } catch (IllegalArgumentException iae) {
-                    throw new FilibusterCoreLogicException("could not figure out the rpc type: " + sRpcType + ", " + iae);
                 }
             }
 
@@ -1205,5 +1198,17 @@ public class FilibusterCore {
                         "[FILIBUSTER-CORE]: * numberOfAbstractExecutionsExecuted:        " + numberOfAbstractExecutionsExecuted + (currentAbstractTestExecution == null ? "" : " (+1, =" + (numberOfAbstractExecutionsExecuted + 1) + ")") + "\n" +
                         "[FILIBUSTER-CORE]: * numberOfConcreteExecutionsExecuted:        " + numberOfConcreteExecutionsExecuted + " (+1, =" + (numberOfConcreteExecutionsExecuted + 1) + ")" + "\n"
         );
+    }
+
+    private RpcType toRpcType(String sRpcType) {
+        if (!sRpcType.equals("")) {
+            try {
+                return RpcType.valueOf(sRpcType);
+            } catch (IllegalArgumentException iae) {
+                throw new FilibusterCoreLogicException("could not figure out the rpc type: " + sRpcType + ", " + iae);
+            }
+        }
+
+        return null;
     }
 }

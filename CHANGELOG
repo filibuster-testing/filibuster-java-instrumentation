@@ -1,4 +1,5 @@
 2.1.0:
+    - (cmeiklejohn) Update assertion API to clarify usage.
     - (MichaelA-ops) Support gRPC non-primitive Protobuf types and show them in the plugin.
     - (MichaelA-ops) Fix bug where the plugin does not show all intercepted methods in a test iteration.
 2.0.1:

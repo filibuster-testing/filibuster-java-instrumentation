@@ -11,8 +11,8 @@ import io.grpc.ClientInterceptor;
 import io.grpc.ClientInterceptors;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -23,15 +23,21 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
+import static cloud.filibuster.integration.instrumentation.TestHelper.stopAPIServerAndWaitUntilUnavailable;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@Disabled
+//@Disabled
 public class FilibusterNonPrimitiveTypeTest extends JUnitAnnotationBaseTest {
 
     @BeforeAll
-    public static void startAllServices() throws IOException, InterruptedException {
+    public static void startAPIService() throws IOException, InterruptedException {
         startAPIServerAndWaitUntilAvailable();
+    }
+
+    @AfterAll
+    public static void stopAPIService() throws InterruptedException {
+        stopAPIServerAndWaitUntilUnavailable();
     }
 
     @DisplayName("Test serialization of non-primitive types")

@@ -3,12 +3,13 @@ package cloud.filibuster.junit.server.core.serializers;
 import cloud.filibuster.exceptions.filibuster.FilibusterDeserializationError;
 import cloud.filibuster.exceptions.filibuster.FilibusterMessageSerializationException;
 import com.google.gson.Gson;
-import com.google.gson.JsonIOException;
+import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.GeneratedMessageV3;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
 import org.json.JSONObject;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,24 +24,14 @@ public class GeneratedMessageV3Serializer {
     }
 
     public static JSONObject toJSONObjectWithOnlyGsonPayload(GeneratedMessageV3 generatedMessageV3) {
-        String serializedMessage;
         try {
-            // Try to serialize the message using Gson
-            serializedMessage = gson.toJson(generatedMessageV3);
-        } catch (JsonIOException t) {
-            // If the serialization fails, try to serialize the message using JsonFormat
-            logger.log(Level.WARNING, "[toJSONObjectWithOnlyGsonPayload]: Failed to serialize message using gson, trying" +
-                    "to serialize using JsonFormat instead: " + generatedMessageV3, t);
-            try {
-                serializedMessage = JsonFormat.printer().preservingProtoFieldNames().includingDefaultValueFields().print(generatedMessageV3);
-                logger.log(Level.INFO, "[toJSONObjectWithOnlyGsonPayload]: Successfully serialized message using JsonFormat: " + serializedMessage);
-            } catch (InvalidProtocolBufferException e) {
-                // If that fails as well, throw an exception and log it
-                logger.log(Level.SEVERE, "[toJSONObjectWithOnlyGsonPayload]: Failed to serialize message using JsonFormat. Throwing... " + generatedMessageV3, e);
-                throw new FilibusterMessageSerializationException("Failed to serialize message using JsonFormat: " + generatedMessageV3, e);
-            }
+            String serializedMessage = JsonFormat.printer().preservingProtoFieldNames().includingDefaultValueFields().print(generatedMessageV3);
+            return new JSONObject(serializedMessage);
+        } catch (InvalidProtocolBufferException e) {
+            // If that fails as well, throw an exception and log it
+            logger.log(Level.SEVERE, "[toJSONObjectWithOnlyGsonPayload]: Failed to serialize message using JsonFormat. Throwing... " + generatedMessageV3, e);
+            throw new FilibusterMessageSerializationException("Failed to serialize message using JsonFormat: " + generatedMessageV3, e);
         }
-        return new JSONObject(serializedMessage);
     }
 
     public static JSONObject toJSONObjectWithClassIncluded(GeneratedMessageV3 generatedMessageV3) {
@@ -55,17 +46,20 @@ public class GeneratedMessageV3Serializer {
         return toJSONObjectWithClassIncluded(generatedMessageV3);
     }
 
-    @SuppressWarnings("unchecked")
     public static GeneratedMessageV3 fromJSONObject(JSONObject jsonObject) {
         String className = jsonObject.getString(Keys.CLASS_KEY);
         JSONObject gsonPayload = jsonObject.getJSONObject(Keys.GSON_KEY);
         String gsonPayloadString = gsonPayload.toString();
 
         try {
-            Class clazz = Class.forName(className);
-            GeneratedMessageV3 target = (GeneratedMessageV3) gson.fromJson(gsonPayloadString, clazz);
-            return target;
-        } catch (ClassNotFoundException e) {
+            Class<?> clazz = Class.forName(className);
+            AbstractMessage.Builder<?> messageBuilder = (AbstractMessage.Builder<?>) clazz.getMethod("newBuilder").invoke(null);
+            JsonFormat.parser().merge(gsonPayloadString, messageBuilder);
+            return (GeneratedMessageV3) messageBuilder.build();
+        } catch (ClassNotFoundException | InvalidProtocolBufferException | IllegalAccessException |
+                 IllegalArgumentException |
+                 InvocationTargetException
+                 | NoSuchMethodException | SecurityException e) {
             throw new FilibusterDeserializationError("Failed to deserialize and instantiate information for the fake: " + e, e);
         }
     }

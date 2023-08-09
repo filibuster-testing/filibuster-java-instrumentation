@@ -1,5 +1,6 @@
 2.1.0:
     - (cmeiklejohn) Update assertion API to clarify usage.
+    - (cmeiklejohn) Change RPC type to enum, requires breaking change from grpc to GRPC in any analysis configuration files.
 2.0.1:
     - (MichaelA-ops) Add tests combining GRPC and Byzantine transformer faults
 2.0.0:

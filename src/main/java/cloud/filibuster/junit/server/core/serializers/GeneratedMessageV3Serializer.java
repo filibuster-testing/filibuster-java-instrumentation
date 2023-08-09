@@ -2,11 +2,18 @@ package cloud.filibuster.junit.server.core.serializers;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterDeserializationError;
 import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
 import com.google.protobuf.GeneratedMessageV3;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.util.JsonFormat;
 import org.json.JSONObject;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class GeneratedMessageV3Serializer {
     private static final Gson gson = new Gson();
+    private static final Logger logger = Logger.getLogger(GeneratedMessageV3Serializer.class.getName());
 
     static class Keys {
         public static final String CLASS_KEY = "class";
@@ -15,8 +22,24 @@ public class GeneratedMessageV3Serializer {
     }
 
     public static JSONObject toJSONObjectWithOnlyGsonPayload(GeneratedMessageV3 generatedMessageV3) {
-        String gsonSerialized = gson.toJson(generatedMessageV3);
-        return new JSONObject(gsonSerialized);
+        String serializedMessage;
+        try {
+            // Try to serialize the message using Gson
+            serializedMessage = gson.toJson(generatedMessageV3);
+        } catch (JsonIOException t) {
+            // If the serialization fails, try to serialize the message using JsonFormat
+            logger.log(Level.WARNING, "[toJSONObjectWithOnlyGsonPayload]: Failed to serialize message using gson, trying" +
+                    "to serialize using JsonFormat instead: " + generatedMessageV3, t);
+            try {
+                serializedMessage = JsonFormat.printer().preservingProtoFieldNames().includingDefaultValueFields().print(generatedMessageV3);
+                logger.log(Level.INFO, "[toJSONObjectWithOnlyGsonPayload]: Successfully serialized message using JsonFormat: " + serializedMessage);
+            } catch (InvalidProtocolBufferException e) {
+                // If that fails as well, throw an exception and log it
+                logger.log(Level.SEVERE, "[toJSONObjectWithOnlyGsonPayload]: Failed to serialize message using JsonFormat. Throwing... " + generatedMessageV3, e);
+                throw new RuntimeException("Failed to serialize message using JsonFormat: " + generatedMessageV3, e);
+            }
+        }
+        return new JSONObject(serializedMessage);
     }
 
     public static JSONObject toJSONObjectWithClassIncluded(GeneratedMessageV3 generatedMessageV3) {

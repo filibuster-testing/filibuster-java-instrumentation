@@ -88,7 +88,7 @@ public class JUnitRedisFilibusterGetSessionLocationPositiveTest extends JUnitAnn
         return apiService.createSession(sessionRequest);
     }
 
-    private Hello.GetLocationFromSessionResponse getLocation(String sessionId) {
+    private static Hello.GetLocationFromSessionResponse getLocation(String sessionId) {
         Hello.GetSessionRequest sessionRequest = Hello.GetSessionRequest.newBuilder()
                 .setSessionId(sessionId)
                 .build();

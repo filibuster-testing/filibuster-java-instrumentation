@@ -66,6 +66,7 @@ dependencies {
     implementation "io.grpc:grpc-netty-shaded:1.40.1"
     implementation 'com.google.code.gson:gson:2.8.9'
     implementation 'org.grpcmock:grpcmock-junit5:0.9.3'
+    implementation 'com.google.protobuf:protobuf-java-util:3.21.7'
 
     // JUnit annotations
     implementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'

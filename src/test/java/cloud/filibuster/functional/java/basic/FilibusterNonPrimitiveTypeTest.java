@@ -1,7 +1,8 @@
-package cloud.filibuster.functional.java;
+package cloud.filibuster.functional.java.basic;
 
 import cloud.filibuster.examples.APIServiceGrpc;
 import cloud.filibuster.examples.Hello;
+import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientInterceptor;
 import cloud.filibuster.junit.TestWithFilibuster;
@@ -17,24 +18,27 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitNonPrimitiveTypeTest extends JUnitAnnotationBaseTest {
+public class FilibusterNonPrimitiveTypeTest extends JUnitAnnotationBaseTest {
 
     @BeforeAll
     public static void startAllServices() throws IOException, InterruptedException {
         startAPIServerAndWaitUntilAvailable();
     }
 
-    @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
+    @DisplayName("Test serialization of non-primitive types")
     @TestWithFilibuster(maxIterations = 1)
     @Order(1)
-    public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
-        Map<String, String> myValues = Map.of("hello", "world", "foo", "bar");
+    public void testNonPrimitiveSerialization() {
+        Map<String, String> myValues = new HashMap<>();
+        myValues.put("hello", "world");
+        myValues.put("foo", "bar");
 
         ManagedChannel originalChannel = ManagedChannelBuilder
                 .forAddress(Networking.getHost("api_server"), Networking.getPort("api_server"))

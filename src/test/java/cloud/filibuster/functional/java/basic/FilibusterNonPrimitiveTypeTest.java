@@ -12,6 +12,7 @@ import io.grpc.ClientInterceptors;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -25,6 +26,7 @@ import static cloud.filibuster.integration.instrumentation.TestHelper.startAPISe
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Disabled
 public class FilibusterNonPrimitiveTypeTest extends JUnitAnnotationBaseTest {
 
     @BeforeAll

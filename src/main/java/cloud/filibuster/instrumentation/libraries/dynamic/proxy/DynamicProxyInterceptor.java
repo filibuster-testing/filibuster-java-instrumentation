@@ -265,13 +265,7 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
 
                 // Extract the transformer fault value from the transformerFault JSONObject.
                 Object transformerFaultValue = transformerFault.get("value");
-                String sTransformerValue;
-
-                try {
-                    sTransformerValue = new Gson().toJson(transformerFaultValue);
-                } catch (RuntimeException e) {
-                    sTransformerValue = String.valueOf(transformerFaultValue);
-                }
+                String sTransformerValue = String.valueOf(transformerFaultValue);
 
                 logger.log(Level.INFO, logPrefix + "Injecting the transformed fault value: " + sTransformerValue);
 

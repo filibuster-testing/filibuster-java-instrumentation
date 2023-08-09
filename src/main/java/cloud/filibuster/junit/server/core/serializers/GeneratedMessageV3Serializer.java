@@ -26,7 +26,6 @@ public class GeneratedMessageV3Serializer {
             String serializedMessage = JsonFormat.printer().preservingProtoFieldNames().includingDefaultValueFields().print(generatedMessageV3);
             return new JSONObject(serializedMessage);
         } catch (InvalidProtocolBufferException e) {
-            // If that fails as well, throw an exception and log it
             logger.log(Level.SEVERE, "[toJSONObjectWithOnlyGsonPayload]: Failed to serialize message using JsonFormat. Throwing... " + generatedMessageV3, e);
             throw new FilibusterMessageSerializationException("Failed to serialize message using JsonFormat: " + generatedMessageV3, e);
         }

@@ -20,38 +20,20 @@ import java.util.logging.Logger;
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendCanInvokeDirectlyProperty;
 
 public class GenericAssertions {
-    // TODO: javadoc
-    // TODO: direct invoke
+    /**
+     * Returns true if any fault was injected.
+     *
+     * @return if a fault was injected.
+     */
     public static boolean wasFaultInjected() {
-        return wasFaultInjectedHelper("/filibuster/fault-injected");
-    }
-
-    // TODO: protected
-    public static boolean wasFaultInjectedHelper(String uri) {
-        Logger logger = Logger.getLogger(GrpcAssertions.class.getName());
-        String filibusterBaseUri = "http://" + Networking.getFilibusterHost() + ":" + Networking.getFilibusterPort() + "/";
-        WebClient webClient = FilibusterExecutor.getWebClient(filibusterBaseUri);
-        RequestHeaders getHeaders = RequestHeaders.of(HttpMethod.GET, uri, HttpHeaderNames.ACCEPT, "application/json");
-
-        try {
-            AggregatedHttpResponse response = webClient.execute(getHeaders).aggregate().join();
-            ResponseHeaders headers = response.headers();
-            String statusCode = headers.get(HttpHeaderNames.STATUS);
-
-            if (statusCode == null) {
-                FilibusterServerBadResponseException.logAndThrow("wasFaultInjected, statusCode: null");
+        if (getServerBackendCanInvokeDirectlyProperty()) {
+            if (FilibusterCore.hasCurrentInstance()) {
+                return FilibusterCore.getCurrentInstance().wasFaultInjected();
+            } else {
+                return false;
             }
-
-            if (!Objects.equals(statusCode, "200")) {
-                FilibusterServerBadResponseException.logAndThrow("wasFaultInjected, statusCode: " + statusCode);
-            }
-
-            // Get body and verify the proper response.
-            JSONObject jsonObject = Response.aggregatedHttpResponseToJsonObject(response);
-            return jsonObject.getBoolean("result");
-        } catch (RuntimeException e) {
-            logger.log(Level.SEVERE, "Couldn't connect to Filibuster server, assuming no fault was injected: " + e);
-            return false;
+        } else {
+            return wasFaultInjectedHelper("/filibuster/fault-injected");
         }
     }
 
@@ -92,6 +74,35 @@ public class GenericAssertions {
             }
         } else {
             return wasFaultInjectedHelper("/filibuster/fault-injected/method/" + fullyQualifiedMethodName);
+        }
+    }
+
+
+    protected static boolean wasFaultInjectedHelper(String uri) {
+        Logger logger = Logger.getLogger(GrpcAssertions.class.getName());
+        String filibusterBaseUri = "http://" + Networking.getFilibusterHost() + ":" + Networking.getFilibusterPort() + "/";
+        WebClient webClient = FilibusterExecutor.getWebClient(filibusterBaseUri);
+        RequestHeaders getHeaders = RequestHeaders.of(HttpMethod.GET, uri, HttpHeaderNames.ACCEPT, "application/json");
+
+        try {
+            AggregatedHttpResponse response = webClient.execute(getHeaders).aggregate().join();
+            ResponseHeaders headers = response.headers();
+            String statusCode = headers.get(HttpHeaderNames.STATUS);
+
+            if (statusCode == null) {
+                FilibusterServerBadResponseException.logAndThrow("wasFaultInjected, statusCode: null");
+            }
+
+            if (!Objects.equals(statusCode, "200")) {
+                FilibusterServerBadResponseException.logAndThrow("wasFaultInjected, statusCode: " + statusCode);
+            }
+
+            // Get body and verify the proper response.
+            JSONObject jsonObject = Response.aggregatedHttpResponseToJsonObject(response);
+            return jsonObject.getBoolean("result");
+        } catch (RuntimeException e) {
+            logger.log(Level.SEVERE, "Couldn't connect to Filibuster server, assuming no fault was injected: " + e);
+            return false;
         }
     }
 }

@@ -1,6 +1,7 @@
 package cloud.filibuster.junit.assertions.protocols;
 
 import cloud.filibuster.junit.server.core.FilibusterCore;
+import com.google.errorprone.annotations.DoNotCall;
 
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendCanInvokeDirectlyProperty;
 import static cloud.filibuster.junit.assertions.protocols.GenericAssertions.wasFaultInjectedHelper;
@@ -32,16 +33,19 @@ public class HttpAssertions {
     }
 
     // TODO: add javadoc once implemented
+    @DoNotCall("Always throws cloud.filibuster.junit.assertions.protocols.HttpAssertions.HttpAssertionsNotImplementedException")
     public static boolean wasFaultInjectedOnMethod(String httpMethod) {
         throw new HttpAssertionsNotImplementedException();
     }
 
     // TODO: add javadoc once implemented
+    @DoNotCall("Always throws cloud.filibuster.junit.assertions.protocols.HttpAssertions.HttpAssertionsNotImplementedException")
     public static boolean wasFaultInjectedOnMethod(String httpMethod, String URI) {
         throw new HttpAssertionsNotImplementedException();
     }
 
     // TODO: add javadoc once implemented
+    @DoNotCall("Always throws cloud.filibuster.junit.assertions.protocols.HttpAssertions.HttpAssertionsNotImplementedException")
     public static boolean wasFaultInjectedOnRequest(String request) {
         throw new HttpAssertionsNotImplementedException();
     }

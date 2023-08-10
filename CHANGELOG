@@ -4,6 +4,7 @@
     - (MichaelA-ops) Fix bug where the plugin does not show all intercepted methods in a test iteration.
     - (cmeiklejohn) Change RPC type to enum, requires breaking change from grpc to GRPC in any analysis configuration files.
     - (cmeiklejohn) Alter dependencies.
+    - (cmeiklejohn) Improve the server invocation report.
 2.0.1:
     - (MichaelA-ops) Add tests combining GRPC and Byzantine transformer faults.
 2.0.0:

@@ -531,33 +531,6 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
             return;
         }
 
-        // Add a GRPC in here just to mix things up.
-        ManagedChannel worldManagedChannel = ManagedChannelBuilder
-                .forAddress(Networking.getHost("world"), Networking.getPort("world"))
-                .usePlaintext()
-                .build();
-        ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("hello");
-        Channel worldChannel = ClientInterceptors.intercept(worldManagedChannel, clientInterceptor);
-
-        try {
-            WorldServiceGrpc.WorldServiceBlockingStub worldServiceBlockingStub = WorldServiceGrpc.newBlockingStub(worldChannel);
-            Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(req.getName()).build();
-            worldServiceBlockingStub.world(request);
-        } catch (RuntimeException e) {
-            Status status = Status.INTERNAL.withDescription("Third RPC request to HelloService.world failed!");
-            responseObserver.onError(status.asRuntimeException());
-            return;
-        }
-
-        worldManagedChannel.shutdownNow();
-        try {
-            while (!worldManagedChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
-                Thread.sleep(4000);
-            }
-        } catch (InterruptedException ie) {
-            logger.log(Level.SEVERE, "Failed to terminate channel: " + ie);
-        }
-
         // Return stock response.
         Hello.HelloReply helloReply = Hello.HelloReply.newBuilder().setMessage("Hello!").build();
         responseObserver.onNext(helloReply);

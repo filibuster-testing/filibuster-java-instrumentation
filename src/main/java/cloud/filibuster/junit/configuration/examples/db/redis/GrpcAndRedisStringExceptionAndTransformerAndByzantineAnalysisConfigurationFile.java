@@ -1,5 +1,6 @@
 package cloud.filibuster.junit.configuration.examples.db.redis;
 
+import cloud.filibuster.RpcType;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
@@ -57,7 +58,7 @@ public class GrpcAndRedisStringExceptionAndTransformerAndByzantineAnalysisConfig
         FilibusterAnalysisConfiguration.Builder grpcConfigBuilder = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc")
                 .pattern("(.*/.*)")
-                .type("grpc");
+                .rpcType(RpcType.GRPC);
 
         Map<String, String> grpcMap = new HashMap<>();
         grpcMap.put("cause", "");

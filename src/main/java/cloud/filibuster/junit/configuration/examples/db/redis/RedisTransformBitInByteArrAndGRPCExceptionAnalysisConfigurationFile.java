@@ -1,5 +1,6 @@
 package cloud.filibuster.junit.configuration.examples.db.redis;
 
+import cloud.filibuster.RpcType;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
@@ -32,7 +33,7 @@ public class RedisTransformBitInByteArrAndGRPCExceptionAnalysisConfigurationFile
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilder = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc")
                 .pattern("(.*/.*)")
-                .type("grpc");
+                .rpcType(RpcType.GRPC);
         filibusterAnalysisConfigurationBuilder.exception("io.grpc.StatusRuntimeException", createGrpcErrorMap("UNAVAILABLE"));
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilder.build());
 

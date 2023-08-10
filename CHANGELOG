@@ -2,6 +2,7 @@
     - (cmeiklejohn) Update assertion API to clarify usage.
     - (MichaelA-ops) Support gRPC non-primitive Protobuf types and show them in the plugin.
     - (MichaelA-ops) Fix bug where the plugin does not show all intercepted methods in a test iteration.
+    - (cmeiklejohn) Change RPC type to enum, requires breaking change from grpc to GRPC in any analysis configuration files.
 2.0.1:
     - (MichaelA-ops) Add tests combining GRPC and Byzantine transformer faults.
 2.0.0:

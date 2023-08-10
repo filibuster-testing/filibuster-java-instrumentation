@@ -418,8 +418,14 @@ public class FilibusterCore {
     }
 
     private void generateByzantineAndTransformerFaults(JSONObject payload, DistributedExecutionIndex distributedExecutionIndex) {
+        // Instrumentation_type is set to request_received if the request is coming from the server instrumentor
+        // In that case, we don't want to inject Byzantine or transformer faults.
+        if (payload.has("instrumentation_type") && payload.getString("instrumentation_type").equals("request_received")) {
+            return;
+        }
+
         if (!payload.has("module") || !payload.has("method")) {
-            throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: scheduleByzantineFault, payload missing module or method: " + payload.toString(4));
+            throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: generateByzantineAndTransformerFaults, payload missing module or method: " + payload.toString(4));
         }
 
         String moduleName = payload.getString("module");
@@ -1200,7 +1206,8 @@ public class FilibusterCore {
         );
     }
 
-    private RpcType toRpcType(String sRpcType) {
+    @Nullable
+    private static RpcType toRpcType(String sRpcType) {
         if (!sRpcType.equals("")) {
             try {
                 return RpcType.valueOf(sRpcType);

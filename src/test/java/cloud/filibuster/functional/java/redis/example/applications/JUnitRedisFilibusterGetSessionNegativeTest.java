@@ -12,6 +12,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
+import static cloud.filibuster.integration.instrumentation.TestHelper.stopAPIServerAndWaitUntilUnavailable;
 import static cloud.filibuster.junit.Assertions.wasFaultInjected;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
 import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
@@ -39,9 +41,20 @@ public class JUnitRedisFilibusterGetSessionNegativeTest extends JUnitAnnotationB
     private static int sessionSize;
     private static APIServiceGrpc.APIServiceBlockingStub apiService;
 
+    @BeforeAll
+    public static void beforeAll() throws IOException, InterruptedException {
+        startAPIServerAndWaitUntilAvailable();
+        RedisClientService.getInstance();
+
+        // Initialize API channel and service
+        apiChannel = ManagedChannelBuilder.forAddress(Networking.getHost("api_server"), Networking.getPort("api_server")).usePlaintext().build();
+        apiService = APIServiceGrpc.newBlockingStub(apiChannel);
+    }
+
     @AfterAll
-    public static void destruct() {
-        apiChannel.shutdown();
+    public static void destruct() throws InterruptedException {
+        stopAPIServerAndWaitUntilUnavailable();
+        apiChannel.shutdownNow();
     }
 
     @DisplayName("Tests whether a session can be retrieved from Redis - " +
@@ -49,15 +62,8 @@ public class JUnitRedisFilibusterGetSessionNegativeTest extends JUnitAnnotationB
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = RedisTransformBitInByteArrAnalysisConfigurationFile.class,
             maxIterations = 1000)
-    public void testCreateAndGetSessionFromRedis() throws IOException, InterruptedException {
+    public void testCreateAndGetSessionFromRedis() {
         numberOfTestExecutions++;
-
-        startAPIServerAndWaitUntilAvailable();
-        RedisClientService.getInstance();
-
-        // Initialize API channel and service
-        apiChannel = ManagedChannelBuilder.forAddress(Networking.getHost("api_server"), Networking.getPort("api_server")).usePlaintext().build();
-        apiService = APIServiceGrpc.newBlockingStub(apiChannel);
 
         String uid = "JohnS";
         String location = "US";

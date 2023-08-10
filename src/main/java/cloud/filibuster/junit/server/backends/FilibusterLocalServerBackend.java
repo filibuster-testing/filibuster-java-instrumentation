@@ -48,6 +48,8 @@ public class FilibusterLocalServerBackend implements FilibusterServerBackend {
             filibusterServer.stop();
         }
 
+        FilibusterCore.removeCurrentInstance();
+
         // Poke the GC once we dereference the FilibusterCore object (via FilibusterServer.)
         System.gc();
 

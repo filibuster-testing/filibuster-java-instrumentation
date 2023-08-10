@@ -93,6 +93,10 @@ public class FilibusterCore {
 
     private boolean faultInjectionEnabled = true;
 
+    public static void removeCurrentInstance() {
+        currentInstance = null;
+    }
+
     public FilibusterCore(FilibusterConfiguration filibusterConfiguration) {
         currentInstance = this;
         String testName = filibusterConfiguration.getTestName();

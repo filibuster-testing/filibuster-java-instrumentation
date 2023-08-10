@@ -1,3 +1,4 @@
+cloud.filibuster
 cloud.filibuster.dei
 cloud.filibuster.dei.implementations
 cloud.filibuster.examples
@@ -18,6 +19,7 @@ cloud.filibuster.instrumentation.libraries.grpc
 cloud.filibuster.instrumentation.storage
 cloud.filibuster.junit
 cloud.filibuster.junit.assertions
+cloud.filibuster.junit.assertions.protocols
 cloud.filibuster.junit.configuration
 cloud.filibuster.junit.configuration.examples
 cloud.filibuster.junit.configuration.examples.armeria.http

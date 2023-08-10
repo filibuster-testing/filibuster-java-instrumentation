@@ -245,7 +245,11 @@
                 if (warning) {
                     row += "<td class='method_name warning'>" + method + "</td>";
                 } else {
-                    row += "<td class='method_name'>" + method + "</td>";
+                    if (tests > 0 && filibusterTests > 0 && filibusterExecutions > 0) {
+                        row += "<td class='method_name success'>" + method + "</td>";
+                    } else {
+                        row += "<td class='method_name'>" + method + "</td>";
+                    }
                 }
 
                 if (tests === 0) {

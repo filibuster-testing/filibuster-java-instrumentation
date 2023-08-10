@@ -3,7 +3,7 @@ package cloud.filibuster.junit.configuration.examples.db.redis;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
-import cloud.filibuster.junit.server.core.transformers.GatewayTransformer;
+import cloud.filibuster.junit.server.core.transformers.selector.GatewayTransformer;
 
 public class RedisGatewayTransformerAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;

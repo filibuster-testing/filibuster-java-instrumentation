@@ -7,15 +7,15 @@ import org.json.JSONObject;
 
 import java.lang.reflect.Type;
 
-public final class JsonObjectTransformer implements Transformer<JSONObject, String> {
+public final class JsonObjectAsStringTransformer implements Transformer<String, String> {
     // TODO
     private boolean hasNext = true;
-    private JSONObject result;
-    private Accumulator<JSONObject, String> accumulator;
+    private String result;
+    private Accumulator<String, String> accumulator;
 
     @Override
     @CanIgnoreReturnValue
-    public JsonObjectTransformer transform(JSONObject payload, Accumulator<JSONObject, String> accumulator) {
+    public JsonObjectAsStringTransformer transform(String payload, Accumulator<String, String> accumulator) {
         // TODO
         return this;
     }
@@ -31,7 +31,7 @@ public final class JsonObjectTransformer implements Transformer<JSONObject, Stri
     }
 
     @Override
-    public JSONObject getResult() {
+    public String getResult() {
         if (this.result == null) {
             throw new TransformerNullResultException("Result is null. getResult() was probably called before transform()!");
         }
@@ -47,14 +47,14 @@ public final class JsonObjectTransformer implements Transformer<JSONObject, Stri
     }
 
     @Override
-    public Accumulator<JSONObject, String> getInitialAccumulator() {
-        Accumulator<JSONObject, String> accumulator = new Accumulator<>();
+    public Accumulator<String, String> getInitialAccumulator() {
+        Accumulator<String, String> accumulator = new Accumulator<>();
         accumulator.setContext("");
         return accumulator;
     }
 
     @Override
-    public Accumulator<JSONObject, String> getNextAccumulator() {
+    public Accumulator<String, String> getNextAccumulator() {
         if (this.accumulator == null) {
             return getInitialAccumulator();
         } else {

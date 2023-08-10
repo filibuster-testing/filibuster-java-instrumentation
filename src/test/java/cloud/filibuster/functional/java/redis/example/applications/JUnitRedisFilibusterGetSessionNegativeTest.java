@@ -91,7 +91,7 @@ public class JUnitRedisFilibusterGetSessionNegativeTest extends JUnitAnnotationB
         return apiService.createSession(sessionRequest);
     }
 
-    private Hello.GetSessionResponse getSession(String sessionId) {
+    private static Hello.GetSessionResponse getSession(String sessionId) {
         Hello.GetSessionRequest sessionRequest = Hello.GetSessionRequest.newBuilder()
                 .setSessionId(sessionId)
                 .build();

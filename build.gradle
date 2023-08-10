@@ -55,8 +55,8 @@ dependencies {
         implementation "com.linecorp.armeria:${it}:1.14.0"
     }
 
-    implementation "io.lettuce:lettuce-core:6.2.3.RELEASE"
-    implementation 'org.postgresql:postgresql:42.5.4'
+    implementation "io.lettuce:lettuce-core:6.2.2.RELEASE"
+    implementation 'org.postgresql:postgresql:42.3.3'
     implementation 'com.datastax.cassandra:cassandra-driver-core:4.0.0'
     implementation 'software.amazon.awssdk:dynamodb:2.20.74'
     implementation 'com.datastax.cassandra:cassandra-driver-core:4.0.0'
@@ -66,6 +66,13 @@ dependencies {
     implementation "io.grpc:grpc-netty-shaded:1.40.1"
     implementation 'com.google.code.gson:gson:2.8.9'
     implementation 'org.grpcmock:grpcmock-junit5:0.9.3'
+    implementation 'com.google.protobuf:protobuf-java-util:3.21.7'
+
+    // Pinned jetty for WireMock
+    implementation 'org.eclipse.jetty:jetty-http:9.4.46.v20220331'
+    implementation 'org.eclipse.jetty:jetty-io:9.4.46.v20220331'
+    implementation 'org.eclipse.jetty:jetty-server:9.4.46.v20220331'
+    implementation 'org.eclipse.jetty:jetty-util:9.4.46.v20220331'
 
     // JUnit annotations
     implementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
@@ -233,7 +240,7 @@ javadoc {
 
 group = "cloud.filibuster"
 archivesBaseName = "instrumentation"
-version = "2.0.1"
+version = "2.1.0"
 
 java {
     withJavadocJar()
@@ -345,6 +352,22 @@ task testWithFaultInjection(type: Test) {
 
     filter {
         includeTestsMatching('cloud.filibuster.functional.java.*')
+    }
+}
+
+task testWithDatabaseFaultInjection(type: Test) {
+    useJUnitPlatform()
+
+    maxParallelForks = 1
+    timeout = Duration.ofMinutes(60)
+    minHeapSize = "128m" // initial heap size
+    maxHeapSize = "2048m" // maximum heap size
+    jvmArgs '-XX:MaxPermSize=256m' // mem argument for the test JVM
+
+    systemProperty "filibuster.enabled", "TRUE"
+
+    filter {
+        includeTestsMatching('cloud.filibuster.functional.database.*')
     }
 }
 

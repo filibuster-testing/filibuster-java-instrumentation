@@ -1,5 +1,6 @@
 package cloud.filibuster.instrumentation.instrumentors;
 
+import cloud.filibuster.RpcType;
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.dei.DistributedExecutionIndexType;
 import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
@@ -228,7 +229,7 @@ final public class FilibusterClientInstrumentor {
     private DistributedExecutionIndex preliminaryDistributedExecutionIndex;
 
     @Nullable
-    String rpcType;
+    RpcType rpcType;
 
     final private static String filibusterServiceName = "filibuster-instrumentation";
 
@@ -322,7 +323,7 @@ final public class FilibusterClientInstrumentor {
         }
     }
 
-    public void setRpcType(@Nullable String rpcType) {
+    public void setRpcType(@Nullable RpcType rpcType) {
         this.rpcType = rpcType;
     }
 
@@ -641,7 +642,12 @@ final public class FilibusterClientInstrumentor {
         logger.log(Level.INFO, "beforeInvocation: about to make call.");
 
         JSONObject invocationMetadata = new JSONObject();
-        invocationMetadata.put("rpc_type", rpcType);
+
+        if (rpcType != null) {
+            invocationMetadata.put("rpc_type", rpcType.toString());
+        } else {
+            invocationMetadata.put("rpc_type", "");
+        }
 
         JSONObject invocationPayload = new JSONObject();
         invocationPayload.put("instrumentation_type", "invocation");

@@ -11,7 +11,9 @@ import io.grpc.ClientInterceptor;
 import io.grpc.ClientInterceptors;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -24,8 +26,9 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.integration.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
-import static cloud.filibuster.junit.Assertions.wasFaultInjected;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
+import static cloud.filibuster.integration.instrumentation.TestHelper.stopHelloServerAndWaitUntilUnavailable;
+import static cloud.filibuster.junit.assertions.protocols.GenericAssertions.wasFaultInjected;
+import static cloud.filibuster.junit.assertions.protocols.GrpcAssertions.wasFaultInjectedOnMethod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -40,6 +43,10 @@ public class JUnitFilibusterTransformerGRPCTest {
         startHelloServerAndWaitUntilAvailable();
     }
 
+    @AfterAll
+    public static void stopHelloService() throws InterruptedException {
+        stopHelloServerAndWaitUntilUnavailable();
+    }
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @TestWithFilibuster(analysisConfigurationFile = FilibusterGRPCNullTransformerAnalysisConfigurationFile.class)
@@ -65,7 +72,7 @@ public class JUnitFilibusterTransformerGRPCTest {
             testExceptionsThrown.add(t.getMessage());
 
             assertTrue(wasFaultInjected(), "An exception was thrown although no fault was injected: " + t);
-            assertTrue(wasFaultInjectedOnMethod("cloud.filibuster.examples.HelloService/Hello"),
+            assertTrue(wasFaultInjectedOnMethod(HelloServiceGrpc.getHelloMethod()),
                     "Fault was not injected on the expected HelloService/Hello: " + t);
         }
 

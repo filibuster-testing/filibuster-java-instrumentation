@@ -87,7 +87,7 @@ public class TestSuiteReport {
     }
 
     private TestSuiteReport() {
-        if(Property.getReportsTestSuiteReportEnabledProperty()) {
+        if (Property.getReportsTestSuiteReportEnabledProperty()) {
             Thread testSuiteCompleteHook = new Thread(this::testSuiteCompleted);
             Runtime.getRuntime().addShutdownHook(testSuiteCompleteHook);
             startTestSuite();

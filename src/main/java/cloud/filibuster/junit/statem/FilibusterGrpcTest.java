@@ -19,9 +19,11 @@ import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcStubbedRPCHasNoAssertionsException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcSuppressedStatusCodeException;
 import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcThrownExceptionHasUnspecifiedFailureBehaviorException;
+import cloud.filibuster.exceptions.filibuster.FilibusterUnsupportedAPIException;
 import cloud.filibuster.instrumentation.datatypes.Pair;
 import cloud.filibuster.junit.assertions.Helpers;
 
+import cloud.filibuster.junit.server.core.FilibusterCore;
 import cloud.filibuster.junit.statem.keys.CompositeFaultKey;
 import cloud.filibuster.junit.statem.keys.FaultKey;
 import cloud.filibuster.junit.statem.keys.SingleFaultKey;
@@ -41,9 +43,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static cloud.filibuster.junit.Assertions.getExecutedRPCs;
-import static cloud.filibuster.junit.Assertions.getFailedRPCs;
-import static cloud.filibuster.junit.Assertions.getFaultsInjected;
+import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendCanInvokeDirectlyProperty;
 import static cloud.filibuster.junit.statem.GrpcTestUtils.isInsideOfAssertOnExceptionBlock;
 import static cloud.filibuster.junit.statem.GrpcTestUtils.isInsideOfAssertOnFaultBlock;
 import static cloud.filibuster.junit.statem.GrpcTestUtils.isInsideOfFailureBlock;
@@ -1138,6 +1138,42 @@ public interface FilibusterGrpcTest {
             throw new FilibusterGrpcAssertionsDidNotHoldUnderErrorResponseException(actualStatus.getCode(), t);
         } finally {
             setInsideOfAssertStubBlock(false);
+        }
+    }
+
+    default HashMap<DistributedExecutionIndex, JSONObject> getFailedRPCs() {
+        if (getServerBackendCanInvokeDirectlyProperty()) {
+            if (FilibusterCore.hasCurrentInstance()) {
+                return FilibusterCore.getCurrentInstance().failedRPCs();
+            } else {
+                return new HashMap<>();
+            }
+        } else {
+            throw new FilibusterUnsupportedAPIException("This API is currently not supported. If applicable, please import the GRPC variant of this method instead.");
+        }
+    }
+
+    default HashMap<DistributedExecutionIndex, JSONObject> getFaultsInjected() {
+        if (getServerBackendCanInvokeDirectlyProperty()) {
+            if (FilibusterCore.hasCurrentInstance()) {
+                return FilibusterCore.getCurrentInstance().faultsInjected();
+            } else {
+                return new HashMap<>();
+            }
+        } else {
+            throw new FilibusterUnsupportedAPIException("This API is currently not supported. If applicable, please import the GRPC variant of this method instead.");
+        }
+    }
+
+    default HashMap<DistributedExecutionIndex, JSONObject> getExecutedRPCs() {
+        if (getServerBackendCanInvokeDirectlyProperty()) {
+            if (FilibusterCore.hasCurrentInstance()) {
+                return FilibusterCore.getCurrentInstance().executedRPCs();
+            } else {
+                return new HashMap<>();
+            }
+        } else {
+            throw new FilibusterUnsupportedAPIException("This API is currently not supported. If applicable, please import the GRPC variant of this method instead.");
         }
     }
 }

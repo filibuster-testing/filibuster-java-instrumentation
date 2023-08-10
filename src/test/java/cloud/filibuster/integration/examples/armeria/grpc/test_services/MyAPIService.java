@@ -34,12 +34,15 @@ import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.codec.StringCodec;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Random;
+
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -280,8 +283,8 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
                 respondWithError(responseObserver, description);
             }
 
-            if (sessionJO != null && sessionJO.has("location")) {  // Check whether the sessionJO has a location field
-                reply = sessionLocationBuilder.setLocation(sessionJO.getString("location")).build();
+            if (sessionJO != null && sessionJO.has("loc")) {  // Check whether the sessionJO has a location field
+                reply = sessionLocationBuilder.setLocation(sessionJO.getString("loc")).build();
             } else {
                 // Else make a call to the Hello service to retrieve the last saved location for the sessionId.
                 ManagedChannel helloChannel = ManagedChannelBuilder
@@ -296,7 +299,16 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
                 Hello.HelloReply helloReply = blockingStub.getLastSessionLocation(request);
 
                 reply = sessionLocationBuilder.setLocation(helloReply.getMessage()).build();
+
+                // Teardown the channel.
                 helloChannel.shutdownNow();
+                try {
+                    while (!helloChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+                        Thread.sleep(4000);
+                    }
+                } catch (InterruptedException ie) {
+                    logger.log(Level.SEVERE, "Failed to terminate channel: " + ie);
+                }
             }
 
         } else {
@@ -314,7 +326,7 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         // Create the session JSON object
         JSONObject referenceSession = new JSONObject();
         referenceSession.put("uid", req.getUserId());
-        referenceSession.put("location", req.getLocation());
+        referenceSession.put("loc", req.getLocation());
         referenceSession.put("iat", "123");  // Request timestamp
         byte[] sessionBytes = referenceSession.toString().getBytes(Charset.defaultCharset());
         Random rand = new Random(getRandomSeedProperty());
@@ -459,6 +471,22 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     }
 
     @Override
+    public void nonPrimitive(Hello.NonPrimitiveRequest req, StreamObserver<Hello.NonPrimitiveResponse> responseObserver) {
+
+        Map<String, String> myMap = req.getObjMap();
+
+        Hello.NonPrimitiveResponse.Builder responseBuilder = Hello.NonPrimitiveResponse.newBuilder();
+
+        // Attach " - modified" to each value in the map.
+        for (Map.Entry<String, String> entry : myMap.entrySet()) {
+            responseBuilder.putObj(entry.getKey(), entry.getValue() + " - modified");
+        }
+
+        responseObserver.onNext(responseBuilder.build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
     public void world(Hello.HelloRequest req, StreamObserver<Hello.HelloReply> responseObserver) {
         String helloBaseUri = "http://" + Networking.getHost("hello") + ":" + Networking.getPort("hello") + "/";
         WebClient helloWebClient = TestHelper.getTestWebClient(helloBaseUri, "api-service");
@@ -472,9 +500,15 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         }, FilibusterExecutor.getExecutorService());
 
         try {
-            firstRequestFuture.get();
+            if (!Objects.equals(firstRequestFuture.get(), "200")) {
+                Status status = Status.UNAVAILABLE.withDescription("First RPC request to /world failed!");
+                responseObserver.onError(status.asRuntimeException());
+                return;
+            }
         } catch (InterruptedException | ExecutionException e) {
-            // Ignore for now, we only care about executing the request.
+            Status status = Status.INTERNAL.withDescription("First RPC request to /world failed!");
+            responseObserver.onError(status.asRuntimeException());
+            return;
         }
 
         // Issue POST to http://hello/external-post, which will issue a transitive POST to http://external.
@@ -486,34 +520,15 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
         }, FilibusterExecutor.getExecutorService());
 
         try {
-            secondRequestFuture.get();
-        } catch (InterruptedException | ExecutionException e) {
-            // Ignore for now, we only care about executing the request.
-        }
-
-        // Add a GRPC in here just to mix things up.
-        ManagedChannel worldManagedChannel = ManagedChannelBuilder
-                .forAddress(Networking.getHost("world"), Networking.getPort("world"))
-                .usePlaintext()
-                .build();
-        ClientInterceptor clientInterceptor = new FilibusterClientInterceptor("hello");
-        Channel worldChannel = ClientInterceptors.intercept(worldManagedChannel, clientInterceptor);
-
-        try {
-            WorldServiceGrpc.WorldServiceBlockingStub worldServiceBlockingStub = WorldServiceGrpc.newBlockingStub(worldChannel);
-            Hello.WorldRequest request = Hello.WorldRequest.newBuilder().setName(req.getName()).build();
-            worldServiceBlockingStub.world(request);
-        } catch (RuntimeException e) {
-            // Ignore for now, we only care about executing the request.
-        }
-
-        worldManagedChannel.shutdownNow();
-        try {
-            while (!worldManagedChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
-                Thread.sleep(4000);
+            if (!Objects.equals(secondRequestFuture.get(), "200")) {
+                Status status = Status.UNAVAILABLE.withDescription("Second RPC request to /world failed!");
+                responseObserver.onError(status.asRuntimeException());
+                return;
             }
-        } catch (InterruptedException ie) {
-            logger.log(Level.SEVERE, "Failed to terminate channel: " + ie);
+        } catch (InterruptedException | ExecutionException e) {
+            Status status = Status.INTERNAL.withDescription("Second RPC request to /world failed!");
+            responseObserver.onError(status.asRuntimeException());
+            return;
         }
 
         // Return stock response.

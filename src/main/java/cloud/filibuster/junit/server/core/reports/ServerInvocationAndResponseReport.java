@@ -58,10 +58,8 @@ public class ServerInvocationAndResponseReport {
     @SuppressWarnings("ConstantPatternCompile")
     public static void loadGrpcEndpoints(String packageName) {
         Set<Class> allClassesInNamespace = findAllClassesUsingClassLoader(packageName);
-
         Set<Class<?>> grpcClasses = new HashSet<>();
 
-        // TODO: might not always work.
         for (Class<?> c : allClassesInNamespace) {
             if (c.getName().endsWith("Grpc")) {
                 grpcClasses.add(c);

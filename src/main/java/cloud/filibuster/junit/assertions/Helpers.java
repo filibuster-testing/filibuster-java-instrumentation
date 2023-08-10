@@ -51,9 +51,7 @@ public class Helpers {
 
     // Increment the fault-scope counter, which is just a counter of how many assertion blocks
     // we have entered via the test.
-    private static void incrementTestScopeCounter(BlockType blockType) {
-        // TODO: use the block type as the name.
-
+    public static void incrementTestScopeCounter(BlockType blockType) {
         if (getServerBackendCanInvokeDirectlyProperty()) {
             if (FilibusterCore.hasCurrentInstance()) {
                 FilibusterCore.getCurrentInstance().incrementTestScopeCounter(blockType);
@@ -89,5 +87,20 @@ public class Helpers {
         } else {
             throw new FilibusterUnsupportedAPIException("Unable to execute test; Filibuster must be enabled using @TestWithFilibuster and a supported backend must be supplied.");
         }
+    }
+
+    /**
+     * Execute the following block without faults.
+     * <p>
+     * Assumes that the block is executed synchronously -- use of this inside of concurrency primitives without
+     * explicit synchronization may render this function unable to prevent faults from being injected.
+     *
+     * @param block block to execute synchronously.
+     */
+    public static void executeWithoutFaultInjection(BlockType blockType, Runnable block) {
+        incrementTestScopeCounter(blockType);
+        disableFaultInjection();
+        block.run();
+        enableFaultInjection();
     }
 }

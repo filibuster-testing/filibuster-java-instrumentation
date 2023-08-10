@@ -55,6 +55,13 @@ public class GenericAssertions {
         }
     }
 
+    /**
+     * Returns true if a fault was injected on the following Java method.
+     *
+     * @param className class name including fully-qualified namespace and package
+     * @param methodName method name
+     * @return if a fault was injected.
+     */
     public static boolean wasFaultInjectedOnJavaClassAndMethod(String className, String methodName) {
         if (getServerBackendCanInvokeDirectlyProperty()) {
             if (FilibusterCore.hasCurrentInstance()) {
@@ -67,7 +74,13 @@ public class GenericAssertions {
         }
     }
 
-    // TODO
+
+    /**
+     * Returns true if a fault was injected on the following Java method.
+     *
+     * @param fullyQualifiedMethodName fully qualified class name in form com.namespace.package.class/Method*
+     * @return if a fault was injected.
+     */
     public static boolean wasFaultInjectedOnJavaClassAndMethod(String fullyQualifiedMethodName) {
         if (getServerBackendCanInvokeDirectlyProperty()) {
             String[] split = fullyQualifiedMethodName.split("/", 2);

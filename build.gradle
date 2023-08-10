@@ -367,7 +367,7 @@ task testWithDatabaseFaultInjection(type: Test) {
     systemProperty "filibuster.enabled", "TRUE"
 
     filter {
-        includeTestsMatching('cloud.filibuster.functional.java.database.*')
+        includeTestsMatching('cloud.filibuster.functional.database.*')
     }
 }
 

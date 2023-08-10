@@ -159,7 +159,7 @@ public class FaultyRedisFaultFreeGRPCWithDataNondeterminismAndSuppressCombinatio
         Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName(name).build();
         Hello.HelloReply helloReply = blockingStub.hello(request);
 
-        helloChannel.shutdown();
+        helloChannel.shutdownNow();
         return helloReply;
     }
 

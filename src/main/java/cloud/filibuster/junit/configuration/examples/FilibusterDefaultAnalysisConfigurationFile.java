@@ -1,5 +1,6 @@
 package cloud.filibuster.junit.configuration.examples;
 
+import cloud.filibuster.RpcType;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
@@ -42,7 +43,7 @@ public class FilibusterDefaultAnalysisConfigurationFile implements FilibusterAna
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderGrpcExceptions = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc.exceptions")
                 .pattern("(.*/.*)")
-                .type("grpc");
+                .rpcType(RpcType.GRPC);
         for (String code : exhaustiveGrpcErrorCodeList) {
             filibusterAnalysisConfigurationBuilderGrpcExceptions.exception("io.grpc.StatusRuntimeException", createGrpcErrorMap(code));
         }
@@ -52,7 +53,7 @@ public class FilibusterDefaultAnalysisConfigurationFile implements FilibusterAna
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderGrpcErrors = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc.errors")
                 .pattern("(.*/.*)")
-                .type("grpc");
+                .rpcType(RpcType.GRPC);
 
         // Specification of error code without specification of the exception types
         // that will encapsulate the error codes.

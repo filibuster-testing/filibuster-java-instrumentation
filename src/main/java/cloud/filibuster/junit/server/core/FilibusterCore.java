@@ -1,5 +1,6 @@
 package cloud.filibuster.junit.server.core;
 
+import cloud.filibuster.RpcType;
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.dei.implementations.DistributedExecutionIndexV1;
 import cloud.filibuster.exceptions.filibuster.FilibusterCoreLogicException;
@@ -239,12 +240,13 @@ public class FilibusterCore {
             // Only works for GRPC right now.
             String moduleName = payload.getString("module");
             String methodName = payload.getString("method");
-            String rpcType = null;
+            RpcType rpcType = null;
 
             if (payload.has("metadata")) {
                 JSONObject payloadMetadata = payload.getJSONObject("metadata");
                 if (payloadMetadata.has("rpc_type")) {
-                    rpcType = payloadMetadata.getString("rpc_type");
+                    String sRpcType = payloadMetadata.getString("rpc_type");
+                    rpcType = toRpcType(sRpcType);
                 }
             }
 
@@ -836,8 +838,12 @@ public class FilibusterCore {
                 filibusterAnalysisConfigurationBuilder.pattern(nameObject.getString("pattern"));
             }
 
-            if (nameObject.has("type")) {
-                filibusterAnalysisConfigurationBuilder.type(nameObject.getString("type"));
+            if (nameObject.has("rpc_type")) {
+                String sRpcType = nameObject.getString("rpc_type");
+                RpcType rpcType = toRpcType(sRpcType);
+                if (rpcType != null) {
+                    filibusterAnalysisConfigurationBuilder.rpcType(rpcType);
+                }
             }
 
             if (nameObject.has("latencies")) {
@@ -963,7 +969,7 @@ public class FilibusterCore {
 
     private static boolean matchesFaultInjectionPattern(
             FilibusterAnalysisConfiguration filibusterAnalysisConfiguration,
-            String rpcType,
+            RpcType rpcType,
             String moduleName,
             String methodName
     ) {
@@ -975,7 +981,7 @@ public class FilibusterCore {
         boolean patternMatchFound = matchesMethodName || matchesModuleAndMethodName;
 
         if (rpcType == null) {
-            if (filibusterAnalysisConfiguration.hasType()) {
+            if (filibusterAnalysisConfiguration.hasRpcType()) {
                 // If the analysis configuration has a type and we don't have a type, it's not a match.
                 return false;
             }
@@ -989,7 +995,7 @@ public class FilibusterCore {
         // RPCs have unknown modules/methods and therefore we might have overly permissive patterns that need
         // to be verified using the instrumentation type.
         //
-        boolean isTypeMatch = filibusterAnalysisConfiguration.isTypeMatch(rpcType);
+        boolean isTypeMatch = filibusterAnalysisConfiguration.isRpcTypeMatch(rpcType);
 
         return patternMatchFound && isTypeMatch;
     }
@@ -997,7 +1003,7 @@ public class FilibusterCore {
     private void generateFaultsUsingSpecificAnalysisConfiguration(
             FilibusterCustomAnalysisConfigurationFile customAnalysisConfigurationFile,
             DistributedExecutionIndex distributedExecutionIndex,
-            String rpcType,
+            RpcType rpcType,
             String moduleName,
             String methodName
     ) {
@@ -1085,7 +1091,7 @@ public class FilibusterCore {
     private void generateFaultsUsingAnalysisConfiguration(
             FilibusterConfiguration filibusterConfiguration,
             DistributedExecutionIndex distributedExecutionIndex,
-            String rpcType,
+            RpcType rpcType,
             String moduleName,
             String methodName
     ) {
@@ -1106,7 +1112,7 @@ public class FilibusterCore {
                         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilder = new FilibusterAnalysisConfiguration.Builder()
                                 .name("java.grpc." + methodName)
                                 .pattern("(" + methodName + ")")
-                                .type("grpc");
+                                .rpcType(RpcType.GRPC);
 
                         List<ServiceRequestAndResponse> serviceRequestAndResponseList = serviceProfile.getServiceRequestAndResponsesForMethod(methodName);
 
@@ -1198,5 +1204,18 @@ public class FilibusterCore {
                         "[FILIBUSTER-CORE]: * numberOfAbstractExecutionsExecuted:        " + numberOfAbstractExecutionsExecuted + (currentAbstractTestExecution == null ? "" : " (+1, =" + (numberOfAbstractExecutionsExecuted + 1) + ")") + "\n" +
                         "[FILIBUSTER-CORE]: * numberOfConcreteExecutionsExecuted:        " + numberOfConcreteExecutionsExecuted + " (+1, =" + (numberOfConcreteExecutionsExecuted + 1) + ")" + "\n"
         );
+    }
+
+    @Nullable
+    private static RpcType toRpcType(String sRpcType) {
+        if (!sRpcType.equals("")) {
+            try {
+                return RpcType.valueOf(sRpcType);
+            } catch (IllegalArgumentException iae) {
+                throw new FilibusterCoreLogicException("could not figure out the rpc type: " + sRpcType + ", " + iae);
+            }
+        }
+
+        return null;
     }
 }

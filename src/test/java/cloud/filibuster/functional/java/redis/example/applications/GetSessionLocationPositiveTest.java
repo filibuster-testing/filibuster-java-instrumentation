@@ -10,6 +10,7 @@ import cloud.filibuster.junit.configuration.examples.db.redis.RedisTransformBitI
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -23,6 +24,9 @@ import java.util.stream.Collectors;
 import static cloud.filibuster.integration.instrumentation.TestHelper.startAPIServerAndWaitUntilAvailable;
 import static cloud.filibuster.junit.assertions.protocols.GenericAssertions.wasFaultInjected;
 import static cloud.filibuster.junit.assertions.protocols.GenericAssertions.wasFaultInjectedOnJavaClassAndMethod;
+import static cloud.filibuster.integration.instrumentation.TestHelper.startHelloServerAndWaitUntilAvailable;
+import static cloud.filibuster.integration.instrumentation.TestHelper.stopAPIServerAndWaitUntilUnavailable;
+import static cloud.filibuster.integration.instrumentation.TestHelper.stopHelloServerAndWaitUntilUnavailable;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -35,9 +39,22 @@ public class GetSessionLocationPositiveTest extends JUnitAnnotationBaseTest {
     private static int sessionSize;
     private static APIServiceGrpc.APIServiceBlockingStub apiService;
 
+    @BeforeAll
+    public static void beforeAll() throws IOException, InterruptedException {
+        startAPIServerAndWaitUntilAvailable();
+        startHelloServerAndWaitUntilAvailable();
+        RedisClientService.getInstance();
+
+        // Initialize API channel and service
+        apiChannel = ManagedChannelBuilder.forAddress(Networking.getHost("api_server"), Networking.getPort("api_server")).usePlaintext().build();
+        apiService = APIServiceGrpc.newBlockingStub(apiChannel);
+    }
+
     @AfterAll
-    public static void destruct() {
-        apiChannel.shutdown();
+    public static void destruct() throws InterruptedException {
+        stopAPIServerAndWaitUntilUnavailable();
+        stopHelloServerAndWaitUntilUnavailable();
+        apiChannel.shutdownNow();
     }
 
     @DisplayName("Tests whether a session location can be created and then retrieved from Redis - " +

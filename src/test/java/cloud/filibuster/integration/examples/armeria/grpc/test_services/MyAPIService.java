@@ -42,6 +42,7 @@ import java.util.Random;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -298,7 +299,16 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
                 Hello.HelloReply helloReply = blockingStub.getLastSessionLocation(request);
 
                 reply = sessionLocationBuilder.setLocation(helloReply.getMessage()).build();
+
+                // Teardown the channel.
                 helloChannel.shutdownNow();
+                try {
+                    while (!helloChannel.awaitTermination(1000, TimeUnit.SECONDS)) {
+                        Thread.sleep(4000);
+                    }
+                } catch (InterruptedException ie) {
+                    logger.log(Level.SEVERE, "Failed to terminate channel: " + ie);
+                }
             }
 
         } else {
@@ -458,6 +468,22 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
                 responseObserver.onError(status.asRuntimeException());
                 break;
         }
+    }
+
+    @Override
+    public void nonPrimitive(Hello.NonPrimitiveRequest req, StreamObserver<Hello.NonPrimitiveResponse> responseObserver) {
+
+        Map<String, String> myMap = req.getObjMap();
+
+        Hello.NonPrimitiveResponse.Builder responseBuilder = Hello.NonPrimitiveResponse.newBuilder();
+
+        // Attach " - modified" to each value in the map.
+        for (Map.Entry<String, String> entry : myMap.entrySet()) {
+            responseBuilder.putObj(entry.getKey(), entry.getValue() + " - modified");
+        }
+
+        responseObserver.onNext(responseBuilder.build());
+        responseObserver.onCompleted();
     }
 
     @Override

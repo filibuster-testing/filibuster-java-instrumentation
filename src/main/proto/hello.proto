@@ -24,6 +24,15 @@ service APIService {
   rpc CreateSession (CreateSessionRequest) returns (CreateSessionResponse) {};
   rpc GetSession (GetSessionRequest) returns (GetSessionResponse) {};
   rpc GetLocationFromSession (GetSessionRequest) returns (GetLocationFromSessionResponse) {};
+  rpc NonPrimitive (NonPrimitiveRequest) returns (NonPrimitiveResponse) {};
+}
+
+message NonPrimitiveRequest {
+  map<string, string> obj = 1;
+}
+
+message NonPrimitiveResponse {
+  map<string, string> obj = 1;
 }
 
 message CreateSessionRequest {

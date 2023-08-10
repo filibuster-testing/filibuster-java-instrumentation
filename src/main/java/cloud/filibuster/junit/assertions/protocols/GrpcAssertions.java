@@ -58,7 +58,12 @@ public class GrpcAssertions extends GenericAssertions {
         }
     }
 
-    // TODO
+    /**
+     * Returns true if a fault was injected on a GRPC service.
+     *
+     * @param serviceName GRPC fully-qualified service name including namespace.
+     * @return if a fault was injected
+     */
     public static boolean wasFaultInjectedOnService(String serviceName) {
         if (getServerBackendCanInvokeDirectlyProperty()) {
             if (FilibusterCore.hasCurrentInstance()) {
@@ -71,7 +76,12 @@ public class GrpcAssertions extends GenericAssertions {
         }
     }
 
-    // TODO
+    /**
+     * Returns true if a fault was injected on a GRPC method.
+     *
+     * @param method GRPC method descriptor
+     * @return if a fault was injected.
+     */
     public static boolean wasFaultInjectedOnMethod(MethodDescriptor method) {
         String fullyQualifiedMethodName = method.getFullMethodName();
 
@@ -88,7 +98,12 @@ public class GrpcAssertions extends GenericAssertions {
         }
     }
 
-    // TODO
+    /**
+     * Returns true if a fault was injected on a GRPC request.
+     *
+     * @param request GRPC message
+     * @return if a fault was injected.
+     */
     public static boolean wasFaultInjectedOnRequest(GeneratedMessage request) {
         if (getServerBackendCanInvokeDirectlyProperty()) {
             if (FilibusterCore.hasCurrentInstance()) {
@@ -101,7 +116,12 @@ public class GrpcAssertions extends GenericAssertions {
         }
     }
 
-    // TODO
+    /**
+     * Returns true if a fault was injected on a GRPC request.
+     *
+     * @param request GRPC message
+     * @return if a fault was injected.
+     */
     public static boolean wasFaultInjectedOnRequest(GeneratedMessageV3 request) {
         if (getServerBackendCanInvokeDirectlyProperty()) {
             if (FilibusterCore.hasCurrentInstance()) {

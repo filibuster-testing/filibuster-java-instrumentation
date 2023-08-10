@@ -10,6 +10,7 @@ import cloud.filibuster.exceptions.filibuster.FilibusterLatencyInjectionExceptio
 import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.instrumentation.helpers.Property;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
+import cloud.filibuster.junit.server.core.transformers.Accumulator;
 import cloud.filibuster.junit.server.core.transformers.Transformer;
 import cloud.filibuster.junit.assertions.BlockType;
 import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineFaultType;
@@ -437,12 +438,14 @@ public class FilibusterCore {
                                 && !payload.getJSONObject("return_value").getString("value").isEmpty()
                                 && !payload.getJSONObject("return_value").getString("value").equals(JSONObject.NULL)) {
                             try {
+                                Accumulator<?, ?> initialAccumulator = getInitialAccumulator(
+                                        transformer.getJSONObject("transformer_fault"),
+                                        payload.getJSONObject("return_value").getString("value"),
+                                        payload.getJSONObject("return_value").getString("__class__")
+                                );
                                 setNextAccumulator(
                                         transformer.getJSONObject("transformer_fault"),
-                                        getInitialAccumulator(
-                                                transformer.getJSONObject("transformer_fault"),
-                                                payload.getJSONObject("return_value").getString("value")
-                                        )
+                                        initialAccumulator
                                 );
                                 generateAndSetTransformerValue(transformer.getJSONObject("transformer_fault"));
                                 createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, new JSONObject(transformer.toMap()));

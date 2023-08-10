@@ -2,6 +2,7 @@ package cloud.filibuster.junit.server.core;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.junit.server.core.transformers.Accumulator;
+import cloud.filibuster.junit.server.core.transformers.GatewayTransformer;
 import cloud.filibuster.junit.server.core.transformers.Transformer;
 import com.google.gson.Gson;
 import org.json.JSONObject;
@@ -77,9 +78,13 @@ public final class FilibusterCoreTransformerExtension {
     }
 
 
-    public static Accumulator<?, ?> getInitialAccumulator(JSONObject transformer, String referenceValue) {
+    public static Accumulator<?, ?> getInitialAccumulator(JSONObject transformer, String referenceValue, String referenceValueType) {
         if (transformer.has("transformerClassName")) {
             String transformerClassName = transformer.getString("transformerClassName");
+            if (transformerClassName.equals(GatewayTransformer.class.getName())) {
+                transformerClassName = GatewayTransformer.getTransformerClassNameFromReferenceValueType(referenceValueType);
+                transformer.put("transformerClassName", transformerClassName);
+            }
             Transformer<?, ?> transformerObject = getTransformerInstance(transformerClassName);
             Accumulator<?, ?> initialAccumulator = transformerObject.getInitialAccumulator();
             initialAccumulator.setReferenceValue(new Gson().fromJson(referenceValue, transformerObject.getPayloadType()));

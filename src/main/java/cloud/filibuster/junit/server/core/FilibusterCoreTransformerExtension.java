@@ -77,14 +77,23 @@ public final class FilibusterCoreTransformerExtension {
         }
     }
 
+    public static JSONObject handleGatewayTransformer(JSONObject transformer, String referenceValue, String referenceValueType) {
+        JSONObject transformerFault = transformer.getJSONObject("transformer_fault");
 
-    public static Accumulator<?, ?> getInitialAccumulator(JSONObject transformer, String referenceValue, String referenceValueType) {
+        // If fault is a GatewayTransformer, we need to update the transformerClassName to the actual transformer class.
+        if (transformerFault.has("transformerClassName") && transformerFault.getString("transformerClassName").equals(GatewayTransformer.class.getName())) {
+            JSONObject newTransformer = new JSONObject(transformer.toMap());
+            String transformerClassName = GatewayTransformer.getTransformerClassNameFromReferenceValue(referenceValueType, referenceValue);
+            newTransformer.getJSONObject("transformer_fault").put("transformerClassName", transformerClassName);  // Update transformerClassName to the actual transformer class.
+            return newTransformer;
+        }
+        // Otherwise, just return the transformer.
+        return transformer;
+    }
+
+    public static Accumulator<?, ?> getInitialAccumulator(JSONObject transformer, String referenceValue) {
         if (transformer.has("transformerClassName")) {
             String transformerClassName = transformer.getString("transformerClassName");
-            if (transformerClassName.equals(GatewayTransformer.class.getName())) {
-                transformerClassName = GatewayTransformer.getTransformerClassNameFromReferenceValue(referenceValueType, referenceValue);
-                transformer.put("transformerClassName", transformerClassName);
-            }
             Transformer<?, ?> transformerObject = getTransformerInstance(transformerClassName);
             Accumulator<?, ?> initialAccumulator = transformerObject.getInitialAccumulator();
             initialAccumulator.setReferenceValue(new Gson().fromJson(referenceValue, transformerObject.getPayloadType()));

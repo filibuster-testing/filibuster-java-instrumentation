@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import java.util.regex.Pattern;
 
 class StringSelector extends Selector {
+    private static final Pattern boolPattern = Pattern.compile("true|false", Pattern.CASE_INSENSITIVE);
 
     @Override
     Class<? extends Transformer<String, ?>> select(String payloadValue) {
@@ -17,15 +18,15 @@ class StringSelector extends Selector {
             return JsonObjectAsStringTransformer.class;
         }
 
-        if (isApplicable(String.class, payloadValue, this::isBoolean)) {
+        if (isApplicable(String.class, payloadValue, StringSelector::isBoolean)) {
             return BooleanAsStringTransformer.class;
         }
 
         return StringTransformer.class;
     }
 
-    private boolean isBoolean(String value) {
-        if (Pattern.compile("true|false", Pattern.CASE_INSENSITIVE).matcher(value).matches()) {
+    private static boolean isBoolean(String value) {
+        if (boolPattern.matcher(value).matches()) {
             return true;
         } else {
             throw new IllegalArgumentException("Value is not a boolean: " + value);

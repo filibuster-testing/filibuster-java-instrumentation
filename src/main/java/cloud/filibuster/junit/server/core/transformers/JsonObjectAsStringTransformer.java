@@ -9,7 +9,7 @@ import java.lang.reflect.Type;
 
 public final class JsonObjectAsStringTransformer implements Transformer<String, String> {
     // TODO
-    private boolean hasNext = true;
+    private boolean hasNext = false;
     private String result;
     private Accumulator<String, String> accumulator;
 

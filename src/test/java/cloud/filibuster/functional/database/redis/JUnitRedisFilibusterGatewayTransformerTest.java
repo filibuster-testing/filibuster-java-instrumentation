@@ -7,6 +7,7 @@ import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.db.redis.RedisGatewayTransformerAnalysisConfigurationFile;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -24,8 +25,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class JUnitRedisFilibusterGatewayTransformerTest extends JUnitAnnotationBaseTest {
-    static final String key = "test";
-    static final String value = "example";
+    static final String stringKey = "stringKey";
+    static final String stringValue = "stringValue";
+    static final String booleanTrueKey = "booleanTrueKey";
+    static final String booleanTrueValue = "true";
+    static final String booleanFalseKey = "booleanFalseKey";
+    static final String booleanFalseValue = "false";
+    static final String jsonKey = "jsonKey";
+    static final String jsonValue = new JSONObject().put("hello", "world").put("foo", "bar").toString();
     static StatefulRedisConnection<String, String> statefulRedisConnection;
     static String redisConnectionString;
     private final static Set<String> testExceptionsThrown = new HashSet<>();
@@ -36,7 +43,10 @@ public class JUnitRedisFilibusterGatewayTransformerTest extends JUnitAnnotationB
     public static void primeCache() {
         statefulRedisConnection = RedisClientService.getInstance().redisClient.connect();
         redisConnectionString = RedisClientService.getInstance().connectionString;
-        statefulRedisConnection.sync().set(key, value);
+        statefulRedisConnection.sync().set(stringKey, stringValue);
+        statefulRedisConnection.sync().set(booleanTrueKey, booleanTrueValue);
+        statefulRedisConnection.sync().set(booleanFalseKey, booleanFalseValue);
+//        statefulRedisConnection.sync().set(jsonKey, jsonValue);
     }
 
     @DisplayName("Tests Redis gateway transformer for Strings.")
@@ -48,8 +58,19 @@ public class JUnitRedisFilibusterGatewayTransformerTest extends JUnitAnnotationB
 
             StatefulRedisConnection<String, String> myStatefulRedisConnection = DynamicProxyInterceptor.createInterceptor(statefulRedisConnection, redisConnectionString);
             RedisCommands<String, String> myRedisCommands = myStatefulRedisConnection.sync();
-            String returnVal = myRedisCommands.get(key);
-            assertEquals(value, returnVal);
+
+            String returnVal = myRedisCommands.get(stringKey);
+            assertEquals(stringValue, returnVal);
+
+            returnVal = myRedisCommands.get(booleanFalseKey);
+            assertEquals(booleanFalseValue, returnVal);
+
+            returnVal = myRedisCommands.get(booleanTrueKey);
+            assertEquals(booleanTrueValue, returnVal);
+
+//            returnVal = myRedisCommands.get(jsonKey);
+//            assertEquals(jsonValue, returnVal);
+
             assertFalse(wasFaultInjected());
         } catch (Throwable t) {
             testExceptionsThrown.add(t.getMessage());
@@ -61,16 +82,17 @@ public class JUnitRedisFilibusterGatewayTransformerTest extends JUnitAnnotationB
     @DisplayName("Verify correct number of test executions.")
     @Test
     @Order(2)
-    // 1 for the original test and +1 for each character manipulation in the string
+    // 1 for the original test and +1 for each character manipulation in the string stringValue + 1 for each boolean value
+    // 1 + 13 + 1 + 1 = 16
     public void testNumExecutions() {
-        assertEquals(value.length() + 1, numberOfTestExecutions);
+        assertEquals(stringValue.length() + 3, numberOfTestExecutions);
     }
 
-    @DisplayName("Verify correct number of generated Filibuster tests.")
+    @DisplayName("Verify correct number of faults.")
     @Test
     @Order(3)
     public void testNumExceptions() {
-        assertEquals(value.length(), testExceptionsThrown.size());
+        assertEquals(stringValue.length() + 2, testExceptionsThrown.size());
     }
 
 }

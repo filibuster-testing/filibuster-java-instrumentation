@@ -3,7 +3,6 @@ package cloud.filibuster.junit.server.core.transformers;
 import cloud.filibuster.exceptions.transformer.TransformerNullResultException;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.gson.reflect.TypeToken;
-import org.json.JSONObject;
 
 import java.lang.reflect.Type;
 
@@ -16,7 +15,13 @@ public final class BooleanAsStringTransformer implements Transformer<String, Str
     @Override
     @CanIgnoreReturnValue
     public BooleanAsStringTransformer transform(String payload, Accumulator<String, String> accumulator) {
-        // TODO
+        boolean boolValue = Boolean.parseBoolean(payload);
+        boolValue = !boolValue;
+
+        this.result = String.valueOf(boolValue);
+        this.accumulator = accumulator;
+
+        this.hasNext = false;
         return this;
     }
 
@@ -42,15 +47,13 @@ public final class BooleanAsStringTransformer implements Transformer<String, Str
     public Type getAccumulatorType() {
         return TypeToken.getParameterized(
                 Accumulator.class,
-                JSONObject.class,
+                String.class,
                 String.class).getType();
     }
 
     @Override
     public Accumulator<String, String> getInitialAccumulator() {
-        Accumulator<String, String> accumulator = new Accumulator<>();
-        accumulator.setContext("");
-        return accumulator;
+        return new Accumulator<>();
     }
 
     @Override
@@ -58,7 +61,6 @@ public final class BooleanAsStringTransformer implements Transformer<String, Str
         if (this.accumulator == null) {
             return getInitialAccumulator();
         } else {
-            accumulator.setContext(accumulator.getContext()); // TODO
             return accumulator;
         }
     }

@@ -52,6 +52,7 @@ import java.util.regex.Pattern;
 
 import static cloud.filibuster.junit.server.core.FilibusterCoreTransformerExtension.getInitialAccumulator;
 import static cloud.filibuster.junit.server.core.FilibusterCoreTransformerExtension.getTransformerResult;
+import static cloud.filibuster.junit.server.core.FilibusterCoreTransformerExtension.handleGatewayTransformer;
 import static cloud.filibuster.junit.server.core.FilibusterCoreTransformerExtension.setNextAccumulator;
 import static cloud.filibuster.junit.server.core.FilibusterCoreTransformerExtension.generateAndSetTransformerValue;
 
@@ -450,17 +451,18 @@ public class FilibusterCore {
                                 && !payload.getJSONObject("return_value").getString("value").isEmpty()
                                 && !payload.getJSONObject("return_value").getString("value").equals(JSONObject.NULL)) {
                             try {
-                                Accumulator<?, ?> initialAccumulator = getInitialAccumulator(
-                                        transformer.getJSONObject("transformer_fault"),
+                                JSONObject handledTransformer = handleGatewayTransformer(transformer,
                                         payload.getJSONObject("return_value").getString("value"),
-                                        payload.getJSONObject("return_value").getString("__class__")
-                                );
+                                        payload.getJSONObject("return_value").getString("__class__"));
+                                Accumulator<?, ?> initialAccumulator = getInitialAccumulator(
+                                        handledTransformer.getJSONObject("transformer_fault"),
+                                        payload.getJSONObject("return_value").getString("value"));
                                 setNextAccumulator(
-                                        transformer.getJSONObject("transformer_fault"),
+                                        handledTransformer.getJSONObject("transformer_fault"),
                                         initialAccumulator
                                 );
-                                generateAndSetTransformerValue(transformer.getJSONObject("transformer_fault"));
-                                createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, new JSONObject(transformer.toMap()));
+                                generateAndSetTransformerValue(handledTransformer.getJSONObject("transformer_fault"));
+                                createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, new JSONObject(handledTransformer.toMap()));
                             } catch (Throwable e) {
                                 logger.warning("[FILIBUSTER-CORE]: generateByzantineAndTransformerFaults, an exception occurred in generateByzantineAndTransformerFaults: " + e);
                                 throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: generateByzantineAndTransformerFaults: ", e);

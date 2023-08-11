@@ -2,6 +2,7 @@ package cloud.filibuster.junit.server.core;
 
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.junit.server.core.transformers.Accumulator;
+import cloud.filibuster.junit.server.core.transformers.selector.GatewayTransformer;
 import cloud.filibuster.junit.server.core.transformers.Transformer;
 import com.google.gson.Gson;
 import org.json.JSONObject;
@@ -76,14 +77,25 @@ public final class FilibusterCoreTransformerExtension {
         }
     }
 
+    public static JSONObject handleGatewayTransformer(JSONObject transformer, String referenceValue, String referenceValueType) {
+        JSONObject transformerFault = transformer.getJSONObject("transformer_fault");
+
+        // If fault is a GatewayTransformer, we need to update the transformerClassName to the actual transformer class.
+        if (transformerFault.has("transformerClassName") && transformerFault.getString("transformerClassName").equals(GatewayTransformer.class.getName())) {
+            JSONObject newTransformer = new JSONObject(transformer.toMap());
+            String transformerClassName = GatewayTransformer.getTransformerClassNameFromReferenceValue(referenceValueType, referenceValue);
+            newTransformer.getJSONObject("transformer_fault").put("transformerClassName", transformerClassName);  // Update transformerClassName to the actual transformer class.
+            return newTransformer;
+        }
+        // Otherwise, just return the transformer.
+        return transformer;
+    }
 
     public static Accumulator<?, ?> getInitialAccumulator(JSONObject transformer, String referenceValue) {
         if (transformer.has("transformerClassName")) {
             String transformerClassName = transformer.getString("transformerClassName");
             Transformer<?, ?> transformerObject = getTransformerInstance(transformerClassName);
-            Accumulator<?, ?> initialAccumulator = transformerObject.getInitialAccumulator();
-            initialAccumulator.setReferenceValue(new Gson().fromJson(referenceValue, transformerObject.getPayloadType()));
-            return initialAccumulator;
+            return transformerObject.getInitialAccumulator(new Gson().fromJson(referenceValue, transformerObject.getPayloadType()));
         } else {
             throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: getInitialAccumulator, transformerClassName not found in transformer: " + transformer.toString(4));
         }

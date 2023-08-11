@@ -1,3 +1,7 @@
+2.1.1:
+    - (MichaelA-ops) Implement GatewayTransformer for injecting Byzantine faults.
+    - (MichaelA-ops) Implement Transformer class for inverting booleans.
+    - (MichaelA-ops) Implement Transformer class for dropping JSONObject keys.
 2.1.0:
     - (cmeiklejohn) Update assertion API to clarify usage.
     - (MichaelA-ops) Support gRPC non-primitive Protobuf types and show them in the plugin.

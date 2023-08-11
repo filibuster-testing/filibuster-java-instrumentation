@@ -87,19 +87,21 @@ public final class BitInByteArrTransformer implements Transformer<byte[], ArrayL
     }
 
     @Override
-    public Accumulator<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> getInitialAccumulator() {
+    public Accumulator<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> getInitialAccumulator(byte[] referenceValue) {
         Accumulator<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> accumulator = new Accumulator<>();
         ArrayList<SimpleImmutableEntry<Integer, Integer>> ctx = new ArrayList<>();
         // Initial entry for byte and bit 0
         ctx.add(new SimpleImmutableEntry<>(0, 0));
         accumulator.setContext(ctx);
+        this.result = referenceValue;
+        accumulator.setReferenceValue(referenceValue);
         return accumulator;
     }
 
     @Override
     public Accumulator<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> getNextAccumulator() {
         if (this.accumulator == null) {
-            return getInitialAccumulator();
+            return getInitialAccumulator(getResult());
         } else {
             ArrayList<SimpleImmutableEntry<Integer, Integer>> ctx = accumulator.getContext();
 

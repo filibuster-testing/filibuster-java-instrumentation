@@ -54,7 +54,7 @@ public interface Transformer<PAYLOAD, CONTEXT> {
      *
      * @return Initial accumulator
      */
-    Accumulator<PAYLOAD, CONTEXT> getInitialAccumulator();
+    Accumulator<PAYLOAD, CONTEXT> getInitialAccumulator(PAYLOAD referenceValue);
 
     /**
      * Returns accumulator of next transformation.

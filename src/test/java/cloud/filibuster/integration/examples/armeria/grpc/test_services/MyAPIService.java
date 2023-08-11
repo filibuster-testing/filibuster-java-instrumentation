@@ -5,7 +5,6 @@ import cloud.filibuster.examples.CartServiceGrpc;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.examples.UserServiceGrpc;
-import cloud.filibuster.examples.WorldServiceGrpc;
 import cloud.filibuster.exceptions.CircuitBreakerException;
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.helpers.Networking;

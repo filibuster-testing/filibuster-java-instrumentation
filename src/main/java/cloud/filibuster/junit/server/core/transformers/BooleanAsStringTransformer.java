@@ -6,32 +6,23 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 
-public final class StringTransformer implements Transformer<String, Integer> {
+public final class BooleanAsStringTransformer implements Transformer<String, String> {
+    // TODO
     private boolean hasNext = true;
     private String result;
-    private Accumulator<String, Integer> accumulator;
+    private Accumulator<String, String> accumulator;
 
     @Override
     @CanIgnoreReturnValue
-    public StringTransformer transform(String payload, Accumulator<String, Integer> accumulator) {
-        int idx = accumulator.getContext();
+    public BooleanAsStringTransformer transform(String payload, Accumulator<String, String> accumulator) {
+        boolean boolValue = Boolean.parseBoolean(payload);
+        boolValue = !boolValue;
 
-        StringBuilder newString = new StringBuilder(payload);
-        newString.setCharAt(idx, getNextChar(newString.charAt(idx)));
-
-        if (idx == payload.length() - 1) {
-            this.hasNext = false;
-        }
-
-        this.result = newString.toString();
+        this.result = String.valueOf(boolValue);
         this.accumulator = accumulator;
 
+        this.hasNext = false;
         return this;
-    }
-
-    private static char getNextChar(char c) {
-        // ASCII printable characters range from 33 to 126. Upper bound in nextInt is exclusive, hence 127.
-        return (char) ((c + 1) % 127 + 33);
     }
 
     @Override
@@ -57,24 +48,24 @@ public final class StringTransformer implements Transformer<String, Integer> {
         return TypeToken.getParameterized(
                 Accumulator.class,
                 String.class,
-                Integer.class).getType();
+                String.class).getType();
     }
 
     @Override
-    public Accumulator<String, Integer> getInitialAccumulator(String referenceValue) {
-        Accumulator<String, Integer> accumulator = new Accumulator<>();
-        accumulator.setContext(0);
-        accumulator.setReferenceValue(referenceValue);
+    public Accumulator<String, String> getInitialAccumulator(String referenceValue) {
         this.result = referenceValue;
+
+        Accumulator<String, String> accumulator = new Accumulator<>();
+        accumulator.setReferenceValue(referenceValue);
+
         return accumulator;
     }
 
     @Override
-    public Accumulator<String, Integer> getNextAccumulator() {
+    public Accumulator<String, String> getNextAccumulator() {
         if (this.accumulator == null) {
             return getInitialAccumulator(getResult());
         } else {
-            accumulator.setContext(accumulator.getContext() + 1);
             return accumulator;
         }
     }

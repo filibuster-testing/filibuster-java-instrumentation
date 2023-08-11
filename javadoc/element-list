@@ -46,6 +46,7 @@ cloud.filibuster.junit.server.core.reports
 cloud.filibuster.junit.server.core.serializers
 cloud.filibuster.junit.server.core.test_executions
 cloud.filibuster.junit.server.core.transformers
+cloud.filibuster.junit.server.core.transformers.selector
 cloud.filibuster.junit.server.latency
 cloud.filibuster.junit.server.local
 cloud.filibuster.junit.statem

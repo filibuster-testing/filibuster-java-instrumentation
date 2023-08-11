@@ -52,14 +52,19 @@ public final class BooleanAsStringTransformer implements Transformer<String, Str
     }
 
     @Override
-    public Accumulator<String, String> getInitialAccumulator() {
-        return new Accumulator<>();
+    public Accumulator<String, String> getInitialAccumulator(String referenceValue) {
+        this.result = referenceValue;
+
+        Accumulator<String, String> accumulator = new Accumulator<>();
+        accumulator.setReferenceValue(referenceValue);
+
+        return accumulator;
     }
 
     @Override
     public Accumulator<String, String> getNextAccumulator() {
         if (this.accumulator == null) {
-            return getInitialAccumulator();
+            return getInitialAccumulator(getResult());
         } else {
             return accumulator;
         }

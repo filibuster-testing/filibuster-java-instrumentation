@@ -61,16 +61,18 @@ public final class StringTransformer implements Transformer<String, Integer> {
     }
 
     @Override
-    public Accumulator<String, Integer> getInitialAccumulator() {
+    public Accumulator<String, Integer> getInitialAccumulator(String referenceValue) {
         Accumulator<String, Integer> accumulator = new Accumulator<>();
         accumulator.setContext(0);
+        accumulator.setReferenceValue(referenceValue);
+        this.result = referenceValue;
         return accumulator;
     }
 
     @Override
     public Accumulator<String, Integer> getNextAccumulator() {
         if (this.accumulator == null) {
-            return getInitialAccumulator();
+            return getInitialAccumulator(getResult());
         } else {
             accumulator.setContext(accumulator.getContext() + 1);
             return accumulator;

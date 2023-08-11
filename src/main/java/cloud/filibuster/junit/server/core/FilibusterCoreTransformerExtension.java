@@ -95,9 +95,7 @@ public final class FilibusterCoreTransformerExtension {
         if (transformer.has("transformerClassName")) {
             String transformerClassName = transformer.getString("transformerClassName");
             Transformer<?, ?> transformerObject = getTransformerInstance(transformerClassName);
-            Accumulator<?, ?> initialAccumulator = transformerObject.getInitialAccumulator();
-            initialAccumulator.setReferenceValue(new Gson().fromJson(referenceValue, transformerObject.getPayloadType()));
-            return initialAccumulator;
+            return transformerObject.getInitialAccumulator(new Gson().fromJson(referenceValue, transformerObject.getPayloadType()));
         } else {
             throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: getInitialAccumulator, transformerClassName not found in transformer: " + transformer.toString(4));
         }

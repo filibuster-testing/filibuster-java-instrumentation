@@ -46,7 +46,7 @@ public class JUnitRedisFilibusterGatewayTransformerTest extends JUnitAnnotationB
         statefulRedisConnection.sync().set(stringKey, stringValue);
         statefulRedisConnection.sync().set(booleanTrueKey, booleanTrueValue);
         statefulRedisConnection.sync().set(booleanFalseKey, booleanFalseValue);
-//        statefulRedisConnection.sync().set(jsonKey, jsonValue);
+        statefulRedisConnection.sync().set(jsonKey, jsonValue);
     }
 
     @DisplayName("Tests Redis gateway transformer for Strings.")
@@ -68,8 +68,8 @@ public class JUnitRedisFilibusterGatewayTransformerTest extends JUnitAnnotationB
             returnVal = myRedisCommands.get(booleanTrueKey);
             assertEquals(booleanTrueValue, returnVal);
 
-//            returnVal = myRedisCommands.get(jsonKey);
-//            assertEquals(jsonValue, returnVal);
+            returnVal = myRedisCommands.get(jsonKey);
+            assertEquals(jsonValue, returnVal);
 
             assertFalse(wasFaultInjected());
         } catch (Throwable t) {
@@ -82,17 +82,17 @@ public class JUnitRedisFilibusterGatewayTransformerTest extends JUnitAnnotationB
     @DisplayName("Verify correct number of test executions.")
     @Test
     @Order(2)
-    // 1 for the original test and +1 for each character manipulation in the string stringValue + 1 for each boolean value
-    // 1 + 13 + 1 + 1 = 16
+    // 1 for the original test and +1 for each character manipulation in the string stringValue + 1 for each boolean value + 1 for each JSON key/value pair
+    // 1 + 13 + 1 + 1 + 2 = 18
     public void testNumExecutions() {
-        assertEquals(stringValue.length() + 3, numberOfTestExecutions);
+        assertEquals(stringValue.length() + 5, numberOfTestExecutions);
     }
 
     @DisplayName("Verify correct number of faults.")
     @Test
     @Order(3)
     public void testNumExceptions() {
-        assertEquals(stringValue.length() + 2, testExceptionsThrown.size());
+        assertEquals(stringValue.length() + 4, testExceptionsThrown.size());
     }
 
 }

@@ -6,17 +6,37 @@ import com.google.gson.reflect.TypeToken;
 import org.json.JSONObject;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 
-public final class JsonObjectAsStringTransformer implements Transformer<String, String> {
-    // TODO
-    private boolean hasNext = false;
+public final class JsonObjectAsStringTransformer implements Transformer<String, ArrayList<String>> {
+    private boolean hasNext = true;
     private String result;
-    private Accumulator<String, String> accumulator;
+    private Accumulator<String, ArrayList<String>> accumulator;
 
     @Override
     @CanIgnoreReturnValue
-    public JsonObjectAsStringTransformer transform(String payload, Accumulator<String, String> accumulator) {
-        // TODO
+    public JsonObjectAsStringTransformer transform(String payload, Accumulator<String, ArrayList<String>> accumulator) {
+        ArrayList<String> ctx = accumulator.getContext();
+
+        JSONObject payloadJO = new JSONObject(payload);
+
+        // If the context is empty, add the first key in the payload to the context
+        // That is the case in the first iteration
+        if (ctx.size() == 0 && payloadJO.keySet().size() > 0) {
+            ctx.add(payloadJO.keySet().iterator().next());
+            accumulator.setContext(ctx);
+        }
+
+        // If the context has all the keys in the payload, set hasNext to false
+        if (ctx.size() == payloadJO.keySet().size()) {
+            this.hasNext = false;
+        }
+
+        payloadJO.remove(ctx.get(ctx.size() - 1));  // Remove the last key in the ctx from the payload
+
+        this.result = payloadJO.toString();
+        this.accumulator = accumulator;
+
         return this;
     }
 
@@ -40,25 +60,47 @@ public final class JsonObjectAsStringTransformer implements Transformer<String, 
 
     @Override
     public Type getAccumulatorType() {
+        Type listType = TypeToken.getParameterized(ArrayList.class, String.class).getType();
+
         return TypeToken.getParameterized(
                 Accumulator.class,
-                JSONObject.class,
-                String.class).getType();
+                String.class,
+                listType).getType();
     }
 
     @Override
-    public Accumulator<String, String> getInitialAccumulator() {
-        Accumulator<String, String> accumulator = new Accumulator<>();
-        accumulator.setContext("");
+    public Accumulator<String, ArrayList<String>> getInitialAccumulator(String referenceValue) {
+        // Prepare initial context
+        ArrayList<String> ctx = new ArrayList<>();
+        JSONObject referenceJO = new JSONObject(referenceValue);
+        if (referenceJO.keySet().size() > 0) {  // If the reference value is an empty JSON object, do not add anything to the context
+            ctx.add(referenceJO.keySet().iterator().next());
+        } else {
+            this.hasNext = false;
+        }
+
+        Accumulator<String, ArrayList<String>> accumulator = new Accumulator<>();
+        accumulator.setContext(ctx);
+        accumulator.setReferenceValue(referenceValue);
+        this.result = referenceValue;
         return accumulator;
     }
 
     @Override
-    public Accumulator<String, String> getNextAccumulator() {
+    public Accumulator<String, ArrayList<String>> getNextAccumulator() {
         if (this.accumulator == null) {
-            return getInitialAccumulator();
+            return getInitialAccumulator(getResult());
         } else {
-            accumulator.setContext(accumulator.getContext()); // TODO
+            ArrayList<String> ctx = accumulator.getContext();
+            JSONObject referenceJO = new JSONObject(accumulator.getReferenceValue());
+
+            for (String key : referenceJO.keySet()) {
+                if (!ctx.contains(key)) {
+                    ctx.add(key);
+                    break;
+                }
+            }
+            accumulator.setContext(ctx);
             return accumulator;
         }
     }

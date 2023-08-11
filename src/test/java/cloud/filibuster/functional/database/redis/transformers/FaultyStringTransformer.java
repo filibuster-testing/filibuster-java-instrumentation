@@ -54,9 +54,10 @@ public final class FaultyStringTransformer implements Transformer<String, Intege
     }
 
     @Override
-    public Accumulator<String, Integer> getInitialAccumulator() {
+    public Accumulator<String, Integer> getInitialAccumulator(String referenceValue) {
         Accumulator<String, Integer> accumulator = new Accumulator<>();
         accumulator.setContext(0);
+        accumulator.setReferenceValue(referenceValue);
         return accumulator;
     }
 
@@ -71,7 +72,7 @@ public final class FaultyStringTransformer implements Transformer<String, Intege
     @Override
     public Accumulator<String, Integer> getNextAccumulator() {
         if (accumulator == null) {
-            return getInitialAccumulator();
+            return getInitialAccumulator(getResult());
         } else {
             accumulator.setContext(accumulator.getContext()); // Fault: Do not increment counter
             return accumulator;

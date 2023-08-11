@@ -1,6 +1,7 @@
 package cloud.filibuster.junit.server.core.transformers.selector;
 
 
+import cloud.filibuster.exceptions.filibuster.FilibusterTransformerException;
 import cloud.filibuster.junit.server.core.transformers.Transformer;
 
 import java.util.HashMap;
@@ -25,6 +26,10 @@ public abstract class GatewayTransformer implements Transformer<Object, Object> 
     }
 
     public static String getTransformerClassNameFromReferenceValue(String payloadClass, String referenceValue) {
-        return payloadClassToTransformerSelectorMethod.get(payloadClass).apply(referenceValue).getName();
+        try {
+            return payloadClassToTransformerSelectorMethod.get(payloadClass).apply(referenceValue).getName();
+        } catch (NullPointerException e) {
+            throw new FilibusterTransformerException("No transformer found for payload class " + payloadClass + " and reference value " + referenceValue, e);
+        }
     }
 }

@@ -1,3 +1,5 @@
+2.1.2:
+    - (cmeiklejohn) Upgrade Armeria and add missing Kotlin dep.
 2.1.1:
     - (MichaelA-ops) Implement GatewayTransformer for injecting Byzantine faults.
     - (MichaelA-ops) Implement Transformer class for inverting booleans.

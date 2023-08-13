@@ -45,6 +45,7 @@ dependencies {
      'armeria-grpc',
      'armeria-jetty9',
      'armeria-kafka',
+     'armeria-kotlin',
      'armeria-logback',
      'armeria-retrofit2',
      'armeria-rxjava3',
@@ -52,7 +53,7 @@ dependencies {
      'armeria-thrift0.13',
      'armeria-tomcat9',
      'armeria-zookeeper3'].each {
-        implementation "com.linecorp.armeria:${it}:1.14.0"
+        implementation "com.linecorp.armeria:${it}:1.22.1"
     }
 
     implementation "io.lettuce:lettuce-core:6.2.2.RELEASE"

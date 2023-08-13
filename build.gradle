@@ -45,6 +45,7 @@ dependencies {
      'armeria-grpc',
      'armeria-jetty9',
      'armeria-kafka',
+     'armeria-kotlin',
      'armeria-logback',
      'armeria-retrofit2',
      'armeria-rxjava3',
@@ -240,7 +241,7 @@ javadoc {
 
 group = "cloud.filibuster"
 archivesBaseName = "instrumentation"
-version = "2.1.1"
+version = "2.1.2"
 
 java {
     withJavadocJar()

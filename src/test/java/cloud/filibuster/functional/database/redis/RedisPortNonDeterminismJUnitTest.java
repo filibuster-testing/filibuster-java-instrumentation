@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.properties;
+package cloud.filibuster.functional.database.redis;
 
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;

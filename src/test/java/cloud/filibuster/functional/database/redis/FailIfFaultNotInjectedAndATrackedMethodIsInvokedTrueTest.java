@@ -1,5 +1,6 @@
-package cloud.filibuster.functional.java.properties;
+package cloud.filibuster.functional.database.redis;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterFaultNotInjectedAndATrackedMethodInvokedException;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
@@ -8,6 +9,7 @@ import cloud.filibuster.junit.configuration.examples.db.redis.RedisTrackedFuncti
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -19,7 +21,7 @@ import static cloud.filibuster.instrumentation.helpers.Property.setFailIfFaultNo
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class FailIfFaultNotInjectedAndATrackedMethodIsInvokedFalseTest extends JUnitAnnotationBaseTest {
+public class FailIfFaultNotInjectedAndATrackedMethodIsInvokedTrueTest extends JUnitAnnotationBaseTest {
     static final String key = "test";
     static final String value = "example";
     static StatefulRedisConnection<String, String> statefulRedisConnection;
@@ -28,15 +30,20 @@ public class FailIfFaultNotInjectedAndATrackedMethodIsInvokedFalseTest extends J
 
     @BeforeAll
     public static void beforeAll() {
-        setFailIfFaultNotInjectedAndATrackedMethodIsInvokedProperty(false);
+        setFailIfFaultNotInjectedAndATrackedMethodIsInvokedProperty(true);
 
         statefulRedisConnection = RedisClientService.getInstance().redisClient.connect();
         redisConnectionString = RedisClientService.getInstance().connectionString;
     }
 
+    @AfterAll
+    public static void afterAll() {
+        setFailIfFaultNotInjectedAndATrackedMethodIsInvokedProperty(false);
+    }
+
     @DisplayName("This test should not fail: Tests whether Redis async interceptor can set a value for a key")
     @Order(1)
-    @TestWithFilibuster(analysisConfigurationFile = RedisTrackedFunctionAnalysisConfigurationFile.class)
+    @TestWithFilibuster(analysisConfigurationFile = RedisTrackedFunctionAnalysisConfigurationFile.class, expected = FilibusterFaultNotInjectedAndATrackedMethodInvokedException.class)
     public void testRedisAsyncSetNotFail() {
         numberOfTestExecutions++;
 

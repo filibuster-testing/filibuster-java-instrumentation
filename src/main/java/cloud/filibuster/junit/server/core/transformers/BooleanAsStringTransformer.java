@@ -7,7 +7,6 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 
 public final class BooleanAsStringTransformer implements Transformer<String, String> {
-    // TODO
     private boolean hasNext = true;
     private String result;
     private Accumulator<String, String> accumulator;

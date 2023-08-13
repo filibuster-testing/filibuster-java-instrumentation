@@ -25,7 +25,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class JUnitRedisFilibusterGatewayTransformer2Test extends JUnitAnnotationBaseTest {
     static final String jsonKey = "jsonKey";
-    static final String jsonValue = new JSONObject().put("hello", "world").put("foo", "bar").toString();
+    static final String jsonValue = new JSONObject().put("hello", "world")
+            .put("foo", "bar")
+            .put("bool", "true")
+            .toString();
     static StatefulRedisConnection<String, String> statefulRedisConnection;
     static String redisConnectionString;
     private final static Set<String> testExceptionsThrown = new HashSet<>();

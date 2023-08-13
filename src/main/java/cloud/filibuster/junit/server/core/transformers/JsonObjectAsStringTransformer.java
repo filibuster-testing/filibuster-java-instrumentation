@@ -31,8 +31,9 @@ public final class JsonObjectAsStringTransformer implements Transformer<String, 
         JSONObject payloadJO = new JSONObject(payload);
 
         SimpleImmutableEntry<String, String> lastCtxEntry = ctx.get(ctx.size() - 1);
+        String valueToTransform = payloadJO.getString(lastCtxEntry.getKey());
 
-        String transformerClassName = getTransformerClassNameFromReferenceValue(String.class.getName(), lastCtxEntry.getKey());
+        String transformerClassName = getTransformerClassNameFromReferenceValue(String.class.getName(), valueToTransform);
         Transformer<?, ?> lastTransformer = getTransformerInstance(transformerClassName);
         Accumulator<?, ?> lastAccumulator = gson.fromJson(lastCtxEntry.getValue(), lastTransformer.getAccumulatorType());
 

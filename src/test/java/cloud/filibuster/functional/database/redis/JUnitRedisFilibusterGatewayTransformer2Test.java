@@ -25,10 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class JUnitRedisFilibusterGatewayTransformer2Test extends JUnitAnnotationBaseTest {
     static final String jsonKey = "jsonKey";
-    static final String jsonValue = new JSONObject().put("hello", "world")
-            .put("foo", "bar")
-            .put("bool", "true")
-            .toString();
+    static String jsonValue;
     static StatefulRedisConnection<String, String> statefulRedisConnection;
     static String redisConnectionString;
     private final static Set<String> testExceptionsThrown = new HashSet<>();
@@ -39,6 +36,14 @@ public class JUnitRedisFilibusterGatewayTransformer2Test extends JUnitAnnotation
     public static void primeCache() {
         statefulRedisConnection = RedisClientService.getInstance().redisClient.connect();
         redisConnectionString = RedisClientService.getInstance().connectionString;
+
+        JSONObject nestedJO = new JSONObject().put("nested_key", "nested_value");
+        jsonValue = new JSONObject().put("hello", "world")
+                .put("foo", "bar")
+                .put("bool", "true")
+                .put("nested", nestedJO)
+                .toString();
+
         statefulRedisConnection.sync().set(jsonKey, jsonValue);
     }
 

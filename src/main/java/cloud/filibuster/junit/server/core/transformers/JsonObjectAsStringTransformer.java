@@ -29,6 +29,7 @@ public final class JsonObjectAsStringTransformer implements Transformer<String, 
         ArrayList<SimpleImmutableEntry<String, String>> ctx = accumulator.getContext();
 
         JSONObject payloadJO = new JSONObject(payload);
+        payloadJO = JsonUtils.flatten(payloadJO);
 
         SimpleImmutableEntry<String, String> lastCtxEntry = ctx.get(ctx.size() - 1);
         String valueToTransform = payloadJO.getString(lastCtxEntry.getKey());
@@ -60,7 +61,7 @@ public final class JsonObjectAsStringTransformer implements Transformer<String, 
             this.hasNext = false;
         }
 
-        this.result = payloadJO.toString();
+        this.result = JsonUtils.unflatten(payloadJO).toString();
         this.accumulator = accumulator;
 
         return this;
@@ -101,6 +102,7 @@ public final class JsonObjectAsStringTransformer implements Transformer<String, 
         // Prepare initial context
         ArrayList<SimpleImmutableEntry<String, String>> ctx = new ArrayList<>();
         JSONObject referenceJO = new JSONObject(referenceValue);
+        referenceJO = JsonUtils.flatten(referenceJO);
         // If the reference value is an empty JSON object, do not add anything to the context
         if (referenceJO.keySet().size() > 0) {
             String firstKey = referenceJO.keySet().iterator().next();
@@ -132,6 +134,7 @@ public final class JsonObjectAsStringTransformer implements Transformer<String, 
             if (!lastTransformationResult.hasNext()) {
                 ArrayList<SimpleImmutableEntry<String, String>> ctx = accumulator.getContext();
                 JSONObject referenceJO = new JSONObject(accumulator.getReferenceValue());
+                referenceJO = JsonUtils.flatten(referenceJO);
                 if (ctx.size() == referenceJO.keySet().size()) {
                     this.hasNext = false;
                 } else {

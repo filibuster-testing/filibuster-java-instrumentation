@@ -2,6 +2,7 @@ package cloud.filibuster.junit.server.core.test_executions;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import com.google.gson.JsonParser;
+import com.linecorp.armeria.common.HttpMethod;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
@@ -147,6 +148,29 @@ public abstract class TestExecution {
 
     public boolean wasFaultInjectedOnService(String serviceName) {
         return wasFaultInjectedMatcher("module", serviceName);
+    }
+
+    public boolean wasFaultInjectedOnHttpMethod(HttpMethod httpMethod, String URI) {
+        boolean wasCorrectHttpVerb = wasFaultInjectedMatcher("method", httpMethod.toString());
+
+        for (Map.Entry<DistributedExecutionIndex, JSONObject> entry : executedRPCs.entrySet()) {
+            JSONObject executedRPCObject = entry.getValue();
+
+            // This is extremely hack right now, but whatever.  It's because the instrumentation sends
+            // the arguments as string, and therefore, either we parse or we just regexp over the String.
+            // Just do this for now, and fix it later.  This is because the HTTP library takes
+            // some things as a serializable payload and other things in the formal argument list.
+            //
+            if (executedRPCObject.getJSONObject("args").getString("toString").startsWith("[" + URI)) {
+                DistributedExecutionIndex distributedExecutionIndex = entry.getKey();
+
+                if (faultsToInject.containsKey(distributedExecutionIndex)) {
+                    return wasCorrectHttpVerb;
+                }
+            }
+        }
+
+        return false;
     }
 
     // Recombination of RPC is artifact of HTTP API.

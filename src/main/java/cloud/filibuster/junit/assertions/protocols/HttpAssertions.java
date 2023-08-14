@@ -2,6 +2,7 @@ package cloud.filibuster.junit.assertions.protocols;
 
 import cloud.filibuster.junit.server.core.FilibusterCore;
 import com.google.errorprone.annotations.DoNotCall;
+import com.linecorp.armeria.common.HttpMethod;
 
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendCanInvokeDirectlyProperty;
 import static cloud.filibuster.junit.assertions.protocols.GenericAssertions.wasFaultInjectedHelper;
@@ -32,16 +33,26 @@ public class HttpAssertions {
         }
     }
 
+    /**
+     * Returns true if a fault was injected for a particular HTTP method.
+     *
+     * <p>This is most commonly represented by a combination of the request URI and verb.</p>
+     *
+     * @param httpMethod HTTP verb (a la Method)
+     * @param URI request URI
+     * @return if a fault was injected
+     */
     // TODO: add javadoc once implemented
-    @DoNotCall("Always throws cloud.filibuster.junit.assertions.protocols.HttpAssertions.HttpAssertionsNotImplementedException")
-    public static boolean wasFaultInjectedOnMethod(String httpMethod) {
-        throw new HttpAssertionsNotImplementedException();
-    }
-
-    // TODO: add javadoc once implemented
-    @DoNotCall("Always throws cloud.filibuster.junit.assertions.protocols.HttpAssertions.HttpAssertionsNotImplementedException")
-    public static boolean wasFaultInjectedOnMethod(String httpMethod, String URI) {
-        throw new HttpAssertionsNotImplementedException();
+    public static boolean wasFaultInjectedOnMethod(HttpMethod httpMethod, String URI) {
+        if (getServerBackendCanInvokeDirectlyProperty()) {
+            if (FilibusterCore.hasCurrentInstance()) {
+                return FilibusterCore.getCurrentInstance().wasFaultInjectedOnMethod(httpMethod, URI);
+            } else {
+                return false;
+            }
+        } else {
+            throw new HttpAssertionsNotImplementedException();
+        }
     }
 
     // TODO: add javadoc once implemented

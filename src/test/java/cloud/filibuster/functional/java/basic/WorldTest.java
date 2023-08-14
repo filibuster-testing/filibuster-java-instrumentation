@@ -4,6 +4,7 @@ import cloud.filibuster.examples.APIServiceGrpc;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.TestWithFilibuster;
+import com.linecorp.armeria.common.HttpMethod;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
@@ -24,6 +25,7 @@ import static cloud.filibuster.integration.instrumentation.TestHelper.stopExtern
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopHelloServerAndWaitUntilUnavailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopWorldServerAndWaitUntilUnavailable;
 import static cloud.filibuster.junit.assertions.protocols.GenericAssertions.wasFaultInjected;
+import static cloud.filibuster.junit.assertions.protocols.HttpAssertions.wasFaultInjectedOnMethod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -70,7 +72,30 @@ public class WorldTest {
             assertEquals("Hello!", reply.getMessage());
             assertFalse(wasFaultInjected());
         } catch (StatusRuntimeException sre) {
-            assertTrue(wasFaultInjected());
+            boolean expected = false;
+
+            if (wasFaultInjectedOnMethod(HttpMethod.GET, "http://0.0.0.0:5002/world")) {
+                expected = true;
+                assertTrue(sre.getMessage().contains("First RPC request to /world failed!"));
+            }
+
+            if (wasFaultInjectedOnMethod(HttpMethod.GET, "http://0.0.0.0:5003")) {
+                expected = true;
+                assertTrue(sre.getMessage().contains("First RPC request to /world failed!"));
+            }
+
+            if (wasFaultInjectedOnMethod(HttpMethod.GET, "http://0.0.0.0:5002/external-post")) {
+                expected = true;
+                assertTrue(sre.getMessage().contains("Second RPC request to /world failed!"));
+            }
+
+            if (wasFaultInjectedOnMethod(HttpMethod.POST, "http://0.0.0.0:5004/post")) {
+                expected = true;
+                assertTrue(sre.getMessage().contains("Second RPC request to /world failed!"));
+            }
+
+            assertTrue(wasFaultInjected(), "expected a fault to be injected");
+            assertTrue(expected, "did not expect: " + sre);
         }
     }
 }

@@ -33,6 +33,7 @@ import cloud.filibuster.junit.server.core.test_executions.TestExecution;
 import cloud.filibuster.junit.server.latency.FilibusterLatencyProfile;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
+import com.linecorp.armeria.common.HttpMethod;
 import io.grpc.Status;
 import io.grpc.Status.Code;
 import org.json.JSONArray;
@@ -761,6 +762,20 @@ public class FilibusterCore {
         }
 
         boolean result = currentConcreteTestExecution.wasFaultInjectedOnService(serviceName);
+
+        logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnService returning: " + result);
+
+        return result;
+    }
+
+    public synchronized boolean wasFaultInjectedOnMethod(HttpMethod httpMethod, String URI) {
+        logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnService called, httpMethod: " + httpMethod + ", URI: " + URI);
+
+        if (currentConcreteTestExecution == null) {
+            return false;
+        }
+
+        boolean result = currentConcreteTestExecution.wasFaultInjectedOnHttpMethod(httpMethod, URI);
 
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnService returning: " + result);
 

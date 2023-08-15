@@ -65,13 +65,6 @@ public class GetSessionLocationPositiveTest extends JUnitAnnotationBaseTest {
     public void testCreateAndGetSessionLocationFromRedis() throws IOException, InterruptedException {
         numberOfTestExecutions++;
 
-        startAPIServerAndWaitUntilAvailable();
-        RedisClientService.getInstance();
-
-        // Initialize API channel and service
-        apiChannel = ManagedChannelBuilder.forAddress(Networking.getHost("api_server"), Networking.getPort("api_server")).usePlaintext().build();
-        apiService = APIServiceGrpc.newBlockingStub(apiChannel);
-
         String uid = "Joe";
         String location = "US";
 

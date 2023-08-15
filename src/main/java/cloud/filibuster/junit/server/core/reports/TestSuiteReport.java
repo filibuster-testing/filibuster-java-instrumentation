@@ -155,7 +155,7 @@ public class TestSuiteReport {
         }
     }
 
-    private static JSONObject getTestReportSummaryJSON(FilibusterTestReportSummary testReportSummary) {
+    private static JSONObject getTestReportSummaryJson(FilibusterTestReportSummary testReportSummary) {
         JSONObject reportJson = new JSONObject();
         reportJson.put(Keys.TestReportKeys.TEST_PATH, testReportSummary.testPath);
         reportJson.put(Keys.TestReportKeys.TEST_NAME, testReportSummary.testName);
@@ -164,10 +164,10 @@ public class TestSuiteReport {
         return reportJson;
     }
 
-    private JSONObject getReportsJSON() {
+    private JSONObject getReportsJson() {
         JSONObject reportsJson = new JSONObject();
         List<JSONObject> jsonReports = testReportSummaries.stream()
-                .map(TestSuiteReport::getTestReportSummaryJSON).collect(Collectors.toList());
+                .map(TestSuiteReport::getTestReportSummaryJson).collect(Collectors.toList());
         reportsJson.put(Keys.REPORTS_KEY, jsonReports);
         return reportsJson;
     }
@@ -203,7 +203,7 @@ public class TestSuiteReport {
         File directory = ReportUtilities.getBaseDirectoryPath();
         File scriptFile = new File(directory, "summary.js");
         try {
-            Files.write(scriptFile.toPath(), ("var summary = " + getReportsJSON().toString(4) + ";")
+            Files.write(scriptFile.toPath(), ("var summary = " + getReportsJson().toString(4) + ";")
                     .getBytes(Charset.defaultCharset()));
         } catch (IOException e) {
             throw new FilibusterTestReportWriterException("Filibuster failed to write out the test suite report: ", e);

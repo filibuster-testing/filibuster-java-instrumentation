@@ -35,13 +35,13 @@ public class Counterexample {
         String counterexampleFileName = Property.getInstrumentationCounterexampleFileProperty();
 
         if (counterexampleFileName != null && !counterexampleFileName.isEmpty()) {
-            return loadCounterexampleAsJSONObject(counterexampleFileName);
+            return loadCounterexampleAsJsonObject(counterexampleFileName);
         } else {
             throw new EnvironmentMissingCounterexampleException();
         }
     }
 
-    public static JSONObject loadCounterexampleAsJSONObject(String counterexampleFileName) {
+    public static JSONObject loadCounterexampleAsJsonObject(String counterexampleFileName) {
         if (counterexampleFileName != null && !counterexampleFileName.isEmpty()) {
             File f = new File(counterexampleFileName);
             if (f.exists()) {

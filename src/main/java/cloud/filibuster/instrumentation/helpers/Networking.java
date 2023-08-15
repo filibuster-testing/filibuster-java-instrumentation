@@ -106,6 +106,7 @@ public class Networking {
         return Pair.of(hostname, port);
     }
 
+    @SuppressWarnings("AddressSelection")
     public static String attemptHostnameResolution(String hostname, String defaultValue) {
         try {
             // Resolve host.

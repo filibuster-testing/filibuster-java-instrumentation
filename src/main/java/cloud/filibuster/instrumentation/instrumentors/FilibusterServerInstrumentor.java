@@ -22,7 +22,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static cloud.filibuster.instrumentation.helpers.Counterexample.canLoadCounterexample;
-import static cloud.filibuster.instrumentation.helpers.Counterexample.loadCounterexampleAsJSONObjectFromEnvironment;
+import static cloud.filibuster.instrumentation.helpers.Counterexample.loadCounterexampleAsJsonObjectFromEnvironment;
 import static cloud.filibuster.instrumentation.helpers.Counterexample.loadTestExecutionFromCounterexample;
 
 /**
@@ -103,7 +103,7 @@ final public class FilibusterServerInstrumentor {
         contextStorage.setDistributedExecutionIndex(distributedExecutionIndex);
 
         if (canLoadCounterexample()) {
-            this.counterexample = loadCounterexampleAsJSONObjectFromEnvironment();
+            this.counterexample = loadCounterexampleAsJsonObjectFromEnvironment();
             this.counterexampleTestExecution = loadTestExecutionFromCounterexample(counterexample);
         }
     }

@@ -31,7 +31,7 @@ public class Counterexample {
         return false;
     }
 
-    public static JSONObject loadCounterexampleAsJSONObjectFromEnvironment() {
+    public static JSONObject loadCounterexampleAsJsonObjectFromEnvironment() {
         String counterexampleFileName = Property.getInstrumentationCounterexampleFileProperty();
 
         if (counterexampleFileName != null && !counterexampleFileName.isEmpty()) {

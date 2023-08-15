@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import java.nio.charset.Charset;
@@ -24,6 +25,7 @@ import java.util.Set;
 
 import static cloud.filibuster.junit.assertions.protocols.GenericAssertions.wasFaultInjected;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -92,8 +94,8 @@ public class JUnitRedisFilibusterByteArrGatewayTransformerTest extends JUnitAnno
             returnVal = myRedisCommands.get(booleanTrueKey);
             assertArrayEquals(booleanTrueValue, returnVal);
 
-//            returnVal = myRedisCommands.get(jsonKey);
-//            assertArrayEquals(studentInfoJO.toString().getBytes(Charset.defaultCharset()), returnVal);
+            returnVal = myRedisCommands.get(jsonKey);
+            assertArrayEquals(studentInfoJO.toString().getBytes(Charset.defaultCharset()), returnVal);
 
             assertFalse(wasFaultInjected());
         } catch (Throwable t) {
@@ -103,20 +105,20 @@ public class JUnitRedisFilibusterByteArrGatewayTransformerTest extends JUnitAnno
         }
     }
 
-//    @DisplayName("Verify correct number of test executions.")
-//    @Test
-//    @Order(2)
-//    // 1 for the original test and +1 for each character manipulation in the string stringValue + 1 for each boolean value + faults in JSONObject
-//    public void testNumExecutions() {
-//        assertEquals(1 + getNumFaultsInJS() + stringValue.length + 2, numberOfTestExecutions);
-//    }
-//
-//    @DisplayName("Verify correct number of faults.")
-//    @Test
-//    @Order(3)
-//    public void testNumExceptions() {
-//        assertEquals(getNumFaultsInJS() + stringValue.length + 2, testExceptionsThrown.size());
-//    }
+    @DisplayName("Verify correct number of test executions.")
+    @Test
+    @Order(2)
+    // 1 for the original test and +1 for each character manipulation in the string stringValue + 1 for each boolean value + faults in JSONObject
+    public void testNumExecutions() {
+        assertEquals(1 + getNumFaultsInJS() + stringValue.length + 2, numberOfTestExecutions);
+    }
+
+    @DisplayName("Verify correct number of faults.")
+    @Test
+    @Order(3)
+    public void testNumExceptions() {
+        assertEquals(getNumFaultsInJS() + stringValue.length + 2, testExceptionsThrown.size());
+    }
 
     private static void buildJOFromMap(JSONObject jo, HashMap<String, Object> map) {
         for (String key : map.keySet()) {

@@ -2,7 +2,7 @@ package cloud.filibuster.junit.server.core.transformers.selector;
 
 import cloud.filibuster.junit.server.core.transformers.BitInByteArrTransformer;
 import cloud.filibuster.junit.server.core.transformers.BooleanAsByteArrTransformer;
-import cloud.filibuster.junit.server.core.transformers.JsonObjectAsStringTransformer;
+import cloud.filibuster.junit.server.core.transformers.JsonObjectAsByteArrTransformer;
 import cloud.filibuster.junit.server.core.transformers.StringAsByteArrTransformer;
 import cloud.filibuster.junit.server.core.transformers.Transformer;
 import org.json.JSONObject;
@@ -15,7 +15,7 @@ class ByteArraySelector extends Selector {
     <T> Class<? extends Transformer<?, ?>> select(T payloadValue) {
 
         if (isApplicable(byte[].class, payloadValue, ByteArraySelector::getJsonObj)) {
-            return JsonObjectAsStringTransformer.class;
+            return JsonObjectAsByteArrTransformer.class;
         }
 
         if (isApplicable(byte[].class, payloadValue, ByteArraySelector::isBoolean)) {

@@ -65,7 +65,7 @@ public class ServerInvocationAndResponse {
         result.put(Keys.METHOD_KEY, fullMethodName);
 
         if (requestMessage != null) {
-            result.put(Keys.REQUEST_KEY, GeneratedMessageV3Serializer.toJSONObject(requestMessage));
+            result.put(Keys.REQUEST_KEY, GeneratedMessageV3Serializer.toJsonObject(requestMessage));
         } else {
             result.put(Keys.REQUEST_KEY, new JSONObject());
         }
@@ -77,7 +77,7 @@ public class ServerInvocationAndResponse {
         }
 
         if (responseMessage != null) {
-            result.put(Keys.RESPONSE_KEY, GeneratedMessageV3Serializer.toJSONObject(responseMessage));
+            result.put(Keys.RESPONSE_KEY, GeneratedMessageV3Serializer.toJsonObject(responseMessage));
         } else {
             result.put(Keys.RESPONSE_KEY, new JSONObject());
         }

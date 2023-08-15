@@ -124,7 +124,7 @@ public class TestExecutionReport {
         return deiFaultsInjected.get(distributedExecutionIndex);
     }
 
-    private final List<DistributedExecutionIndex> cachedRpcs = new ArrayList<DistributedExecutionIndex>();
+    private final List<DistributedExecutionIndex> cachedRpcs = new ArrayList<>();
 
     public List<DistributedExecutionIndex> getCachedRpcs() {
         return cachedRpcs;

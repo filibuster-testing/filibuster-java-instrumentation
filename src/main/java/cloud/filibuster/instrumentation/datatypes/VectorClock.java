@@ -75,7 +75,7 @@ public class VectorClock implements Cloneable {
      *
      * @return serialized vector clock.
      */
-    public JSONObject toJSONObject() { return obj; }
+    public JSONObject toJsonObject() { return obj; }
 
     /**
      * Serialize a vector clock as a string.

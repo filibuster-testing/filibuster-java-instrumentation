@@ -68,11 +68,11 @@ public class FilibusterExecutor {
     /**
      * Return a web client from the common pool.
      *
-     * @param baseURI the base URI for the web client.
+     * @param baseUri the base URI for the web client.
      * @return a new web client.
      */
-    public static WebClient getWebClient(String baseURI) {
-        return WebClient.builder(baseURI).build();
+    public static WebClient getWebClient(String baseUri) {
+        return WebClient.builder(baseUri).build();
     }
 
     /**
@@ -82,8 +82,8 @@ public class FilibusterExecutor {
      * @param serviceName the name of the service issuing the call.
      * @return a new web client.
      */
-    public static WebClient getDecoratedWebClient(String baseURI, String serviceName) {
-        return WebClient.builder(baseURI)
+    public static WebClient getDecoratedWebClient(String baseUri, String serviceName) {
+        return WebClient.builder(baseUri)
                 .decorator(delegate -> new FilibusterDecoratingHttpClient(delegate, serviceName))
                 .build();
     }

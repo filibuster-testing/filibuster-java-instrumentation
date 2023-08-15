@@ -39,7 +39,7 @@ public class HttpAssertions {
      * <p>This is most commonly represented by a combination of the request URI and verb.</p>
      *
      * @param httpMethod HTTP verb (a la Method)
-     * @param URI request URI
+     * @param uriPattern request URI
      * @return if a fault was injected
      */
     public static boolean wasFaultInjectedOnHttpMethod(HttpMethod httpMethod, String uriPattern) {

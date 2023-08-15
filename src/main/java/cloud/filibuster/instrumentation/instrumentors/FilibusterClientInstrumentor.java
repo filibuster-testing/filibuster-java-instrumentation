@@ -662,8 +662,8 @@ final public class FilibusterClientInstrumentor {
         invocationPayload.put("callsite_line", callsite.getLineNumber());
         invocationPayload.put("full_traceback", callsite.getSerializedStackTrace());
         invocationPayload.put("metadata", invocationMetadata);
-        invocationPayload.put("vclock", vectorClock.toJSONObject());
-        invocationPayload.put("origin_vclock", originVectorClock.toJSONObject());
+        invocationPayload.put("vclock", vectorClock.toJsonObject());
+        invocationPayload.put("origin_vclock", originVectorClock.toJsonObject());
         invocationPayload.put("execution_index", distributedExecutionIndex.toString());
 
         if (preliminaryDistributedExecutionIndex != null) {
@@ -845,7 +845,7 @@ final public class FilibusterClientInstrumentor {
             invocationCompletePayload.put("instrumentation_type", "invocation_complete");
             invocationCompletePayload.put("generated_id", generatedId);
             invocationCompletePayload.put("execution_index", distributedExecutionIndex.toString());
-            invocationCompletePayload.put("vclock", vectorClock.toJSONObject());
+            invocationCompletePayload.put("vclock", vectorClock.toJsonObject());
             invocationCompletePayload.put("exception", exception);
             invocationCompletePayload.put("module", callsite.getClassOrModuleName());
             invocationCompletePayload.put("method", callsite.getMethodOrFunctionName());
@@ -879,7 +879,7 @@ final public class FilibusterClientInstrumentor {
             invocationCompletePayload.put("instrumentation_type", "invocation_complete");
             invocationCompletePayload.put("generated_id", generatedId);
             invocationCompletePayload.put("execution_index", distributedExecutionIndex.toString());
-            invocationCompletePayload.put("vclock", vectorClock.toJSONObject());
+            invocationCompletePayload.put("vclock", vectorClock.toJsonObject());
             invocationCompletePayload.put("byzantine_fault", byzantineFault);
             invocationCompletePayload.put("module", callsite.getClassOrModuleName());
             invocationCompletePayload.put("method", callsite.getMethodOrFunctionName());
@@ -918,7 +918,7 @@ final public class FilibusterClientInstrumentor {
             invocationCompletePayload.put("instrumentation_type", "invocation_complete");
             invocationCompletePayload.put("generated_id", generatedId);
             invocationCompletePayload.put("execution_index", distributedExecutionIndex.toString());
-            invocationCompletePayload.put("vclock", vectorClock.toJSONObject());
+            invocationCompletePayload.put("vclock", vectorClock.toJsonObject());
             invocationCompletePayload.put("transformer_fault", transformerFault);
             invocationCompletePayload.put("module", callsite.getClassOrModuleName());
             invocationCompletePayload.put("method", callsite.getMethodOrFunctionName());
@@ -986,7 +986,7 @@ final public class FilibusterClientInstrumentor {
             invocationCompletePayload.put("instrumentation_type", "invocation_complete");
             invocationCompletePayload.put("generated_id", getGeneratedId());
             invocationCompletePayload.put("execution_index", distributedExecutionIndex.toString());
-            invocationCompletePayload.put("vclock", getVectorClock().toJSONObject());
+            invocationCompletePayload.put("vclock", getVectorClock().toJsonObject());
             invocationCompletePayload.put("return_value", returnValueJO);
             invocationCompletePayload.put("module", callsite.getClassOrModuleName());
             invocationCompletePayload.put("method", callsite.getMethodOrFunctionName());

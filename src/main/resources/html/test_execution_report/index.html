@@ -231,11 +231,33 @@
             transition: opacity 0.5s;
         }
 
-        .icon .icon-tooltip::after {
+        .icon .icon-tooltip-left::after {
             content: "";
             position: absolute;
             bottom: 100%;
-            left: 50%;
+            left: 32%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent transparent #555 transparent;
+        }
+
+        .icon .icon-tooltip-middle::after {
+            content: "";
+            position: absolute;
+            bottom: 100%;
+            left: 55%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent transparent #555 transparent;
+        }
+
+        .icon .icon-tooltip-right::after {
+            content: "";
+            position: absolute;
+            bottom: 100%;
+            left: 90%;
             margin-left: -5px;
             border-width: 5px;
             border-style: solid;
@@ -264,15 +286,15 @@
 <section style="margin: 0; padding: 0;">
     <span class="icon">
         <a style="vertical-align: middle; text-decoration: none; color: black;" href="#" title="Show warnings in this execution" onClick="toggleWarnings();">⚠️ (<span style="font-size: 10px; color: black;" id="numWarnings">0</span>)</a>
-        <span class="icon-tooltip">Show Warnings</span>
+        <span class="icon-tooltip icon-tooltip-right">Show Warnings</span>
     </span>
     <span class="icon">
         <a style="vertical-align: middle; text-decoration: none; color: black;" href="#" onClick="toggleCached();">💵 (<span style="font-size: 10px; color: black;" id="numCached">0</span>)</a>
-        <span class="icon-tooltip">Show Cached RPCs</span>
+        <span class="icon-tooltip icon-tooltip-middle">Show Cached RPCs</span>
     </span>
     <span class="icon">
         <a style="vertical-align: middle; text-decoration: none; color: black;" href="#" onClick="toggleDebug();">🐞</a>
-        <span class="icon-tooltip">Show Debugging</span>
+        <span class="icon-tooltip icon-tooltip-left">Show Debugging</span>
     </span>
 
     <!-- Assertion failure goes here. -->

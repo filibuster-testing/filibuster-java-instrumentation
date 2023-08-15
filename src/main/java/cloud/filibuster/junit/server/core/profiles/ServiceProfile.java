@@ -67,7 +67,7 @@ public class ServiceProfile {
         for (Map.Entry<String, List<ServiceRequestAndResponse>> entry : profile.entrySet()) {
             List<JSONObject> jsonObjectList = new ArrayList<>();
             for (ServiceRequestAndResponse srr : entry.getValue()) {
-                jsonObjectList.add(srr.toJSONObject());
+                jsonObjectList.add(srr.toJsonObject());
             }
 
             jsonObject.put(entry.getKey(), jsonObjectList);

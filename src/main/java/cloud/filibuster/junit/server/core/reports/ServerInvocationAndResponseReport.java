@@ -209,7 +209,7 @@ public class ServerInvocationAndResponseReport {
         List<JSONObject> results = new ArrayList<>();
 
         for (ServerInvocationAndResponse sir : serverInvocationAndResponses) {
-            results.add(sir.toJSONObject());
+            results.add(sir.toJsonObject());
         }
 
         result.put(Keys.RESULTS_KEY, results);

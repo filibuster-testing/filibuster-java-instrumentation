@@ -37,7 +37,7 @@ public class ServiceRequestAndResponse {
         return this.status;
     }
 
-    public JSONObject toJSONObject() {
+    public JSONObject toJsonObject() {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("request", GeneratedMessageV3Serializer.toJSONObject(request));
         jsonObject.put("status", StatusSerializer.toJSONObject(status));

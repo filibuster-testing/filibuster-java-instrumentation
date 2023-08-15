@@ -59,7 +59,7 @@ public class ServerInvocationAndResponse {
         public static final String RESPONSE_KEY = "response";
     }
 
-    public JSONObject toJSONObject() {
+    public JSONObject toJsonObject() {
         JSONObject result = new JSONObject();
         result.put(Keys.REQUEST_ID_KEY, requestId);
         result.put(Keys.METHOD_KEY, fullMethodName);

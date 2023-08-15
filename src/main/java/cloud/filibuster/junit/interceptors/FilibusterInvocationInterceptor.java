@@ -17,6 +17,7 @@ import org.junit.jupiter.api.extension.ReflectiveInvocationContext;
 import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -29,7 +30,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
 
     private final FilibusterConfiguration filibusterConfiguration;
 
-    private final HashMap<Integer, Boolean> invocationCompletionMap;
+    private final Map<Integer, Boolean> invocationCompletionMap;
 
     private final int currentIteration;
 
@@ -75,7 +76,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             FilibusterConfiguration filibusterConfiguration,
             int currentIteration,
             int maxIterations,
-            HashMap<Integer, Boolean> invocationCompletionMap) {
+            Map<Integer, Boolean> invocationCompletionMap) {
         this.currentIteration = currentIteration;
         this.maxIterations = maxIterations;
         this.invocationCompletionMap = invocationCompletionMap;

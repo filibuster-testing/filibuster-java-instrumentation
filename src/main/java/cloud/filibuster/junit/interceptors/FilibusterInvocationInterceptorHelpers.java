@@ -12,6 +12,7 @@ import com.linecorp.armeria.client.WebClient;
 import org.junit.jupiter.api.extension.InvocationInterceptor;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -109,7 +110,7 @@ public class FilibusterInvocationInterceptorHelpers {
      * @param currentIteration        the iteration we are currently in, not the iteration that's been completed (current - 1).
      * @param webClient               a web client to use to talk to the Filibuster Server.
      */
-    public static void conditionallyMarkTeardownComplete(HashMap<Integer, Boolean> invocationCompletionMap, int currentIteration, WebClient webClient) {
+    public static void conditionallyMarkTeardownComplete(Map<Integer, Boolean> invocationCompletionMap, int currentIteration, WebClient webClient) {
         int previousIteration = currentIteration - 1;
 
         if (!invocationCompletionMap.containsKey(previousIteration) && (previousIteration != 0)) {

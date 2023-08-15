@@ -70,14 +70,14 @@ final public class FilibusterClientInstrumentor {
     /**
      * Mapping between requests and the current execution index for that request.
      */
-    private static HashMap<String, HashMap<String, DistributedExecutionIndex>> distributedExecutionIndexByRequest = new HashMap<>();
+    private static Map<String, HashMap<String, DistributedExecutionIndex>> distributedExecutionIndexByRequest = new HashMap<>();
 
     /**
      * Get the execution index request mapping.
      *
      * @return execution index request map.
      */
-    public static HashMap<String, HashMap<String, DistributedExecutionIndex>> getDistributedExecutionIndexByRequest() {
+    public static Map<String, HashMap<String, DistributedExecutionIndex>> getDistributedExecutionIndexByRequest() {
         return distributedExecutionIndexByRequest;
     }
 

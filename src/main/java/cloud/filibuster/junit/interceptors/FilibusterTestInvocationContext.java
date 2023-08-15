@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.TestTemplateInvocationContext;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("JavaDoc")
 public class FilibusterTestInvocationContext implements TestTemplateInvocationContext {
@@ -16,7 +17,7 @@ public class FilibusterTestInvocationContext implements TestTemplateInvocationCo
     private final int maxIterations;
     private final FilibusterTestDisplayNameFormatter formatter;
     private final FilibusterConfiguration filibusterConfiguration;
-    private final HashMap<Integer, Boolean> invocationCompletionMap;
+    private final Map<Integer, Boolean> invocationCompletionMap;
 
     @SuppressWarnings("JavaDoc")
     public FilibusterTestInvocationContext(
@@ -24,7 +25,7 @@ public class FilibusterTestInvocationContext implements TestTemplateInvocationCo
             int maxIterations,
             FilibusterTestDisplayNameFormatter formatter,
             FilibusterConfiguration filibusterConfiguration,
-            HashMap<Integer, Boolean> invocationCompletionMap) {
+            Map<Integer, Boolean> invocationCompletionMap) {
         this.currentIteration = currentIteration;
         this.maxIterations = maxIterations;
         this.formatter = formatter;

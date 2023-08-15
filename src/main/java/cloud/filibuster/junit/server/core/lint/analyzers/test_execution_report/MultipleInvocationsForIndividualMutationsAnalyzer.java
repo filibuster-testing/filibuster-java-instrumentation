@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static cloud.filibuster.junit.server.core.lint.analyzers.LCS.computeLCS;
+import static cloud.filibuster.junit.server.core.lint.analyzers.LCS.computeLcs;
 
 public class MultipleInvocationsForIndividualMutationsAnalyzer extends TestExecutionReportAnalyzer {
     private final List<Map.Entry<Integer, Map.Entry<DistributedExecutionIndex, JSONObject>>> previousRpcInvocations = new ArrayList<>();
@@ -28,16 +28,16 @@ public class MultipleInvocationsForIndividualMutationsAnalyzer extends TestExecu
             DistributedExecutionIndex previousDistributedExecutionIndex = previousInvocation.getValue().getKey();
             JSONObject previousInvocationObject = previousInvocation.getValue().getValue();
 
-            String lcs = computeLCS(invocation.getJSONObject("args").getString("toString"), previousInvocationObject.getJSONObject("args").getString("toString"));
+            String lcs = computeLcs(invocation.getJSONObject("args").getString("toString"), previousInvocationObject.getJSONObject("args").getString("toString"));
 
             String previousRequestInvocationMethod = previousInvocationObject.getString("method");
 
             boolean lcsAboveThreshold = lcs.length() >= threshold;
-            boolean previousInvocationDirectlyBeforeRPC = (previousResponseInvocationNumber + 1 == RPC);
+            boolean previousInvocationDirectlyBeforeRpc = (previousResponseInvocationNumber + 1 == RPC);
             boolean sameMethodAsTarget = previousInvocationObject.getString("method").equals(invocation.getString("method"));
             boolean sameArguments = previousInvocationObject.getJSONObject("args").similar(invocation.getJSONObject("args"));
 
-            if (lcsAboveThreshold && previousInvocationDirectlyBeforeRPC && sameMethodAsTarget && !sameArguments) {
+            if (lcsAboveThreshold && previousInvocationDirectlyBeforeRpc && sameMethodAsTarget && !sameArguments) {
                 this.addWarning(new MultipleInvocationsForIndividualMutationsWarning(distributedExecutionIndex,
                         "The following string (" + lcs + ") was used in a request to " + previousRequestInvocationMethod + " and used again to the same method in this test execution."));
             }

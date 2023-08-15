@@ -80,7 +80,7 @@ public class GrpcMock {
      * @return {@link #verifyThatMapping}
      *
      */
-    public static HashMap<String, Boolean> getVerifyThatMapping() {
+    public static Map<String, Boolean> getVerifyThatMapping() {
         return verifyThatMapping;
     }
 

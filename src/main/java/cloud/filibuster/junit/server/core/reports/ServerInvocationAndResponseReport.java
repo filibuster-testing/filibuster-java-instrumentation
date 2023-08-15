@@ -204,19 +204,19 @@ public class ServerInvocationAndResponseReport {
         public static final String RESULTS_KEY = "results";
     }
 
-    private static JSONObject toServerInvocationReportJSONObject() {
+    private static JSONObject toServerInvocationReportJsonObject() {
         JSONObject result = new JSONObject();
         List<JSONObject> results = new ArrayList<>();
 
         for (ServerInvocationAndResponse sir : serverInvocationAndResponses) {
-            results.add(sir.toJSONObject());
+            results.add(sir.toJsonObject());
         }
 
         result.put(Keys.RESULTS_KEY, results);
         return result;
     }
 
-    private static JSONObject toAccessedGrpcEndpointsJSONObject() {
+    private static JSONObject toAccessedGrpcEndpointsJsonObject() {
         JSONObject jsonObject = new JSONObject();
         List<JSONObject> jsonObjects = new ArrayList<>();
 
@@ -244,8 +244,8 @@ public class ServerInvocationAndResponseReport {
 
     private static String toJavascript() {
         String output = "";
-        output += "var serverInvocationReports = " + toServerInvocationReportJSONObject().toString(4) + ";\n";
-        output += "var accessedGrpcEndpoints = " + toAccessedGrpcEndpointsJSONObject().toString(4) + ";\n";
+        output += "var serverInvocationReports = " + toServerInvocationReportJsonObject().toString(4) + ";\n";
+        output += "var accessedGrpcEndpoints = " + toAccessedGrpcEndpointsJsonObject().toString(4) + ";\n";
         return output;
     }
 

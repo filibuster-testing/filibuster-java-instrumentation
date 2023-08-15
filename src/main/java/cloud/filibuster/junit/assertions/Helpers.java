@@ -95,6 +95,7 @@ public class Helpers {
      * Assumes that the block is executed synchronously -- use of this inside of concurrency primitives without
      * explicit synchronization may render this function unable to prevent faults from being injected.
      *
+     * @param blockType {@link BlockType} used only for display
      * @param block block to execute synchronously.
      */
     public static void executeWithoutFaultInjection(BlockType blockType, Runnable block) {

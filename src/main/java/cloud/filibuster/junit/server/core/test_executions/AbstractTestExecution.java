@@ -37,8 +37,8 @@ public class AbstractTestExecution extends TestExecution {
         boolean found = false;
 
         if (sourceConcreteTestExecution != null) {
-            for (Map.Entry<DistributedExecutionIndex, JSONObject> executedRPC: sourceConcreteTestExecution.executedRPCs.entrySet()) {
-                DistributedExecutionIndex distributedExecutionIndex = executedRPC.getKey();
+            for (Map.Entry<DistributedExecutionIndex, JSONObject> executedRpc: sourceConcreteTestExecution.executedRpcs.entrySet()) {
+                DistributedExecutionIndex distributedExecutionIndex = executedRpc.getKey();
                 if (organicallyFailedInSourceConcreteTestExecution(this.sourceConcreteTestExecution, this.completedSourceConcreteTestExecution, distributedExecutionIndex) && faultsToInject.containsKey(distributedExecutionIndex)) {
                     found = true;
                     break;

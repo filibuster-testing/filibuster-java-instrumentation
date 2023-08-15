@@ -7,7 +7,6 @@ import org.json.JSONObject;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -64,7 +63,7 @@ public class CompositeFaultKey implements FaultKey {
 
     @Nullable
     public static FaultKey findMatchingFaultKey(
-            HashMap<FaultKey, Runnable> assertionsByFaultKey,
+            Map<FaultKey, Runnable> assertionsByFaultKey,
             List<JSONObject> rpcsWhereFaultsInjected
     ) {
         List<List<SingleFaultKey>> rpcsWhereFaultsInjectedFaultKeys = rpcsWhereFaultsInjected.stream()
@@ -93,7 +92,7 @@ public class CompositeFaultKey implements FaultKey {
 
     @Nullable
     public static List<FaultKey> findMatchingFaultKeys(
-            HashMap<FaultKey, Map.Entry<Status.Code, String>> assertionsByFaultKey,
+            Map<FaultKey, Map.Entry<Status.Code, String>> assertionsByFaultKey,
             List<JSONObject> rpcsWhereFaultsInjected,
             Status.Code code
     ) {

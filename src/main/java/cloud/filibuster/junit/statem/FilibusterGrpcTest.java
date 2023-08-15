@@ -554,7 +554,7 @@ public interface FilibusterGrpcTest {
      * @param <ReqT>           the request type for this method
      * @param <ResT>           the response type for this method
      */
-    default <ReqT, ResT> void readOnlyRPC(MethodDescriptor<ReqT, ResT> methodDescriptor) {
+    default <ReqT, ResT> void readOnlyRpc(MethodDescriptor<ReqT, ResT> methodDescriptor) {
         if (isInsideOfAssertOnExceptionBlock() || isInsideOfAssertOnFaultBlock()) {
             GrpcMock.adjustExpectation(methodDescriptor, -1);
         } else {
@@ -571,7 +571,7 @@ public interface FilibusterGrpcTest {
      * @param <ReqT>           the request type for this method
      * @param <ResT>           the response type for this method
      */
-    default <ReqT, ResT> void readOnlyRPC(MethodDescriptor<ReqT, ResT> methodDescriptor, ReqT request) {
+    default <ReqT, ResT> void readOnlyRpc(MethodDescriptor<ReqT, ResT> methodDescriptor, ReqT request) {
         if (isInsideOfAssertOnExceptionBlock() || isInsideOfAssertOnFaultBlock()) {
             GrpcMock.adjustExpectation(methodDescriptor, request, -1);
         } else {
@@ -587,7 +587,7 @@ public interface FilibusterGrpcTest {
      * @param <ReqT>           the request type for this method
      * @param <ResT>           the response type for this method
      */
-    default <ReqT, ResT> void sideEffectingRPC(MethodDescriptor<ReqT, ResT> methodDescriptor, int count) {
+    default <ReqT, ResT> void sideEffectingRpc(MethodDescriptor<ReqT, ResT> methodDescriptor, int count) {
         if (isInsideOfAssertOnExceptionBlock() || isInsideOfAssertOnFaultBlock()) {
             GrpcMock.adjustExpectation(methodDescriptor, count);
         } else {
@@ -604,7 +604,7 @@ public interface FilibusterGrpcTest {
      * @param <ReqT>           the request type for this method
      * @param <ResT>           the response type for this method
      */
-    default <ReqT, ResT> void sideEffectingRPC(MethodDescriptor<ReqT, ResT> methodDescriptor, ReqT request, int count) {
+    default <ReqT, ResT> void sideEffectingRpc(MethodDescriptor<ReqT, ResT> methodDescriptor, ReqT request, int count) {
         if (isInsideOfAssertOnExceptionBlock() || isInsideOfAssertOnFaultBlock()) {
             GrpcMock.adjustExpectation(methodDescriptor, request, count);
         } else {
@@ -620,27 +620,27 @@ public interface FilibusterGrpcTest {
         List<JSONObject> rpcsWhereFaultsInjected = new ArrayList<>();
 
         // Look up the RPCs that were executed and the faults that were injected.
-        HashMap<DistributedExecutionIndex, JSONObject> executedRPCs = getExecutedRPCs();
+        Map<DistributedExecutionIndex, JSONObject> executedRpcs = getExecutedRpcs();
 
-        if (executedRPCs == null) {
-            throw new FilibusterGrpcTestInternalRuntimeException("executedRPCs is null: this could indicate a problem!");
+        if (executedRpcs == null) {
+            throw new FilibusterGrpcTestInternalRuntimeException("executedRpcs is null: this could indicate a problem!");
         }
 
-        HashMap<DistributedExecutionIndex, JSONObject> faultsInjected = getFaultsInjected();
+        Map<DistributedExecutionIndex, JSONObject> faultsInjected = getFaultsInjected();
 
         if (faultsInjected == null) {
             throw new FilibusterGrpcTestInternalRuntimeException("faultsInjected is null: this could indicate a problem!");
         }
 
-        for (Map.Entry<DistributedExecutionIndex, JSONObject> executedRPC : executedRPCs.entrySet()) {
-            if (faultsInjected.containsKey(executedRPC.getKey())) {
-                JSONObject faultInjected = faultsInjected.get(executedRPC.getKey());
-                JSONObject finalExecutedRPC = executedRPC.getValue();
+        for (Map.Entry<DistributedExecutionIndex, JSONObject> executedRpc : executedRpcs.entrySet()) {
+            if (faultsInjected.containsKey(executedRpc.getKey())) {
+                JSONObject faultInjected = faultsInjected.get(executedRpc.getKey());
+                JSONObject finalExecutedRpc = executedRpc.getValue();
                 if (faultInjected.has("forced_exception")) {
                     JSONObject forcedExceptionObject = faultInjected.getJSONObject("forced_exception");
-                    finalExecutedRPC.put("forced_exception", forcedExceptionObject);
+                    finalExecutedRpc.put("forced_exception", forcedExceptionObject);
                 }
-                rpcsWhereFaultsInjected.add(finalExecutedRPC);
+                rpcsWhereFaultsInjected.add(finalExecutedRpc);
             }
         }
 
@@ -900,21 +900,21 @@ public interface FilibusterGrpcTest {
         }
 
         // Fail the test if any RPCs were left UNIMPLEMENTED (and, we didn't inject it!)
-        HashMap<DistributedExecutionIndex, JSONObject> failedRPCs = getFailedRPCs();
+        Map<DistributedExecutionIndex, JSONObject> failedRpcs = getFailedRpcs();
 
-        if (failedRPCs == null) {
-            throw new FilibusterGrpcTestInternalRuntimeException("failedRPCs is null: this could indicate a problem!");
+        if (failedRpcs == null) {
+            throw new FilibusterGrpcTestInternalRuntimeException("failedRpcs is null: this could indicate a problem!");
         }
 
-        HashMap<DistributedExecutionIndex, JSONObject> faultsInjected = getFaultsInjected();
+        Map<DistributedExecutionIndex, JSONObject> faultsInjected = getFaultsInjected();
 
         if (faultsInjected == null) {
             throw new FilibusterGrpcTestInternalRuntimeException("faultsInjected is null: this could indicate a problem!");
         }
 
-        for (Map.Entry<DistributedExecutionIndex, JSONObject> failedRPC : failedRPCs.entrySet()) {
-            DistributedExecutionIndex distributedExecutionIndex = failedRPC.getKey();
-            JSONObject jsonObject = failedRPC.getValue();
+        for (Map.Entry<DistributedExecutionIndex, JSONObject> failedRpc : failedRpcs.entrySet()) {
+            DistributedExecutionIndex distributedExecutionIndex = failedRpc.getKey();
+            JSONObject jsonObject = failedRpc.getValue();
 
             Status.Code statusCode = getStatusCode("exception", jsonObject);
 
@@ -1141,10 +1141,10 @@ public interface FilibusterGrpcTest {
         }
     }
 
-    default HashMap<DistributedExecutionIndex, JSONObject> getFailedRPCs() {
+    default Map<DistributedExecutionIndex, JSONObject> getFailedRpcs() {
         if (getServerBackendCanInvokeDirectlyProperty()) {
             if (FilibusterCore.hasCurrentInstance()) {
-                return FilibusterCore.getCurrentInstance().failedRPCs();
+                return FilibusterCore.getCurrentInstance().failedRpcs();
             } else {
                 return new HashMap<>();
             }
@@ -1153,7 +1153,7 @@ public interface FilibusterGrpcTest {
         }
     }
 
-    default HashMap<DistributedExecutionIndex, JSONObject> getFaultsInjected() {
+    default Map<DistributedExecutionIndex, JSONObject> getFaultsInjected() {
         if (getServerBackendCanInvokeDirectlyProperty()) {
             if (FilibusterCore.hasCurrentInstance()) {
                 return FilibusterCore.getCurrentInstance().faultsInjected();
@@ -1165,10 +1165,10 @@ public interface FilibusterGrpcTest {
         }
     }
 
-    default HashMap<DistributedExecutionIndex, JSONObject> getExecutedRPCs() {
+    default Map<DistributedExecutionIndex, JSONObject> getExecutedRpcs() {
         if (getServerBackendCanInvokeDirectlyProperty()) {
             if (FilibusterCore.hasCurrentInstance()) {
-                return FilibusterCore.getCurrentInstance().executedRPCs();
+                return FilibusterCore.getCurrentInstance().executedRpcs();
             } else {
                 return new HashMap<>();
             }

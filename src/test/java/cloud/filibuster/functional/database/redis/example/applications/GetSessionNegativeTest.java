@@ -62,13 +62,6 @@ public class GetSessionNegativeTest extends JUnitAnnotationBaseTest {
     public void testCreateAndGetSessionFromRedis() throws IOException, InterruptedException {
         numberOfTestExecutions++;
 
-        startAPIServerAndWaitUntilAvailable();
-        RedisClientService.getInstance();
-
-        // Initialize API channel and service
-        apiChannel = ManagedChannelBuilder.forAddress(Networking.getHost("api_server"), Networking.getPort("api_server")).usePlaintext().build();
-        apiService = APIServiceGrpc.newBlockingStub(apiChannel);
-
         String uid = "Joe";
         String location = "US";
 

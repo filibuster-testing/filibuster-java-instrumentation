@@ -123,7 +123,7 @@ public class FilibusterAnalysisConfiguration {
         return rpcType.equals(this.rpcType);
     }
 
-    public Map.Entry<String, JSONObject> toJSONPair() {
+    public Map.Entry<String, JSONObject> toJsonPair() {
         return Pair.of(name, configurationObject);
     }
 

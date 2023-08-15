@@ -59,7 +59,7 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
 
             // Notify the system some endpoints are read-only and therefore OK to skip
             // when we return a failure.
-            readOnlyRPC(UserServiceGrpc.getValidateSessionMethod());
+            readOnlyRpc(UserServiceGrpc.getValidateSessionMethod());
         });
 
         // State what the state of the system was on UNAVAILABLE.
@@ -70,8 +70,8 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
 
             // Notify the system some endpoints are read-only and therefore OK to skip
             // when we return a failure.
-            readOnlyRPC(UserServiceGrpc.getValidateSessionMethod());
-            readOnlyRPC(CartServiceGrpc.getGetCartForSessionMethod());
+            readOnlyRpc(UserServiceGrpc.getValidateSessionMethod());
+            readOnlyRpc(CartServiceGrpc.getGetCartForSessionMethod());
         });
 
         // State what the state of the system was on UNAVAILABLE.
@@ -82,14 +82,14 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
 
             // Notify the system some endpoints are read-only and therefore OK to skip
             // when we return a failure.
-            readOnlyRPC(UserServiceGrpc.getValidateSessionMethod());
-            readOnlyRPC(CartServiceGrpc.getGetCartForSessionMethod());
+            readOnlyRpc(UserServiceGrpc.getValidateSessionMethod());
+            readOnlyRpc(CartServiceGrpc.getGetCartForSessionMethod());
 
             for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
                 Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
                         .setCode(discountCode.getKey())
                         .build();
-                readOnlyRPC(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
+                readOnlyRpc(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
             }
         });
 
@@ -101,17 +101,17 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
 
             // Notify the system some endpoints are read-only and therefore OK to skip
             // when we return a failure.
-            readOnlyRPC(UserServiceGrpc.getValidateSessionMethod());
-            readOnlyRPC(CartServiceGrpc.getGetCartForSessionMethod());
+            readOnlyRpc(UserServiceGrpc.getValidateSessionMethod());
+            readOnlyRpc(CartServiceGrpc.getGetCartForSessionMethod());
 
             for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
                 Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
                         .setCode(discountCode.getKey())
                         .build();
-                readOnlyRPC(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
+                readOnlyRpc(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
             }
 
-            sideEffectingRPC(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
+            sideEffectingRpc(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
         });
 
         // No error handling, propagate back to the upstream.
@@ -125,17 +125,17 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
 
             // Notify the system some endpoints are read-only and therefore OK to skip
             // when we return a failure.
-            readOnlyRPC(UserServiceGrpc.getValidateSessionMethod());
-            readOnlyRPC(CartServiceGrpc.getGetCartForSessionMethod());
+            readOnlyRpc(UserServiceGrpc.getValidateSessionMethod());
+            readOnlyRpc(CartServiceGrpc.getGetCartForSessionMethod());
 
             for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
                 Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
                         .setCode(discountCode.getKey())
                         .build();
-                readOnlyRPC(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
+                readOnlyRpc(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
             }
 
-            sideEffectingRPC(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
+            sideEffectingRpc(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
         });
 
         // Failure of the getCartFromSession call results in upstream receiving UNAVAILABLE exception.
@@ -269,7 +269,7 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
                 allCartRequestsFaultSpecification,
                 () -> {
                     assertTestBlock(10000);
-                    sideEffectingRPC(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
+                    sideEffectingRpc(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
                 });
     }
 

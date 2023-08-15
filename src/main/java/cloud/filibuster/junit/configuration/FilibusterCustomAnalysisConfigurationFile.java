@@ -26,13 +26,13 @@ public class FilibusterCustomAnalysisConfigurationFile {
 
     public FilibusterCustomAnalysisConfigurationFile(Builder builder) {
         for (FilibusterAnalysisConfiguration analysisConfiguration : builder.analysisConfigurations) {
-            Map.Entry<String, JSONObject> entry = analysisConfiguration.toJSONPair();
+            Map.Entry<String, JSONObject> entry = analysisConfiguration.toJsonPair();
             analysisConfigurationFile.put(entry.getKey(), entry.getValue());
             filibusterAnalysisConfigurations.add(analysisConfiguration);
         }
     }
 
-    public JSONObject toJSONObject() {
+    public JSONObject toJsonObject() {
         return analysisConfigurationFile;
     }
 

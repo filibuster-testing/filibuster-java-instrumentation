@@ -21,7 +21,7 @@ public class GeneratedMessageV3Serializer {
         public static final String TO_STRING_KEY = "toString";
     }
 
-    public static JSONObject toJSONObjectWithOnlyPayload(GeneratedMessageV3 generatedMessageV3) {
+    public static JSONObject toJsonObjectWithOnlyPayload(GeneratedMessageV3 generatedMessageV3) {
         try {
             String serializedMessage = JsonFormat.printer().preservingProtoFieldNames().includingDefaultValueFields().print(generatedMessageV3);
             return new JSONObject(serializedMessage);
@@ -31,19 +31,19 @@ public class GeneratedMessageV3Serializer {
         }
     }
 
-    public static JSONObject toJSONObjectWithClassIncluded(GeneratedMessageV3 generatedMessageV3) {
-        JSONObject newJSONObject = new JSONObject();
-        newJSONObject.put(Keys.CLASS_KEY, generatedMessageV3.getClass().getName());
-        newJSONObject.put(Keys.GSON_KEY, toJSONObjectWithOnlyPayload(generatedMessageV3));
-        newJSONObject.put(Keys.TO_STRING_KEY, generatedMessageV3.toString());
-        return newJSONObject;
+    public static JSONObject toJsonObjectWithClassIncluded(GeneratedMessageV3 generatedMessageV3) {
+        JSONObject newJsonObject = new JSONObject();
+        newJsonObject.put(Keys.CLASS_KEY, generatedMessageV3.getClass().getName());
+        newJsonObject.put(Keys.GSON_KEY, toJsonObjectWithOnlyPayload(generatedMessageV3));
+        newJsonObject.put(Keys.TO_STRING_KEY, generatedMessageV3.toString());
+        return newJsonObject;
     }
 
-    public static JSONObject toJSONObject(GeneratedMessageV3 generatedMessageV3) {
-        return toJSONObjectWithClassIncluded(generatedMessageV3);
+    public static JSONObject toJsonObject(GeneratedMessageV3 generatedMessageV3) {
+        return toJsonObjectWithClassIncluded(generatedMessageV3);
     }
 
-    public static GeneratedMessageV3 fromJSONObject(JSONObject jsonObject) {
+    public static GeneratedMessageV3 fromJsonObject(JSONObject jsonObject) {
         String className = jsonObject.getString(Keys.CLASS_KEY);
         JSONObject gsonPayload = jsonObject.getJSONObject(Keys.GSON_KEY);
         String gsonPayloadString = gsonPayload.toString();

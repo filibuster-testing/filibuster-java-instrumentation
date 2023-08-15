@@ -35,10 +35,10 @@ public class ServiceProfileTest {
                 Hello.HelloReply.newBuilder().setMessage("Hi, Chris!").build()
         );
 
-        JSONObject serviceProfileJSONObject = serviceProfile.toJSONObject();
+        JSONObject serviceProfileJSONObject = serviceProfile.toJsonObject();
 
-        ServiceProfile newServiceProfile = ServiceProfile.fromJSONObject(serviceProfileJSONObject);
-        JSONObject newServiceProfileJSONObject = newServiceProfile.toJSONObject();
+        ServiceProfile newServiceProfile = ServiceProfile.fromJsonObject(serviceProfileJSONObject);
+        JSONObject newServiceProfileJSONObject = newServiceProfile.toJsonObject();
         assertEquals(true, serviceProfileJSONObject.similar(newServiceProfileJSONObject));
 
         assertEquals(serviceProfile, newServiceProfile);

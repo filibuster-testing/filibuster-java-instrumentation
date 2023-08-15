@@ -155,21 +155,21 @@ public class TestSuiteReport {
         }
     }
 
-    private static JSONObject getTestReportSummaryJSON(FilibusterTestReportSummary testReportSummary) {
-        JSONObject reportJSON = new JSONObject();
-        reportJSON.put(Keys.TestReportKeys.TEST_PATH, testReportSummary.testPath);
-        reportJSON.put(Keys.TestReportKeys.TEST_NAME, testReportSummary.testName);
-        reportJSON.put(Keys.TestReportKeys.STATUS, testReportSummary.status);
-        reportJSON.put(Keys.TestReportKeys.CLASS_NAME, testReportSummary.className);
-        return reportJSON;
+    private static JSONObject getTestReportSummaryJson(FilibusterTestReportSummary testReportSummary) {
+        JSONObject reportJson = new JSONObject();
+        reportJson.put(Keys.TestReportKeys.TEST_PATH, testReportSummary.testPath);
+        reportJson.put(Keys.TestReportKeys.TEST_NAME, testReportSummary.testName);
+        reportJson.put(Keys.TestReportKeys.STATUS, testReportSummary.status);
+        reportJson.put(Keys.TestReportKeys.CLASS_NAME, testReportSummary.className);
+        return reportJson;
     }
 
-    private JSONObject getReportsJSON() {
-        JSONObject reportsJSON = new JSONObject();
+    private JSONObject getReportsJson() {
+        JSONObject reportsJson = new JSONObject();
         List<JSONObject> jsonReports = testReportSummaries.stream()
-                .map(TestSuiteReport::getTestReportSummaryJSON).collect(Collectors.toList());
-        reportsJSON.put(Keys.REPORTS_KEY, jsonReports);
-        return reportsJSON;
+                .map(TestSuiteReport::getTestReportSummaryJson).collect(Collectors.toList());
+        reportsJson.put(Keys.REPORTS_KEY, jsonReports);
+        return reportsJson;
     }
 
     private void writeOutPlaceholder() {
@@ -203,7 +203,7 @@ public class TestSuiteReport {
         File directory = ReportUtilities.getBaseDirectoryPath();
         File scriptFile = new File(directory, "summary.js");
         try {
-            Files.write(scriptFile.toPath(), ("var summary = " + getReportsJSON().toString(4) + ";")
+            Files.write(scriptFile.toPath(), ("var summary = " + getReportsJson().toString(4) + ";")
                     .getBytes(Charset.defaultCharset()));
         } catch (IOException e) {
             throw new FilibusterTestReportWriterException("Filibuster failed to write out the test suite report: ", e);
@@ -226,7 +226,7 @@ public class TestSuiteReport {
         String testName = testReport.getTestName();
         String className = testReport.getClassName();
         File testPath = testReport.getReportPath();
-        ArrayList<TestExecutionReport> testExecutionReports = testReport.getTestExecutionReports();
+        List<TestExecutionReport> testExecutionReports = testReport.getTestExecutionReports();
         boolean hasNoFailures = testExecutionReports.stream().map(TestExecutionReport::isTestExecutionPassed)
                 .reduce(true, (curr, next) -> curr && next);
         testReportSummaries.add(new FilibusterTestReportSummary(testName, testPath, hasNoFailures,className));

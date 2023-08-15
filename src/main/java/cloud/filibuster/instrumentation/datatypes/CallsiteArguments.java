@@ -19,7 +19,7 @@ public class CallsiteArguments {
         return this.toStringResult;
     }
 
-    public JSONObject toJSONObject() {
+    public JSONObject toJsonObject() {
         JSONObject response = new JSONObject();
         response.put("__class__", clazz.getName());
         response.put("toString", toStringResult);

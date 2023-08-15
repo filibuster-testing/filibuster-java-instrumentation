@@ -6,22 +6,23 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.lang.reflect.Type;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
+import java.util.List;
 
 import com.google.gson.reflect.TypeToken;
 
-public final class BitInByteArrTransformer implements Transformer<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> {
+public final class BitInByteArrTransformer implements Transformer<byte[], List<SimpleImmutableEntry<Integer, Integer>>> {
     private boolean hasNext = true;
     private byte[] result;
-    private Accumulator<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> accumulator;
+    private Accumulator<byte[], List<SimpleImmutableEntry<Integer, Integer>>> accumulator;
 
     @Override
     @CanIgnoreReturnValue
-    public BitInByteArrTransformer transform(byte[] payload, Accumulator<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> accumulator) {
+    public BitInByteArrTransformer transform(byte[] payload, Accumulator<byte[], List<SimpleImmutableEntry<Integer, Integer>>> accumulator) {
 
         // The context saved in the accumulator is an array of SimpleImmutableEntries, each has an integer key and an integer value.
         // Each SimpleImmutableEntry represents a byte/bit pair that has been mutated in the payload.
         // The key of the entry is the idx of the byte in the payload, and the value is the idx of the bit in the byte.
-        ArrayList<SimpleImmutableEntry<Integer, Integer>> ctx = accumulator.getContext();
+        List<SimpleImmutableEntry<Integer, Integer>> ctx = accumulator.getContext();
 
         // The last entry in the context is the byte/bit pair that we want to mutate in this call.
         SimpleImmutableEntry<Integer, Integer> entryToMutate = ctx.get(ctx.size() - 1);  // Get the last entry in the context
@@ -87,9 +88,9 @@ public final class BitInByteArrTransformer implements Transformer<byte[], ArrayL
     }
 
     @Override
-    public Accumulator<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> getInitialAccumulator(byte[] referenceValue) {
-        Accumulator<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> accumulator = new Accumulator<>();
-        ArrayList<SimpleImmutableEntry<Integer, Integer>> ctx = new ArrayList<>();
+    public Accumulator<byte[], List<SimpleImmutableEntry<Integer, Integer>>> getInitialAccumulator(byte[] referenceValue) {
+        Accumulator<byte[], List<SimpleImmutableEntry<Integer, Integer>>> accumulator = new Accumulator<>();
+        List<SimpleImmutableEntry<Integer, Integer>> ctx = new ArrayList<>();
         // Initial entry for byte and bit 0
         ctx.add(new SimpleImmutableEntry<>(0, 0));
         accumulator.setContext(ctx);
@@ -99,11 +100,11 @@ public final class BitInByteArrTransformer implements Transformer<byte[], ArrayL
     }
 
     @Override
-    public Accumulator<byte[], ArrayList<SimpleImmutableEntry<Integer, Integer>>> getNextAccumulator() {
+    public Accumulator<byte[], List<SimpleImmutableEntry<Integer, Integer>>> getNextAccumulator() {
         if (this.accumulator == null) {
             return getInitialAccumulator(getResult());
         } else {
-            ArrayList<SimpleImmutableEntry<Integer, Integer>> ctx = accumulator.getContext();
+            List<SimpleImmutableEntry<Integer, Integer>> ctx = accumulator.getContext();
 
             SimpleImmutableEntry<Integer, Integer> newEntry = getNextEntry(ctx.get(ctx.size() - 1));
             ctx.add(newEntry);
@@ -117,7 +118,7 @@ public final class BitInByteArrTransformer implements Transformer<byte[], ArrayL
     public Type getAccumulatorType() {
         Type byteArrType = TypeToken.get(byte[].class).getType();
         Type simpleEntryType = TypeToken.getParameterized(SimpleImmutableEntry.class, Integer.class, Integer.class).getType();
-        Type listType = TypeToken.getParameterized(ArrayList.class, simpleEntryType).getType();
+        Type listType = TypeToken.getParameterized(List.class, simpleEntryType).getType();
 
         return TypeToken.getParameterized(
                 Accumulator.class,

@@ -510,7 +510,7 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
             return;
         }
 
-        // Issue POST to http://hello/external-post, which will issue a transitive POST to http://external.
+        // Issue GET to http://hello/external-post, which will issue a transitive POST to http://external.
         CompletableFuture<String> secondRequestFuture = CompletableFuture.supplyAsync(() -> {
             RequestHeaders getHeaders = RequestHeaders.of(HttpMethod.GET, "/external-post", HttpHeaderNames.ACCEPT, "application/json");
             AggregatedHttpResponse response = helloWebClient.execute(getHeaders).aggregate().join();

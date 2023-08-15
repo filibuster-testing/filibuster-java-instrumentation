@@ -76,20 +76,20 @@ public class TestExecutionReport {
 
     private final UUID uuid = UUID.randomUUID();
 
-    private final UUID testUUID;
+    private final UUID testUuid;
 
     private final String testName;
 
     private final String className;
 
-    public TestExecutionReport(String testName, UUID testUUID, String className) {
+    public TestExecutionReport(String testName, UUID testUuid, String className) {
         this.testName = testName;
-        this.testUUID = testUUID;
+        this.testUuid = testUuid;
         this.className = className;
     }
 
     private File getDirectoryPath() {
-        return new File(ReportUtilities.getBaseDirectoryPath(), "filibuster-test-" + testUUID.toString());
+        return new File(ReportUtilities.getBaseDirectoryPath(), "filibuster-test-" + testUuid.toString());
     }
 
     private File getSubdirectoryPath() {
@@ -116,7 +116,7 @@ public class TestExecutionReport {
         return deiResponses.get(distributedExecutionIndex);
     }
 
-    public HashMap<DistributedExecutionIndex, JSONObject> getResponses() {
+    public Map<DistributedExecutionIndex, JSONObject> getResponses() {
         return deiResponses;
     }
 
@@ -124,14 +124,14 @@ public class TestExecutionReport {
         return deiFaultsInjected.get(distributedExecutionIndex);
     }
 
-    private final List<DistributedExecutionIndex> cachedRPCs = new ArrayList<DistributedExecutionIndex>();
+    private final List<DistributedExecutionIndex> cachedRpcs = new ArrayList<>();
 
-    public List<DistributedExecutionIndex> getCachedRPCs() {
-        return cachedRPCs;
+    public List<DistributedExecutionIndex> getCachedRpcs() {
+        return cachedRpcs;
     }
 
     public void markRpcAsCached(DistributedExecutionIndex distributedExecutionIndex) {
-        cachedRPCs.add(distributedExecutionIndex);
+        cachedRpcs.add(distributedExecutionIndex);
     }
 
     public void recordInvocation(
@@ -153,7 +153,7 @@ public class TestExecutionReport {
         deiResponses.put(distributedExecutionIndex, invocationJsonObject);
     }
 
-    public void setFaultsInjected(HashMap<DistributedExecutionIndex, JSONObject> faultsToInject) {
+    public void setFaultsInjected(Map<DistributedExecutionIndex, JSONObject> faultsToInject) {
         deiFaultsInjected.putAll(faultsToInject);
     }
 
@@ -161,8 +161,8 @@ public class TestExecutionReport {
         return this.testName;
     }
 
-    public UUID getTestUUID() {
-        return this.testUUID;
+    public UUID getTestUuid() {
+        return this.testUuid;
     }
 
     public String getClassName() {
@@ -249,7 +249,7 @@ public class TestExecutionReport {
             RPC.put(Keys.RESPONSE_KEY, deiResponses.getOrDefault(dei, new JSONObject()));
             RPC.put(Keys.FAULT_KEY, deiFaultsInjected.getOrDefault(dei, new JSONObject()));
             RPC.put(Keys.WARNINGS_KEY, warningObjects);
-            RPC.put(Keys.CACHED_KEY, cachedRPCs.contains(dei));
+            RPC.put(Keys.CACHED_KEY, cachedRpcs.contains(dei));
             RPCs.add(RPC);
         }
 

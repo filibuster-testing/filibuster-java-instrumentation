@@ -49,17 +49,17 @@ public class EndToEndFilibusterNoDiscountGrpcTest extends EndToEndFilibusterGrpc
 
             // Notify the system some endpoints are read-only and therefore OK to skip
             // when we return a failure.
-            readOnlyRPC(UserServiceGrpc.getValidateSessionMethod());
-            readOnlyRPC(CartServiceGrpc.getGetCartForSessionMethod());
+            readOnlyRpc(UserServiceGrpc.getValidateSessionMethod());
+            readOnlyRpc(CartServiceGrpc.getGetCartForSessionMethod());
 
             for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
                 Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
                         .setCode(discountCode.getKey())
                         .build();
-                readOnlyRPC(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
+                readOnlyRpc(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
             }
 
-            sideEffectingRPC(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
+            sideEffectingRpc(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
         });
     }
 

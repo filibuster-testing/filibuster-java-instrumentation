@@ -8,7 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static cloud.filibuster.instrumentation.helpers.Counterexample.canLoadCounterexample;
-import static cloud.filibuster.instrumentation.helpers.Counterexample.loadCounterexampleAsJSONObjectFromEnvironment;
+import static cloud.filibuster.instrumentation.helpers.Counterexample.loadCounterexampleAsJsonObjectFromEnvironment;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -26,7 +26,7 @@ public class CounterexampleTestWithPropertySet {
     @Test
     @DisplayName("Test loading a counterexample to JSON from the environment.")
     public void testCounterexampleJSONObjectLoadFromEnvironment() {
-        JSONObject counterexample = loadCounterexampleAsJSONObjectFromEnvironment();
+        JSONObject counterexample = loadCounterexampleAsJsonObjectFromEnvironment();
         assertNotNull(counterexample);
     }
 

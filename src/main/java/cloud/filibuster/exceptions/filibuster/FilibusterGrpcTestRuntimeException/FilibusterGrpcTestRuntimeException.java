@@ -41,10 +41,10 @@ public abstract class FilibusterGrpcTestRuntimeException extends FilibusterRunti
 
     public String generateSingleFixMessage(
             String descriptionText,
-            String linkURL
+            String linkUrl
     ) {
-        String linkText = linkURL.substring(linkURL.indexOf("statem/") + "statem/".length());
-        return "<li>" + descriptionText + "<br /><a target=\"_blank\" href=\"" + linkURL + "\"><span class=\"small_class_name\">" + linkText + "</span></a></li>";
+        String linkText = linkUrl.substring(linkUrl.indexOf("statem/") + "statem/".length());
+        return "<li>" + descriptionText + "<br /><a target=\"_blank\" href=\"" + linkUrl + "\"><span class=\"small_class_name\">" + linkText + "</span></a></li>";
     }
 
     public String generateFixMessage(List<String> fixMessages) {

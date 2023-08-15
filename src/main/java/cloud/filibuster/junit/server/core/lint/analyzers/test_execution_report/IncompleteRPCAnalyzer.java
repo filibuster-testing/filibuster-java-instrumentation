@@ -13,7 +13,7 @@ public class IncompleteRPCAnalyzer extends TestExecutionReportAnalyzer {
         super(testExecutionReport);
     }
 
-    private final List<String> seenRPCs = new ArrayList<>();
+    private final List<String> seenRpcs = new ArrayList<>();
 
     @Override
     void rpc(boolean testPassed, int RPC, DistributedExecutionIndex distributedExecutionIndex, JSONObject invocation, JSONObject fault, JSONObject response) {

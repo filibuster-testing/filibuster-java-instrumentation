@@ -36,7 +36,6 @@ dependencyLocking {
 }
 
 dependencies {
-
     errorprone "com.google.errorprone:error_prone_core:latest.release"
     errorproneJavac "com.google.errorprone:javac:9+181-r4173-1"
 
@@ -104,7 +103,6 @@ dependencies {
 
     testImplementation 'com.github.tomakehurst:wiremock-standalone:2.27.2'
     testImplementation 'io.netty:netty-tcnative-boringssl-static:2.0.61.Final'
-
 }
 
 test {

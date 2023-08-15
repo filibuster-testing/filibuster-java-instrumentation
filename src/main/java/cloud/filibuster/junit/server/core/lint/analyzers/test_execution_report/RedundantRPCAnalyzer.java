@@ -19,7 +19,7 @@ public class RedundantRPCAnalyzer extends TestExecutionReportAnalyzer {
         this.testExecutionReport = testExecutionReport;
     }
 
-    private final List<String> seenRPCs = new ArrayList<>();
+    private final List<String> seenRpcs = new ArrayList<>();
 
     @Override
     void rpc(boolean testPassed, int RPC, DistributedExecutionIndex distributedExecutionIndex, JSONObject invocation, JSONObject fault, JSONObject response) {
@@ -47,17 +47,17 @@ public class RedundantRPCAnalyzer extends TestExecutionReportAnalyzer {
             String key = deiKey + invocationArgs + responseToEncode;
             String method = invocation.getString("method");
 
-            if (seenRPCs.contains(key)) {
+            if (seenRpcs.contains(key)) {
                 if (getTestAvoidRedundantInjectionsProperty()) {
-                    List<DistributedExecutionIndex> cachedRPCs = testExecutionReport.getCachedRPCs();
-                    if (!cachedRPCs.contains(distributedExecutionIndex)) {
+                    List<DistributedExecutionIndex> cachedRpcs = testExecutionReport.getCachedRpcs();
+                    if (!cachedRpcs.contains(distributedExecutionIndex)) {
                         this.addWarning(new RedundantRPCWarning(distributedExecutionIndex, method));
                     }
                 } else {
                     this.addWarning(new RedundantRPCWarning(distributedExecutionIndex, method));
                 }
             } else {
-                seenRPCs.add(key);
+                seenRpcs.add(key);
             }
         }
     }

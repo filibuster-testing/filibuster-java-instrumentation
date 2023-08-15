@@ -92,7 +92,7 @@ public class OpenTelemetryHelloServerWithHelloAndWorldAndFilibusterServerFakeTes
         JSONObject firstInvocationPayload = FilibusterServerFake.payloadsReceived.get(0);
         assertEquals("invocation", firstInvocationPayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-a705ed5b37a7ad1a90cc64c6547ed1e178a9b3e3-cd553bcb135254a6e404722518353bba5cd1c7ca\", 1]]", firstInvocationPayload.getString("execution_index"));
-        assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationPayload.getJSONObject("vclock").toString());
+        assertEquals(firstRequestVectorClock.toJsonObject().toString(), firstInvocationPayload.getJSONObject("vclock").toString());
 
         JSONObject firstRequestReceivedPayload = FilibusterServerFake.payloadsReceived.get(1);
         assertEquals("request_received", firstRequestReceivedPayload.getString("instrumentation_type"));
@@ -101,17 +101,17 @@ public class OpenTelemetryHelloServerWithHelloAndWorldAndFilibusterServerFakeTes
         JSONObject secondInvocationPayload = FilibusterServerFake.payloadsReceived.get(2);
         assertEquals("invocation", secondInvocationPayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-a705ed5b37a7ad1a90cc64c6547ed1e178a9b3e3-cd553bcb135254a6e404722518353bba5cd1c7ca\", 1], [\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-7c211433f02071597741e6ff5a8ea34789abbf43-bf801c417a24769c151e3729f35ee3e62e4e04d4-c5243e30b91ebfb78127957601f1e732065c0712-efcac005fd5764253ef51e64f89f80aa3694defe\", 1]]", secondInvocationPayload.getString("execution_index"));
-        assertEquals(secondRequestVectorClock.toJSONObject().toString(), secondInvocationPayload.getJSONObject("vclock").toString());
+        assertEquals(secondRequestVectorClock.toJsonObject().toString(), secondInvocationPayload.getJSONObject("vclock").toString());
 
         JSONObject secondInvocationCompletePayload = FilibusterServerFake.payloadsReceived.get(3);
         assertEquals("invocation_complete", secondInvocationCompletePayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-a705ed5b37a7ad1a90cc64c6547ed1e178a9b3e3-cd553bcb135254a6e404722518353bba5cd1c7ca\", 1], [\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-7c211433f02071597741e6ff5a8ea34789abbf43-bf801c417a24769c151e3729f35ee3e62e4e04d4-c5243e30b91ebfb78127957601f1e732065c0712-efcac005fd5764253ef51e64f89f80aa3694defe\", 1]]", secondInvocationCompletePayload.getString("execution_index"));
-        assertEquals(secondRequestVectorClock.toJSONObject().toString(), secondInvocationCompletePayload.getJSONObject("vclock").toString());
+        assertEquals(secondRequestVectorClock.toJsonObject().toString(), secondInvocationCompletePayload.getJSONObject("vclock").toString());
 
         JSONObject firstInvocationCompletePayload = FilibusterServerFake.payloadsReceived.get(4);
         assertEquals("invocation_complete", firstInvocationCompletePayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-a705ed5b37a7ad1a90cc64c6547ed1e178a9b3e3-cd553bcb135254a6e404722518353bba5cd1c7ca\", 1]]", firstInvocationCompletePayload.getString("execution_index"));
-        assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationCompletePayload.getJSONObject("vclock").toString());
+        assertEquals(firstRequestVectorClock.toJsonObject().toString(), firstInvocationCompletePayload.getJSONObject("vclock").toString());
     }
 
     // This tests end-to-end otel instrumentation for HTTP.
@@ -143,7 +143,7 @@ public class OpenTelemetryHelloServerWithHelloAndWorldAndFilibusterServerFakeTes
         JSONObject firstInvocationPayload = FilibusterServerFake.payloadsReceived.get(0);
         assertEquals("invocation", firstInvocationPayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-bff96a2a30981288fd5bcd38cfa72adcd6839f87-7bcdb88aab6e3f3843fcdbf587c4e5e56f34c6c2\", 1]]", firstInvocationPayload.getString("execution_index"));
-        assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationPayload.getJSONObject("vclock").toString());
+        assertEquals(firstRequestVectorClock.toJsonObject().toString(), firstInvocationPayload.getJSONObject("vclock").toString());
 
         JSONObject firstRequestReceivedPayload = FilibusterServerFake.payloadsReceived.get(1);
         assertEquals("request_received", firstRequestReceivedPayload.getString("instrumentation_type"));
@@ -152,16 +152,16 @@ public class OpenTelemetryHelloServerWithHelloAndWorldAndFilibusterServerFakeTes
         JSONObject secondInvocationPayload = FilibusterServerFake.payloadsReceived.get(2);
         assertEquals("invocation", secondInvocationPayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-bff96a2a30981288fd5bcd38cfa72adcd6839f87-7bcdb88aab6e3f3843fcdbf587c4e5e56f34c6c2\", 1], [\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-7c211433f02071597741e6ff5a8ea34789abbf43-bf801c417a24769c151e3729f35ee3e62e4e04d4-60c35754561025cfd6a26701f03f4dcdeedfe6d3-efcac005fd5764253ef51e64f89f80aa3694defe\", 1]]", secondInvocationPayload.getString("execution_index"));
-        assertEquals(secondRequestVectorClock.toJSONObject().toString(), secondInvocationPayload.getJSONObject("vclock").toString());
+        assertEquals(secondRequestVectorClock.toJsonObject().toString(), secondInvocationPayload.getJSONObject("vclock").toString());
 
         JSONObject secondInvocationCompletePayload = FilibusterServerFake.payloadsReceived.get(3);
         assertEquals("invocation_complete", secondInvocationCompletePayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-bff96a2a30981288fd5bcd38cfa72adcd6839f87-7bcdb88aab6e3f3843fcdbf587c4e5e56f34c6c2\", 1], [\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-7c211433f02071597741e6ff5a8ea34789abbf43-bf801c417a24769c151e3729f35ee3e62e4e04d4-60c35754561025cfd6a26701f03f4dcdeedfe6d3-efcac005fd5764253ef51e64f89f80aa3694defe\", 1]]", secondInvocationCompletePayload.getString("execution_index"));
-        assertEquals(secondRequestVectorClock.toJSONObject().toString(), secondInvocationCompletePayload.getJSONObject("vclock").toString());
+        assertEquals(secondRequestVectorClock.toJsonObject().toString(), secondInvocationCompletePayload.getJSONObject("vclock").toString());
 
         JSONObject firstInvocationCompletePayload = FilibusterServerFake.payloadsReceived.get(4);
         assertEquals("invocation_complete", firstInvocationCompletePayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d-bf801c417a24769c151e3729f35ee3e62e4e04d4-bff96a2a30981288fd5bcd38cfa72adcd6839f87-7bcdb88aab6e3f3843fcdbf587c4e5e56f34c6c2\", 1]]", firstInvocationCompletePayload.getString("execution_index"));
-        assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationCompletePayload.getJSONObject("vclock").toString());
+        assertEquals(firstRequestVectorClock.toJsonObject().toString(), firstInvocationCompletePayload.getJSONObject("vclock").toString());
     }
 }

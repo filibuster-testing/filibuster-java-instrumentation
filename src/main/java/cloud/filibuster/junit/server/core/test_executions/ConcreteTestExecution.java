@@ -6,7 +6,7 @@ import cloud.filibuster.junit.server.core.reports.TestExecutionReport;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @SuppressWarnings("Varifier")
@@ -17,26 +17,26 @@ public class ConcreteTestExecution extends TestExecution implements Cloneable {
 
     private BlockType lastTestScopeBlockType = BlockType.DEFAULT;
 
-    public ConcreteTestExecution(String testName, UUID testUUID, String className) {
-        testExecutionReport = new TestExecutionReport(testName, testUUID, className);
+    public ConcreteTestExecution(String testName, UUID testUuid, String className) {
+        testExecutionReport = new TestExecutionReport(testName, testUuid, className);
     }
 
-    public ConcreteTestExecution(AbstractTestExecution abstractTestExecution, String testName, UUID testUUID, String className) {
-        testExecutionReport = new TestExecutionReport(testName, testUUID, className);
+    public ConcreteTestExecution(AbstractTestExecution abstractTestExecution, String testName, UUID testUuid, String className) {
+        testExecutionReport = new TestExecutionReport(testName, testUuid, className);
         faultsToInject.putAll(abstractTestExecution.faultsToInject);
         testExecutionReport.setFaultsInjected(faultsToInject);
     }
 
-    public HashMap<DistributedExecutionIndex, JSONObject> getFaultsToInject() {
+    public Map<DistributedExecutionIndex, JSONObject> getFaultsToInject() {
         return this.faultsToInject;
     }
 
-    public HashMap<DistributedExecutionIndex, JSONObject> getFailedRPCs() {
-        return this.failedRPCs;
+    public Map<DistributedExecutionIndex, JSONObject> getFailedRpcs() {
+        return this.failedRpcs;
     }
 
-    public HashMap<DistributedExecutionIndex, JSONObject> getExecutedRPCs() {
-        return this.executedRPCs;
+    public Map<DistributedExecutionIndex, JSONObject> getExecutedRpcs() {
+        return this.executedRpcs;
     }
 
     public void incrementTestScopeCounter() {
@@ -58,8 +58,8 @@ public class ConcreteTestExecution extends TestExecution implements Cloneable {
 
     public AbstractTestExecution toAbstractTestExecution() {
         AbstractTestExecution abstractTestExecution = new AbstractTestExecution(this);
-        abstractTestExecution.executedRPCs.putAll(executedRPCs);
-        abstractTestExecution.nondeterministicExecutedRPCs.putAll(nondeterministicExecutedRPCs);
+        abstractTestExecution.executedRpcs.putAll(executedRpcs);
+        abstractTestExecution.nondeterministicExecutedRpcs.putAll(nondeterministicExecutedRpcs);
         abstractTestExecution.faultsToInject.putAll(faultsToInject);
         return abstractTestExecution;
     }
@@ -83,12 +83,12 @@ public class ConcreteTestExecution extends TestExecution implements Cloneable {
     @Override
     protected Object clone() {
         ConcreteTestExecution concreteTestExecution = new ConcreteTestExecution(testExecutionReport.getTestName(),
-                testExecutionReport.getTestUUID(),
+                testExecutionReport.getTestUuid(),
                 testExecutionReport.getClassName());
         concreteTestExecution.generatedId = this.generatedId;
         concreteTestExecution.firstRequestSeenByService.putAll(firstRequestSeenByService);
-        concreteTestExecution.executedRPCs.putAll(executedRPCs);
-        concreteTestExecution.nondeterministicExecutedRPCs.putAll(nondeterministicExecutedRPCs);
+        concreteTestExecution.executedRpcs.putAll(executedRpcs);
+        concreteTestExecution.nondeterministicExecutedRpcs.putAll(nondeterministicExecutedRpcs);
         concreteTestExecution.faultsToInject.putAll(faultsToInject);
         return concreteTestExecution;
     }

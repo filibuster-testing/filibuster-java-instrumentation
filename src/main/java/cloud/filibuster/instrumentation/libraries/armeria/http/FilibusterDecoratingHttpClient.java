@@ -29,7 +29,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static cloud.filibuster.instrumentation.helpers.Networking.attemptHostnameResolution;
-import static cloud.filibuster.instrumentation.helpers.Networking.extractHostnameAndPortFromURI;
+import static cloud.filibuster.instrumentation.helpers.Networking.extractHostnameAndPortFromUri;
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationServerCommunicationEnabledProperty;
 
@@ -269,7 +269,7 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
         // ******************************************************************************************
 
         String uri = req.uri().toString();
-        Map.Entry<String, String> hostnameAndPort = extractHostnameAndPortFromURI(uri);
+        Map.Entry<String, String> hostnameAndPort = extractHostnameAndPortFromUri(uri);
         String hostname = hostnameAndPort.getKey();
         String port = hostnameAndPort.getValue();
         String hostnameForExceptionBody = attemptHostnameResolution(hostname, uri);

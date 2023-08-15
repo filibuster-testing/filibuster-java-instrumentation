@@ -61,7 +61,7 @@ public class ServiceProfile {
         profile.get(method).add(serviceRequestAndResponse);
     }
 
-    public JSONObject toJSONObject() {
+    public JSONObject toJsonObject() {
         JSONObject jsonObject = new JSONObject();
 
         for (Map.Entry<String, List<ServiceRequestAndResponse>> entry : profile.entrySet()) {
@@ -76,7 +76,7 @@ public class ServiceProfile {
         return jsonObject;
     }
 
-    public static ServiceProfile fromJSONObject(JSONObject jsonObject) {
+    public static ServiceProfile fromJsonObject(JSONObject jsonObject) {
         ServiceProfile serviceProfile = new ServiceProfile();
 
         for (Iterator<String> it = jsonObject.keys(); it.hasNext(); ) {
@@ -85,7 +85,7 @@ public class ServiceProfile {
 
             for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject obj = jsonArray.getJSONObject(i);
-                ServiceRequestAndResponse srr = ServiceRequestAndResponse.fromJSONObject(obj);
+                ServiceRequestAndResponse srr = ServiceRequestAndResponse.fromJsonObject(obj);
                 serviceProfile.addToProfile(key, srr);
             }
         }
@@ -117,7 +117,7 @@ public class ServiceProfile {
         // Write out the actual JSON data.
         Path fspFile = Paths.get(directory + "/latest.fsp");
         try {
-            Files.write(fspFile, toJSONObject().toString(4).getBytes(Charset.defaultCharset()));
+            Files.write(fspFile, toJsonObject().toString(4).getBytes(Charset.defaultCharset()));
         } catch (IOException e) {
             throw new FilibusterServiceProfileWriterException("Filibuster failed to write out the service profile: ", e);
         }
@@ -128,7 +128,7 @@ public class ServiceProfile {
         try {
             String content = new String(Files.readAllBytes(Paths.get(fileName)));
             JSONObject contentObject = new JSONObject(content);
-            ServiceProfile serviceProfile = fromJSONObject(contentObject);
+            ServiceProfile serviceProfile = fromJsonObject(contentObject);
             return serviceProfile;
         } catch (IOException e) {
             throw new FilibusterServiceProfileReaderException("Filibuster failed to read the service profile at " + fileName, e);
@@ -156,7 +156,7 @@ public class ServiceProfile {
         try {
             String content = new String(Files.readAllBytes(path), Charset.defaultCharset());
             JSONObject jsonObject = new JSONObject(content);
-            return ServiceProfile.fromJSONObject(jsonObject);
+            return ServiceProfile.fromJsonObject(jsonObject);
         } catch (IOException e) {
             throw new FilibusterServiceProfileReaderException("Cannot load service profile from file " + path + ": " + e, e);
         }

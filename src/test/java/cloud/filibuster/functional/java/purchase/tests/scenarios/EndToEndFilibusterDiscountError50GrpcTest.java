@@ -50,7 +50,7 @@ public class EndToEndFilibusterDiscountError50GrpcTest extends EndToEndFilibuste
                 readOnlyRPC(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
             }
 
-            sideEffectingRPC(
+            sideEffectingRpc(
                     CartServiceGrpc.getNotifyDiscountAppliedMethod(),
                     Hello.NotifyDiscountAppliedRequest.newBuilder().setCartId(cartId.toString()).build(),
                     0);
@@ -74,7 +74,7 @@ public class EndToEndFilibusterDiscountError50GrpcTest extends EndToEndFilibuste
                 readOnlyRPC(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
             }
 
-            sideEffectingRPC(
+            sideEffectingRpc(
                     CartServiceGrpc.getNotifyDiscountAppliedMethod(),
                     Hello.NotifyDiscountAppliedRequest.newBuilder().setCartId(cartId.toString()).build(),
                     0);
@@ -109,7 +109,7 @@ public class EndToEndFilibusterDiscountError50GrpcTest extends EndToEndFilibuste
                 readOnlyRPC(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
             }
 
-            sideEffectingRPC(
+            sideEffectingRpc(
                     CartServiceGrpc.getNotifyDiscountAppliedMethod(),
                     Hello.NotifyDiscountAppliedRequest.newBuilder().setCartId(cartId.toString()).build(),
                     0);

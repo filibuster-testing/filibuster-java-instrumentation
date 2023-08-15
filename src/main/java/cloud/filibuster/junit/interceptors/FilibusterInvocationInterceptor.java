@@ -294,7 +294,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
         } else {
             if (currentIteration == 1) {
                 // First iteration always runs because it's the fault free execution.
-                FilibusterInvocationInterceptorHelpers.proceedAndLogException(this, invocation, currentIteration, getWebClient(), filibusterConfiguration,/* shouldWritePlaceholder= */false,/* shouldPrintRPCSummary= */false);
+                FilibusterInvocationInterceptorHelpers.proceedAndLogException(this, invocation, currentIteration, getWebClient(), filibusterConfiguration,/* shouldWritePlaceholder= */false,/* shouldPrintRpcSummary= */false);
             } else if (currentIteration == maxIterations) {
                 // Last iteration never runs.
                 invocation.skip();
@@ -304,7 +304,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
                 if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(getWebClient(), currentIteration, "afterEach", filibusterConfiguration.getAbortOnFirstFailure(), previousIterationFailed)) {
                     invocation.skip();
                 } else {
-                    FilibusterInvocationInterceptorHelpers.proceedAndLogException(this, invocation, currentIteration, getWebClient(), filibusterConfiguration,/* shouldWritePlaceholder= */false,/* shouldPrintRPCSummary= */false);
+                    FilibusterInvocationInterceptorHelpers.proceedAndLogException(this, invocation, currentIteration, getWebClient(), filibusterConfiguration,/* shouldWritePlaceholder= */false,/* shouldPrintRpcSummary= */false);
                 }
             }
         }

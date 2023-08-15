@@ -11,7 +11,6 @@ import cloud.filibuster.junit.server.core.FilibusterCore;
 import com.linecorp.armeria.client.WebClient;
 import org.junit.jupiter.api.extension.InvocationInterceptor;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
@@ -50,7 +49,7 @@ public class FilibusterInvocationInterceptorHelpers {
                                               int currentIteration,
                                               WebClient webClient,
                                               FilibusterConfiguration filibusterConfiguration) throws Throwable {
-        proceedAndLogException(filibusterInvocationInterceptor, invocation, currentIteration, webClient, filibusterConfiguration,/* shouldWritePlaceholder= */true,/* shouldPrintRPCSummary= */true);
+        proceedAndLogException(filibusterInvocationInterceptor, invocation, currentIteration, webClient, filibusterConfiguration,/* shouldWritePlaceholder= */true,/* shouldPrintRpcSummary= */true);
     }
 
     @SuppressWarnings("InterruptedExceptionSwallowed")
@@ -60,7 +59,7 @@ public class FilibusterInvocationInterceptorHelpers {
                                               WebClient webClient,
                                               FilibusterConfiguration filibusterConfiguration,
                                               boolean shouldWritePlaceholder,
-                                              boolean shouldPrintRPCSummary) throws Throwable {
+                                              boolean shouldPrintRpcSummary) throws Throwable {
         try {
             if (getServerBackendCanInvokeDirectlyProperty()) {
                 if (FilibusterCore.hasCurrentInstance() && shouldWritePlaceholder) {
@@ -72,11 +71,11 @@ public class FilibusterInvocationInterceptorHelpers {
 
             if (filibusterConfiguration.getFailOnOrganicFailures() && FilibusterCore.hasCurrentInstance() && FilibusterCore.getCurrentInstance().testContainsOrganicFailures()) {
                 FilibusterOrganicFailuresPresentException t = new FilibusterOrganicFailuresPresentException("Organic failures present: did you stubs for all invoked RPCs?");
-                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */ true, t, shouldPrintRPCSummary);
+                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */ true, t, shouldPrintRpcSummary);
                 FilibusterInvocationInterceptor.previousIterationFailed = true;
                 throw t;
             } else {
-                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */ false, null, shouldPrintRPCSummary);
+                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */ false, null, shouldPrintRpcSummary);
             }
         } catch (Throwable t) {
             Class<? extends Throwable> expectedExceptionClass = filibusterConfiguration.getExpected();
@@ -85,10 +84,10 @@ public class FilibusterInvocationInterceptorHelpers {
                 // FilibusterFaultNotInjectedException and FilibusterFaultNotInjectedAndATrackedMethodInvokedException are thrown by recordIterationComplete -> FilibusterCore.completeIteration
                 // In this case, we do not need to call recordIterationComplete again since invocation has already been recorded
                 if (!expectedExceptionClass.equals(FilibusterFaultNotInjectedException.class) && !expectedExceptionClass.equals(FilibusterFaultNotInjectedAndATrackedMethodInvokedException.class)) {
-                    FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */false, null, shouldPrintRPCSummary);
+                    FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */false, null, shouldPrintRpcSummary);
                 }
             } else {
-                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */true, t, shouldPrintRPCSummary);
+                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */true, t, shouldPrintRpcSummary);
                 FilibusterInvocationInterceptor.previousIterationFailed = true;
                 throw t;
             }

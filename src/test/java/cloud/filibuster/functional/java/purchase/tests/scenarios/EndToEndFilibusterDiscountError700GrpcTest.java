@@ -55,7 +55,7 @@ public class EndToEndFilibusterDiscountError700GrpcTest extends EndToEndFilibust
                 readOnlyRPC(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
             }
 
-            sideEffectingRPC(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
+            sideEffectingRpc(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
         });
 
         // Combination of three failures using if forces exception.

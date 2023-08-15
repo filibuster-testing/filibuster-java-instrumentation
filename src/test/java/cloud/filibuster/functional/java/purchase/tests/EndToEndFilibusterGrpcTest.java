@@ -111,7 +111,7 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
                 readOnlyRPC(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
             }
 
-            sideEffectingRPC(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
+            sideEffectingRpc(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
         });
 
         // No error handling, propagate back to the upstream.
@@ -135,7 +135,7 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
                 readOnlyRPC(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
             }
 
-            sideEffectingRPC(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
+            sideEffectingRpc(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
         });
 
         // Failure of the getCartFromSession call results in upstream receiving UNAVAILABLE exception.
@@ -269,7 +269,7 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
                 allCartRequestsFaultSpecification,
                 () -> {
                     assertTestBlock(10000);
-                    sideEffectingRPC(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
+                    sideEffectingRpc(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
                 });
     }
 

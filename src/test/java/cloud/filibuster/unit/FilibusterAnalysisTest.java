@@ -72,6 +72,6 @@ public class FilibusterAnalysisTest {
         String read = Files.readString(file);
         JSONObject reread = new JSONObject(read);
 
-        assertTrue(filibusterAnalysisConfigurationFile.toJSONObject().similar(reread));
+        assertTrue(filibusterAnalysisConfigurationFile.toJsonObject().similar(reread));
     }
 }

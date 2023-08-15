@@ -587,7 +587,7 @@ public interface FilibusterGrpcTest {
      * @param <ReqT>           the request type for this method
      * @param <ResT>           the response type for this method
      */
-    default <ReqT, ResT> void sideEffectingRPC(MethodDescriptor<ReqT, ResT> methodDescriptor, int count) {
+    default <ReqT, ResT> void sideEffectingRpc(MethodDescriptor<ReqT, ResT> methodDescriptor, int count) {
         if (isInsideOfAssertOnExceptionBlock() || isInsideOfAssertOnFaultBlock()) {
             GrpcMock.adjustExpectation(methodDescriptor, count);
         } else {
@@ -604,7 +604,7 @@ public interface FilibusterGrpcTest {
      * @param <ReqT>           the request type for this method
      * @param <ResT>           the response type for this method
      */
-    default <ReqT, ResT> void sideEffectingRPC(MethodDescriptor<ReqT, ResT> methodDescriptor, ReqT request, int count) {
+    default <ReqT, ResT> void sideEffectingRpc(MethodDescriptor<ReqT, ResT> methodDescriptor, ReqT request, int count) {
         if (isInsideOfAssertOnExceptionBlock() || isInsideOfAssertOnFaultBlock()) {
             GrpcMock.adjustExpectation(methodDescriptor, request, count);
         } else {

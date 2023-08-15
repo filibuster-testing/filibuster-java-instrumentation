@@ -49,7 +49,7 @@ public class ServiceRequestAndResponse {
         return jsonObject;
     }
 
-    public static ServiceRequestAndResponse fromJSONObject(JSONObject jsonObject) {
+    public static ServiceRequestAndResponse fromJsonObject(JSONObject jsonObject) {
         JSONObject requestObject = jsonObject.getJSONObject("request");
         GeneratedMessageV3 request = GeneratedMessageV3Serializer.fromJSONObject(requestObject);
 

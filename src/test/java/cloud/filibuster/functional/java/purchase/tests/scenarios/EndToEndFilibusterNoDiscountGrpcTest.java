@@ -59,7 +59,7 @@ public class EndToEndFilibusterNoDiscountGrpcTest extends EndToEndFilibusterGrpc
                 readOnlyRPC(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
             }
 
-            sideEffectingRPC(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
+            sideEffectingRpc(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
         });
     }
 

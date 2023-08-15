@@ -32,9 +32,9 @@ public final class JsonObjectAsStringTransformer implements Transformer<String, 
         payloadJO = JsonUtils.flatten(payloadJO);
 
         SimpleImmutableEntry<String, String> lastCtxEntry = ctx.get(ctx.size() - 1);
-        String valueToTransform = payloadJO.getString(lastCtxEntry.getKey());
+        Object valueToTransform = payloadJO.get(lastCtxEntry.getKey());
 
-        String transformerClassName = getTransformerClassNameFromReferenceValue(String.class.getName(), valueToTransform);
+        String transformerClassName = getTransformerClassNameFromReferenceValue(valueToTransform);
         Transformer<?, ?> lastTransformer = getTransformerInstance(transformerClassName);
         Accumulator<?, ?> lastAccumulator = gson.fromJson(lastCtxEntry.getValue(), lastTransformer.getAccumulatorType());
 
@@ -44,7 +44,7 @@ public final class JsonObjectAsStringTransformer implements Transformer<String, 
             lastTransformationResult =
                     (Transformer<?, ?>) transformMethod.invoke(
                             lastTransformer,
-                            payloadJO.getString(lastCtxEntry.getKey()),
+                            lastAccumulator.getReferenceValue(),
                             lastAccumulator
                     );
             payloadJO.put(lastCtxEntry.getKey(), lastTransformationResult.getResult().toString());
@@ -106,12 +106,9 @@ public final class JsonObjectAsStringTransformer implements Transformer<String, 
         // If the reference value is an empty JSON object, do not add anything to the context
         if (referenceJO.keySet().size() > 0) {
             String firstKey = referenceJO.keySet().iterator().next();
-            String firstValue = referenceJO.getString(firstKey);
-            String transformerClassName = getTransformerClassNameFromReferenceValue(String.class.getName(), firstValue);
+            Object firstValue = referenceJO.get(firstKey);
 
-            Transformer<?, ?> transformerObject = getTransformerInstance(transformerClassName);
-            Accumulator<?, ?> initialAccumulator = transformerObject.getInitialAccumulator(gson.fromJson(firstValue, transformerObject.getPayloadType()));
-
+            Accumulator<?, ?> initialAccumulator = getInitialAccumulatorFromValue(firstValue);
 
             SimpleImmutableEntry<String, String> entry = new SimpleImmutableEntry<>(firstKey, gson.toJson(initialAccumulator));
             ctx.add(entry);
@@ -123,6 +120,15 @@ public final class JsonObjectAsStringTransformer implements Transformer<String, 
         accumulator.setContext(ctx);
         accumulator.setReferenceValue(referenceValue);
         this.result = referenceValue;
+        return accumulator;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static Accumulator<?, ?> getInitialAccumulatorFromValue(Object value) {
+        String transformerClassName = getTransformerClassNameFromReferenceValue(value);
+        Transformer transformer = getTransformerInstance(transformerClassName);
+        Accumulator accumulator = transformer.getInitialAccumulator();
+        accumulator.setReferenceValue(value);
         return accumulator;
     }
 
@@ -138,16 +144,18 @@ public final class JsonObjectAsStringTransformer implements Transformer<String, 
                 if (ctx.size() == referenceJO.keySet().size()) {
                     this.hasNext = false;
                 } else {
-                    String nextKey = new ArrayList<>(referenceJO.keySet()).get(ctx.size());
-                    String nextValue = referenceJO.getString(nextKey);
-                    String transformerClassName = getTransformerClassNameFromReferenceValue(String.class.getName(), nextValue);
+                    try {
+                        String nextKey = new ArrayList<>(referenceJO.keySet()).get(ctx.size());
+                        Object nextValue = referenceJO.get(nextKey);
 
-                    Transformer<?, ?> transformerObject = getTransformerInstance(transformerClassName);
-                    Accumulator<?, ?> initialAccumulator = transformerObject.getInitialAccumulator(gson.fromJson(nextValue, transformerObject.getPayloadType()));
+                        Accumulator<?, ?> initialAccumulator = getInitialAccumulatorFromValue(nextValue);
+                        SimpleImmutableEntry<String, String> entry = new SimpleImmutableEntry<>(nextKey, gson.toJson(initialAccumulator));
 
-                    SimpleImmutableEntry<String, String> entry = new SimpleImmutableEntry<>(nextKey, gson.toJson(initialAccumulator));
-                    ctx.add(entry);
-                    accumulator.setContext(ctx);
+                        ctx.add(entry);
+                        accumulator.setContext(ctx);
+                    } catch (RuntimeException e) {
+                        throw new FilibusterTransformerException("[JsonObjectAsStringTransformer]: An exception occurred while getting next accumulator", e);
+                    }
                 }
             }
             return accumulator;

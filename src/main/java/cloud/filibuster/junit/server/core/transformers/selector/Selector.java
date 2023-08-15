@@ -7,13 +7,14 @@ import java.util.function.Function;
 
 abstract class Selector {
 
-    abstract Class<? extends Transformer<?, ?>> select(String sReferenceValue);
+    abstract <T> Class<? extends Transformer<?, ?>> select(T sReferenceValue);
+
     private static final Gson gson = new Gson();
 
     @SuppressWarnings("ReturnValueIgnored")
-    <T> boolean isApplicable(Class<T> clazz, String value, Function<T, ?> func) {
+    <CLASS, VALUE> boolean isApplicable(Class<CLASS> clazz, VALUE value, Function<CLASS, ?> func) {
         try {
-            T gsonValue = gson.fromJson(value, clazz);
+            CLASS gsonValue = gson.fromJson(String.valueOf(value), clazz);
             func.apply(gsonValue);
             return true;
         } catch (Throwable e) {

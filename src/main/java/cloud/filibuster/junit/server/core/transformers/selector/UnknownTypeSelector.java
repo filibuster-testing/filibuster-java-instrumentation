@@ -8,9 +8,7 @@ import org.json.JSONObject;
 
 import java.util.regex.Pattern;
 
-
-class StringSelector extends Selector {
-
+class UnknownTypeSelector extends Selector {
     private static final Pattern boolPattern = Pattern.compile("true|false", Pattern.CASE_INSENSITIVE);
 
     @Override
@@ -20,7 +18,7 @@ class StringSelector extends Selector {
             return JsonObjectAsStringTransformer.class;
         }
 
-        if (isApplicable(String.class, payloadValue, StringSelector::isBoolean)) {
+        if (isApplicable(String.class, payloadValue, UnknownTypeSelector::isBoolean)) {
             return BooleanAsStringTransformer.class;
         }
 
@@ -34,5 +32,4 @@ class StringSelector extends Selector {
             throw new IllegalArgumentException("Value is not a boolean: " + value);
         }
     }
-
 }

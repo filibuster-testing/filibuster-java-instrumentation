@@ -7,7 +7,7 @@ import cloud.filibuster.junit.server.core.transformers.Transformer;
 class ByteArraySelector extends Selector {
 
     @Override
-    Class<? extends Transformer<byte[], ?>> select(String payloadValue) {
+    <T> Class<? extends Transformer<byte[], ?>> select(T payloadValue) {
         return BitInByteArrTransformer.class;
     }
 }

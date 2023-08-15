@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -32,12 +33,14 @@ public class JUnitRedisFilibusterGatewayTransformerTest extends JUnitAnnotationB
     static final String booleanFalseKey = "booleanFalseKey";
     static final String booleanFalseValue = "false";
     static final String jsonKey = "jsonKey";
-    static final String jsonValue = new JSONObject().put("hello", "world").put("foo", "bar").toString();
+    static JSONObject studentInfoJO = new JSONObject();
     static StatefulRedisConnection<String, String> statefulRedisConnection;
     static String redisConnectionString;
     private final static Set<String> testExceptionsThrown = new HashSet<>();
-
     private static int numberOfTestExecutions = 0;
+    private final static HashMap<String, Object> studentInfoMap = new HashMap<>();
+    private final static HashMap<String, Object> courseInfoMap = new HashMap<>();
+
 
     @BeforeAll
     public static void primeCache() {
@@ -46,7 +49,25 @@ public class JUnitRedisFilibusterGatewayTransformerTest extends JUnitAnnotationB
         statefulRedisConnection.sync().set(stringKey, stringValue);
         statefulRedisConnection.sync().set(booleanTrueKey, booleanTrueValue);
         statefulRedisConnection.sync().set(booleanFalseKey, booleanFalseValue);
-        statefulRedisConnection.sync().set(jsonKey, jsonValue);
+
+        studentInfoMap.put("name", "Alice");
+        studentInfoMap.put("age", 20);
+        studentInfoMap.put("isEnrolled", true);
+
+        courseInfoMap.put("course_name", "Distributed Systems");
+        courseInfoMap.put("courseNumber", "CS 425");
+        courseInfoMap.put("isGraduateCourse", false);
+        courseInfoMap.put("passed", true);
+        courseInfoMap.put("grade", "A");
+
+        JSONObject courseInfoJO = new JSONObject();
+        buildJOFromMap(courseInfoJO, courseInfoMap);
+
+        buildJOFromMap(studentInfoJO, studentInfoMap);
+
+        studentInfoJO.put("last_course", courseInfoJO);
+
+        statefulRedisConnection.sync().set(jsonKey, studentInfoJO.toString());
     }
 
     @DisplayName("Tests Redis gateway transformer for Strings.")
@@ -69,7 +90,7 @@ public class JUnitRedisFilibusterGatewayTransformerTest extends JUnitAnnotationB
             assertEquals(booleanTrueValue, returnVal);
 
             returnVal = myRedisCommands.get(jsonKey);
-            assertEquals(jsonValue, returnVal);
+            assertEquals(studentInfoJO.toString(), returnVal);
 
             assertFalse(wasFaultInjected());
         } catch (Throwable t) {
@@ -82,17 +103,37 @@ public class JUnitRedisFilibusterGatewayTransformerTest extends JUnitAnnotationB
     @DisplayName("Verify correct number of test executions.")
     @Test
     @Order(2)
-    // 1 for the original test and +1 for each character manipulation in the string stringValue + 1 for each boolean value + 1 for each JSON key/value pair
-    // 1 + 13 + 1 + 1 + 2 = 18
+    // 1 for the original test and +1 for each character manipulation in the string stringValue + 1 for each boolean value + faults in JSONObject
     public void testNumExecutions() {
-        assertEquals(stringValue.length() + 5, numberOfTestExecutions);
+        assertEquals(1 + getNumFaultsInJS() + stringValue.length() + 2, numberOfTestExecutions);
     }
 
     @DisplayName("Verify correct number of faults.")
     @Test
     @Order(3)
     public void testNumExceptions() {
-        assertEquals(stringValue.length() + 4, testExceptionsThrown.size());
+        assertEquals(getNumFaultsInJS() + stringValue.length() + 2, testExceptionsThrown.size());
     }
 
+    private static void buildJOFromMap(JSONObject jo, HashMap<String, Object> map) {
+        for (String key : map.keySet()) {
+            jo.put(key, map.get(key));
+        }
+    }
+
+    private static int getNumFaultsInJS() {
+        int numFaults = 0;
+        HashMap<String, Object> allMaps = new HashMap<>();
+        allMaps.putAll(studentInfoMap);
+        allMaps.putAll(courseInfoMap);
+
+        for (Object value : allMaps.values()) {
+            if (value.equals(true) || value.equals(false)) {
+                ++numFaults;
+            } else {
+                numFaults += String.valueOf(value).length();
+            }
+        }
+        return numFaults;
+    }
 }

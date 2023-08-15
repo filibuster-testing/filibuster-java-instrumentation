@@ -226,7 +226,7 @@ public class TestSuiteReport {
         String testName = testReport.getTestName();
         String className = testReport.getClassName();
         File testPath = testReport.getReportPath();
-        ArrayList<TestExecutionReport> testExecutionReports = testReport.getTestExecutionReports();
+        List<TestExecutionReport> testExecutionReports = testReport.getTestExecutionReports();
         boolean hasNoFailures = testExecutionReports.stream().map(TestExecutionReport::isTestExecutionPassed)
                 .reduce(true, (curr, next) -> curr && next);
         testReportSummaries.add(new FilibusterTestReportSummary(testName, testPath, hasNoFailures,className));

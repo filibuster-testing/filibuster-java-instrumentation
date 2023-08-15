@@ -620,7 +620,7 @@ public interface FilibusterGrpcTest {
         List<JSONObject> rpcsWhereFaultsInjected = new ArrayList<>();
 
         // Look up the RPCs that were executed and the faults that were injected.
-        Map<DistributedExecutionIndex, JSONObject> executedRpcs = getExecutedRPCs();
+        Map<DistributedExecutionIndex, JSONObject> executedRpcs = getExecutedRpcs();
 
         if (executedRpcs == null) {
             throw new FilibusterGrpcTestInternalRuntimeException("executedRpcs is null: this could indicate a problem!");
@@ -635,12 +635,12 @@ public interface FilibusterGrpcTest {
         for (Map.Entry<DistributedExecutionIndex, JSONObject> executedRpc : executedRpcs.entrySet()) {
             if (faultsInjected.containsKey(executedRpc.getKey())) {
                 JSONObject faultInjected = faultsInjected.get(executedRpc.getKey());
-                JSONObject finalExecutedRPC = executedRpc.getValue();
+                JSONObject finalExecutedRpc = executedRpc.getValue();
                 if (faultInjected.has("forced_exception")) {
                     JSONObject forcedExceptionObject = faultInjected.getJSONObject("forced_exception");
-                    finalExecutedRPC.put("forced_exception", forcedExceptionObject);
+                    finalExecutedRpc.put("forced_exception", forcedExceptionObject);
                 }
-                rpcsWhereFaultsInjected.add(finalExecutedRPC);
+                rpcsWhereFaultsInjected.add(finalExecutedRpc);
             }
         }
 
@@ -900,10 +900,10 @@ public interface FilibusterGrpcTest {
         }
 
         // Fail the test if any RPCs were left UNIMPLEMENTED (and, we didn't inject it!)
-        Map<DistributedExecutionIndex, JSONObject> failedRPCs = getFailedRpcs();
+        Map<DistributedExecutionIndex, JSONObject> failedRpcs = getFailedRpcs();
 
-        if (failedRPCs == null) {
-            throw new FilibusterGrpcTestInternalRuntimeException("failedRPCs is null: this could indicate a problem!");
+        if (failedRpcs == null) {
+            throw new FilibusterGrpcTestInternalRuntimeException("failedRpcs is null: this could indicate a problem!");
         }
 
         Map<DistributedExecutionIndex, JSONObject> faultsInjected = getFaultsInjected();
@@ -912,9 +912,9 @@ public interface FilibusterGrpcTest {
             throw new FilibusterGrpcTestInternalRuntimeException("faultsInjected is null: this could indicate a problem!");
         }
 
-        for (Map.Entry<DistributedExecutionIndex, JSONObject> failedRPC : failedRPCs.entrySet()) {
-            DistributedExecutionIndex distributedExecutionIndex = failedRPC.getKey();
-            JSONObject jsonObject = failedRPC.getValue();
+        for (Map.Entry<DistributedExecutionIndex, JSONObject> failedRpc : failedRpcs.entrySet()) {
+            DistributedExecutionIndex distributedExecutionIndex = failedRpc.getKey();
+            JSONObject jsonObject = failedRpc.getValue();
 
             Status.Code statusCode = getStatusCode("exception", jsonObject);
 
@@ -1144,7 +1144,7 @@ public interface FilibusterGrpcTest {
     default Map<DistributedExecutionIndex, JSONObject> getFailedRpcs() {
         if (getServerBackendCanInvokeDirectlyProperty()) {
             if (FilibusterCore.hasCurrentInstance()) {
-                return FilibusterCore.getCurrentInstance().failedRPCs();
+                return FilibusterCore.getCurrentInstance().failedRpcs();
             } else {
                 return new HashMap<>();
             }
@@ -1165,10 +1165,10 @@ public interface FilibusterGrpcTest {
         }
     }
 
-    default Map<DistributedExecutionIndex, JSONObject> getExecutedRPCs() {
+    default Map<DistributedExecutionIndex, JSONObject> getExecutedRpcs() {
         if (getServerBackendCanInvokeDirectlyProperty()) {
             if (FilibusterCore.hasCurrentInstance()) {
-                return FilibusterCore.getCurrentInstance().executedRPCs();
+                return FilibusterCore.getCurrentInstance().executedRpcs();
             } else {
                 return new HashMap<>();
             }

@@ -22,16 +22,16 @@ public abstract class TestExecution {
     int generatedId = 0;
 
     // What RPCs were executed?
-    HashMap<DistributedExecutionIndex, JSONObject> executedRPCs = new HashMap<>();
+    HashMap<DistributedExecutionIndex, JSONObject> executedRpcs = new HashMap<>();
 
     // What RPCs were executed (without their arguments, which may be nondeterministic across executions)?
-    HashMap<DistributedExecutionIndex, JSONObject> nondeterministicExecutedRPCs = new HashMap<>();
+    HashMap<DistributedExecutionIndex, JSONObject> nondeterministicExecutedRpcs = new HashMap<>();
 
     // What faults should be injected in this execution?
     HashMap<DistributedExecutionIndex, JSONObject> faultsToInject = new HashMap<>();
 
     // What RPCs failed?
-    HashMap<DistributedExecutionIndex, JSONObject> failedRPCs = new HashMap<>();
+    HashMap<DistributedExecutionIndex, JSONObject> failedRpcs = new HashMap<>();
 
     HashMap<String, Boolean> firstRequestSeenByService = new HashMap<>();
 
@@ -43,15 +43,15 @@ public abstract class TestExecution {
         firstRequestSeenByService.put(serviceName, true);
     }
 
-    public void printRPCs() {
+    public void printRpcs() {
         StringBuilder logMessage = new StringBuilder("\n");
 
         logMessage.append("[FILIBUSTER-CORE]: RPCs executed and interposed by Filibuster");
         logMessage.append("\n").append("\n");
 
-        for (DistributedExecutionIndex name: executedRPCs.keySet()) {
+        for (DistributedExecutionIndex name: executedRpcs.keySet()) {
             String key = name.toString();
-            JSONObject value = executedRPCs.get(name);
+            JSONObject value = executedRpcs.get(name);
             if (key != null && value != null) {
                 logMessage.append(key).append(" => ").append(value.toString(4)).append("\n");
             }
@@ -66,7 +66,7 @@ public abstract class TestExecution {
                 JSONObject value = faultsToInject.get(name);
 
                 // getOrDefault needed because when application is nondeterministic the lookup for the request will fail because of a lack of DEI matches.
-                JSONObject request = executedRPCs.getOrDefault(name, new JSONObject().put("error", "no request information found"));
+                JSONObject request = executedRpcs.getOrDefault(name, new JSONObject().put("error", "no request information found"));
 
                 logMessage.append(key).append(" => ").append(value.toString(4)).append(" => ").append(request.toString(4)).append("\n");
             }
@@ -81,8 +81,8 @@ public abstract class TestExecution {
     public boolean hasSeenRpcUnderSameOrDifferentDistributedExecutionIndex(JSONObject payload) {
         JSONObject payloadCacheCleaned = cleanPayloadForCacheComparison(payload);
 
-        for (Map.Entry<DistributedExecutionIndex, JSONObject> executedRPC : executedRPCs.entrySet()) {
-            JSONObject seenPayload = executedRPC.getValue();
+        for (Map.Entry<DistributedExecutionIndex, JSONObject> executedRpc : executedRpcs.entrySet()) {
+            JSONObject seenPayload = executedRpc.getValue();
             JSONObject seenPayloadCacheCleaned = cleanPayloadForCacheComparison(seenPayload);
 
             if (seenPayloadCacheCleaned.similar(payloadCacheCleaned)) {
@@ -96,16 +96,16 @@ public abstract class TestExecution {
     public void addDistributedExecutionIndexWithRequestPayload(DistributedExecutionIndex distributedExecutionIndex, JSONObject payload) {
         // Add to the list of executed RPCs.
         JSONObject payloadWithoutInstrumentationType = cleanPayloadOfInstrumentationType(payload);
-        executedRPCs.put(distributedExecutionIndex, payloadWithoutInstrumentationType);
+        executedRpcs.put(distributedExecutionIndex, payloadWithoutInstrumentationType);
 
         // Add to the list of nondeterministic executed RPCs.
         JSONObject deterministicPayload = cleanPayloadOfArguments(payload);
-        nondeterministicExecutedRPCs.put(distributedExecutionIndex, deterministicPayload);
+        nondeterministicExecutedRpcs.put(distributedExecutionIndex, deterministicPayload);
     }
 
     public void addDistributedExecutionIndexWithResponsePayload(DistributedExecutionIndex distributedExecutionIndex, JSONObject payload) {
         if (payload.has("exception")) {
-            failedRPCs.put(distributedExecutionIndex, payload);
+            failedRpcs.put(distributedExecutionIndex, payload);
         }
     }
 
@@ -133,10 +133,10 @@ public abstract class TestExecution {
     }
 
     public boolean wasFaultInjectedOnRequest(String serializedRequest) {
-        for (Map.Entry<DistributedExecutionIndex, JSONObject> entry : executedRPCs.entrySet()) {
-            JSONObject executedRPCObject = entry.getValue();
+        for (Map.Entry<DistributedExecutionIndex, JSONObject> entry : executedRpcs.entrySet()) {
+            JSONObject executedRpcObject = entry.getValue();
 
-            if (executedRPCObject.getJSONObject("args").getString("toString").equals(serializedRequest)) {
+            if (executedRpcObject.getJSONObject("args").getString("toString").equals(serializedRequest)) {
                 DistributedExecutionIndex distributedExecutionIndex = entry.getKey();
 
                 if (faultsToInject.containsKey(distributedExecutionIndex)) {
@@ -157,9 +157,9 @@ public abstract class TestExecution {
 
         Pattern pattern = Pattern.compile(uriPattern, Pattern.CASE_INSENSITIVE);
 
-        for (Map.Entry<DistributedExecutionIndex, JSONObject> entry : executedRPCs.entrySet()) {
-            JSONObject executedRPCObject = entry.getValue();
-            String argsToString = executedRPCObject.getJSONObject("args").getString("toString");
+        for (Map.Entry<DistributedExecutionIndex, JSONObject> entry : executedRpcs.entrySet()) {
+            JSONObject executedRpcObject = entry.getValue();
+            String argsToString = executedRpcObject.getJSONObject("args").getString("toString");
             Matcher matcher = pattern.matcher(argsToString);
             if (matcher.find()) {
                 DistributedExecutionIndex distributedExecutionIndex = entry.getKey();
@@ -208,12 +208,12 @@ public abstract class TestExecution {
         TestExecution te = (TestExecution) o;
 
         // Are the key sets equivalent?
-        if (!this.executedRPCs.keySet().equals(te.executedRPCs.keySet())) {
+        if (!this.executedRpcs.keySet().equals(te.executedRpcs.keySet())) {
             return false;
         }
 
         // Are the JSON objects similar for each key?
-        boolean equalRPCsMap = this.executedRPCs.entrySet().stream().allMatch(e -> e.getValue().similar(te.executedRPCs.get(e.getKey())));
+        boolean equalRpcsMap = this.executedRpcs.entrySet().stream().allMatch(e -> e.getValue().similar(te.executedRpcs.get(e.getKey())));
 
         // Are the key sets equivalent?
         if (!this.faultsToInject.keySet().equals(te.faultsToInject.keySet())) {
@@ -223,12 +223,12 @@ public abstract class TestExecution {
         // Are the JSON objects similar for each key?
         boolean equalFaultToInjectMap = this.faultsToInject.entrySet().stream().allMatch(e -> e.getValue().similar(te.faultsToInject.get(e.getKey())));
 
-        return equalRPCsMap && equalFaultToInjectMap;
+        return equalRpcsMap && equalFaultToInjectMap;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.executedRPCs, this.faultsToInject);
+        return Objects.hash(this.executedRpcs, this.faultsToInject);
     }
 
     private boolean wasFaultInjectedMatcher(String searchField, String stringToFind) {
@@ -236,7 +236,7 @@ public abstract class TestExecution {
     }
 
     private boolean wasFaultInjectedMatcher(String searchField, String stringToFind, @Nullable String contains) {
-        for (Map.Entry<DistributedExecutionIndex, JSONObject> entry : executedRPCs.entrySet()) {
+        for (Map.Entry<DistributedExecutionIndex, JSONObject> entry : executedRpcs.entrySet()) {
             JSONObject jsonObject = entry.getValue();
 
             if (jsonObject.has(searchField)) {
@@ -248,8 +248,8 @@ public abstract class TestExecution {
                         if (contains == null) {
                             return true;
                         } else {
-                            JSONObject executedRPCObject = entry.getValue();
-                            if (executedRPCObject.getJSONObject("args").getString("toString").contains(contains)) {
+                            JSONObject executedRpcObject = entry.getValue();
+                            if (executedRpcObject.getJSONObject("args").getString("toString").contains(contains)) {
                                 return true;
                             }
                         }
@@ -309,7 +309,7 @@ public abstract class TestExecution {
             // to the concrete execution that contains all RPCs and responses that the abstract was built from.
             // Checking this alone isn't enough, because we want to restrict ourselves only to the subset of RPCs that
             // had been started when we built the abstract execution, hence the prior check.
-            boolean failedInConcreteTestExecution = completedSourceConcreteTestExecution.failedRPCs.containsKey(distributedExecutionIndex);
+            boolean failedInConcreteTestExecution = completedSourceConcreteTestExecution.failedRpcs.containsKey(distributedExecutionIndex);
 
             // Condition 3: Did we inject a fault and that's the reason for failure?
             //
@@ -334,7 +334,7 @@ public abstract class TestExecution {
             DistributedExecutionIndex distributedExecutionIndex
     ) {
         if (sourceConcreteTestExecution != null) {
-            return sourceConcreteTestExecution.executedRPCs.containsKey(distributedExecutionIndex);
+            return sourceConcreteTestExecution.executedRpcs.containsKey(distributedExecutionIndex);
         }
 
         return false;

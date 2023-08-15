@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static cloud.filibuster.junit.server.core.lint.analyzers.LCS.computeLCS;
+import static cloud.filibuster.junit.server.core.lint.analyzers.LCS.computeLcs;
 
 public class ResponseBecomesRequestAnalyzer extends TestExecutionReportAnalyzer {
     public ResponseBecomesRequestAnalyzer(TestExecutionReport testExecutionReport) {
@@ -36,7 +36,7 @@ public class ResponseBecomesRequestAnalyzer extends TestExecutionReportAnalyzer 
             if (previousRPCResponseObject != null) {
                 if (previousRPCResponseObject.has("return_value")) {
                     JSONObject previousResponseObjectReturnValue = previousRPCResponseObject.getJSONObject("return_value");
-                    String lcs = computeLCS(invocationArgs, previousResponseObjectReturnValue.toString());
+                    String lcs = computeLcs(invocationArgs, previousResponseObjectReturnValue.toString());
 
                     boolean lcsAboveThreshold = lcs.length() >= threshold;
                     boolean previousInvocationDirectlyBeforeRPC = (previousResponseInvocationNumber + 1) == RPC;

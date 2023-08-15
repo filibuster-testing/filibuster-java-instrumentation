@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static cloud.filibuster.junit.server.core.lint.analyzers.LCS.computeLCS;
+import static cloud.filibuster.junit.server.core.lint.analyzers.LCS.computeLcs;
 
 public class MultipleInvocationsForIndividualMutationsAnalyzer extends TestExecutionReportAnalyzer {
     private final List<Map.Entry<Integer, Map.Entry<DistributedExecutionIndex, JSONObject>>> previousRpcInvocations = new ArrayList<>();
@@ -28,7 +28,7 @@ public class MultipleInvocationsForIndividualMutationsAnalyzer extends TestExecu
             DistributedExecutionIndex previousDistributedExecutionIndex = previousInvocation.getValue().getKey();
             JSONObject previousInvocationObject = previousInvocation.getValue().getValue();
 
-            String lcs = computeLCS(invocation.getJSONObject("args").getString("toString"), previousInvocationObject.getJSONObject("args").getString("toString"));
+            String lcs = computeLcs(invocation.getJSONObject("args").getString("toString"), previousInvocationObject.getJSONObject("args").getString("toString"));
 
             String previousRequestInvocationMethod = previousInvocationObject.getString("method");
 

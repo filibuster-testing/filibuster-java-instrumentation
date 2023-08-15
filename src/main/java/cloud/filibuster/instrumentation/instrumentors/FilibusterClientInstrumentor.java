@@ -63,7 +63,7 @@ final public class FilibusterClientInstrumentor {
      *
      * @return vector clock request map.
      */
-    public static HashMap<String, HashMap<String, VectorClock>> getVectorClocksByRequest() {
+    public static Map<String, HashMap<String, VectorClock>> getVectorClocksByRequest() {
         return vectorClocksByRequest;
     }
 

@@ -66,6 +66,7 @@ public class FilibusterCore {
 
     // The current instance of the FilibusterCore.
     // Required as the instrumentation has no direct way of being instantiated with this object.
+    @Nullable
     private static FilibusterCore currentInstance;
 
     // The current instance of the FilibusterCore.
@@ -86,7 +87,7 @@ public class FilibusterCore {
      * A unique identifier associated with one filibuster test,
      * in other word, each time the Filibuster server is started, a new test UUID will be issued.
      */
-    private final UUID testUUID = UUID.randomUUID();
+    private final UUID testUuid = UUID.randomUUID();
 
     private int numBypassedExecutions = 0;
 
@@ -104,7 +105,7 @@ public class FilibusterCore {
         currentInstance = this;
         String testName = filibusterConfiguration.getTestName();
         String className = filibusterConfiguration.getClassName();
-        currentConcreteTestExecution = new ConcreteTestExecution(testName, testUUID, className);
+        currentConcreteTestExecution = new ConcreteTestExecution(testName, testUuid, className);
         this.filibusterConfiguration = filibusterConfiguration;
 
         if (filibusterConfiguration.getSearchStrategy() == FilibusterSearchStrategy.DFS) {
@@ -121,7 +122,7 @@ public class FilibusterCore {
         TestSuiteReport.getInstance();
 
         // This statement writes out the placeholder for the report
-        this.testReport = new TestReport(testName, testUUID, className);
+        this.testReport = new TestReport(testName, testUuid, className);
         testReport.writeOutPlaceholder();
     }
 
@@ -516,16 +517,16 @@ public class FilibusterCore {
 
     // This is an old callback used to exit the Python server with code = 1 or code = 0 upon failure.
     public synchronized void completeIteration(int currentIteration, int exceptionOccurred, @Nullable Throwable throwable) {
-        completeIteration(currentIteration, exceptionOccurred, throwable, /* shouldPrintRPCSummary= */true);
+        completeIteration(currentIteration, exceptionOccurred, throwable, /* shouldPrintRpcSummary= */true);
     }
 
-    public synchronized void completeIteration(int currentIteration, int exceptionOccurred, Throwable throwable, boolean shouldPrintRPCSummary) {
+    public synchronized void completeIteration(int currentIteration, int exceptionOccurred, Throwable throwable, boolean shouldPrintRpcSummary) {
         logger.info("[FILIBUSTER-CORE]: completeIteration called, currentIteration: " + currentIteration + ", exceptionOccurred: " + exceptionOccurred);
 
 
         if (currentConcreteTestExecution != null) {
-            if (shouldPrintRPCSummary) {
-                currentConcreteTestExecution.printRPCs();
+            if (shouldPrintRpcSummary) {
+                currentConcreteTestExecution.printRpcs();
             }
 
             if (exceptionOccurred != 0) {
@@ -537,9 +538,9 @@ public class FilibusterCore {
             if (filibusterConfiguration.getFailIfFaultNotInjected()) {
                 if (throwable == null || !throwable.getClass().equals(FilibusterFaultNotInjectedException.class)) {
                     Map<DistributedExecutionIndex, JSONObject> faultsToInject = currentConcreteTestExecution.getFaultsToInject();
-                    Map<DistributedExecutionIndex, JSONObject> failedRPCs = currentConcreteTestExecution.getFailedRPCs();
-                    if (failedRPCs.size() != faultsToInject.size()) {
-                        MapDifference<DistributedExecutionIndex, JSONObject> diff = Maps.difference(faultsToInject, failedRPCs);
+                    Map<DistributedExecutionIndex, JSONObject> failedRpcs = currentConcreteTestExecution.getFailedRpcs();
+                    if (failedRpcs.size() != faultsToInject.size()) {
+                        MapDifference<DistributedExecutionIndex, JSONObject> diff = Maps.difference(faultsToInject, failedRpcs);
                         throw new FilibusterFaultNotInjectedException("One or more of the intended faults was not injected: "
                                 + diff.entriesOnlyOnLeft().values());
                     }
@@ -549,9 +550,9 @@ public class FilibusterCore {
             if (filibusterConfiguration.getFailIfFaultNotInjectedAndATrackedMethodIsInvoked()) {
                 if (throwable == null || !throwable.getClass().equals(FilibusterFaultNotInjectedException.class)) {
                     Map<DistributedExecutionIndex, JSONObject> faultsToInject = currentConcreteTestExecution.getFaultsToInject();
-                    Map<DistributedExecutionIndex, JSONObject> failedRPCs = currentConcreteTestExecution.getFailedRPCs();
-                    if (failedRPCs.size() != faultsToInject.size()) {
-                        MapDifference<DistributedExecutionIndex, JSONObject> diff = Maps.difference(faultsToInject, failedRPCs);
+                    Map<DistributedExecutionIndex, JSONObject> failedRpcs = currentConcreteTestExecution.getFailedRpcs();
+                    if (failedRpcs.size() != faultsToInject.size()) {
+                        MapDifference<DistributedExecutionIndex, JSONObject> diff = Maps.difference(faultsToInject, failedRpcs);
 
                         // Check if a tracked method was invoked.
                         ArrayList<String> methodNames = new ArrayList<>();
@@ -575,7 +576,7 @@ public class FilibusterCore {
         } else {
             throw new FilibusterCoreLogicException("currentConcreteTestExecution should not be null at this point, something fatal occurred.");
         }
-        if (shouldPrintRPCSummary) {
+        if (shouldPrintRpcSummary) {
             printSummary();
         }
 
@@ -610,8 +611,8 @@ public class FilibusterCore {
         boolean found = false;
 
         if (currentConcreteTestExecution != null) {
-            for (Map.Entry<DistributedExecutionIndex, JSONObject> executedRPC: currentConcreteTestExecution.getExecutedRPCs().entrySet()) {
-                DistributedExecutionIndex distributedExecutionIndex = executedRPC.getKey();
+            for (Map.Entry<DistributedExecutionIndex, JSONObject> executedRpc: currentConcreteTestExecution.getExecutedRpcs().entrySet()) {
+                DistributedExecutionIndex distributedExecutionIndex = executedRpc.getKey();
                 boolean organicallyFailedInSourceConcreteTestExecution = organicallyFailedInSourceConcreteTestExecution(this.currentConcreteTestExecution, this.currentConcreteTestExecution, distributedExecutionIndex);
                 boolean faultWasInjected = currentConcreteTestExecution.getFaultsToInject().containsKey(distributedExecutionIndex);
                 if (organicallyFailedInSourceConcreteTestExecution && !faultWasInjected) {
@@ -688,7 +689,7 @@ public class FilibusterCore {
                     // Set the abstract execution, which drives fault injection and copy the faults into the concrete execution for the record.
                     currentAbstractTestExecution = nextAbstractTestExecution;
                     currentConcreteTestExecution = new ConcreteTestExecution(nextAbstractTestExecution, filibusterConfiguration.getTestName(),
-                            testUUID, filibusterConfiguration.getClassName());
+                            testUuid, filibusterConfiguration.getClassName());
                 }
             }
         }
@@ -712,28 +713,28 @@ public class FilibusterCore {
         return result;
     }
 
-    @Nullable public synchronized Map<DistributedExecutionIndex, JSONObject> executedRPCs() {
+    @Nullable public synchronized Map<DistributedExecutionIndex, JSONObject> executedRpcs() {
         logger.info("[FILIBUSTER-CORE]: executedRPCs called");
 
         if (currentConcreteTestExecution == null) {
             return null;
         }
 
-        Map<DistributedExecutionIndex, JSONObject> result = currentConcreteTestExecution.getExecutedRPCs();
+        Map<DistributedExecutionIndex, JSONObject> result = currentConcreteTestExecution.getExecutedRpcs();
 
         logger.info("[FILIBUSTER-CORE]: executedRPCs returning: " + result);
 
         return result;
     }
 
-    @Nullable public synchronized Map<DistributedExecutionIndex, JSONObject> failedRPCs() {
+    @Nullable public synchronized Map<DistributedExecutionIndex, JSONObject> failedRpcs() {
         logger.info("[FILIBUSTER-CORE]: failedRPCs called");
 
         if (currentConcreteTestExecution == null) {
             return null;
         }
 
-        Map<DistributedExecutionIndex, JSONObject> result = currentConcreteTestExecution.getFailedRPCs();
+        Map<DistributedExecutionIndex, JSONObject> result = currentConcreteTestExecution.getFailedRpcs();
 
         logger.info("[FILIBUSTER-CORE]: failedRPCs returning: " + result);
 

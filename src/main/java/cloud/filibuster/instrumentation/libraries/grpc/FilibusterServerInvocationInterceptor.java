@@ -14,7 +14,6 @@ import io.grpc.Status;
 import java.util.UUID;
 
 import static cloud.filibuster.instrumentation.helpers.Property.getEnabledProperty;
-import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationEnabledProperty;
 
 public class FilibusterServerInvocationInterceptor implements ServerInterceptor {
     public FilibusterServerInvocationInterceptor(String packageName) {

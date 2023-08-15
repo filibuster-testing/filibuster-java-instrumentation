@@ -10,18 +10,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 
 public class TestReport {
     private static final Logger logger = Logger.getLogger(TestReport.class.getName());
     private final ArrayList<TestExecutionReport> testExecutionReports = new ArrayList<>();
-    private final UUID testUUID;
+    private final UUID testUuid;
     private final String testName;
     private final String className;
 
-    public TestReport(String testName, UUID testUUID, String className) {
-        this.testUUID = testUUID;
+    public TestReport(String testName, UUID testUuid, String className) {
+        this.testUuid = testUuid;
         this.testName = testName;
         this.className = className;
     }
@@ -30,8 +31,8 @@ public class TestReport {
         return className;
     }
 
-    public UUID getTestUUID() {
-        return testUUID;
+    public UUID getTestUuid() {
+        return testUuid;
     }
 
     public String getTestName() {
@@ -55,7 +56,7 @@ public class TestReport {
     }
 
     private File getDirectoryPath() {
-        return new File(ReportUtilities.getBaseDirectoryPath(), "filibuster-test-" + testUUID.toString());
+        return new File(ReportUtilities.getBaseDirectoryPath(), "filibuster-test-" + testUuid.toString());
     }
 
     public File getReportPath() {
@@ -121,7 +122,7 @@ public class TestReport {
                         "[FILIBUSTER-CORE]: Test Execution Aggregate Report written to file://" + indexPath + "\n");
     }
 
-    private JSONObject toJSONObject() {
+    private JSONObject toJsonObject() {
         JSONObject result = new JSONObject();
         ArrayList<JSONObject> materializedReportMetadatas = new ArrayList<>();
 
@@ -129,7 +130,7 @@ public class TestReport {
             MaterializedTestExecutionReportMetadata mrm = ter.getMaterializedReportMetadata();
 
             if (mrm != null) {
-                materializedReportMetadatas.add(ter.getMaterializedReportMetadata().toJSONObject());
+                materializedReportMetadatas.add(ter.getMaterializedReportMetadata().toJsonObject());
             }
         }
 
@@ -140,11 +141,11 @@ public class TestReport {
     }
 
     private String toJavascript() {
-        JSONObject jsonObject = toJSONObject();
+        JSONObject jsonObject = toJsonObject();
         return "var summary = " + jsonObject.toString(4) + ";";
     }
 
-    public ArrayList<TestExecutionReport> getTestExecutionReports() {
+    public List<TestExecutionReport> getTestExecutionReports() {
         return testExecutionReports;
     }
 }

@@ -6,7 +6,7 @@ public class LCS {
     }
 
     /** function lcs, from <a href="https://www.sanfoundry.com/java-program-longest-common-substring-algorithm/">...</a> **/
-    public static String computeLCS(String str1, String str2)
+    public static String computeLcs(String str1, String str2)
     {
         int l1 = str1.length();
         int l2 = str2.length();

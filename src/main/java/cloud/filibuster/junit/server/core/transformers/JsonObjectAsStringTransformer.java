@@ -7,16 +7,17 @@ import org.json.JSONObject;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.List;
 
-public final class JsonObjectAsStringTransformer implements Transformer<String, ArrayList<String>> {
+public final class JsonObjectAsStringTransformer implements Transformer<String, List<String>> {
     private boolean hasNext = true;
     private String result;
-    private Accumulator<String, ArrayList<String>> accumulator;
+    private Accumulator<String, List<String>> accumulator;
 
     @Override
     @CanIgnoreReturnValue
-    public JsonObjectAsStringTransformer transform(String payload, Accumulator<String, ArrayList<String>> accumulator) {
-        ArrayList<String> ctx = accumulator.getContext();
+    public JsonObjectAsStringTransformer transform(String payload, Accumulator<String, List<String>> accumulator) {
+        List<String> ctx = accumulator.getContext();
 
         JSONObject payloadJO = new JSONObject(payload);
 
@@ -60,7 +61,7 @@ public final class JsonObjectAsStringTransformer implements Transformer<String, 
 
     @Override
     public Type getAccumulatorType() {
-        Type listType = TypeToken.getParameterized(ArrayList.class, String.class).getType();
+        Type listType = TypeToken.getParameterized(List.class, String.class).getType();
 
         return TypeToken.getParameterized(
                 Accumulator.class,
@@ -69,9 +70,9 @@ public final class JsonObjectAsStringTransformer implements Transformer<String, 
     }
 
     @Override
-    public Accumulator<String, ArrayList<String>> getInitialAccumulator(String referenceValue) {
+    public Accumulator<String, List<String>> getInitialAccumulator(String referenceValue) {
         // Prepare initial context
-        ArrayList<String> ctx = new ArrayList<>();
+        List<String> ctx = new ArrayList<>();
         JSONObject referenceJO = new JSONObject(referenceValue);
         if (referenceJO.keySet().size() > 0) {  // If the reference value is an empty JSON object, do not add anything to the context
             ctx.add(referenceJO.keySet().iterator().next());
@@ -79,7 +80,7 @@ public final class JsonObjectAsStringTransformer implements Transformer<String, 
             this.hasNext = false;
         }
 
-        Accumulator<String, ArrayList<String>> accumulator = new Accumulator<>();
+        Accumulator<String, List<String>> accumulator = new Accumulator<>();
         accumulator.setContext(ctx);
         accumulator.setReferenceValue(referenceValue);
         this.result = referenceValue;
@@ -87,11 +88,11 @@ public final class JsonObjectAsStringTransformer implements Transformer<String, 
     }
 
     @Override
-    public Accumulator<String, ArrayList<String>> getNextAccumulator() {
+    public Accumulator<String, List<String>> getNextAccumulator() {
         if (this.accumulator == null) {
             return getInitialAccumulator(getResult());
         } else {
-            ArrayList<String> ctx = accumulator.getContext();
+            List<String> ctx = accumulator.getContext();
             JSONObject referenceJO = new JSONObject(accumulator.getReferenceValue());
 
             for (String key : referenceJO.keySet()) {

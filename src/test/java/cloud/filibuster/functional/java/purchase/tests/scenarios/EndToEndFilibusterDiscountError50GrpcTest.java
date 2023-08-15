@@ -40,14 +40,14 @@ public class EndToEndFilibusterDiscountError50GrpcTest extends EndToEndFilibuste
 
             // Notify the system some endpoints are read-only and therefore OK to skip
             // when we return a failure.
-            readOnlyRPC(UserServiceGrpc.getValidateSessionMethod());
-            readOnlyRPC(CartServiceGrpc.getGetCartForSessionMethod());
+            readOnlyRpc(UserServiceGrpc.getValidateSessionMethod());
+            readOnlyRpc(CartServiceGrpc.getGetCartForSessionMethod());
 
             for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
                 Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
                         .setCode(discountCode.getKey())
                         .build();
-                readOnlyRPC(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
+                readOnlyRpc(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
             }
 
             sideEffectingRpc(
@@ -64,14 +64,14 @@ public class EndToEndFilibusterDiscountError50GrpcTest extends EndToEndFilibuste
 
             // Notify the system some endpoints are read-only and therefore OK to skip
             // when we return a failure.
-            readOnlyRPC(UserServiceGrpc.getValidateSessionMethod());
-            readOnlyRPC(CartServiceGrpc.getGetCartForSessionMethod());
+            readOnlyRpc(UserServiceGrpc.getValidateSessionMethod());
+            readOnlyRpc(CartServiceGrpc.getGetCartForSessionMethod());
 
             for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
                 Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
                         .setCode(discountCode.getKey())
                         .build();
-                readOnlyRPC(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
+                readOnlyRpc(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
             }
 
             sideEffectingRpc(
@@ -99,14 +99,14 @@ public class EndToEndFilibusterDiscountError50GrpcTest extends EndToEndFilibuste
 
             // Notify the system some endpoints are read-only and therefore OK to skip
             // when we return a failure.
-            readOnlyRPC(UserServiceGrpc.getValidateSessionMethod());
-            readOnlyRPC(CartServiceGrpc.getGetCartForSessionMethod());
+            readOnlyRpc(UserServiceGrpc.getValidateSessionMethod());
+            readOnlyRpc(CartServiceGrpc.getGetCartForSessionMethod());
 
             for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
                 Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
                         .setCode(discountCode.getKey())
                         .build();
-                readOnlyRPC(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
+                readOnlyRpc(CartServiceGrpc.getGetDiscountOnCartMethod(), request);
             }
 
             sideEffectingRpc(

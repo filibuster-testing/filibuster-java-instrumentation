@@ -224,7 +224,7 @@ public class SerializersTest {
     @Test
     public void testStatusToJSONObject() {
         ServerInvocationAndResponse sir = generateServerInvocationAndResponse();
-        JSONObject statusObject = StatusSerializer.toJSONObject(sir.getResponseStatus());
+        JSONObject statusObject = StatusSerializer.toJsonObject(sir.getResponseStatus());
 
         JSONObject expectedStatusObject = new JSONObject();
         expectedStatusObject.put("class", "io.grpc.Status");
@@ -236,7 +236,7 @@ public class SerializersTest {
     @Test
     public void testStatusFromJSONObject() {
         ServerInvocationAndResponse sir = generateServerInvocationAndResponse();
-        JSONObject statusObject = StatusSerializer.toJSONObject(sir.getResponseStatus());
+        JSONObject statusObject = StatusSerializer.toJsonObject(sir.getResponseStatus());
 
         JSONObject expectedStatusObject = new JSONObject();
         expectedStatusObject.put("class", "io.grpc.Status");
@@ -244,14 +244,14 @@ public class SerializersTest {
 
         assertTrue(expectedStatusObject.similar(statusObject));
 
-        io.grpc.Status status = StatusSerializer.fromJSONObject(statusObject);
+        io.grpc.Status status = StatusSerializer.fromJsonObject(statusObject);
         assertEquals(sir.getResponseStatus(), status);
     }
 
     @Test
     public void testStatusToJSONObjectWithFailureCodeAndDescription() {
         ServerInvocationAndResponse sir = generateServerInvocationAndResponseWithFailureCodeAndDescription();
-        JSONObject statusObject = StatusSerializer.toJSONObject(sir.getResponseStatus());
+        JSONObject statusObject = StatusSerializer.toJsonObject(sir.getResponseStatus());
 
         JSONObject expectedStatusObject = new JSONObject();
         expectedStatusObject.put("class", "io.grpc.Status");
@@ -264,7 +264,7 @@ public class SerializersTest {
     @Test
     public void testStatusFromJSONObjectWithFailureCodeAndDescription() {
         ServerInvocationAndResponse sir = generateServerInvocationAndResponseWithFailureCodeAndDescription();
-        JSONObject statusObject = StatusSerializer.toJSONObject(sir.getResponseStatus());
+        JSONObject statusObject = StatusSerializer.toJsonObject(sir.getResponseStatus());
 
         JSONObject expectedStatusObject = new JSONObject();
         expectedStatusObject.put("class", "io.grpc.Status");
@@ -273,7 +273,7 @@ public class SerializersTest {
 
         assertTrue(expectedStatusObject.similar(statusObject));
 
-        io.grpc.Status status = StatusSerializer.fromJSONObject(statusObject);
+        io.grpc.Status status = StatusSerializer.fromJsonObject(statusObject);
         assertEquals(sir.getResponseStatus().getCode(), status.getCode());
         assertEquals(sir.getResponseStatus().getDescription(), status.getDescription());
     }
@@ -281,7 +281,7 @@ public class SerializersTest {
     @Test
     public void testStatusToJSONObjectWithFailureCause() {
         ServerInvocationAndResponse sir = generateServerInvocationAndResponseWithFailureCause();
-        JSONObject statusObject = StatusSerializer.toJSONObject(sir.getResponseStatus());
+        JSONObject statusObject = StatusSerializer.toJsonObject(sir.getResponseStatus());
 
         JSONObject expectedStatusObject = new JSONObject();
         expectedStatusObject.put("class", "io.grpc.Status");
@@ -294,7 +294,7 @@ public class SerializersTest {
     @Test
     public void testStatusFromJSONObjectWithFailureCause() {
         ServerInvocationAndResponse sir = generateServerInvocationAndResponseWithFailureCause();
-        JSONObject statusObject = StatusSerializer.toJSONObject(sir.getResponseStatus());
+        JSONObject statusObject = StatusSerializer.toJsonObject(sir.getResponseStatus());
 
         JSONObject expectedStatusObject = new JSONObject();
         expectedStatusObject.put("class", "io.grpc.Status");
@@ -303,7 +303,7 @@ public class SerializersTest {
 
         assertTrue(expectedStatusObject.similar(statusObject));
 
-        io.grpc.Status status = StatusSerializer.fromJSONObject(statusObject);
+        io.grpc.Status status = StatusSerializer.fromJsonObject(statusObject);
         assertEquals(sir.getResponseStatus().getCode(), status.getCode());
         assertEquals(sir.getResponseStatus().getDescription(), status.getDescription());
         assertNull(status.getCause()); // cause does not serialize across service boundaries.

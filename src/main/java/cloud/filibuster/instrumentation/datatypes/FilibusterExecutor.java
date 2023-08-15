@@ -78,7 +78,7 @@ public class FilibusterExecutor {
     /**
      * Return a decorated web client from the common pool.
      *
-     * @param baseURI the base URI for the web client.
+     * @param baseUri the base URI for the web client.
      * @param serviceName the name of the service issuing the call.
      * @return a new web client.
      */

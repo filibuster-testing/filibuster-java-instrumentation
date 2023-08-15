@@ -71,7 +71,7 @@ public class ServerInvocationAndResponse {
         }
 
         if (responseStatus != null) {
-            result.put(Keys.STATUS_KEY, StatusSerializer.toJSONObject(responseStatus));
+            result.put(Keys.STATUS_KEY, StatusSerializer.toJsonObject(responseStatus));
         } else {
             result.put(Keys.STATUS_KEY, new JSONObject());
         }

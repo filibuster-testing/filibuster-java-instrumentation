@@ -11,7 +11,7 @@ public class StatusSerializer {
         public static final String DESCRIPTION_KEY = "description";
     }
 
-    public static JSONObject toJSONObject(Status status) {
+    public static JSONObject toJsonObject(Status status) {
         JSONObject jsonObject = new JSONObject();
 
         jsonObject.put(Keys.CLASS_KEY, "io.grpc.Status");
@@ -28,7 +28,7 @@ public class StatusSerializer {
         return jsonObject;
     }
 
-    public static Status fromJSONObject(JSONObject jsonObject) {
+    public static Status fromJsonObject(JSONObject jsonObject) {
         String codeStr = jsonObject.getString(Keys.CODE_KEY);
         Status.Code code = Status.Code.valueOf(codeStr);
         Status status = Status.fromCode(code);

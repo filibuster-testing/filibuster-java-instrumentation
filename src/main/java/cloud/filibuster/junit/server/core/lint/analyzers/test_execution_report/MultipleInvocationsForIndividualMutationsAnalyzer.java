@@ -33,11 +33,11 @@ public class MultipleInvocationsForIndividualMutationsAnalyzer extends TestExecu
             String previousRequestInvocationMethod = previousInvocationObject.getString("method");
 
             boolean lcsAboveThreshold = lcs.length() >= threshold;
-            boolean previousInvocationDirectlyBeforeRPC = (previousResponseInvocationNumber + 1 == RPC);
+            boolean previousInvocationDirectlyBeforeRpc = (previousResponseInvocationNumber + 1 == RPC);
             boolean sameMethodAsTarget = previousInvocationObject.getString("method").equals(invocation.getString("method"));
             boolean sameArguments = previousInvocationObject.getJSONObject("args").similar(invocation.getJSONObject("args"));
 
-            if (lcsAboveThreshold && previousInvocationDirectlyBeforeRPC && sameMethodAsTarget && !sameArguments) {
+            if (lcsAboveThreshold && previousInvocationDirectlyBeforeRpc && sameMethodAsTarget && !sameArguments) {
                 this.addWarning(new MultipleInvocationsForIndividualMutationsWarning(distributedExecutionIndex,
                         "The following string (" + lcs + ") was used in a request to " + previousRequestInvocationMethod + " and used again to the same method in this test execution."));
             }

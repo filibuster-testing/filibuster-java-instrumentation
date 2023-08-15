@@ -40,7 +40,7 @@ public class ServiceRequestAndResponse {
     public JSONObject toJsonObject() {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("request", GeneratedMessageV3Serializer.toJSONObject(request));
-        jsonObject.put("status", StatusSerializer.toJSONObject(status));
+        jsonObject.put("status", StatusSerializer.toJsonObject(status));
 
         if (response != null) {
             jsonObject.put("response", GeneratedMessageV3Serializer.toJSONObject(response));
@@ -54,7 +54,7 @@ public class ServiceRequestAndResponse {
         GeneratedMessageV3 request = GeneratedMessageV3Serializer.fromJSONObject(requestObject);
 
         JSONObject statusObject = jsonObject.getJSONObject("status");
-        Status status = StatusSerializer.fromJSONObject(statusObject);
+        Status status = StatusSerializer.fromJsonObject(statusObject);
 
         GeneratedMessageV3 response = null;
 

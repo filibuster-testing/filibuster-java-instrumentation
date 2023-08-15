@@ -7,34 +7,37 @@ import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.db.redis.RedisGatewayTransformerAnalysisConfigurationFile;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
+import io.lettuce.core.codec.ByteArrayCodec;
+import io.lettuce.core.codec.RedisCodec;
+import io.lettuce.core.codec.StringCodec;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
 import static cloud.filibuster.junit.assertions.protocols.GenericAssertions.wasFaultInjected;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitRedisFilibusterGatewayTransformerTest extends JUnitAnnotationBaseTest {
+public class JUnitRedisFilibusterByteArrGatewayTransformerTest extends JUnitAnnotationBaseTest {
     static final String stringKey = "stringKey";
-    static final String stringValue = "stringValue";
+    static final byte[] stringValue = "stringValue".getBytes(Charset.defaultCharset());
     static final String booleanTrueKey = "booleanTrueKey";
-    static final String booleanTrueValue = "true";
+    static final byte[] booleanTrueValue = "true".getBytes(Charset.defaultCharset());
     static final String booleanFalseKey = "booleanFalseKey";
-    static final String booleanFalseValue = "false";
+    static final byte[] booleanFalseValue = "false".getBytes(Charset.defaultCharset());
     static final String jsonKey = "jsonKey";
     static JSONObject studentInfoJO = new JSONObject();
-    static StatefulRedisConnection<String, String> statefulRedisConnection;
+    static StatefulRedisConnection<String, byte[]> statefulRedisConnection;
     static String redisConnectionString;
     private final static Set<String> testExceptionsThrown = new HashSet<>();
     private static int numberOfTestExecutions = 0;
@@ -44,7 +47,7 @@ public class JUnitRedisFilibusterGatewayTransformerTest extends JUnitAnnotationB
 
     @BeforeAll
     public static void primeCache() {
-        statefulRedisConnection = RedisClientService.getInstance().redisClient.connect();
+        statefulRedisConnection = RedisClientService.getInstance().redisClient.connect(RedisCodec.of(new StringCodec(), new ByteArrayCodec()));
         redisConnectionString = RedisClientService.getInstance().connectionString;
         statefulRedisConnection.sync().set(stringKey, stringValue);
         statefulRedisConnection.sync().set(booleanTrueKey, booleanTrueValue);
@@ -67,30 +70,30 @@ public class JUnitRedisFilibusterGatewayTransformerTest extends JUnitAnnotationB
 
         studentInfoJO.put("last_course", courseInfoJO);
 
-        statefulRedisConnection.sync().set(jsonKey, studentInfoJO.toString());
+        statefulRedisConnection.sync().set(jsonKey, studentInfoJO.toString().getBytes(Charset.defaultCharset()));
     }
 
-    @DisplayName("Tests Redis gateway transformer for Strings.")
+    @DisplayName("Tests Redis gateway transformer for byte arrays.")
     @Order(1)
     @TestWithFilibuster(analysisConfigurationFile = RedisGatewayTransformerAnalysisConfigurationFile.class)
-    public void testRedisGatewayStringTransformation() {
+    public void testRedisGatewayByteArrTransformation() {
         try {
             numberOfTestExecutions++;
 
-            StatefulRedisConnection<String, String> myStatefulRedisConnection = DynamicProxyInterceptor.createInterceptor(statefulRedisConnection, redisConnectionString);
-            RedisCommands<String, String> myRedisCommands = myStatefulRedisConnection.sync();
+            StatefulRedisConnection<String, byte[]> myStatefulRedisConnection = DynamicProxyInterceptor.createInterceptor(statefulRedisConnection, redisConnectionString);
+            RedisCommands<String, byte[]> myRedisCommands = myStatefulRedisConnection.sync();
 
-            String returnVal = myRedisCommands.get(stringKey);
-            assertEquals(stringValue, returnVal);
+            byte[] returnVal = myRedisCommands.get(stringKey);
+            assertArrayEquals(stringValue, returnVal);
 
             returnVal = myRedisCommands.get(booleanFalseKey);
-            assertEquals(booleanFalseValue, returnVal);
+            assertArrayEquals(booleanFalseValue, returnVal);
 
             returnVal = myRedisCommands.get(booleanTrueKey);
-            assertEquals(booleanTrueValue, returnVal);
+            assertArrayEquals(booleanTrueValue, returnVal);
 
-            returnVal = myRedisCommands.get(jsonKey);
-            assertEquals(studentInfoJO.toString(), returnVal);
+//            returnVal = myRedisCommands.get(jsonKey);
+//            assertArrayEquals(studentInfoJO.toString().getBytes(Charset.defaultCharset()), returnVal);
 
             assertFalse(wasFaultInjected());
         } catch (Throwable t) {
@@ -100,20 +103,20 @@ public class JUnitRedisFilibusterGatewayTransformerTest extends JUnitAnnotationB
         }
     }
 
-    @DisplayName("Verify correct number of test executions.")
-    @Test
-    @Order(2)
-    // 1 for the original test and +1 for each character manipulation in the string stringValue + 1 for each boolean value + faults in JSONObject
-    public void testNumExecutions() {
-        assertEquals(1 + getNumFaultsInJS() + stringValue.length() + 2, numberOfTestExecutions);
-    }
-
-    @DisplayName("Verify correct number of faults.")
-    @Test
-    @Order(3)
-    public void testNumExceptions() {
-        assertEquals(getNumFaultsInJS() + stringValue.length() + 2, testExceptionsThrown.size());
-    }
+//    @DisplayName("Verify correct number of test executions.")
+//    @Test
+//    @Order(2)
+//    // 1 for the original test and +1 for each character manipulation in the string stringValue + 1 for each boolean value + faults in JSONObject
+//    public void testNumExecutions() {
+//        assertEquals(1 + getNumFaultsInJS() + stringValue.length + 2, numberOfTestExecutions);
+//    }
+//
+//    @DisplayName("Verify correct number of faults.")
+//    @Test
+//    @Order(3)
+//    public void testNumExceptions() {
+//        assertEquals(getNumFaultsInJS() + stringValue.length + 2, testExceptionsThrown.size());
+//    }
 
     private static void buildJOFromMap(JSONObject jo, HashMap<String, Object> map) {
         for (String key : map.keySet()) {

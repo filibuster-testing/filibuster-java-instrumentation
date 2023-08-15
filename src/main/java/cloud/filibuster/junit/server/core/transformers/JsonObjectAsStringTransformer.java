@@ -20,7 +20,7 @@ public final class JsonObjectAsStringTransformer implements Transformer<String, 
     private boolean hasNext = true;
     private String result;
     private Accumulator<String, ArrayList<SimpleImmutableEntry<String, String>>> accumulator;
-    private Transformer<?, ?> lastTransformationResult;
+    private Transformer<?, ?> lastCtxEntryTransformationResult;
     private static final Gson gson = new Gson();
 
     @Override
@@ -28,40 +28,48 @@ public final class JsonObjectAsStringTransformer implements Transformer<String, 
     public JsonObjectAsStringTransformer transform(String payload, Accumulator<String, ArrayList<SimpleImmutableEntry<String, String>>> accumulator) {
         ArrayList<SimpleImmutableEntry<String, String>> ctx = accumulator.getContext();
 
+        // Convert payload to JSON object and flatten it
         JSONObject payloadJO = new JSONObject(payload);
         payloadJO = JsonUtils.flatten(payloadJO);
 
+        // Get the last context entry and the value to transform
+        // The last context entry is the one that has not been transformed yet
+        // Format of entries in the context: <key, accumulator>
         SimpleImmutableEntry<String, String> lastCtxEntry = ctx.get(ctx.size() - 1);
         Object valueToTransform = payloadJO.get(lastCtxEntry.getKey());
 
+        // Get the transformer and accumulator for the value to transform
         String transformerClassName = getTransformerClassNameFromReferenceValue(valueToTransform);
-        Transformer<?, ?> lastTransformer = getTransformerInstance(transformerClassName);
-        Accumulator<?, ?> lastAccumulator = gson.fromJson(lastCtxEntry.getValue(), lastTransformer.getAccumulatorType());
+        Transformer<?, ?> lastCtxEntryTransformer = getTransformerInstance(transformerClassName);
+        Accumulator<?, ?> lastCtxEntryAccumulator = gson.fromJson(lastCtxEntry.getValue(), lastCtxEntryTransformer.getAccumulatorType());
 
-        try {
-            Method transformMethod = lastTransformer.getClass().getMethod("transform", (Class<?>) lastTransformer.getPayloadType(), Accumulator.class);
+        try {  // Invoke the transform method of the transformer
+            Method transformMethod = lastCtxEntryTransformer.getClass().getMethod("transform", (Class<?>) lastCtxEntryTransformer.getPayloadType(), Accumulator.class);
 
-            lastTransformationResult =
+            lastCtxEntryTransformationResult =
                     (Transformer<?, ?>) transformMethod.invoke(
-                            lastTransformer,
-                            lastAccumulator.getReferenceValue(),
-                            lastAccumulator
+                            lastCtxEntryTransformer,
+                            lastCtxEntryAccumulator.getReferenceValue(),
+                            lastCtxEntryAccumulator
                     );
-            payloadJO.put(lastCtxEntry.getKey(), lastTransformationResult.getResult().toString());
-            if (lastTransformationResult.hasNext()) {
-                lastAccumulator = lastTransformationResult.getNextAccumulator();
-                ctx.set(ctx.size() - 1, new SimpleImmutableEntry<>(lastCtxEntry.getKey(), gson.toJson(lastAccumulator)));
+            payloadJO.put(lastCtxEntry.getKey(), lastCtxEntryTransformationResult.getResult().toString());
+
+            // If the last transformation result has a next accumulator, update the context
+            if (lastCtxEntryTransformationResult.hasNext()) {
+                lastCtxEntryAccumulator = lastCtxEntryTransformationResult.getNextAccumulator();
+                ctx.set(ctx.size() - 1, new SimpleImmutableEntry<>(lastCtxEntry.getKey(), gson.toJson(lastCtxEntryAccumulator)));
             }
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            throw new FilibusterTransformerException("[JsonObjectAsStringTransformer]: An exception occurred while invoking transform method of transformer " + lastTransformer.getClass().getName(), e);
+            throw new FilibusterTransformerException("[JsonObjectAsStringTransformer]: An exception occurred while invoking transform method of transformer " + lastCtxEntryTransformer.getClass().getName(), e);
         }
 
         // If the context has all the keys in the payload, set hasNext to false
-        if (ctx.size() == payloadJO.keySet().size() && !lastTransformationResult.hasNext()) {
+        if (ctx.size() == payloadJO.keySet().size() && !lastCtxEntryTransformationResult.hasNext()) {
             this.hasNext = false;
         }
 
-        this.result = JsonUtils.unflatten(payloadJO).toString();
+        // Update the result and the accumulator
+        this.result = JsonUtils.unflatten(payloadJO).toString();  // Unflatten the JSON object and convert it to string
         this.accumulator = accumulator;
 
         return this;
@@ -137,20 +145,29 @@ public final class JsonObjectAsStringTransformer implements Transformer<String, 
         if (this.accumulator == null) {
             return getInitialAccumulator(getResult());
         } else {
-            if (!lastTransformationResult.hasNext()) {
+            // Check if the last transformation result doesn't have a next transformation
+            if (!lastCtxEntryTransformationResult.hasNext()) {
+                // Get the context and create the reference JSON object from the reference value
                 ArrayList<SimpleImmutableEntry<String, String>> ctx = accumulator.getContext();
                 JSONObject referenceJO = new JSONObject(accumulator.getReferenceValue());
+
+                // Flatten the reference JSON object
                 referenceJO = JsonUtils.flatten(referenceJO);
+
+                // If the context has all the keys in the reference value, set hasNext to false
                 if (ctx.size() == referenceJO.keySet().size()) {
                     this.hasNext = false;
                 } else {
                     try {
+                        // Get the next key and value from the reference JSON object
                         String nextKey = new ArrayList<>(referenceJO.keySet()).get(ctx.size());
                         Object nextValue = referenceJO.get(nextKey);
 
+                        // Get the initial accumulator for the new value
                         Accumulator<?, ?> initialAccumulator = getInitialAccumulatorFromValue(nextValue);
                         SimpleImmutableEntry<String, String> entry = new SimpleImmutableEntry<>(nextKey, gson.toJson(initialAccumulator));
 
+                        // Update the context
                         ctx.add(entry);
                         accumulator.setContext(ctx);
                     } catch (RuntimeException e) {

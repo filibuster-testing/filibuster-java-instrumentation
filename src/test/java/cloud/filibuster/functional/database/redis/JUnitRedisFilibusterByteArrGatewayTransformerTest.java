@@ -86,16 +86,16 @@ public class JUnitRedisFilibusterByteArrGatewayTransformerTest extends JUnitAnno
             RedisCommands<String, byte[]> myRedisCommands = myStatefulRedisConnection.sync();
 
             byte[] returnVal = myRedisCommands.get(stringKey);
-            assertArrayEquals(stringValue, returnVal);
+            assertEqualsByteArrays(stringValue, returnVal);
 
             returnVal = myRedisCommands.get(booleanFalseKey);
-            assertArrayEquals(booleanFalseValue, returnVal);
+            assertEqualsByteArrays(booleanFalseValue, returnVal);
 
             returnVal = myRedisCommands.get(booleanTrueKey);
-            assertArrayEquals(booleanTrueValue, returnVal);
+            assertEqualsByteArrays(booleanTrueValue, returnVal);
 
             returnVal = myRedisCommands.get(jsonKey);
-            assertArrayEquals(studentInfoJO.toString().getBytes(Charset.defaultCharset()), returnVal);
+            assertEqualsByteArrays(studentInfoJO.toString().getBytes(Charset.defaultCharset()), returnVal);
 
             assertFalse(wasFaultInjected());
         } catch (Throwable t) {
@@ -140,5 +140,11 @@ public class JUnitRedisFilibusterByteArrGatewayTransformerTest extends JUnitAnno
             }
         }
         return numFaults;
+    }
+
+    private void assertEqualsByteArrays(byte[] expected, byte[] actual) {
+        String sExpected = new String(expected, Charset.defaultCharset());
+        String sActual = new String(actual, Charset.defaultCharset());
+        assertEquals(sExpected, sActual);
     }
 }

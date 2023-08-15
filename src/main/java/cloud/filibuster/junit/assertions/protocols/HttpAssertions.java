@@ -42,11 +42,10 @@ public class HttpAssertions {
      * @param URI request URI
      * @return if a fault was injected
      */
-    // TODO: add javadoc once implemented
-    public static boolean wasFaultInjectedOnMethod(HttpMethod httpMethod, String URI) {
+    public static boolean wasFaultInjectedOnHttpMethod(HttpMethod httpMethod, String uriPattern) {
         if (getServerBackendCanInvokeDirectlyProperty()) {
             if (FilibusterCore.hasCurrentInstance()) {
-                return FilibusterCore.getCurrentInstance().wasFaultInjectedOnMethod(httpMethod, URI);
+                return FilibusterCore.getCurrentInstance().wasFaultInjectedOnHttpMethod(httpMethod, uriPattern);
             } else {
                 return false;
             }

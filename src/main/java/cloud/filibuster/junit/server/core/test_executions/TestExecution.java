@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @SuppressWarnings("Varifier")
 public abstract class TestExecution {
@@ -150,20 +152,17 @@ public abstract class TestExecution {
         return wasFaultInjectedMatcher("module", serviceName);
     }
 
-    public boolean wasFaultInjectedOnHttpMethod(HttpMethod httpMethod, String URI) {
+    public boolean wasFaultInjectedOnHttpMethod(HttpMethod httpMethod, String uriPattern) {
         boolean wasCorrectHttpVerb = wasFaultInjectedMatcher("method", httpMethod.toString());
+
+        Pattern pattern = Pattern.compile(uriPattern, Pattern.CASE_INSENSITIVE);
 
         for (Map.Entry<DistributedExecutionIndex, JSONObject> entry : executedRPCs.entrySet()) {
             JSONObject executedRPCObject = entry.getValue();
-
-            // This is extremely hack right now, but whatever.  It's because the instrumentation sends
-            // the arguments as string, and therefore, either we parse or we just regexp over the String.
-            // Just do this for now, and fix it later.  This is because the HTTP library takes
-            // some things as a serializable payload and other things in the formal argument list.
-            //
-            if (executedRPCObject.getJSONObject("args").getString("toString").startsWith("[" + URI)) {
+            String argsToString = executedRPCObject.getJSONObject("args").getString("toString");
+            Matcher matcher = pattern.matcher(argsToString);
+            if (matcher.find()) {
                 DistributedExecutionIndex distributedExecutionIndex = entry.getKey();
-
                 if (faultsToInject.containsKey(distributedExecutionIndex)) {
                     return wasCorrectHttpVerb;
                 }

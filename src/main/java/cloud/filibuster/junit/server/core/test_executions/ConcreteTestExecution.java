@@ -7,6 +7,7 @@ import org.json.JSONObject;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @SuppressWarnings("Varifier")
@@ -27,15 +28,15 @@ public class ConcreteTestExecution extends TestExecution implements Cloneable {
         testExecutionReport.setFaultsInjected(faultsToInject);
     }
 
-    public HashMap<DistributedExecutionIndex, JSONObject> getFaultsToInject() {
+    public Map<DistributedExecutionIndex, JSONObject> getFaultsToInject() {
         return this.faultsToInject;
     }
 
-    public HashMap<DistributedExecutionIndex, JSONObject> getFailedRPCs() {
+    public Map<DistributedExecutionIndex, JSONObject> getFailedRPCs() {
         return this.failedRPCs;
     }
 
-    public HashMap<DistributedExecutionIndex, JSONObject> getExecutedRPCs() {
+    public Map<DistributedExecutionIndex, JSONObject> getExecutedRPCs() {
         return this.executedRPCs;
     }
 

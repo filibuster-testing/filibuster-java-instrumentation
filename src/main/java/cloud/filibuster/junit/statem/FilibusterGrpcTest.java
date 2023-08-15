@@ -620,13 +620,13 @@ public interface FilibusterGrpcTest {
         List<JSONObject> rpcsWhereFaultsInjected = new ArrayList<>();
 
         // Look up the RPCs that were executed and the faults that were injected.
-        HashMap<DistributedExecutionIndex, JSONObject> executedRPCs = getExecutedRPCs();
+        Map<DistributedExecutionIndex, JSONObject> executedRPCs = getExecutedRPCs();
 
         if (executedRPCs == null) {
             throw new FilibusterGrpcTestInternalRuntimeException("executedRPCs is null: this could indicate a problem!");
         }
 
-        HashMap<DistributedExecutionIndex, JSONObject> faultsInjected = getFaultsInjected();
+        Map<DistributedExecutionIndex, JSONObject> faultsInjected = getFaultsInjected();
 
         if (faultsInjected == null) {
             throw new FilibusterGrpcTestInternalRuntimeException("faultsInjected is null: this could indicate a problem!");
@@ -900,13 +900,13 @@ public interface FilibusterGrpcTest {
         }
 
         // Fail the test if any RPCs were left UNIMPLEMENTED (and, we didn't inject it!)
-        HashMap<DistributedExecutionIndex, JSONObject> failedRPCs = getFailedRPCs();
+        Map<DistributedExecutionIndex, JSONObject> failedRPCs = getFailedRPCs();
 
         if (failedRPCs == null) {
             throw new FilibusterGrpcTestInternalRuntimeException("failedRPCs is null: this could indicate a problem!");
         }
 
-        HashMap<DistributedExecutionIndex, JSONObject> faultsInjected = getFaultsInjected();
+        Map<DistributedExecutionIndex, JSONObject> faultsInjected = getFaultsInjected();
 
         if (faultsInjected == null) {
             throw new FilibusterGrpcTestInternalRuntimeException("faultsInjected is null: this could indicate a problem!");
@@ -1141,7 +1141,7 @@ public interface FilibusterGrpcTest {
         }
     }
 
-    default HashMap<DistributedExecutionIndex, JSONObject> getFailedRPCs() {
+    default Map<DistributedExecutionIndex, JSONObject> getFailedRPCs() {
         if (getServerBackendCanInvokeDirectlyProperty()) {
             if (FilibusterCore.hasCurrentInstance()) {
                 return FilibusterCore.getCurrentInstance().failedRPCs();
@@ -1153,7 +1153,7 @@ public interface FilibusterGrpcTest {
         }
     }
 
-    default HashMap<DistributedExecutionIndex, JSONObject> getFaultsInjected() {
+    default Map<DistributedExecutionIndex, JSONObject> getFaultsInjected() {
         if (getServerBackendCanInvokeDirectlyProperty()) {
             if (FilibusterCore.hasCurrentInstance()) {
                 return FilibusterCore.getCurrentInstance().faultsInjected();
@@ -1165,7 +1165,7 @@ public interface FilibusterGrpcTest {
         }
     }
 
-    default HashMap<DistributedExecutionIndex, JSONObject> getExecutedRPCs() {
+    default Map<DistributedExecutionIndex, JSONObject> getExecutedRPCs() {
         if (getServerBackendCanInvokeDirectlyProperty()) {
             if (FilibusterCore.hasCurrentInstance()) {
                 return FilibusterCore.getCurrentInstance().executedRPCs();

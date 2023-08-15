@@ -536,8 +536,8 @@ public class FilibusterCore {
 
             if (filibusterConfiguration.getFailIfFaultNotInjected()) {
                 if (throwable == null || !throwable.getClass().equals(FilibusterFaultNotInjectedException.class)) {
-                    HashMap<DistributedExecutionIndex, JSONObject> faultsToInject = currentConcreteTestExecution.getFaultsToInject();
-                    HashMap<DistributedExecutionIndex, JSONObject> failedRPCs = currentConcreteTestExecution.getFailedRPCs();
+                    Map<DistributedExecutionIndex, JSONObject> faultsToInject = currentConcreteTestExecution.getFaultsToInject();
+                    Map<DistributedExecutionIndex, JSONObject> failedRPCs = currentConcreteTestExecution.getFailedRPCs();
                     if (failedRPCs.size() != faultsToInject.size()) {
                         MapDifference<DistributedExecutionIndex, JSONObject> diff = Maps.difference(faultsToInject, failedRPCs);
                         throw new FilibusterFaultNotInjectedException("One or more of the intended faults was not injected: "
@@ -548,8 +548,8 @@ public class FilibusterCore {
 
             if (filibusterConfiguration.getFailIfFaultNotInjectedAndATrackedMethodIsInvoked()) {
                 if (throwable == null || !throwable.getClass().equals(FilibusterFaultNotInjectedException.class)) {
-                    HashMap<DistributedExecutionIndex, JSONObject> faultsToInject = currentConcreteTestExecution.getFaultsToInject();
-                    HashMap<DistributedExecutionIndex, JSONObject> failedRPCs = currentConcreteTestExecution.getFailedRPCs();
+                    Map<DistributedExecutionIndex, JSONObject> faultsToInject = currentConcreteTestExecution.getFaultsToInject();
+                    Map<DistributedExecutionIndex, JSONObject> failedRPCs = currentConcreteTestExecution.getFailedRPCs();
                     if (failedRPCs.size() != faultsToInject.size()) {
                         MapDifference<DistributedExecutionIndex, JSONObject> diff = Maps.difference(faultsToInject, failedRPCs);
 
@@ -698,42 +698,42 @@ public class FilibusterCore {
 
     // Fault injection helpers.
 
-    @Nullable public synchronized HashMap<DistributedExecutionIndex, JSONObject> faultsInjected() {
+    @Nullable public synchronized Map<DistributedExecutionIndex, JSONObject> faultsInjected() {
         logger.info("[FILIBUSTER-CORE]: faultsInjected called");
 
         if (currentConcreteTestExecution == null) {
             return null;
         }
 
-        HashMap<DistributedExecutionIndex, JSONObject> result = currentConcreteTestExecution.getFaultsToInject();
+        Map<DistributedExecutionIndex, JSONObject> result = currentConcreteTestExecution.getFaultsToInject();
 
         logger.info("[FILIBUSTER-CORE]: faultsInjected returning: " + result);
 
         return result;
     }
 
-    @Nullable public synchronized HashMap<DistributedExecutionIndex, JSONObject> executedRPCs() {
+    @Nullable public synchronized Map<DistributedExecutionIndex, JSONObject> executedRPCs() {
         logger.info("[FILIBUSTER-CORE]: executedRPCs called");
 
         if (currentConcreteTestExecution == null) {
             return null;
         }
 
-        HashMap<DistributedExecutionIndex, JSONObject> result = currentConcreteTestExecution.getExecutedRPCs();
+        Map<DistributedExecutionIndex, JSONObject> result = currentConcreteTestExecution.getExecutedRPCs();
 
         logger.info("[FILIBUSTER-CORE]: executedRPCs returning: " + result);
 
         return result;
     }
 
-    @Nullable public synchronized HashMap<DistributedExecutionIndex, JSONObject> failedRPCs() {
+    @Nullable public synchronized Map<DistributedExecutionIndex, JSONObject> failedRPCs() {
         logger.info("[FILIBUSTER-CORE]: failedRPCs called");
 
         if (currentConcreteTestExecution == null) {
             return null;
         }
 
-        HashMap<DistributedExecutionIndex, JSONObject> result = currentConcreteTestExecution.getFailedRPCs();
+        Map<DistributedExecutionIndex, JSONObject> result = currentConcreteTestExecution.getFailedRPCs();
 
         logger.info("[FILIBUSTER-CORE]: failedRPCs returning: " + result);
 
@@ -768,14 +768,14 @@ public class FilibusterCore {
         return result;
     }
 
-    public synchronized boolean wasFaultInjectedOnMethod(HttpMethod httpMethod, String URI) {
-        logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnService called, httpMethod: " + httpMethod + ", URI: " + URI);
+    public synchronized boolean wasFaultInjectedOnHttpMethod(HttpMethod httpMethod, String uriPattern) {
+        logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnService called, httpMethod: " + httpMethod + ", uriPattern: " + uriPattern);
 
         if (currentConcreteTestExecution == null) {
             return false;
         }
 
-        boolean result = currentConcreteTestExecution.wasFaultInjectedOnHttpMethod(httpMethod, URI);
+        boolean result = currentConcreteTestExecution.wasFaultInjectedOnHttpMethod(httpMethod, uriPattern);
 
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnService returning: " + result);
 

@@ -770,7 +770,7 @@ public class FilibusterCore {
     }
 
     public synchronized boolean wasFaultInjectedOnHttpMethod(HttpMethod httpMethod, String uriPattern) {
-        logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnService called, httpMethod: " + httpMethod + ", uriPattern: " + uriPattern);
+        logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnHttpMethod called, httpMethod: " + httpMethod + ", uriPattern: " + uriPattern);
 
         if (currentConcreteTestExecution == null) {
             return false;
@@ -778,7 +778,7 @@ public class FilibusterCore {
 
         boolean result = currentConcreteTestExecution.wasFaultInjectedOnHttpMethod(httpMethod, uriPattern);
 
-        logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnService returning: " + result);
+        logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnHttpMethod returning: " + result);
 
         return result;
     }
@@ -793,6 +793,24 @@ public class FilibusterCore {
         boolean result = currentConcreteTestExecution.wasFaultInjectedOnMethod(serviceName, methodName);
 
         logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnMethod returning: " + result);
+
+        return result;
+    }
+
+    public synchronized boolean wasFaultInjectedOnHttpRequest(
+            HttpMethod httpMethod,
+            String uriPattern,
+            String serializedRequestPattern
+    ) {
+        logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnHttpRequest called, httpMethod: " + httpMethod + ", uriPattern: " + uriPattern + ", serializedRequestPattern: " + serializedRequestPattern);
+
+        if (currentConcreteTestExecution == null) {
+            return false;
+        }
+
+        boolean result = currentConcreteTestExecution.wasFaultInjectedOnHttpRequest(httpMethod, uriPattern, serializedRequestPattern);
+
+        logger.info("[FILIBUSTER-CORE]: wasFaultInjectedOnHttpRequest returning: " + result);
 
         return result;
     }

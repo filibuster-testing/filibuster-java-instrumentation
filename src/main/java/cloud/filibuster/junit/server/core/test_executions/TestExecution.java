@@ -172,6 +172,28 @@ public abstract class TestExecution {
         return false;
     }
 
+    public boolean wasFaultInjectedOnHttpRequest(HttpMethod httpMethod, String uriPattern, String serializedRequestPattern) {
+        boolean wasCorrectHttpVerb = wasFaultInjectedMatcher("method", httpMethod.toString());
+
+        Pattern uriPatternPattern = Pattern.compile(uriPattern, Pattern.CASE_INSENSITIVE);
+        Pattern serializedRequestPatternPattern = Pattern.compile(uriPattern, Pattern.CASE_INSENSITIVE);
+
+        for (Map.Entry<DistributedExecutionIndex, JSONObject> entry : executedRpcs.entrySet()) {
+            JSONObject executedRpcObject = entry.getValue();
+            String argsToString = executedRpcObject.getJSONObject("args").getString("toString");
+            Matcher uriPatternMatcher = uriPatternPattern.matcher(argsToString);
+            Matcher serializedRequestPatternMatcher = serializedRequestPatternPattern.matcher(argsToString);
+            if (uriPatternMatcher.find() && serializedRequestPatternMatcher.find()) {
+                DistributedExecutionIndex distributedExecutionIndex = entry.getKey();
+                if (faultsToInject.containsKey(distributedExecutionIndex)) {
+                    return wasCorrectHttpVerb;
+                }
+            }
+        }
+
+        return false;
+    }
+
     // Recombination of RPC is artifact of HTTP API.
     public boolean wasFaultInjectedOnMethod(String serviceName, String methodName) {
         return wasFaultInjectedMatcher("method", serviceName + "/" + methodName);

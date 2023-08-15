@@ -8,6 +8,7 @@ import com.linecorp.armeria.common.HttpMethod;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
+import org.json.JSONObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -26,6 +27,7 @@ import static cloud.filibuster.integration.instrumentation.TestHelper.stopHelloS
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopWorldServerAndWaitUntilUnavailable;
 import static cloud.filibuster.junit.assertions.protocols.GenericAssertions.wasFaultInjected;
 import static cloud.filibuster.junit.assertions.protocols.HttpAssertions.wasFaultInjectedOnHttpMethod;
+import static cloud.filibuster.junit.assertions.protocols.HttpAssertions.wasFaultInjectedOnHttpRequest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -92,6 +94,10 @@ public class WorldTest {
             if (wasFaultInjectedOnHttpMethod(HttpMethod.POST, "http://0.0.0.0:5004/post")) {
                 expected = true;
                 assertTrue(sre.getMessage().contains("Second RPC request to /world failed!"));
+
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("key1", "value1");
+                assertTrue(wasFaultInjectedOnHttpRequest(HttpMethod.POST, "http://0.0.0.0:.*/post", jsonObject.toString()));
             }
 
             assertTrue(wasFaultInjected(), "expected a fault to be injected");

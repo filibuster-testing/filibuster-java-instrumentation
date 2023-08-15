@@ -1,7 +1,6 @@
 package cloud.filibuster.junit.assertions.protocols;
 
 import cloud.filibuster.junit.server.core.FilibusterCore;
-import com.google.errorprone.annotations.DoNotCall;
 import com.linecorp.armeria.common.HttpMethod;
 
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendCanInvokeDirectlyProperty;
@@ -39,7 +38,7 @@ public class HttpAssertions {
      * <p>This is most commonly represented by a combination of the request URI and verb.</p>
      *
      * @param httpMethod HTTP verb (a la Method)
-     * @param uriPattern request URI
+     * @param uriPattern request URI {@link java.util.regex.Pattern}
      * @return if a fault was injected
      */
     public static boolean wasFaultInjectedOnHttpMethod(HttpMethod httpMethod, String uriPattern) {
@@ -54,9 +53,25 @@ public class HttpAssertions {
         }
     }
 
-    // TODO: add javadoc once implemented
-    @DoNotCall("Always throws cloud.filibuster.junit.assertions.protocols.HttpAssertions.HttpAssertionsNotImplementedException")
-    public static boolean wasFaultInjectedOnRequest(String request) {
-        throw new HttpAssertionsNotImplementedException();
+    /**
+     * Returns true if a fault was injected for a particular HTTP method and request body.
+     *
+     * <p>This is most commonly represented by a combination of the request URI and verb.</p>
+     *
+     * @param httpMethod HTTP verb (a la Method)
+     * @param uriPattern request URI {@link java.util.regex.Pattern}
+     * @param serializedRequestPattern serialized request {@link java.util.regex.Pattern}
+     * @return if a fault was injected
+     */
+    public static boolean wasFaultInjectedOnHttpRequest(HttpMethod httpMethod, String uriPattern, String serializedRequestPattern) {
+        if (getServerBackendCanInvokeDirectlyProperty()) {
+            if (FilibusterCore.hasCurrentInstance()) {
+                return FilibusterCore.getCurrentInstance().wasFaultInjectedOnHttpRequest(httpMethod, uriPattern, serializedRequestPattern);
+            } else {
+                return false;
+            }
+        } else {
+            throw new HttpAssertionsNotImplementedException();
+        }
     }
 }

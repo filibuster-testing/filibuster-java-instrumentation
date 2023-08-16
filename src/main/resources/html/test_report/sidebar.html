@@ -153,6 +153,51 @@
         h1 {
             margin-bottom: 0px;
         }
+
+        .icon .icon-tooltip {
+            display: inline-block;
+            width: 120px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 0;
+            font-size: 11px;
+            position: absolute;
+            z-index: 1;
+            top: 5%;
+            left: 100px;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .icon .icon-tooltip-passed::after {
+            content: "";
+            position: absolute;
+            bottom: 100%;
+            left: 150px;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent transparent #555 transparent;
+        }
+
+        span.icon:hover .icon-tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        span.icon {
+            border-bottom: 1px dotted black;
+            float: left;
+            display: inline;
+            text-align: right;
+            text-decoration: none;
+            margin-bottom: 10px;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
     </style>
 </head>
 
@@ -160,6 +205,9 @@
 <section style="margin: 0 auto;">
     <div class="container" style="margin: 0 auto;">
         <div id="summary" class="summary">
+            <span class="icon">
+                <a href="#" onClick="togglePasses();">✅</a>
+            </span>
             <table id="reports" class="reports">
                 <tr>
                     <th>

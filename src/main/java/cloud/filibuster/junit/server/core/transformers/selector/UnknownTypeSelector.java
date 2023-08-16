@@ -6,7 +6,7 @@ import cloud.filibuster.junit.server.core.transformers.StringTransformer;
 import cloud.filibuster.junit.server.core.transformers.Transformer;
 import org.json.JSONObject;
 
-class StringSelector extends Selector {
+class UnknownTypeSelector extends Selector {
 
     @Override
     <T> Class<? extends Transformer<String, ?>> select(T payloadValue) {
@@ -15,11 +15,10 @@ class StringSelector extends Selector {
             return JsonObjectAsStringTransformer.class;
         }
 
-        if (isApplicable(String.class, payloadValue, StringSelector::isBoolean)) {
+        if (isApplicable(String.class, payloadValue, UnknownTypeSelector::isBoolean)) {
             return BooleanAsStringTransformer.class;
         }
 
         return StringTransformer.class;
     }
-
 }

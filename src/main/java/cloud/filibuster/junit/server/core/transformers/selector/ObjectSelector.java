@@ -7,7 +7,7 @@ import cloud.filibuster.junit.server.core.transformers.Transformer;
 class ObjectSelector extends Selector {
 
     @Override
-    Class<? extends Transformer<Object, ?>> select(String payloadValue) {
+    <T> Class<? extends Transformer<Object, ?>> select(T payloadValue) {
         return NullTransformer.class;
     }
 }

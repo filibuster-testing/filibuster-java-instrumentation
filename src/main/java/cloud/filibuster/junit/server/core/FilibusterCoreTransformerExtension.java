@@ -102,7 +102,7 @@ public final class FilibusterCoreTransformerExtension {
     }
 
 
-    private static Transformer<?, ?> getTransformerInstance(String transformerClassName) {
+    public static Transformer<?, ?> getTransformerInstance(String transformerClassName) {
         try {
             @SuppressWarnings("unchecked")
             Class<? extends Transformer<?, ?>> transformerClass = (Class<? extends Transformer<?, ?>>) Class.forName(transformerClassName);

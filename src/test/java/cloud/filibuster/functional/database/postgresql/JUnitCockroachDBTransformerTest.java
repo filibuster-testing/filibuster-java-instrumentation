@@ -4,7 +4,7 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.BasicDAO;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql.CockroachClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.db.postgresql.PostgresAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.db.postgresql.PostgresTransformStringAnalysisConfigurationFile;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -36,9 +36,9 @@ public class JUnitCockroachDBTransformerTest extends JUnitAnnotationBaseTest {
         cockroachDAO.isIntercepted(true);
     }
 
-    @DisplayName("Inject basic PSQLException in CockroachDB.")
+    @DisplayName("Inject String transformer faults in CockroachDB.")
     @Order(1)
-    @TestWithFilibuster(analysisConfigurationFile = PostgresAnalysisConfigurationFile.class)
+    @TestWithFilibuster(analysisConfigurationFile = PostgresTransformStringAnalysisConfigurationFile.class)
     public void testCockroachConnection() {
         try {
             numberOfTestExecutions++;

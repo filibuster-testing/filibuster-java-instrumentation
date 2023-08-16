@@ -20,6 +20,8 @@ public abstract class GatewayTransformer implements Transformer<Object, Object> 
         payloadClassToTransformerSelectorMethod.put(String.class.getName(), getSelectorMethod(new StringSelector()));
         payloadClassToTransformerSelectorMethod.put(Object.class.getName(), getSelectorMethod(new ObjectSelector()));
         payloadClassToTransformerSelectorMethod.put(byte[].class.getName(), getSelectorMethod(new ByteArraySelector()));
+        payloadClassToTransformerSelectorMethod.put(boolean.class.getName(), getSelectorMethod(new BooleanSelector()));
+        payloadClassToTransformerSelectorMethod.put(Boolean.class.getName(), getSelectorMethod(new BooleanSelector()));
         payloadClassToTransformerSelectorMethod.put(UNKNOWN_PAYLOAD_TYPE, getSelectorMethod(new UnknownTypeSelector()));
     }
 

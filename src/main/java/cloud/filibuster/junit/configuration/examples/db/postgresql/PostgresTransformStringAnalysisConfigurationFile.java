@@ -23,7 +23,9 @@ public class PostgresTransformStringAnalysisConfigurationFile implements Filibus
         };
 
         for (Object[] fault : faults) {
-            createTransformerFault(filibusterCustomAnalysisConfigurationFileBuilder, (String) fault[0], (Class<? extends Transformer<?, ?>>) fault[1], (String) fault[2]);
+            @SuppressWarnings("unchecked")
+            Class<? extends Transformer<?, ?>> transformerClass = (Class<? extends Transformer<?, ?>>) fault[1];
+            createTransformerFault(filibusterCustomAnalysisConfigurationFileBuilder, (String) fault[0], transformerClass, (String) fault[2]);
         }
 
         filibusterCustomAnalysisConfigurationFile = filibusterCustomAnalysisConfigurationFileBuilder.build();

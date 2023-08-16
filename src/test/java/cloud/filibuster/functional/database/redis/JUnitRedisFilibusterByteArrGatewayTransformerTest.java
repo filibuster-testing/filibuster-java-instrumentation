@@ -21,10 +21,10 @@ import org.junit.jupiter.api.TestMethodOrder;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static cloud.filibuster.junit.assertions.protocols.GenericAssertions.wasFaultInjected;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -120,7 +120,7 @@ public class JUnitRedisFilibusterByteArrGatewayTransformerTest extends JUnitAnno
         assertEquals(getNumFaultsInJS() + stringValue.length + 2, testExceptionsThrown.size());
     }
 
-    private static void buildJOFromMap(JSONObject jo, HashMap<String, Object> map) {
+    private static void buildJOFromMap(JSONObject jo, Map<String, Object> map) {
         for (String key : map.keySet()) {
             jo.put(key, map.get(key));
         }
@@ -142,7 +142,7 @@ public class JUnitRedisFilibusterByteArrGatewayTransformerTest extends JUnitAnno
         return numFaults;
     }
 
-    private void assertEqualsByteArrays(byte[] expected, byte[] actual) {
+    private static void assertEqualsByteArrays(byte[] expected, byte[] actual) {
         String sExpected = new String(expected, Charset.defaultCharset());
         String sActual = new String(actual, Charset.defaultCharset());
         assertEquals(sExpected, sActual);

@@ -17,6 +17,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static cloud.filibuster.junit.assertions.protocols.GenericAssertions.wasFaultInjected;
@@ -115,7 +116,7 @@ public class JUnitRedisFilibusterStringGatewayTransformerTest extends JUnitAnnot
         assertEquals(getNumFaultsInJS() + stringValue.length() + 2, testExceptionsThrown.size());
     }
 
-    private static void buildJOFromMap(JSONObject jo, HashMap<String, Object> map) {
+    private static void buildJOFromMap(JSONObject jo, Map<String, Object> map) {
         for (String key : map.keySet()) {
             jo.put(key, map.get(key));
         }
@@ -123,7 +124,7 @@ public class JUnitRedisFilibusterStringGatewayTransformerTest extends JUnitAnnot
 
     private static int getNumFaultsInJS() {
         int numFaults = 0;
-        HashMap<String, Object> allMaps = new HashMap<>();
+        Map<String, Object> allMaps = new HashMap<>();
         allMaps.putAll(studentInfoMap);
         allMaps.putAll(courseInfoMap);
 

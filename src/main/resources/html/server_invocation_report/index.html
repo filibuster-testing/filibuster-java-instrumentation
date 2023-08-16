@@ -274,13 +274,23 @@
 
                 row += "<tr>";
 
+                var displayMethod = method;
+
+                if (tests === 0 && filibusterTests === 0) {
+                    displayMethod = "❌ " + method;
+                } else if (filibusterTests > 0) {
+                    displayMethod = "✅ " + method;
+                } else {
+                    displayMethod = "⚠️ " + method;
+                }
+
                 if (warning) {
-                    row += "<td class='method_name warning'>" + method + "</td>";
+                    row += "<td class='method_name warning'>" + displayMethod + "</td>";
                 } else {
                     if (tests > 0 && filibusterTests > 0 && filibusterExecutions > 0) {
-                        row += "<td class='method_name success'>" + method + "</td>";
+                        row += "<td class='method_name success'>" + displayMethod + "</td>";
                     } else {
-                        row += "<td class='method_name'>" + method + "</td>";
+                        row += "<td class='method_name'>" + displayMethod + "</td>";
                     }
                 }
 
@@ -309,10 +319,10 @@
                 row += "</tr>";
 
                 var testedEndpointsPercentage = (testedEndpoints / totalEndpoints).toFixed(2);
-                $('#testedEndpoints').html("" + testedEndpoints + "/" + totalEndpoints + "(" + testedEndpointsPercentage + "%)");
+                $('#testedEndpoints').html("" + testedEndpoints + "/" + totalEndpoints + " (" + testedEndpointsPercentage + "%)");
 
                 var filibusterTestedEndpointsPercentage = (filibusterTestedEndpoints / totalEndpoints).toFixed(2);
-                $('#filibusterTestedEndpoints').html("" + filibusterTestedEndpoints + "/" + totalEndpoints + "(" + filibusterTestedEndpointsPercentage + "%)");
+                $('#filibusterTestedEndpoints').html("" + filibusterTestedEndpoints + "/" + totalEndpoints + " (" + filibusterTestedEndpointsPercentage + "%)");
 
                 $('#endpoints').append(row);
             }

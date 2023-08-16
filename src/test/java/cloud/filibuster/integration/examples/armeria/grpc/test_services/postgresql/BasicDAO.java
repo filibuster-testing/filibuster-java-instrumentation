@@ -1,5 +1,7 @@
 package cloud.filibuster.integration.examples.armeria.grpc.test_services.postgresql;
 
+import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
+
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -24,8 +26,9 @@ public class BasicDAO {
     private static final int MAX_RETRY_COUNT = 3;
     private static final String RETRY_SQL_STATE = "40001";
     private static final boolean FORCE_RETRY = false;
-    private DataSource ds;
+    private final DataSource ds;
     private static final Logger logger = Logger.getLogger(BasicDAO.class.getName());
+    private boolean isIntercepted = false;
 
     private final Random rand = new Random();
 
@@ -36,10 +39,20 @@ public class BasicDAO {
     }
 
     /**
-     * Set the DataSource of the DAO.
+     * Set whether the connection is intercepted.
      */
-    public void setDS(DataSource ds) {
-        this.ds = ds;
+    public void isIntercepted(boolean isIntercepted) {
+        this.isIntercepted = isIntercepted;
+    }
+
+    /**
+     * Get the connection of the DataSource.
+     */
+    public Connection getConnection() throws SQLException {
+        if (isIntercepted) {
+            return DynamicProxyInterceptor.createInterceptor(this.ds.getConnection(), CockroachClientService.getInstance().connectionString);
+        }
+        return this.ds.getConnection();
     }
 
     /**
@@ -63,7 +76,7 @@ public class BasicDAO {
         String callerClass = elem.getClassName();
         String callerMethod = elem.getMethodName();
 
-        try (Connection connection = ds.getConnection()) {
+        try (Connection connection = this.getConnection()) {
 
             // We're managing the commit lifecycle ourselves so we can
             // automatically issue transaction retries.
@@ -261,7 +274,7 @@ public class BasicDAO {
     public int getAccountBalance(UUID id) {
         int balance = 0;
 
-        try (Connection connection = ds.getConnection()) {
+        try (Connection connection = this.getConnection()) {
 
             // Check the current balance.
             ResultSet res = connection.createStatement()

@@ -222,42 +222,43 @@
             text-align: center;
             border-radius: 6px;
             padding: 5px 0;
+            font-size: 11px;
             position: absolute;
             z-index: 1;
             top: 5%;
-            right: 2%;
+            right: 5px;
             margin-left: -60px;
             opacity: 0;
             transition: opacity 0.5s;
         }
 
-        .icon .icon-tooltip-left::after {
+        .icon .icon-tooltip-debug::after {
             content: "";
             position: absolute;
             bottom: 100%;
-            left: 32%;
+            right: 90px;
             margin-left: -5px;
             border-width: 5px;
             border-style: solid;
             border-color: transparent transparent #555 transparent;
         }
 
-        .icon .icon-tooltip-middle::after {
+        .icon .icon-tooltip-cache::after {
             content: "";
             position: absolute;
             bottom: 100%;
-            left: 55%;
+            right: 55px;
             margin-left: -5px;
             border-width: 5px;
             border-style: solid;
             border-color: transparent transparent #555 transparent;
         }
 
-        .icon .icon-tooltip-right::after {
+        .icon .icon-tooltip-warnings::after {
             content: "";
             position: absolute;
             bottom: 100%;
-            left: 90%;
+            right: 5px;
             margin-left: -5px;
             border-width: 5px;
             border-style: solid;
@@ -286,15 +287,15 @@
 <section style="margin: 0; padding: 0;">
     <span class="icon">
         <a style="vertical-align: middle; text-decoration: none; color: black;" href="#" title="Show warnings in this execution" onClick="toggleWarnings();">⚠️ (<span style="font-size: 10px; color: black;" id="numWarnings">0</span>)</a>
-        <span class="icon-tooltip icon-tooltip-right">Show Warnings</span>
+        <span class="icon-tooltip icon-tooltip-warnings">Show Warnings</span>
     </span>
     <span class="icon">
         <a style="vertical-align: middle; text-decoration: none; color: black;" href="#" onClick="toggleCached();">💵 (<span style="font-size: 10px; color: black;" id="numCached">0</span>)</a>
-        <span class="icon-tooltip icon-tooltip-middle">Show Cached RPCs</span>
+        <span class="icon-tooltip icon-tooltip-cache">Show Cached RPCs</span>
     </span>
     <span class="icon">
         <a style="vertical-align: middle; text-decoration: none; color: black;" href="#" onClick="toggleDebug();">🐞</a>
-        <span class="icon-tooltip icon-tooltip-left">Show Debugging</span>
+        <span class="icon-tooltip icon-tooltip-debug">Show Debugging</span>
     </span>
 
     <!-- Assertion failure goes here. -->

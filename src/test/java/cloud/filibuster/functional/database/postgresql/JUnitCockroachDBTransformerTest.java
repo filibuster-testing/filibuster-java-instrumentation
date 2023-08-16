@@ -29,6 +29,7 @@ public class JUnitCockroachDBTransformerTest extends JUnitAnnotationBaseTest {
     private static BasicDAO cockroachDAO;
     final int initBalance1 = 1000;
     final int initBalance2 = 250;
+    final int transferAmount = 50;
 
     @BeforeAll
     public static void getCockroachConnection() {
@@ -54,7 +55,14 @@ public class JUnitCockroachDBTransformerTest extends JUnitAnnotationBaseTest {
             // Assert account balances were set correctly
             assertEquals(initBalance1, cockroachDAO.getAccountBalance(id1));
             assertEquals(initBalance2, cockroachDAO.getAccountBalance(id2));
-//
+
+            // Transfer $100 from account 1 to account 2
+            cockroachDAO.transferFunds(id1, id2, transferAmount);
+
+            // Assert transfer was completed correctly
+            assertEquals(initBalance1 - transferAmount, cockroachDAO.getAccountBalance(id1));
+            assertEquals(initBalance2 + transferAmount, cockroachDAO.getAccountBalance(id2));
+
 //            assertFalse(wasFaultInjected());
         } catch (Throwable t) {
             testExceptionsThrown.add(t.getMessage());

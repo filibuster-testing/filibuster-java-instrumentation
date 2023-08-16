@@ -3,7 +3,9 @@ package cloud.filibuster.junit.configuration.examples.db.postgresql;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
-import cloud.filibuster.junit.server.core.transformers.selector.GatewayTransformer;
+import cloud.filibuster.junit.server.core.transformers.BooleanAsStringTransformer;
+import cloud.filibuster.junit.server.core.transformers.IntegerAsStringTransformer;
+import cloud.filibuster.junit.server.core.transformers.Transformer;
 
 public class PostgresTransformStringAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
@@ -11,17 +13,30 @@ public class PostgresTransformStringAnalysisConfigurationFile implements Filibus
     static {
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
-        FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
-                .name("java.transformers.transform_string.postgres")
-                .pattern("(java.sql.PreparedStatement/executeQuery|" +
-                        "java.sql.PreparedStatement/execute|" +
-                        "java.sql.PreparedStatement/executeUpdate)");
+        Object[][] faults = new Object[][]{
+                {"java.transformers.transform_string.postgres_execute",
+                        BooleanAsStringTransformer.class,
+                        "java.sql.PreparedStatement/execute"},
+                {"java.transformers.transform_string.postgres_executeUpdate",
+                        IntegerAsStringTransformer.class,
+                        "java.sql.PreparedStatement/executeUpdate"}
+        };
 
-        filibusterAnalysisConfigurationBuilderRedisExceptions.transformer(GatewayTransformer.class);
-
-        filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());
+        for (Object[] fault : faults) {
+            createTransformerFault(filibusterCustomAnalysisConfigurationFileBuilder, (String) fault[0], (Class<? extends Transformer<?, ?>>) fault[1], (String) fault[2]);
+        }
 
         filibusterCustomAnalysisConfigurationFile = filibusterCustomAnalysisConfigurationFileBuilder.build();
+    }
+
+
+    private static void createTransformerFault(FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder, String configName, Class<? extends Transformer<?, ?>> transformerClass, String pattern) {
+
+        FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder().name(configName).pattern(pattern);
+
+        filibusterAnalysisConfigurationBuilderRedisExceptions.transformer(transformerClass);
+
+        filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());
     }
 
     @Override

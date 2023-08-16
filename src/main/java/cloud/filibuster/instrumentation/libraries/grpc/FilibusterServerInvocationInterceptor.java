@@ -11,6 +11,7 @@ import io.grpc.ServerCallHandler;
 import io.grpc.ServerInterceptor;
 import io.grpc.Status;
 
+import java.util.List;
 import java.util.UUID;
 
 import static cloud.filibuster.instrumentation.helpers.Property.getEnabledProperty;
@@ -22,6 +23,12 @@ public class FilibusterServerInvocationInterceptor implements ServerInterceptor 
 
     public FilibusterServerInvocationInterceptor(Class clazz) {
         ServerInvocationAndResponseReport.loadGrpcEndpoints(clazz);
+    }
+
+    public FilibusterServerInvocationInterceptor(List<Class> clazzes) {
+        for (Class clazz : clazzes) {
+            ServerInvocationAndResponseReport.loadGrpcEndpoints(clazz);
+        }
     }
 
     private static boolean shouldInstrument() {

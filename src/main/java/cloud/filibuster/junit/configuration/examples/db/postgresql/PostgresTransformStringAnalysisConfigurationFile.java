@@ -3,8 +3,10 @@ package cloud.filibuster.junit.configuration.examples.db.postgresql;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
+import cloud.filibuster.junit.server.core.transformers.BitInByteArrTransformer;
 import cloud.filibuster.junit.server.core.transformers.BooleanAsStringTransformer;
 import cloud.filibuster.junit.server.core.transformers.IntegerAsStringTransformer;
+import cloud.filibuster.junit.server.core.transformers.StringTransformer;
 import cloud.filibuster.junit.server.core.transformers.Transformer;
 
 public class PostgresTransformStringAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
@@ -14,12 +16,24 @@ public class PostgresTransformStringAnalysisConfigurationFile implements Filibus
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
         Object[][] faults = new Object[][]{
-                {"java.transformers.transform_string.postgres_execute",
+                {"java.transformers.transformer.postgres_execute",
                         BooleanAsStringTransformer.class,
                         "java.sql.PreparedStatement/execute"},
-                {"java.transformers.transform_string.postgres_executeUpdate",
+                {"java.transformers.transformer.postgres_executeUpdate",
                         IntegerAsStringTransformer.class,
-                        "java.sql.PreparedStatement/executeUpdate"}
+                        "java.sql.PreparedStatement/executeUpdate"},
+                {"java.transformers.transformer.postgres_getInt",
+                        IntegerAsStringTransformer.class,
+                        "java.sql.ResultSet/getInt"},
+                {"java.transformers.transformer.postgres_getBoolean",
+                        BooleanAsStringTransformer.class,
+                        "java.sql.ResultSet/getBoolean"},
+                {"java.transformers.transformer.postgres_getString",
+                        StringTransformer.class,
+                        "java.sql.ResultSet/getString"},
+                {"java.transformers.transformer.postgres_getBytes",
+                        BitInByteArrTransformer.class,
+                        "java.sql.ResultSet/getBytes"},
         };
 
         for (Object[] fault : faults) {

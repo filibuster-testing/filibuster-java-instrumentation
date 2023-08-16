@@ -63,7 +63,6 @@ public class JUnitCockroachDBTransformerTest extends JUnitAnnotationBaseTest {
             assertEquals(initBalance1 - transferAmount, cockroachDAO.getAccountBalance(id1));
             assertEquals(initBalance2 + transferAmount, cockroachDAO.getAccountBalance(id2));
 
-//            assertFalse(wasFaultInjected());
         } catch (Throwable t) {
             testExceptionsThrown.add(t.getMessage());
 
@@ -75,7 +74,6 @@ public class JUnitCockroachDBTransformerTest extends JUnitAnnotationBaseTest {
 //    @Test
 //    @Order(2)
 //    public void testNumExecutions() {
-//        // 1 fault free execution + 4 execution with injected faults
 //        assertEquals(5, numberOfTestExecutions);
 //    }
 //

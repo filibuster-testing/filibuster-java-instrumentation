@@ -46,11 +46,4 @@ public final class JsonUtils {
         }
         return unflattened;
     }
-
-    public static void main(String[] args) {
-        JSONObject nested = new JSONObject();
-        JSONObject flat = flatten(nested);
-        System.out.println("Flattened: " + flat);
-        System.out.println("Unflattened: " + unflatten(flat));
-    }
 }

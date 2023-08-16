@@ -35,10 +35,12 @@ import java.util.stream.Collectors;
 public class ServerInvocationAndResponseReport {
 
     private static void addGrpcMethod(String grpcMethod) {
-        grpcMethods.add(grpcMethod);
-        grpcMethodInvokedByTests.put(grpcMethod, 0);
-        grpcMethodInvokedByFilibusterTests.put(grpcMethod, 0);
-        grpcMethodInvokedByUniqueFilibusterTests.put(grpcMethod, 0);
+        if (! grpcMethods.contains(grpcMethod)) {
+            grpcMethods.add(grpcMethod);
+            grpcMethodInvokedByTests.put(grpcMethod, 0);
+            grpcMethodInvokedByFilibusterTests.put(grpcMethod, 0);
+            grpcMethodInvokedByUniqueFilibusterTests.put(grpcMethod, 0);
+        }
     }
 
     private static void incrementGrpcMethodByTestInvocation(String grpcMethod) {

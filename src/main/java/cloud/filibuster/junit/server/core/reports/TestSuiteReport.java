@@ -116,8 +116,6 @@ public class TestSuiteReport {
     }
 
     private void testSuiteCompleted() {
-        boolean filibusterEnabled = getEnabledProperty();
-
         if (getEnabledProperty()) {
             ServerInvocationAndResponseReport.writeServerInvocationReport();
             ServerInvocationAndResponseReport.writeServiceProfile();

@@ -198,6 +198,21 @@
             text-align: left;
             font-weight: normal;
 		}
+
+        span.icon {
+            border-bottom: 1px dotted black;
+            float: left;
+            display: inline;
+            text-align: right;
+            text-decoration: none;
+            margin-bottom: 10px;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+
+        td.number {
+            text-align: center;
+        }
 	</style>
 </head>
 
@@ -205,14 +220,27 @@
 <section>
     <div class="container" style="margin: 0 auto; padding: 0;">
         <div style="width: 95vw; padding: 10px; margin-bottom: 10px; text-align: left;">
-            <a href="index.html">🔙</a>
+            <span class="icon">
+                <a href="index.html">🔙</a>
+            </span>
 
             <table id='endpoints' style="min-width: 95vw; margin-top: 10px;">
                 <tr>
                     <th>RPC Method</th>
-                    <th>Authored Functional Tests</th>
-                    <th>Authored Filibuster Tests</th>
-                    <th>Synthesized Fault Injection Scenarios</th>
+                    <th style="text-align: center;">
+                        Authored Functional Tests
+                        <br/>
+                        <span style="display: block; width: auto; text-align: center;" id="testedEndpoints"></span>
+                    </th>
+                    <th style="text-align: center;">
+                        Authored Filibuster Tests
+                        <br/>
+                        <span style="display: block; width: auto; text-align: center;" id="filibusterTestedEndpoints"></span>
+                    </th>
+                    <th style="text-align: center;">
+                        Synthesized <br />
+                        Fault Injection Scenarios
+                    </th>
                 </tr>
             </table>
         </div>
@@ -231,6 +259,10 @@
             $('tr.debug').toggle();
         }
 
+        var totalEndpoints = accessedGrpcEndpoints.methods.length;
+        var testedEndpoints = 0;
+        var filibusterTestedEndpoints = 0;
+
         $(document).ready(function () {
             for (i in accessedGrpcEndpoints.methods) {
                 var row = '';
@@ -242,37 +274,55 @@
 
                 row += "<tr>";
 
+                var displayMethod = method;
+
+                if (tests === 0 && filibusterTests === 0) {
+                    displayMethod = "❌ " + method;
+                } else if (filibusterTests > 0) {
+                    displayMethod = "✅ " + method;
+                } else {
+                    displayMethod = "⚠️ " + method;
+                }
+
                 if (warning) {
-                    row += "<td class='method_name warning'>" + method + "</td>";
+                    row += "<td class='method_name warning'>" + displayMethod + "</td>";
                 } else {
                     if (tests > 0 && filibusterTests > 0 && filibusterExecutions > 0) {
-                        row += "<td class='method_name success'>" + method + "</td>";
+                        row += "<td class='method_name success'>" + displayMethod + "</td>";
                     } else {
-                        row += "<td class='method_name'>" + method + "</td>";
+                        row += "<td class='method_name'>" + displayMethod + "</td>";
                     }
                 }
 
                 if (tests === 0) {
-                    row += "<td class='fault'>" + tests + "</td>";
+                    row += "<td class='number fault'>" + tests + "</td>";
                 } else {
-                    row += "<td class='success'>" + tests + "</td>";
+                    testedEndpoints = testedEndpoints + 1;
+                    row += "<td class='number success'>" + tests + "</td>";
                 }
 
                 if (filibusterTests === 0) {
-                    row += "<td class='fault'>" + filibusterTests + "</td>";
+                    row += "<td class='number fault'>" + filibusterTests + "</td>";
                 } else {
-                    row += "<td class='success'>" + filibusterTests + "</td>";
+                    filibusterTestedEndpoints = filibusterTestedEndpoints + 1;
+                    row += "<td class='number success'>" + filibusterTests + "</td>";
                 }
 
                 if (filibusterExecutions === 0) {
-                    row += "<td class='fault'>" + filibusterExecutions + "</td>";
+                    row += "<td class='number fault'>" + filibusterExecutions + "</td>";
                 } else {
-                    row += "<td class='success'>" + filibusterExecutions + "</td>";
+                    row += "<td class='number success'>" + filibusterExecutions + "</td>";
                 }
 
                 // warning todo
 
                 row += "</tr>";
+
+                var testedEndpointsPercentage = (testedEndpoints / totalEndpoints).toFixed(2);
+                $('#testedEndpoints').html("" + testedEndpoints + "/" + totalEndpoints + " (" + testedEndpointsPercentage + "%)");
+
+                var filibusterTestedEndpointsPercentage = (filibusterTestedEndpoints / totalEndpoints).toFixed(2);
+                $('#filibusterTestedEndpoints').html("" + filibusterTestedEndpoints + "/" + totalEndpoints + " (" + filibusterTestedEndpointsPercentage + "%)");
 
                 $('#endpoints').append(row);
             }

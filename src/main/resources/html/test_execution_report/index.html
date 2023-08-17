@@ -132,6 +132,16 @@
             font-weight: 500;
         }
 
+        .small_class_name {
+            padding: 0;
+            margin-bottom: 10px;
+            font-family: 'Inconsolata', sans-serif;
+            font-size: verysmall;
+            font-weight: 500;
+            width: 100%;
+            text-align: left;
+        }
+
         .class_name {
             padding: 0;
             margin-bottom: 10px;
@@ -160,21 +170,140 @@
         .cached {
             display: none;
         }
-	</style>
+
+        .stacktrace {
+            height: 100px;
+            margin-bottom: 10px;
+        }
+
+        .fixMessage {
+            height: auto;
+            width: inherit;
+            padding: 10px 10px;
+            overflow: auto;
+            margin-bottom: 10px;
+            background: lightcyan;
+            box-sizing: border-box;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .fixMessageHeading {
+            display: inline-block;
+            font-size: small;
+            font-weight: bold;
+        }
+
+        /* unvisited link */
+        a:link {
+            color: black;
+        }
+
+        /* visited link */
+        a:visited {
+            color: black;
+        }
+
+        /* mouse over link */
+        a:hover {
+            color: black;
+        }
+
+        /* selected link */
+        a:active {
+            color: black;
+        }
+
+        .icon .icon-tooltip {
+            display: inline-block;
+            width: 120px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 0;
+            font-size: 11px;
+            position: absolute;
+            z-index: 1;
+            top: 5%;
+            right: 5px;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .icon .icon-tooltip-debug::after {
+            content: "";
+            position: absolute;
+            bottom: 100%;
+            right: 90px;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent transparent #555 transparent;
+        }
+
+        .icon .icon-tooltip-cache::after {
+            content: "";
+            position: absolute;
+            bottom: 100%;
+            right: 55px;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent transparent #555 transparent;
+        }
+
+        .icon .icon-tooltip-warnings::after {
+            content: "";
+            position: absolute;
+            bottom: 100%;
+            right: 5px;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent transparent #555 transparent;
+        }
+
+        span.icon:hover .icon-tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        span.icon {
+            border-bottom: 1px dotted black;
+            float: right;
+            display: inline;
+            text-align: right;
+            text-decoration: none;
+            margin-bottom: 10px;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+    </style>
 </head>
 
 <body>
 <section style="margin: 0; padding: 0;">
-    <span style="float: right; display: inline; text-align: right; text-decoration: none; margin-bottom: 10px; margin-left: 10px; vertical-align: middle;"><a style="vertical-align: middle; text-decoration: none; color: black;" href="#" onClick="toggleWarnings();">⚠️ (<span style="font-size: 10px; color: black;" id="numWarnings">0</span>)</a></span>
-    <span style="float: right; display: inline; text-align: right; text-decoration: none; margin-bottom: 10px; margin-left: 10px; vertical-align: middle;"><a style="vertical-align: middle; text-decoration: none; color: black;" href="#" onClick="toggleCached();">💵 (<span style="font-size: 10px; color: black;" id="numCached">0</span>)</a></span>
-    <span style="float: right; display: inline; text-align: right; text-decoration: none; margin-bottom: 10px; margin-left: 10px; vertical-align: middle;"><a style="vertical-align: middle; text-decoration: none; color: black;" href="#" onClick="toggleDebug();">🐞</a></span>
+    <span class="icon">
+        <a style="vertical-align: middle; text-decoration: none; color: black;" href="#" title="Show warnings in this execution" onClick="toggleWarnings();">⚠️ (<span style="font-size: 10px; color: black;" id="numWarnings">0</span>)</a>
+        <span class="icon-tooltip icon-tooltip-warnings">Show Warnings</span>
+    </span>
+    <span class="icon">
+        <a style="vertical-align: middle; text-decoration: none; color: black;" href="#" onClick="toggleCached();">💵 (<span style="font-size: 10px; color: black;" id="numCached">0</span>)</a>
+        <span class="icon-tooltip icon-tooltip-cache">Show Cached RPCs</span>
+    </span>
+    <span class="icon">
+        <a style="vertical-align: middle; text-decoration: none; color: black;" href="#" onClick="toggleDebug();">🐞</a>
+        <span class="icon-tooltip icon-tooltip-debug">Show Debugging</span>
+    </span>
 
     <!-- Assertion failure goes here. -->
     <div id="failure" style="display: none; margin: 0; padding: 0; width: 100%; font-size: 11px;">
         <span style="vertical-align: middle; text-align: left;" id ="failedMessage">️</span>
-        <select name="failureSelection" id="failureSelection" style="font-size: 11px;">
+        <select name="failureSelection" id="failureSelection" style="vertical-align: bottom; font-size: 11px;">
         </select>
-        <a style="text-decoration: none;" href="#" onClick="toggleStackTrace();">📚</a>
+        <a style="text-decoration: none; vertical-align: bottom; font-size: 11px;" href="#" onClick="toggleStackTrace();">⬇️</a>
     </div>
 
     <div id="failureStackTrace" style="display: none;margin: 0; padding: 0; width: 100%; font-size: 11px;">
@@ -208,6 +337,18 @@
 
                 // Copy the text inside the text field
                 navigator.clipboard.writeText(copyText.value);
+            }
+
+            function escapeHtml(unsafe) {
+                if (unsafe) {
+                    return unsafe
+                        .replace(/&/g, "&amp;")
+                        .replace(/</g, "&lt;")
+                        .replace(/>/g, "&gt;")
+                        .replace(/"/g, "&quot;")
+                        .replace(/'/g, "&#039;");
+                }
+                return unsafe;
             }
 
             function toggleDebug() {
@@ -247,7 +388,10 @@
             {
                 let selectedFailureIndex = parseInt($("#failureSelection").find(":selected").val());
                 let selectedFailure = analysis.failures[selectedFailureIndex];
-                $("#failureStackTrace").html(`<textarea>${selectedFailure.assertion_failure_stacktrace}</textarea>`)
+                $("#failureStackTrace").html(`<textarea class="stacktrace" readonly>${selectedFailure.assertion_failure_stacktrace}</textarea>`)
+                if ("assertion_failure_fix_message" in selectedFailure) {
+                    $("#failureStackTrace").append(`<div class="fixMessage"><span class="fixMessageHeading">Resolutions</span><p>❌ First, check if this is a bug.</p><p>✅ If this is desired application behavior, here are some possible ways to fix this failure:</p>${selectedFailure.assertion_failure_fix_message}</div>`)
+                }
                 $("#failureStackTrace").toggle();
             }
 
@@ -260,7 +404,7 @@
                     let plural = failures.length > 1  ? "s" : "";
                     $('#failedMessage').html(`❌&nbsp; Test failed because of assertion failure${plural}: `);
                     $('#failure').show();
-                    let options = failures.map((failure,index) => `<option value="${index}">${failure.assertion_failure_message}</option>`).join();
+                    let options = failures.map((failure,index) => failure.assertion_failure_message.indexOf(".\n") != -1 ? `<option value="${index}">${failure.assertion_failure_message.substring(0, failure.assertion_failure_message.indexOf(".\n") + 1)}</option>` : `<option value="${index}">${failure.assertion_failure_message}</option>`).join();
                     console.log(options);
                     $("#failureSelection").append(options);
                 } else {
@@ -373,13 +517,31 @@
                         row += '<tr class="fault">';
                     }
 
-                    row += '<td class="method"><div class="class_name">' + substringNamespace(rpc.request.method) + '</div></td>';
-                    row += '<td class="args">';
-                    row += '<div class="class_name">' + substringNamespace(rpc.request.args.__class__) + '</div>';
-                    row += '<textarea>';
-                    row += rpc.request.args.toString;
-                    row += '</textarea>'
-                    row += '</td>';
+                    if (rpc.request.module.includes("WebClient")) {
+                        var rpcArgs = rpc.request.args.toString.replace('[','').replace(']','').split(",");
+
+                        row += '<td class="method"><div class="class_name">';
+                        row += substringNamespace(rpc.request.method);
+                        row += ' ';
+                        row += rpcArgs[0];
+                        row += '</div></td>';
+
+                        row += '<td class="args">';
+                        row += '<div class="class_name">' + substringNamespace(rpc.request.args.__class__) + '</div>';
+                        row += '<textarea>';
+                        row += escapeHtml(rpcArgs.slice(1).toString());
+                        row += '</textarea>'
+                        row += '</td>';
+                    } else {
+                        row += '<td class="method"><div class="class_name">' + substringNamespace(rpc.request.method) + '</div></td>';
+
+                        row += '<td class="args">';
+                        row += '<div class="class_name">' + substringNamespace(rpc.request.args.__class__) + '</div>';
+                        row += '<textarea>';
+                        row += escapeHtml(rpc.request.args.toString);
+                        row += '</textarea>'
+                        row += '</td>';
+                    }
 
                     if (isEmpty(rpc.response)) {
                         row += '<td>⚠️ No RPC response was recorded.</td>';
@@ -415,11 +577,20 @@
 
                         row += '</textarea></td>';
                     } else {
-                        console.log(rpc.response.return_value);
                         row += '<td class="response">';
                         row += '<div class="class_name">' + substringNamespace(rpc.response.return_value.__class__) + '</div>';
+
                         row += '<textarea>';
-                        row += rpc.response.return_value.toString;
+                        if (substringNamespace(rpc.response.return_value.__class__) === "HttpResponse") {
+                            row += "status_code = " + rpc.response.return_value.status_code;
+
+                            if ('value' in rpc.response.return_value) {
+                                row += "\nvalue = ";
+                                row += rpc.response.return_value.value;
+                            }
+                        } else {
+                            row += escapeHtml(rpc.response.return_value.toString);
+                        }
                         row += '</textarea>'
                         row += '</td>';
                     }
@@ -451,6 +622,12 @@
                                 row += '\ndescription = ' + rpc.fault.forced_exception.metadata.description;
                             }
 
+                            if (rpc.fault.forced_exception.metadata.injectOn !== undefined) {
+                                row += '\ninject_on = ' + rpc.fault.forced_exception.metadata.injectOn;
+                            } else {
+                                // Do nothing.
+                            }
+
                             row += '</textarea>';
                             row += '</td>';
                         }
@@ -460,6 +637,15 @@
                             row += '<div class="class_name">&nbsp;</div>';
                             row += '<textarea>';
                             row += 'milliseconds = ' + rpc.fault.latency.milliseconds;
+                            row += '</textarea>';
+                            row += '</td>';
+                        }
+
+                        if ('failure_metadata' in rpc.fault) {
+                            row += '<td>';
+                            row += '<div class="class_name">HttpResponse</div>';
+                            row += '<textarea>';
+                            row += 'status_code = ' + rpc.fault.failure_metadata.return_value.status_code;
                             row += '</textarea>';
                             row += '</td>';
                         }
@@ -484,6 +670,18 @@
                     row += '<span style="font-weight: bold">Distributed Execution Index:</span>';
                     row += '<textarea style="height: 60px; margin-top:10px;">';
                     row += rpc.dei;
+                    row += '</textarea>';
+                    row += '</td>';
+                    row += '</tr>';
+                    $('#rpcs').append(row);
+
+                    var row = '';
+                    row += '<tr class="debug">';
+                    row += '<td class="right">🐞</td>';
+                    row += '<td colspan="3" class="warning" style="vertical-align: middle; text-align: left">';
+                    row += '<span style="font-weight: bold">RPC Object</span>';
+                    row += '<textarea style="height: 120px; margin-top:10px;">';
+                    row += JSON.stringify(rpc, undefined, 2)
                     row += '</textarea>';
                     row += '</td>';
                     row += '</tr>';

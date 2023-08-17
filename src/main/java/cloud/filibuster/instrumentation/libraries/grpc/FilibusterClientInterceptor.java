@@ -1,5 +1,6 @@
 package cloud.filibuster.instrumentation.libraries.grpc;
 
+import cloud.filibuster.RpcType;
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.exceptions.filibuster.FilibusterInstrumentationMissingDelegateException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
@@ -232,7 +233,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
             @Override
             protected ClientCall<REQUEST, RESPONSE> delegate() {
                 if (delegate == null) {
-                    throw new FilibusterInstrumentationMissingDelegateException("Delegate is null, something threw inside of the Filibuster interceptor.");
+                    throw new FilibusterInstrumentationMissingDelegateException("Delegate is null, something threw inside of the Filibuster interceptor previously, scroll to see previous exception.");
                 }
                 return delegate;
             }
@@ -322,7 +323,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                     // Record invocation.
                     // ******************************************************************************************
 
-                    filibusterClientInstrumentor.setRpcType("grpc"); // TODO: enum?
+                    filibusterClientInstrumentor.setRpcType(RpcType.GRPC);
                     filibusterClientInstrumentor.beforeInvocation();
 
                     // ******************************************************************************************

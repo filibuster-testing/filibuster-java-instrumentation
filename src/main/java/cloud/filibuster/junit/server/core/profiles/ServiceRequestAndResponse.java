@@ -37,30 +37,30 @@ public class ServiceRequestAndResponse {
         return this.status;
     }
 
-    public JSONObject toJSONObject() {
+    public JSONObject toJsonObject() {
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("request", GeneratedMessageV3Serializer.toJSONObject(request));
-        jsonObject.put("status", StatusSerializer.toJSONObject(status));
+        jsonObject.put("request", GeneratedMessageV3Serializer.toJsonObject(request));
+        jsonObject.put("status", StatusSerializer.toJsonObject(status));
 
         if (response != null) {
-            jsonObject.put("response", GeneratedMessageV3Serializer.toJSONObject(response));
+            jsonObject.put("response", GeneratedMessageV3Serializer.toJsonObject(response));
         }
 
         return jsonObject;
     }
 
-    public static ServiceRequestAndResponse fromJSONObject(JSONObject jsonObject) {
+    public static ServiceRequestAndResponse fromJsonObject(JSONObject jsonObject) {
         JSONObject requestObject = jsonObject.getJSONObject("request");
-        GeneratedMessageV3 request = GeneratedMessageV3Serializer.fromJSONObject(requestObject);
+        GeneratedMessageV3 request = GeneratedMessageV3Serializer.fromJsonObject(requestObject);
 
         JSONObject statusObject = jsonObject.getJSONObject("status");
-        Status status = StatusSerializer.fromJSONObject(statusObject);
+        Status status = StatusSerializer.fromJsonObject(statusObject);
 
         GeneratedMessageV3 response = null;
 
         if (jsonObject.has("response")) {
             JSONObject responseObject = jsonObject.getJSONObject("response");
-            response = GeneratedMessageV3Serializer.fromJSONObject(responseObject);
+            response = GeneratedMessageV3Serializer.fromJsonObject(responseObject);
         }
 
         return new ServiceRequestAndResponse(request, status, response);

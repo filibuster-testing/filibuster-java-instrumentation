@@ -2,6 +2,7 @@ package cloud.filibuster.functional.python.macros;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
+import cloud.filibuster.examples.WorldServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
@@ -18,9 +19,9 @@ import org.opentest4j.AssertionFailedError;
 
 import java.util.concurrent.TimeUnit;
 
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
-import static cloud.filibuster.junit.assertions.Grpc.wasFaultInjectedOnService;
-import static cloud.filibuster.junit.assertions.Grpc.tryGrpcAndCatchGrpcExceptions;
+import static cloud.filibuster.junit.assertions.protocols.GrpcAssertions.wasFaultInjectedOnService;
+import static cloud.filibuster.junit.assertions.protocols.GrpcAssertions.wasFaultInjectedOnMethod;
+import static cloud.filibuster.junit.assertions.protocols.GrpcAssertions.tryGrpcAndCatchGrpcExceptions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -72,7 +73,7 @@ public class JUnitFilibusterTestExtendedMacroAssertion extends JUnitBaseTest {
             boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("world");
             assertTrue(wasFaultInjectedOnWorldService);
 
-            boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World");
+            boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod(WorldServiceGrpc.getWorldMethod());
             assertTrue(wasFaultInjectedOnWorldMethod);
 
             if (! expected) {

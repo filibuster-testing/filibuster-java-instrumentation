@@ -1,5 +1,6 @@
 package cloud.filibuster.junit.configuration;
 
+import cloud.filibuster.RpcType;
 import cloud.filibuster.instrumentation.datatypes.Pair;
 import cloud.filibuster.junit.server.core.transformers.Transformer;
 import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineFaultType;
@@ -24,16 +25,16 @@ public class FilibusterAnalysisConfiguration {
     private final List<JSONObject> transformerFaultObjects = new ArrayList<>();
     private final String name;
     private final String pattern;
-    private final String type;
+    private final RpcType rpcType;
 
     @SuppressWarnings("Varifier")
     public FilibusterAnalysisConfiguration(Builder builder) {
         this.name = builder.name;
         this.pattern = builder.pattern;
-        this.type = builder.type;
+        this.rpcType = builder.rpcType;
 
         configurationObject.put("pattern", builder.pattern);
-        configurationObject.put("type", builder.type);
+        configurationObject.put("rpc_type", builder.rpcType);
 
         if (builder.exceptions.size() > 0) {
             configurationObject.put("exceptions", builder.exceptions);
@@ -108,8 +109,8 @@ public class FilibusterAnalysisConfiguration {
         return this.latencyFaultObjects;
     }
 
-    public boolean hasType() {
-        return this.type != null;
+    public boolean hasRpcType() {
+        return this.rpcType != null;
     }
 
     public boolean isPatternMatch(String matchString) {
@@ -118,11 +119,11 @@ public class FilibusterAnalysisConfiguration {
         return matcher.find();
     }
 
-    public boolean isTypeMatch(String typeMatch) {
-        return typeMatch.equals(this.type);
+    public boolean isRpcTypeMatch(RpcType rpcType) {
+        return rpcType.equals(this.rpcType);
     }
 
-    public Map.Entry<String, JSONObject> toJSONPair() {
+    public Map.Entry<String, JSONObject> toJsonPair() {
         return Pair.of(name, configurationObject);
     }
 
@@ -134,7 +135,7 @@ public class FilibusterAnalysisConfiguration {
     public static class Builder {
         private String name;
         private String pattern;
-        private String type;
+        private RpcType rpcType;
         private final List<JSONObject> exceptions = new ArrayList<>();
         private final List<JSONObject> errors = new ArrayList<>();
         private final List<JSONObject> latencies = new ArrayList<>();
@@ -201,8 +202,8 @@ public class FilibusterAnalysisConfiguration {
         }
 
         @CanIgnoreReturnValue
-        public Builder type(String type) {
-            this.type = type;
+        public Builder rpcType(RpcType type) {
+            this.rpcType = type;
             return this;
         }
 

@@ -2,6 +2,7 @@ package cloud.filibuster.functional.java.latency;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
+import cloud.filibuster.exceptions.filibuster.FilibusterAllowedTimeExceededException;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.TestWithFilibuster;
@@ -16,7 +17,6 @@ import org.junit.jupiter.api.TestMethodOrder;
 
 import java.util.concurrent.TimeUnit;
 
-import static cloud.filibuster.junit.Assertions.assertPassesWithinMs;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -50,4 +50,17 @@ public class JUnitFilibusterTestWithLatencyInjection extends JUnitAnnotationBase
     public void testNumberOfTestsExecuted() {
         assertEquals(2, numberOfTestsExecuted);
     }
+
+    private static void assertPassesWithinMs(int milliseconds, Runnable testBlock) {
+        long startTime = System.nanoTime();
+        testBlock.run();
+        long endTime = System.nanoTime();
+
+        long duration = (endTime - startTime);
+        long durationMs = duration / 1000000;
+        if (durationMs > milliseconds) {
+            throw new FilibusterAllowedTimeExceededException("Test completed in " + durationMs +" milliseconds, exceeding allowed " + milliseconds + " milliseconds.");
+        }
+    }
+
 }

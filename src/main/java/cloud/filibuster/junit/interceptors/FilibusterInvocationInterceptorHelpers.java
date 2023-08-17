@@ -1,5 +1,8 @@
 package cloud.filibuster.junit.interceptors;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterFaultNotInjectedAndATrackedMethodInvokedException;
+import cloud.filibuster.exceptions.filibuster.FilibusterFaultNotInjectedException;
+import cloud.filibuster.exceptions.filibuster.FilibusterOrganicFailuresPresentException;
 import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
 import cloud.filibuster.exceptions.filibuster.FilibusterNoopException;
@@ -8,7 +11,7 @@ import cloud.filibuster.junit.server.core.FilibusterCore;
 import com.linecorp.armeria.client.WebClient;
 import org.junit.jupiter.api.extension.InvocationInterceptor;
 
-import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,43 +26,69 @@ public class FilibusterInvocationInterceptorHelpers {
     }
 
     @SuppressWarnings("InterruptedExceptionSwallowed")
-    public static boolean shouldBypassExecution(WebClient webClient, int currentIteration, String caller) {
+    public static boolean shouldBypassExecution(WebClient webClient, int currentIteration, String caller, boolean abortOnFirstFailure, boolean previousExecutionFailed) {
         try {
-            return !FilibusterServerAPI.hasNextIteration(webClient, currentIteration, caller);
+            boolean hasNextIteration = FilibusterServerAPI.hasNextIteration(webClient, currentIteration, caller);
+
+            if (hasNextIteration) {
+                if (abortOnFirstFailure && previousExecutionFailed) {
+                    return true;
+                }
+
+                return false;
+            } else {
+                return true;
+            }
         } catch (Exception e) {
             throw new FilibusterRuntimeException("Filibuster server threw: " + e, e);
         }
     }
 
-    public static void proceedAndLogException(InvocationInterceptor.Invocation<Void> invocation,
+    public static void proceedAndLogException(FilibusterInvocationInterceptor filibusterInvocationInterceptor,
+                                              InvocationInterceptor.Invocation<Void> invocation,
                                               int currentIteration,
                                               WebClient webClient,
                                               FilibusterConfiguration filibusterConfiguration) throws Throwable {
-        proceedAndLogException(invocation, currentIteration, webClient, filibusterConfiguration,/* shouldWritePlaceholder= */true,/* shouldPrintRPCSummary= */true);
+        proceedAndLogException(filibusterInvocationInterceptor, invocation, currentIteration, webClient, filibusterConfiguration,/* shouldWritePlaceholder= */true,/* shouldPrintRpcSummary= */true);
     }
 
     @SuppressWarnings("InterruptedExceptionSwallowed")
-    public static void proceedAndLogException(InvocationInterceptor.Invocation<Void> invocation,
+    public static void proceedAndLogException(FilibusterInvocationInterceptor filibusterInvocationInterceptor,
+                                              InvocationInterceptor.Invocation<Void> invocation,
                                               int currentIteration,
                                               WebClient webClient,
                                               FilibusterConfiguration filibusterConfiguration,
                                               boolean shouldWritePlaceholder,
-                                              boolean shouldPrintRPCSummary) throws Throwable {
+                                              boolean shouldPrintRpcSummary) throws Throwable {
         try {
             if (getServerBackendCanInvokeDirectlyProperty()) {
                 if (FilibusterCore.hasCurrentInstance() && shouldWritePlaceholder) {
                     FilibusterCore.getCurrentInstance().writePlaceholderReport();
                 }
             }
+
             invocation.proceed();
-            FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */ false, null, shouldPrintRPCSummary);
+
+            if (filibusterConfiguration.getFailOnOrganicFailures() && FilibusterCore.hasCurrentInstance() && FilibusterCore.getCurrentInstance().testContainsOrganicFailures()) {
+                FilibusterOrganicFailuresPresentException t = new FilibusterOrganicFailuresPresentException("Organic failures present: did you stubs for all invoked RPCs?");
+                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */ true, t, shouldPrintRpcSummary);
+                FilibusterInvocationInterceptor.previousIterationFailed = true;
+                throw t;
+            } else {
+                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */ false, null, shouldPrintRpcSummary);
+            }
         } catch (Throwable t) {
             Class<? extends Throwable> expectedExceptionClass = filibusterConfiguration.getExpected();
 
             if (expectedExceptionClass != FilibusterNoopException.class && expectedExceptionClass.isInstance(t)) {
-                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */false, null, shouldPrintRPCSummary);
+                // FilibusterFaultNotInjectedException and FilibusterFaultNotInjectedAndATrackedMethodInvokedException are thrown by recordIterationComplete -> FilibusterCore.completeIteration
+                // In this case, we do not need to call recordIterationComplete again since invocation has already been recorded
+                if (!expectedExceptionClass.equals(FilibusterFaultNotInjectedException.class) && !expectedExceptionClass.equals(FilibusterFaultNotInjectedAndATrackedMethodInvokedException.class)) {
+                    FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */false, null, shouldPrintRpcSummary);
+                }
             } else {
-                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */true, t, shouldPrintRPCSummary);
+                FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */true, t, shouldPrintRpcSummary);
+                FilibusterInvocationInterceptor.previousIterationFailed = true;
                 throw t;
             }
         }
@@ -80,7 +109,7 @@ public class FilibusterInvocationInterceptorHelpers {
      * @param currentIteration        the iteration we are currently in, not the iteration that's been completed (current - 1).
      * @param webClient               a web client to use to talk to the Filibuster Server.
      */
-    public static void conditionallyMarkTeardownComplete(HashMap<Integer, Boolean> invocationCompletionMap, int currentIteration, WebClient webClient) {
+    public static void conditionallyMarkTeardownComplete(Map<Integer, Boolean> invocationCompletionMap, int currentIteration, WebClient webClient) {
         int previousIteration = currentIteration - 1;
 
         if (!invocationCompletionMap.containsKey(previousIteration) && (previousIteration != 0)) {

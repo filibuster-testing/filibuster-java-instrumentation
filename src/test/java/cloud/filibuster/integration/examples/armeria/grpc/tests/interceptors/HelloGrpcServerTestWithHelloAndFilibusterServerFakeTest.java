@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import static cloud.filibuster.junit.Assertions.wasFaultInjected;
+import static cloud.filibuster.junit.assertions.protocols.GenericAssertions.wasFaultInjected;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -228,12 +228,12 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerFakeTest extends Hel
         JSONObject firstInvocationPayload = FilibusterServerFake.payloadsReceived.get(0);
         assertEquals("invocation", firstInvocationPayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-07a3625eb55e434fba553f90e97b2e23ddbe8479-51d0c6d179f06a73c7c08e98dc587a0f89598884\", 1]]", firstInvocationPayload.getString("execution_index"));
-        assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationPayload.getJSONObject("vclock").toString());
+        assertEquals(firstRequestVectorClock.toJsonObject().toString(), firstInvocationPayload.getJSONObject("vclock").toString());
 
         JSONObject firstInvocationCompletePayload = FilibusterServerFake.payloadsReceived.get(1);
         assertEquals("invocation_complete", firstInvocationCompletePayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-07a3625eb55e434fba553f90e97b2e23ddbe8479-51d0c6d179f06a73c7c08e98dc587a0f89598884\", 1]]", firstInvocationCompletePayload.getString("execution_index"));
-        assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationCompletePayload.getJSONObject("vclock").toString());
+        assertEquals(firstRequestVectorClock.toJsonObject().toString(), firstInvocationCompletePayload.getJSONObject("vclock").toString());
 
         FilibusterClientInterceptor.disableInstrumentation = true;
         FilibusterServerInterceptor.disableInstrumentation = true;
@@ -277,7 +277,7 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerFakeTest extends Hel
         JSONObject firstInvocationPayload = FilibusterServerFake.payloadsReceived.get(0);
         assertEquals("invocation", firstInvocationPayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-da040267a2cb07a1bd9a295ec9600a8fc98fa2ac-51d0c6d179f06a73c7c08e98dc587a0f89598884\", 1]]", firstInvocationPayload.getString("execution_index"));
-        assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationPayload.getJSONObject("vclock").toString());
+        assertEquals(firstRequestVectorClock.toJsonObject().toString(), firstInvocationPayload.getJSONObject("vclock").toString());
 
         JSONObject firstRequestReceivedPayload = FilibusterServerFake.payloadsReceived.get(1);
         assertEquals("request_received", firstRequestReceivedPayload.getString("instrumentation_type"));
@@ -286,7 +286,7 @@ public class HelloGrpcServerTestWithHelloAndFilibusterServerFakeTest extends Hel
         JSONObject firstInvocationCompletePayload = FilibusterServerFake.payloadsReceived.get(2);
         assertEquals("invocation_complete", firstInvocationCompletePayload.getString("instrumentation_type"));
         assertEquals("[[\"V1-da39a3ee5e6b4b0d3255bfef95601890afd80709-a94a8fe5ccb19ba61c4c0873d391e987982fbbd3-02be70093aa1244da10bd3b32514e8b3233ac30e-da040267a2cb07a1bd9a295ec9600a8fc98fa2ac-51d0c6d179f06a73c7c08e98dc587a0f89598884\", 1]]", firstInvocationCompletePayload.getString("execution_index"));
-        assertEquals(firstRequestVectorClock.toJSONObject().toString(), firstInvocationCompletePayload.getJSONObject("vclock").toString());
+        assertEquals(firstRequestVectorClock.toJsonObject().toString(), firstInvocationCompletePayload.getJSONObject("vclock").toString());
 
         FilibusterClientInterceptor.disableInstrumentation = true;
         FilibusterServerInterceptor.disableInstrumentation = true;

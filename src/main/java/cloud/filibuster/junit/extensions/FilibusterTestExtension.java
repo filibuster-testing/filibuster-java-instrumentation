@@ -29,14 +29,20 @@ import org.junit.platform.commons.util.Preconditions;
 import static cloud.filibuster.instrumentation.helpers.Property.AVOID_INJECTIONS_ON_ORGANIC_FAILURES_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.AVOID_REDUNDANT_INJECTIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.DATA_NONDETERMINISM_DEFAULT;
+import static cloud.filibuster.instrumentation.helpers.Property.FAIL_IF_FAULT_NOT_INJECTED_AND_A_TRACKED_METHOD_IS_INVOKED_DEFAULT;
+import static cloud.filibuster.instrumentation.helpers.Property.FAIL_IF_FAULT_NOT_INJECTED_DEFAULT;
+import static cloud.filibuster.instrumentation.helpers.Property.FAIL_ON_ORGANIC_FAILURES_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.MAX_ITERATIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.SUPPRESS_COMBINATIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.getEnabledProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.getFailIfFaultNotInjectedAndATrackedMethodIsInvokedProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.getFailIfFaultNotInjectedProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendDockerImageNameProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestAnalysisResourceFileProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestAvoidInjectionsOnOrganicFailuresProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestAvoidRedundantInjectionsProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestDataNondeterminismProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.getTestFailOnOrganicFailuresProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestMaxIterationsProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestSuppressCombinationsProperty;
 
@@ -116,6 +122,14 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
             avoidInjectionsOnOrganicFailures = getTestAvoidInjectionsOnOrganicFailuresProperty();
         }
 
+
+        boolean failOnOrganicFailures = testWithFilibuster.failOnOrganicFailures();
+
+        if (failOnOrganicFailures == FAIL_ON_ORGANIC_FAILURES_DEFAULT) {
+            // Check the property to see if it was set.
+            failOnOrganicFailures = getTestFailOnOrganicFailuresProperty();
+        }
+
         boolean suppressCombinations = testWithFilibuster.suppressCombinations();
 
         if (suppressCombinations == SUPPRESS_COMBINATIONS_DEFAULT) {
@@ -123,26 +137,52 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
             suppressCombinations = getTestSuppressCombinationsProperty();
         }
 
+        boolean failIfFaultInjected = testWithFilibuster.failIfFaultNotInjected();
+
+        if (failIfFaultInjected == FAIL_IF_FAULT_NOT_INJECTED_DEFAULT) {
+            // Check the property to see if it was set.
+            failIfFaultInjected = getFailIfFaultNotInjectedProperty();
+        }
+
+        boolean failIfFaultNotInjectedAndATrackedMethodIsInvoked = testWithFilibuster.failIfFaultNotInjectedAndATrackedMethodIsInvoked();
+
+        if (failIfFaultNotInjectedAndATrackedMethodIsInvoked == FAIL_IF_FAULT_NOT_INJECTED_AND_A_TRACKED_METHOD_IS_INVOKED_DEFAULT) {
+            // Check the property to see if it was set.
+            failIfFaultNotInjectedAndATrackedMethodIsInvoked = getFailIfFaultNotInjectedAndATrackedMethodIsInvokedProperty();
+        }
+
+        FilibusterSearchStrategy searchStrategy = testWithFilibuster.searchStrategy();
+
+        if (searchStrategy.equals(FilibusterSearchStrategy.DEFAULT)) {
+            FilibusterServerBackend filibusterServerBackend = FilibusterConfiguration.backendToBackendClass(testWithFilibuster.serverBackend());
+            searchStrategy = filibusterServerBackend.defaultSearchStrategy();
+        }
+
         FilibusterConfiguration filibusterConfiguration = new FilibusterConfiguration.Builder()
+                .abortOnFirstFailure(testWithFilibuster.abortOnFirstFailure())
                 .dynamicReduction(testWithFilibuster.dynamicReduction())
                 .suppressCombinations(suppressCombinations)
                 .dataNondeterminism(dataNondeterminism)
                 .avoidRedundantInjections(avoidRedundantInjections)
                 .avoidInjectionsOnOrganicFailures(avoidInjectionsOnOrganicFailures)
+                .failOnOrganicFailures(failOnOrganicFailures)
                 .serverBackend(testWithFilibuster.serverBackend())
-                .searchStrategy(testWithFilibuster.searchStrategy())
+                .searchStrategy(searchStrategy)
                 .dockerImageName(dockerImageName)
                 .analysisFile(analysisFile)
                 .degradeWhenServerInitializationFails(testWithFilibuster.degradeWhenServerInitializationFails())
                 .expected(testWithFilibuster.expected())
+                .faultInjectionFilter(testWithFilibuster.faultInjectionFilter())
                 .latencyProfile(testWithFilibuster.latencyProfile())
                 .serviceProfilesPath(testWithFilibuster.serviceProfilesPath())
                 .serviceProfileBehavior(testWithFilibuster.serviceProfileBehavior())
                 .testName(displayName)
                 .className(className)
+                .failIfFaultNotInjected(failIfFaultInjected)
+                .failIfFaultNotInjectedAndATrackedMethodIsInvoked(failIfFaultNotInjectedAndATrackedMethodIsInvoked)
                 .build();
 
-        validateSearchBackend(testWithFilibuster, filibusterConfiguration);
+        validateSearchBackend(searchStrategy, filibusterConfiguration);
         validateBackendSelection(testWithFilibuster, filibusterConfiguration);
 
         HashMap<Integer, Boolean> invocationCompletionMap = new HashMap<>();
@@ -200,9 +240,8 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
         return repetitions;
     }
 
-    private static void validateSearchBackend(TestWithFilibuster testWithFilibuster, FilibusterConfiguration filibusterConfiguration) {
+    private static void validateSearchBackend(FilibusterSearchStrategy filibusterSearchStrategy, FilibusterConfiguration filibusterConfiguration) {
         FilibusterServerBackend filibusterServerBackend = filibusterConfiguration.getServerBackend();
-        FilibusterSearchStrategy filibusterSearchStrategy = testWithFilibuster.searchStrategy();
         List<FilibusterSearchStrategy> supportedSearchStrategies = filibusterServerBackend.supportedSearchStrategies();
 
         Preconditions.condition(supportedSearchStrategies.contains(filibusterSearchStrategy), () -> String.format(

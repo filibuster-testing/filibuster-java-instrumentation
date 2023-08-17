@@ -1,5 +1,6 @@
 package cloud.filibuster.instrumentation.libraries.armeria.http;
 
+import cloud.filibuster.RpcType;
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
@@ -28,7 +29,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static cloud.filibuster.instrumentation.helpers.Networking.attemptHostnameResolution;
-import static cloud.filibuster.instrumentation.helpers.Networking.extractHostnameAndPortFromURI;
+import static cloud.filibuster.instrumentation.helpers.Networking.extractHostnameAndPortFromUri;
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationServerCommunicationEnabledProperty;
 
@@ -153,6 +154,7 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
 
             if (req.method().toString().equals("POST") || req.method().toString().equals("PUT")) {
                 int payloadHashCode = -1;
+                String payloadString = null;
 
                 try {
                     // From: https://stackoverflow.com/questions/1196192/how-to-read-the-value-of-a-private-field-from-a-different-class-in-java
@@ -165,12 +167,17 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
                     HttpData f2ByteArray = (HttpData) f2.get(f1Delegate); //IllegalAccessException
 
                     payloadHashCode = f2ByteArray.hashCode();
+                    payloadString = f2ByteArray.toStringAscii();
                 } catch (NoSuchFieldException | IllegalAccessException e) {
                     // Ignore.
                     logger.log(Level.SEVERE, "!!! Possible dynamic reduction risk: could not serialize arguments for callsite identification");
                 }
 
-                serializedArguments.add(String.valueOf(payloadHashCode));
+                if (payloadString != null) {
+                    serializedArguments.add(payloadString);
+                } else {
+                    serializedArguments.add(String.valueOf(payloadHashCode));
+                }
             }
 
             String classOrModuleName = "WebClient";
@@ -178,7 +185,7 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
                     serviceName,
                     classOrModuleName,
                     req.method().toString(),
-                    new CallsiteArguments(req.getClass(), String.join("-", serializedArguments)));
+                    new CallsiteArguments(req.getClass(), "[" + String.join(",", serializedArguments) + "]"));
         } else { // GRPC call
             String classOrModuleName = "GrpcClient";
             String path = req.path();
@@ -215,7 +222,7 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
         // ******************************************************************************************
 
         if (grpcRpcType) {
-            filibusterClientInstrumentor.setRpcType("grpc"); // TODO, enum?
+            filibusterClientInstrumentor.setRpcType(RpcType.GRPC);
         }
         filibusterClientInstrumentor.beforeInvocation();
 
@@ -262,7 +269,7 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
         // ******************************************************************************************
 
         String uri = req.uri().toString();
-        Map.Entry<String, String> hostnameAndPort = extractHostnameAndPortFromURI(uri);
+        Map.Entry<String, String> hostnameAndPort = extractHostnameAndPortFromUri(uri);
         String hostname = hostnameAndPort.getKey();
         String port = hostnameAndPort.getValue();
         String hostnameForExceptionBody = attemptHostnameResolution(hostname, uri);

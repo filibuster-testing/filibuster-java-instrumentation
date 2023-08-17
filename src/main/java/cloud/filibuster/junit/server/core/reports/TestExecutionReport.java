@@ -2,6 +2,7 @@ package cloud.filibuster.junit.server.core.reports;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.exceptions.filibuster.FilibusterAnalysisFailureException;
+import cloud.filibuster.exceptions.filibuster.FilibusterGrpcTestRuntimeException.FilibusterGrpcTestRuntimeException;
 import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterException;
 import cloud.filibuster.junit.server.core.lint.analyzers.test_execution_report.*;
 import cloud.filibuster.junit.server.core.lint.analyzers.warnings.FilibusterAnalyzerWarning;
@@ -29,10 +30,17 @@ public class TestExecutionReport {
     public static class FailureMetadata {
         private final String assertionFailureMessage;
         private final String assertionFailureStackTrace;
+        private String assertionFailureFixMessage;
 
         private FailureMetadata(String assertionFailureMessage, String assertionFailureStackTrace) {
             this.assertionFailureMessage = assertionFailureMessage;
             this.assertionFailureStackTrace = assertionFailureStackTrace;
+        }
+
+        private FailureMetadata(String assertionFailureMessage, String assertionFailureStackTrace, String assertionFailureFixMessage) {
+            this.assertionFailureMessage = assertionFailureMessage;
+            this.assertionFailureStackTrace = assertionFailureStackTrace;
+            this.assertionFailureFixMessage = assertionFailureFixMessage;
         }
 
         public String getAssertionFailureMessage() {
@@ -68,20 +76,20 @@ public class TestExecutionReport {
 
     private final UUID uuid = UUID.randomUUID();
 
-    private final UUID testUUID;
+    private final UUID testUuid;
 
     private final String testName;
 
     private final String className;
 
-    public TestExecutionReport(String testName, UUID testUUID, String className) {
+    public TestExecutionReport(String testName, UUID testUuid, String className) {
         this.testName = testName;
-        this.testUUID = testUUID;
+        this.testUuid = testUuid;
         this.className = className;
     }
 
     private File getDirectoryPath() {
-        return new File(ReportUtilities.getBaseDirectoryPath(), "filibuster-test-" + testUUID.toString());
+        return new File(ReportUtilities.getBaseDirectoryPath(), "filibuster-test-" + testUuid.toString());
     }
 
     private File getSubdirectoryPath() {
@@ -108,18 +116,22 @@ public class TestExecutionReport {
         return deiResponses.get(distributedExecutionIndex);
     }
 
+    public Map<DistributedExecutionIndex, JSONObject> getResponses() {
+        return deiResponses;
+    }
+
     public JSONObject getFaultObject(DistributedExecutionIndex distributedExecutionIndex) {
         return deiFaultsInjected.get(distributedExecutionIndex);
     }
 
-    private final List<DistributedExecutionIndex> cachedRPCs = new ArrayList<DistributedExecutionIndex>();
+    private final List<DistributedExecutionIndex> cachedRpcs = new ArrayList<>();
 
-    public List<DistributedExecutionIndex> getCachedRPCs() {
-        return cachedRPCs;
+    public List<DistributedExecutionIndex> getCachedRpcs() {
+        return cachedRpcs;
     }
 
     public void markRpcAsCached(DistributedExecutionIndex distributedExecutionIndex) {
-        cachedRPCs.add(distributedExecutionIndex);
+        cachedRpcs.add(distributedExecutionIndex);
     }
 
     public void recordInvocation(
@@ -141,7 +153,7 @@ public class TestExecutionReport {
         deiResponses.put(distributedExecutionIndex, invocationJsonObject);
     }
 
-    public void setFaultsInjected(HashMap<DistributedExecutionIndex, JSONObject> faultsToInject) {
+    public void setFaultsInjected(Map<DistributedExecutionIndex, JSONObject> faultsToInject) {
         deiFaultsInjected.putAll(faultsToInject);
     }
 
@@ -149,8 +161,8 @@ public class TestExecutionReport {
         return this.testName;
     }
 
-    public UUID getTestUUID() {
-        return this.testUUID;
+    public UUID getTestUuid() {
+        return this.testUuid;
     }
 
     public String getClassName() {
@@ -175,6 +187,7 @@ public class TestExecutionReport {
         static class FailureKeys {
             private static final String ASSERTION_FAILURE_STACKTRACE = "assertion_failure_stacktrace";
             private static final String ASSERTION_FAILURE_MESSAGE = "assertion_failure_message";
+            private static final String ASSERTION_FAILURE_FIX_MESSAGE = "assertion_failure_fix_message";
         }
         private static final String CACHED_KEY = "cached";
     }
@@ -236,7 +249,7 @@ public class TestExecutionReport {
             RPC.put(Keys.RESPONSE_KEY, deiResponses.getOrDefault(dei, new JSONObject()));
             RPC.put(Keys.FAULT_KEY, deiFaultsInjected.getOrDefault(dei, new JSONObject()));
             RPC.put(Keys.WARNINGS_KEY, warningObjects);
-            RPC.put(Keys.CACHED_KEY, cachedRPCs.contains(dei));
+            RPC.put(Keys.CACHED_KEY, cachedRpcs.contains(dei));
             RPCs.add(RPC);
         }
 
@@ -249,6 +262,7 @@ public class TestExecutionReport {
             JSONObject failure = new JSONObject();
             failure.put(Keys.FailureKeys.ASSERTION_FAILURE_MESSAGE, toEscapeForHtml.apply(f.assertionFailureMessage));
             failure.put(Keys.FailureKeys.ASSERTION_FAILURE_STACKTRACE, toEscapeForHtml.apply(f.assertionFailureStackTrace));
+            failure.put(Keys.FailureKeys.ASSERTION_FAILURE_FIX_MESSAGE, f.assertionFailureFixMessage);
             return failure;
         }).collect(Collectors.toList()));
 
@@ -307,8 +321,11 @@ public class TestExecutionReport {
                 {
                     assertionFailureMessage = throwable.getClass().getSimpleName();
                 }
-
-                failures.add(new FailureMetadata(assertionFailureMessage, stackTrace));
+                if (throwable instanceof FilibusterGrpcTestRuntimeException) {
+                    failures.add(new FailureMetadata(assertionFailureMessage, stackTrace, ((FilibusterGrpcTestRuntimeException) throwable).getFixMessage()));
+                } else {
+                    failures.add(new FailureMetadata(assertionFailureMessage, stackTrace));
+                }
             }
 
             try {

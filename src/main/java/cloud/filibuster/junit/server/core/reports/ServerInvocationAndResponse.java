@@ -59,25 +59,25 @@ public class ServerInvocationAndResponse {
         public static final String RESPONSE_KEY = "response";
     }
 
-    public JSONObject toJSONObject() {
+    public JSONObject toJsonObject() {
         JSONObject result = new JSONObject();
         result.put(Keys.REQUEST_ID_KEY, requestId);
         result.put(Keys.METHOD_KEY, fullMethodName);
 
         if (requestMessage != null) {
-            result.put(Keys.REQUEST_KEY, GeneratedMessageV3Serializer.toJSONObject(requestMessage));
+            result.put(Keys.REQUEST_KEY, GeneratedMessageV3Serializer.toJsonObject(requestMessage));
         } else {
             result.put(Keys.REQUEST_KEY, new JSONObject());
         }
 
         if (responseStatus != null) {
-            result.put(Keys.STATUS_KEY, StatusSerializer.toJSONObject(responseStatus));
+            result.put(Keys.STATUS_KEY, StatusSerializer.toJsonObject(responseStatus));
         } else {
             result.put(Keys.STATUS_KEY, new JSONObject());
         }
 
         if (responseMessage != null) {
-            result.put(Keys.RESPONSE_KEY, GeneratedMessageV3Serializer.toJSONObject(responseMessage));
+            result.put(Keys.RESPONSE_KEY, GeneratedMessageV3Serializer.toJsonObject(responseMessage));
         } else {
             result.put(Keys.RESPONSE_KEY, new JSONObject());
         }

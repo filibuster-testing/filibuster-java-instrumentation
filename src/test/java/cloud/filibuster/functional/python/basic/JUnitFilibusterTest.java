@@ -2,6 +2,7 @@ package cloud.filibuster.functional.python.basic;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
+import cloud.filibuster.examples.WorldServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
@@ -18,9 +19,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import static cloud.filibuster.junit.Assertions.wasFaultInjected;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
+import static cloud.filibuster.junit.assertions.protocols.GenericAssertions.wasFaultInjected;
+import static cloud.filibuster.junit.assertions.protocols.GrpcAssertions.wasFaultInjectedOnMethod;
+import static cloud.filibuster.junit.assertions.protocols.GrpcAssertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -83,7 +84,7 @@ public class JUnitFilibusterTest extends JUnitBaseTest {
                 boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("world");
                 assertTrue(wasFaultInjectedOnWorldService);
 
-                boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World");
+                boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod(WorldServiceGrpc.getWorldMethod());
                 assertTrue(wasFaultInjectedOnWorldMethod);
 
                 if (! expected) {

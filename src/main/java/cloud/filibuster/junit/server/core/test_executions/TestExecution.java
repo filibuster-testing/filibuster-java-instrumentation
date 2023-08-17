@@ -1,6 +1,8 @@
 package cloud.filibuster.junit.server.core.test_executions;
 
 import cloud.filibuster.dei.DistributedExecutionIndex;
+import com.google.gson.JsonParser;
+import com.linecorp.armeria.common.HttpMethod;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
@@ -8,6 +10,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @SuppressWarnings("Varifier")
 public abstract class TestExecution {
@@ -18,16 +22,16 @@ public abstract class TestExecution {
     int generatedId = 0;
 
     // What RPCs were executed?
-    HashMap<DistributedExecutionIndex, JSONObject> executedRPCs = new HashMap<>();
+    HashMap<DistributedExecutionIndex, JSONObject> executedRpcs = new HashMap<>();
 
     // What RPCs were executed (without their arguments, which may be nondeterministic across executions)?
-    HashMap<DistributedExecutionIndex, JSONObject> nondeterministicExecutedRPCs = new HashMap<>();
+    HashMap<DistributedExecutionIndex, JSONObject> nondeterministicExecutedRpcs = new HashMap<>();
 
     // What faults should be injected in this execution?
     HashMap<DistributedExecutionIndex, JSONObject> faultsToInject = new HashMap<>();
 
     // What RPCs failed?
-    HashMap<DistributedExecutionIndex, JSONObject> failedRPCs = new HashMap<>();
+    HashMap<DistributedExecutionIndex, JSONObject> failedRpcs = new HashMap<>();
 
     HashMap<String, Boolean> firstRequestSeenByService = new HashMap<>();
 
@@ -39,15 +43,15 @@ public abstract class TestExecution {
         firstRequestSeenByService.put(serviceName, true);
     }
 
-    public void printRPCs() {
+    public void printRpcs() {
         StringBuilder logMessage = new StringBuilder("\n");
 
         logMessage.append("[FILIBUSTER-CORE]: RPCs executed and interposed by Filibuster");
         logMessage.append("\n").append("\n");
 
-        for (DistributedExecutionIndex name: executedRPCs.keySet()) {
+        for (DistributedExecutionIndex name: executedRpcs.keySet()) {
             String key = name.toString();
-            JSONObject value = executedRPCs.get(name);
+            JSONObject value = executedRpcs.get(name);
             if (key != null && value != null) {
                 logMessage.append(key).append(" => ").append(value.toString(4)).append("\n");
             }
@@ -62,7 +66,7 @@ public abstract class TestExecution {
                 JSONObject value = faultsToInject.get(name);
 
                 // getOrDefault needed because when application is nondeterministic the lookup for the request will fail because of a lack of DEI matches.
-                JSONObject request = executedRPCs.getOrDefault(name, new JSONObject().put("error", "no request information found"));
+                JSONObject request = executedRpcs.getOrDefault(name, new JSONObject().put("error", "no request information found"));
 
                 logMessage.append(key).append(" => ").append(value.toString(4)).append(" => ").append(request.toString(4)).append("\n");
             }
@@ -77,8 +81,8 @@ public abstract class TestExecution {
     public boolean hasSeenRpcUnderSameOrDifferentDistributedExecutionIndex(JSONObject payload) {
         JSONObject payloadCacheCleaned = cleanPayloadForCacheComparison(payload);
 
-        for (Map.Entry<DistributedExecutionIndex, JSONObject> executedRPC : executedRPCs.entrySet()) {
-            JSONObject seenPayload = executedRPC.getValue();
+        for (Map.Entry<DistributedExecutionIndex, JSONObject> executedRpc : executedRpcs.entrySet()) {
+            JSONObject seenPayload = executedRpc.getValue();
             JSONObject seenPayloadCacheCleaned = cleanPayloadForCacheComparison(seenPayload);
 
             if (seenPayloadCacheCleaned.similar(payloadCacheCleaned)) {
@@ -92,16 +96,16 @@ public abstract class TestExecution {
     public void addDistributedExecutionIndexWithRequestPayload(DistributedExecutionIndex distributedExecutionIndex, JSONObject payload) {
         // Add to the list of executed RPCs.
         JSONObject payloadWithoutInstrumentationType = cleanPayloadOfInstrumentationType(payload);
-        executedRPCs.put(distributedExecutionIndex, payloadWithoutInstrumentationType);
+        executedRpcs.put(distributedExecutionIndex, payloadWithoutInstrumentationType);
 
         // Add to the list of nondeterministic executed RPCs.
         JSONObject deterministicPayload = cleanPayloadOfArguments(payload);
-        nondeterministicExecutedRPCs.put(distributedExecutionIndex, deterministicPayload);
+        nondeterministicExecutedRpcs.put(distributedExecutionIndex, deterministicPayload);
     }
 
     public void addDistributedExecutionIndexWithResponsePayload(DistributedExecutionIndex distributedExecutionIndex, JSONObject payload) {
         if (payload.has("exception")) {
-            failedRPCs.put(distributedExecutionIndex, payload);
+            failedRpcs.put(distributedExecutionIndex, payload);
         }
     }
 
@@ -129,10 +133,10 @@ public abstract class TestExecution {
     }
 
     public boolean wasFaultInjectedOnRequest(String serializedRequest) {
-        for (Map.Entry<DistributedExecutionIndex, JSONObject> entry : executedRPCs.entrySet()) {
-            JSONObject executedRPCObject = entry.getValue();
+        for (Map.Entry<DistributedExecutionIndex, JSONObject> entry : executedRpcs.entrySet()) {
+            JSONObject executedRpcObject = entry.getValue();
 
-            if (executedRPCObject.getJSONObject("args").getString("toString").equals(serializedRequest)) {
+            if (executedRpcObject.getJSONObject("args").getString("toString").equals(serializedRequest)) {
                 DistributedExecutionIndex distributedExecutionIndex = entry.getKey();
 
                 if (faultsToInject.containsKey(distributedExecutionIndex)) {
@@ -146,6 +150,48 @@ public abstract class TestExecution {
 
     public boolean wasFaultInjectedOnService(String serviceName) {
         return wasFaultInjectedMatcher("module", serviceName);
+    }
+
+    public boolean wasFaultInjectedOnHttpMethod(HttpMethod httpMethod, String uriPattern) {
+        boolean wasCorrectHttpVerb = wasFaultInjectedMatcher("method", httpMethod.toString());
+
+        Pattern pattern = Pattern.compile(uriPattern, Pattern.CASE_INSENSITIVE);
+
+        for (Map.Entry<DistributedExecutionIndex, JSONObject> entry : executedRpcs.entrySet()) {
+            JSONObject executedRpcObject = entry.getValue();
+            String argsToString = executedRpcObject.getJSONObject("args").getString("toString");
+            Matcher matcher = pattern.matcher(argsToString);
+            if (matcher.find()) {
+                DistributedExecutionIndex distributedExecutionIndex = entry.getKey();
+                if (faultsToInject.containsKey(distributedExecutionIndex)) {
+                    return wasCorrectHttpVerb;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public boolean wasFaultInjectedOnHttpRequest(HttpMethod httpMethod, String uriPattern, String serializedRequestPattern) {
+        boolean wasCorrectHttpVerb = wasFaultInjectedMatcher("method", httpMethod.toString());
+
+        Pattern uriPatternPattern = Pattern.compile(uriPattern, Pattern.CASE_INSENSITIVE);
+        Pattern serializedRequestPatternPattern = Pattern.compile(uriPattern, Pattern.CASE_INSENSITIVE);
+
+        for (Map.Entry<DistributedExecutionIndex, JSONObject> entry : executedRpcs.entrySet()) {
+            JSONObject executedRpcObject = entry.getValue();
+            String argsToString = executedRpcObject.getJSONObject("args").getString("toString");
+            Matcher uriPatternMatcher = uriPatternPattern.matcher(argsToString);
+            Matcher serializedRequestPatternMatcher = serializedRequestPatternPattern.matcher(argsToString);
+            if (uriPatternMatcher.find() && serializedRequestPatternMatcher.find()) {
+                DistributedExecutionIndex distributedExecutionIndex = entry.getKey();
+                if (faultsToInject.containsKey(distributedExecutionIndex)) {
+                    return wasCorrectHttpVerb;
+                }
+            }
+        }
+
+        return false;
     }
 
     // Recombination of RPC is artifact of HTTP API.
@@ -171,7 +217,7 @@ public abstract class TestExecution {
         }
 
         // Are the JSON objects similar for each key?
-        return this.faultsToInject.entrySet().stream().allMatch(e -> e.getValue().similar(te.faultsToInject.get(e.getKey())));
+        return this.faultsToInject.entrySet().stream().allMatch(e -> JsonParser.parseString(e.getValue().toString()).equals(JsonParser.parseString(te.faultsToInject.get(e.getKey()).toString())));
     }
 
     @Override
@@ -184,12 +230,12 @@ public abstract class TestExecution {
         TestExecution te = (TestExecution) o;
 
         // Are the key sets equivalent?
-        if (!this.executedRPCs.keySet().equals(te.executedRPCs.keySet())) {
+        if (!this.executedRpcs.keySet().equals(te.executedRpcs.keySet())) {
             return false;
         }
 
         // Are the JSON objects similar for each key?
-        boolean equalRPCsMap = this.executedRPCs.entrySet().stream().allMatch(e -> e.getValue().similar(te.executedRPCs.get(e.getKey())));
+        boolean equalRpcsMap = this.executedRpcs.entrySet().stream().allMatch(e -> e.getValue().similar(te.executedRpcs.get(e.getKey())));
 
         // Are the key sets equivalent?
         if (!this.faultsToInject.keySet().equals(te.faultsToInject.keySet())) {
@@ -199,12 +245,12 @@ public abstract class TestExecution {
         // Are the JSON objects similar for each key?
         boolean equalFaultToInjectMap = this.faultsToInject.entrySet().stream().allMatch(e -> e.getValue().similar(te.faultsToInject.get(e.getKey())));
 
-        return equalRPCsMap && equalFaultToInjectMap;
+        return equalRpcsMap && equalFaultToInjectMap;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.executedRPCs, this.faultsToInject);
+        return Objects.hash(this.executedRpcs, this.faultsToInject);
     }
 
     private boolean wasFaultInjectedMatcher(String searchField, String stringToFind) {
@@ -212,7 +258,7 @@ public abstract class TestExecution {
     }
 
     private boolean wasFaultInjectedMatcher(String searchField, String stringToFind, @Nullable String contains) {
-        for (Map.Entry<DistributedExecutionIndex, JSONObject> entry : executedRPCs.entrySet()) {
+        for (Map.Entry<DistributedExecutionIndex, JSONObject> entry : executedRpcs.entrySet()) {
             JSONObject jsonObject = entry.getValue();
 
             if (jsonObject.has(searchField)) {
@@ -224,8 +270,8 @@ public abstract class TestExecution {
                         if (contains == null) {
                             return true;
                         } else {
-                            JSONObject executedRPCObject = entry.getValue();
-                            if (executedRPCObject.getJSONObject("args").getString("toString").contains(contains)) {
+                            JSONObject executedRpcObject = entry.getValue();
+                            if (executedRpcObject.getJSONObject("args").getString("toString").contains(contains)) {
                                 return true;
                             }
                         }
@@ -258,5 +304,61 @@ public abstract class TestExecution {
         JSONObject jsonObject = new JSONObject(payload.toString());
         jsonObject.remove("args");
         return jsonObject;
+    }
+
+    public static boolean organicallyFailedInSourceConcreteTestExecution(
+            ConcreteTestExecution sourceConcreteTestExecution,
+            ConcreteTestExecution completedSourceConcreteTestExecution,
+            DistributedExecutionIndex distributedExecutionIndex
+    ) {
+        // Make sure we first have a reference to the concrete execution used to construct this execution
+        // as well as the completed source concrete execution from the execution this was created from.
+        if (sourceConcreteTestExecution != null && completedSourceConcreteTestExecution != null) {
+            // Condition 1: In the partial concrete execution, did we execute the RPC?
+            //
+            // Necessary, because we only care about RPCs that executed up to the point where we construct the
+            // concrete execution (not all the RPCs that executed in the entire execution.)
+            boolean sawInConcreteTestExecution = sawInConcreteTestExecution(sourceConcreteTestExecution, distributedExecutionIndex);
+
+            // Condition 2: Did it fail in the completed concrete execution?
+            //
+            // This is a dirty workaround/hack.
+            //
+            // We schedule faults when the RPCs are started, not finished, at the moment.
+            // Therefore, we don't know the response.
+            //
+            // To get around this and find out if an RPC failed in the execution we keep a reference
+            // to the concrete execution that contains all RPCs and responses that the abstract was built from.
+            // Checking this alone isn't enough, because we want to restrict ourselves only to the subset of RPCs that
+            // had been started when we built the abstract execution, hence the prior check.
+            boolean failedInConcreteTestExecution = completedSourceConcreteTestExecution.failedRpcs.containsKey(distributedExecutionIndex);
+
+            // Condition 3: Did we inject a fault and that's the reason for failure?
+            //
+            // Finally, we must ensure that the RPC didn't fail because of a fault that we injected.
+            boolean wasNotFaultInjected = !sourceConcreteTestExecution.faultsToInject.containsKey(distributedExecutionIndex);
+
+            // If all three conditions are true, then we know it failed in the execution for a non-FI reason.
+            //
+            // In short, if the partial execution that got me to the point of making this abstract execution
+            // experienced a failure -- and I did not cause that failure -- it must have happened for another reason.
+            //
+            if (sawInConcreteTestExecution && failedInConcreteTestExecution && wasNotFaultInjected) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static boolean sawInConcreteTestExecution(
+            ConcreteTestExecution sourceConcreteTestExecution,
+            DistributedExecutionIndex distributedExecutionIndex
+    ) {
+        if (sourceConcreteTestExecution != null) {
+            return sourceConcreteTestExecution.executedRpcs.containsKey(distributedExecutionIndex);
+        }
+
+        return false;
     }
 }

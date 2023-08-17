@@ -28,7 +28,7 @@ public class MaterializedTestExecutionReportMetadata {
         private static final String UUID_KEY = "uuid";
     }
 
-    public JSONObject toJSONObject() {
+    public JSONObject toJsonObject() {
         JSONObject result = new JSONObject();
         result.put(Keys.UUID_KEY, uuid.toString());
         result.put(Keys.ITERATION_KEY, testExecutionNumber);

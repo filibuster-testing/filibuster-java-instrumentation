@@ -25,10 +25,10 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.instrumentation.helpers.Property.setTestAnalysisResourceFileProperty;
-import static cloud.filibuster.junit.Assertions.wasFaultInjected;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
-import static cloud.filibuster.junit.assertions.Grpc.wasFaultInjectedOnService;
-import static cloud.filibuster.junit.assertions.Grpc.tryGrpcAndCatchGrpcExceptions;
+import static cloud.filibuster.junit.assertions.protocols.GenericAssertions.wasFaultInjected;
+import static cloud.filibuster.junit.assertions.protocols.GrpcAssertions.wasFaultInjectedOnMethod;
+import static cloud.filibuster.junit.assertions.protocols.GrpcAssertions.wasFaultInjectedOnService;
+import static cloud.filibuster.junit.assertions.protocols.GrpcAssertions.tryGrpcAndCatchGrpcExceptions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -91,7 +91,6 @@ public class AnalysisResourceFileJUnitFilibusterTest extends JUnitAnnotationBase
 
             assertTrue(wasFaultInjected());
             assertTrue(wasFaultInjectedOnService("WorldService"));
-            assertTrue(wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World"));
             assertTrue(wasFaultInjectedOnMethod(WorldServiceGrpc.getWorldMethod()));
 
             assertTrue(t instanceof StatusRuntimeException);

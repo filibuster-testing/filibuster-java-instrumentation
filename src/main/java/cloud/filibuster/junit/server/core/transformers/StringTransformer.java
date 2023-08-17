@@ -30,8 +30,11 @@ public final class StringTransformer implements Transformer<String, Integer> {
     }
 
     private static char getNextChar(char c) {
-        // ASCII printable characters range from 33 to 126. Upper bound in nextInt is exclusive, hence 127.
-        return (char) ((c + 1) % 127 + 33);
+        // ASCII printable characters range from 33 to 126
+        if (c == 126) {
+            return 33;
+        }
+        return (char) (c + 1);
     }
 
     @Override
@@ -61,16 +64,18 @@ public final class StringTransformer implements Transformer<String, Integer> {
     }
 
     @Override
-    public Accumulator<String, Integer> getInitialAccumulator() {
+    public Accumulator<String, Integer> getInitialAccumulator(String referenceValue) {
         Accumulator<String, Integer> accumulator = new Accumulator<>();
         accumulator.setContext(0);
+        accumulator.setReferenceValue(referenceValue);
+        this.result = referenceValue;
         return accumulator;
     }
 
     @Override
     public Accumulator<String, Integer> getNextAccumulator() {
         if (this.accumulator == null) {
-            return getInitialAccumulator();
+            return getInitialAccumulator(getResult());
         } else {
             accumulator.setContext(accumulator.getContext() + 1);
             return accumulator;

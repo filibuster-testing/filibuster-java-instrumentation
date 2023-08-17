@@ -2,6 +2,7 @@ package cloud.filibuster.functional.fake;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
+import cloud.filibuster.examples.WorldServiceGrpc;
 import cloud.filibuster.integration.instrumentation.FilibusterServerFake;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.TestWithFilibuster;
@@ -24,9 +25,9 @@ import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.integration.instrumentation.TestHelper.startMockFilibusterServerAndWaitUntilAvailable;
 import static cloud.filibuster.integration.instrumentation.TestHelper.stopMockFilibusterServerAndWaitUntilUnavailable;
-import static cloud.filibuster.junit.Assertions.wasFaultInjected;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethod;
-import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnService;
+import static cloud.filibuster.junit.assertions.protocols.GenericAssertions.wasFaultInjected;
+import static cloud.filibuster.junit.assertions.protocols.GrpcAssertions.wasFaultInjectedOnMethod;
+import static cloud.filibuster.junit.assertions.protocols.GrpcAssertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -88,10 +89,10 @@ public class JUnitFilibusterTestWithServerFake extends JUnitBaseTest {
                     expected = true;
                 }
 
-                boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("world");
+                boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("World");
                 assertTrue(wasFaultInjectedOnWorldService);
 
-                boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod("cloud.filibuster.examples.WorldService/World");
+                boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod(WorldServiceGrpc.getWorldMethod());
                 assertTrue(wasFaultInjectedOnWorldMethod);
 
                 if (! expected) {

@@ -75,7 +75,7 @@ public class Networking {
         return Property.getServerPortProperty();
     }
 
-    public static Map.Entry<String, String> extractHostnameAndPortFromURI(String uri) {
+    public static Map.Entry<String, String> extractHostnameAndPortFromUri(String uri) {
         logger.log(Level.INFO, "uri: " + uri);
 
         String hostname;
@@ -106,6 +106,7 @@ public class Networking {
         return Pair.of(hostname, port);
     }
 
+    @SuppressWarnings("AddressSelection")
     public static String attemptHostnameResolution(String hostname, String defaultValue) {
         try {
             // Resolve host.

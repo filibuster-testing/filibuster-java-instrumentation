@@ -52,9 +52,19 @@ public interface Transformer<PAYLOAD, CONTEXT> {
     /**
      * Returns initial accumulator used in the first transformation.
      *
+     * @param referenceValue reference value used in the initial accumulator
      * @return Initial accumulator
      */
-    Accumulator<PAYLOAD, CONTEXT> getInitialAccumulator();
+    Accumulator<PAYLOAD, CONTEXT> getInitialAccumulator(PAYLOAD referenceValue);
+
+    /**
+     * Returns initial accumulator used in the first transformation. The reference value is null.
+     *
+     * @return Initial accumulator
+     */
+    default Accumulator<PAYLOAD, CONTEXT> getInitialAccumulator() {
+        return getInitialAccumulator(null);
+    }
 
     /**
      * Returns accumulator of next transformation.

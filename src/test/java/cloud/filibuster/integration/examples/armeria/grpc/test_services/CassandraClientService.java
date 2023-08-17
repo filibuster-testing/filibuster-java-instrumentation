@@ -48,6 +48,7 @@ public class CassandraClientService {
         return single_instance;
     }
 
+    @SuppressWarnings("AddressSelection")
     private static InetSocketAddress getContactPoint(GenericContainer<?> container) {
         return new InetSocketAddress(container.getHost(), container.getMappedPort(CQL_PORT));
     }

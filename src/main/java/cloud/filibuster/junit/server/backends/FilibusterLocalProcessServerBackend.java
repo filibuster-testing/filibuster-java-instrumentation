@@ -45,6 +45,11 @@ public class FilibusterLocalProcessServerBackend implements FilibusterServerBack
     }
 
     @Override
+    public FilibusterSearchStrategy defaultSearchStrategy() {
+        return FilibusterSearchStrategy.DFS;
+    }
+
+    @Override
     public boolean latencyProfileSupported() {
         return false;
     }

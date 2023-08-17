@@ -4,7 +4,7 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static cloud.filibuster.instrumentation.helpers.Counterexample.loadCounterexampleAsJSONObject;
+import static cloud.filibuster.instrumentation.helpers.Counterexample.loadCounterexampleAsJsonObject;
 import static cloud.filibuster.instrumentation.helpers.Counterexample.loadTestExecutionFromCounterexample;
 import static cloud.filibuster.instrumentation.helpers.Counterexample.shouldFailRequestWith;
 import static cloud.filibuster.instrumentation.helpers.Counterexample.shouldFailRequestWithOrDefault;
@@ -20,14 +20,14 @@ public class CounterexampleTest {
     @Test
     @DisplayName("Test loading a counterexample to JSON.")
     public void testCounterexampleJSONObjectLoad() {
-        JSONObject counterexample = loadCounterexampleAsJSONObject("counterexample.json");
+        JSONObject counterexample = loadCounterexampleAsJsonObject("counterexample.json");
         assertNotNull(counterexample);
     }
 
     @Test
     @DisplayName("Test loading a test execution from a counterexample.")
     public void testTestExecutionLoadFromCounterexample() {
-        JSONObject counterexample = loadCounterexampleAsJSONObject("counterexample.json");
+        JSONObject counterexample = loadCounterexampleAsJsonObject("counterexample.json");
         JSONObject testExecution = loadTestExecutionFromCounterexample(counterexample);
         assertNotNull(testExecution);
     }
@@ -35,7 +35,7 @@ public class CounterexampleTest {
     @Test
     @DisplayName("Test loading a value from the test execution in the counterexample.")
     public void testShouldFailRequestWithValidDistributedExecutionIndex() {
-        JSONObject counterexample = loadCounterexampleAsJSONObject("counterexample.json");
+        JSONObject counterexample = loadCounterexampleAsJsonObject("counterexample.json");
         JSONObject testExecution = loadTestExecutionFromCounterexample(counterexample);
         JSONObject response = shouldFailRequestWith(validDistributedExecutionIndex, testExecution);
 
@@ -50,7 +50,7 @@ public class CounterexampleTest {
     @Test
     @DisplayName("Test failing to load a value from the test execution in the counterexample.")
     public void testShouldFailRequestWithInvalidDistributedExecutionIndex() {
-        JSONObject counterexample = loadCounterexampleAsJSONObject("counterexample.json");
+        JSONObject counterexample = loadCounterexampleAsJsonObject("counterexample.json");
         JSONObject testExecution = loadTestExecutionFromCounterexample(counterexample);
         JSONObject response = shouldFailRequestWith(invalidDistributedExecutionIndex, testExecution);
         assertNull(response);
@@ -59,7 +59,7 @@ public class CounterexampleTest {
     @Test
     @DisplayName("Test failing to load a value from the test execution in the counterexample with default.")
     public void testShouldFailRequestWithInvalidDistributedExecutionIndexAndDefault() {
-        JSONObject counterexample = loadCounterexampleAsJSONObject("counterexample.json");
+        JSONObject counterexample = loadCounterexampleAsJsonObject("counterexample.json");
         JSONObject testExecution = loadTestExecutionFromCounterexample(counterexample);
         JSONObject response = shouldFailRequestWithOrDefault(invalidDistributedExecutionIndex, testExecution);
 

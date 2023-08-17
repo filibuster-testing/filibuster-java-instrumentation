@@ -1,5 +1,6 @@
 package cloud.filibuster.junit.configuration.examples;
 
+import cloud.filibuster.RpcType;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
@@ -35,7 +36,7 @@ public class FilibusterGrpcCodeWithoutCauseAnalysisConfigurationFile implements 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilder = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc")
                 .pattern("(.*/.*)")
-                .type("grpc")
+                .rpcType(RpcType.GRPC)
                 .exception("io.grpc.StatusRuntimeException", createGrpcErrorMap(code, description));
         FilibusterAnalysisConfiguration filibusterAnalysisConfiguration = filibusterAnalysisConfigurationBuilder.build();
         filibusterCustomAnalysisConfigurationFile = new FilibusterCustomAnalysisConfigurationFile.Builder()

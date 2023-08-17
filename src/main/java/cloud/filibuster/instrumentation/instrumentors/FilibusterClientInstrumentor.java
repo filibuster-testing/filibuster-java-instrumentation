@@ -1,5 +1,6 @@
 package cloud.filibuster.instrumentation.instrumentors;
 
+import cloud.filibuster.RpcType;
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.dei.DistributedExecutionIndexType;
 import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
@@ -34,7 +35,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static cloud.filibuster.instrumentation.helpers.Counterexample.canLoadCounterexample;
-import static cloud.filibuster.instrumentation.helpers.Counterexample.loadCounterexampleAsJSONObjectFromEnvironment;
+import static cloud.filibuster.instrumentation.helpers.Counterexample.loadCounterexampleAsJsonObjectFromEnvironment;
 import static cloud.filibuster.instrumentation.helpers.Counterexample.loadTestExecutionFromCounterexample;
 import static cloud.filibuster.instrumentation.helpers.Counterexample.shouldFailRequestWithOrDefault;
 
@@ -53,7 +54,7 @@ final public class FilibusterClientInstrumentor {
     /**
      * Mapping between requests and the current vector clock for that request.
      */
-    private static HashMap<String, HashMap<String, VectorClock>> vectorClocksByRequest = new HashMap<>();
+    private static Map<String, Map<String, VectorClock>> vectorClocksByRequest = new HashMap<>();
 
     private final String outgoingRequestId;
 
@@ -62,21 +63,21 @@ final public class FilibusterClientInstrumentor {
      *
      * @return vector clock request map.
      */
-    public static HashMap<String, HashMap<String, VectorClock>> getVectorClocksByRequest() {
+    public static Map<String, Map<String, VectorClock>> getVectorClocksByRequest() {
         return vectorClocksByRequest;
     }
 
     /**
      * Mapping between requests and the current execution index for that request.
      */
-    private static HashMap<String, HashMap<String, DistributedExecutionIndex>> distributedExecutionIndexByRequest = new HashMap<>();
+    private static Map<String, Map<String, DistributedExecutionIndex>> distributedExecutionIndexByRequest = new HashMap<>();
 
     /**
      * Get the execution index request mapping.
      *
      * @return execution index request map.
      */
-    public static HashMap<String, HashMap<String, DistributedExecutionIndex>> getDistributedExecutionIndexByRequest() {
+    public static Map<String, Map<String, DistributedExecutionIndex>> getDistributedExecutionIndexByRequest() {
         return distributedExecutionIndexByRequest;
     }
 
@@ -88,7 +89,7 @@ final public class FilibusterClientInstrumentor {
      */
     public static void setVectorClockForRequestId(String serviceName, String requestId, VectorClock vectorClock) {
         if (vectorClocksByRequest.containsKey(serviceName)) {
-            HashMap<String, VectorClock> vectorClockMap = vectorClocksByRequest.get(serviceName);
+            Map<String, VectorClock> vectorClockMap = vectorClocksByRequest.get(serviceName);
             vectorClockMap.put(requestId, vectorClock);
         } else {
             HashMap<String, VectorClock> vectorClockMap = new HashMap<>();
@@ -109,7 +110,7 @@ final public class FilibusterClientInstrumentor {
             return false;
         }
 
-        HashMap<String, VectorClock> vectorClockMap = vectorClocksByRequest.get(serviceName);
+        Map<String, VectorClock> vectorClockMap = vectorClocksByRequest.get(serviceName);
         return vectorClockMap.containsKey(requestId);
     }
 
@@ -153,7 +154,7 @@ final public class FilibusterClientInstrumentor {
      */
     public static void setDistributedExecutionIndexForRequestId(String serviceName, String requestId, DistributedExecutionIndex distributedExecutionIndex) {
         if (distributedExecutionIndexByRequest.containsKey(serviceName)) {
-            HashMap<String, DistributedExecutionIndex> distributedExecutionIndexMap = distributedExecutionIndexByRequest.get(serviceName);
+            Map<String, DistributedExecutionIndex> distributedExecutionIndexMap = distributedExecutionIndexByRequest.get(serviceName);
             distributedExecutionIndexMap.put(requestId, distributedExecutionIndex);
         } else {
             HashMap<String, DistributedExecutionIndex> distributedExecutionIndexMap = new HashMap<>();
@@ -170,7 +171,7 @@ final public class FilibusterClientInstrumentor {
      */
     public static VectorClock getVectorClockForServiceNameAndRequestId(
             String serviceName, String requestId, VectorClock defaultVectorClock) {
-        HashMap<String, VectorClock> vectorClocksByRequestId = vectorClocksByRequest.getOrDefault(serviceName, new HashMap<>());
+        Map<String, VectorClock> vectorClocksByRequestId = vectorClocksByRequest.getOrDefault(serviceName, new HashMap<>());
         return vectorClocksByRequestId.getOrDefault(requestId, defaultVectorClock);
     }
 
@@ -183,7 +184,7 @@ final public class FilibusterClientInstrumentor {
     @SuppressWarnings("NullAway")
     public static DistributedExecutionIndex getDistributedExecutionIndexForServiceNameAndRequestId(
             String serviceName, String requestId, DistributedExecutionIndex defaultExecutionIndex) {
-        HashMap<String, DistributedExecutionIndex> distributedExecutionIndexByRequestId = distributedExecutionIndexByRequest.getOrDefault(serviceName, new HashMap<>());
+        Map<String, DistributedExecutionIndex> distributedExecutionIndexByRequestId = distributedExecutionIndexByRequest.getOrDefault(serviceName, new HashMap<>());
         return distributedExecutionIndexByRequestId.getOrDefault(requestId, defaultExecutionIndex);
     }
 
@@ -228,7 +229,7 @@ final public class FilibusterClientInstrumentor {
     private DistributedExecutionIndex preliminaryDistributedExecutionIndex;
 
     @Nullable
-    String rpcType;
+    RpcType rpcType;
 
     final private static String filibusterServiceName = "filibuster-instrumentation";
 
@@ -265,7 +266,7 @@ final public class FilibusterClientInstrumentor {
         this.generatedId = -1;
 
         if (canLoadCounterexample()) {
-            this.counterexample = loadCounterexampleAsJSONObjectFromEnvironment();
+            this.counterexample = loadCounterexampleAsJsonObjectFromEnvironment();
             this.counterexampleTestExecution = loadTestExecutionFromCounterexample(counterexample);
         }
     }
@@ -322,7 +323,7 @@ final public class FilibusterClientInstrumentor {
         }
     }
 
-    public void setRpcType(@Nullable String rpcType) {
+    public void setRpcType(@Nullable RpcType rpcType) {
         this.rpcType = rpcType;
     }
 
@@ -641,7 +642,12 @@ final public class FilibusterClientInstrumentor {
         logger.log(Level.INFO, "beforeInvocation: about to make call.");
 
         JSONObject invocationMetadata = new JSONObject();
-        invocationMetadata.put("rpc_type", rpcType);
+
+        if (rpcType != null) {
+            invocationMetadata.put("rpc_type", rpcType.toString());
+        } else {
+            invocationMetadata.put("rpc_type", "");
+        }
 
         JSONObject invocationPayload = new JSONObject();
         invocationPayload.put("instrumentation_type", "invocation");
@@ -649,15 +655,15 @@ final public class FilibusterClientInstrumentor {
         invocationPayload.put("module", callsite.getClassOrModuleName());
         invocationPayload.put("method", callsite.getMethodOrFunctionName());
         CallsiteArguments callsiteArguments = callsite.getCallsiteArguments();
-        JSONObject invocationArguments = callsiteArguments.toJSONObject();
+        JSONObject invocationArguments = callsiteArguments.toJsonObject();
         invocationPayload.put("args", invocationArguments);
         invocationPayload.put("kwargs", new JSONObject());
         invocationPayload.put("callsite_file", callsite.getFileName());
         invocationPayload.put("callsite_line", callsite.getLineNumber());
         invocationPayload.put("full_traceback", callsite.getSerializedStackTrace());
         invocationPayload.put("metadata", invocationMetadata);
-        invocationPayload.put("vclock", vectorClock.toJSONObject());
-        invocationPayload.put("origin_vclock", originVectorClock.toJSONObject());
+        invocationPayload.put("vclock", vectorClock.toJsonObject());
+        invocationPayload.put("origin_vclock", originVectorClock.toJsonObject());
         invocationPayload.put("execution_index", distributedExecutionIndex.toString());
 
         if (preliminaryDistributedExecutionIndex != null) {
@@ -791,7 +797,7 @@ final public class FilibusterClientInstrumentor {
      */
     public void afterInvocationWithException(
             Throwable throwable,
-            HashMap<String, String> additionalMetadata
+            Map<String, String> additionalMetadata
     ) {
         String exceptionName = throwable.getClass().getName();
         String exceptionCause = throwable.getCause() != null ? throwable.getCause().getClass().getName() : null;
@@ -808,7 +814,7 @@ final public class FilibusterClientInstrumentor {
     public void afterInvocationWithException(
             String exceptionName,
             String exceptionCause,
-            HashMap<String, String> additionalMetadata
+            Map<String, String> additionalMetadata
     ) {
         if (generatedId > -1 && shouldCommunicateWithServer && counterexampleNotProvided()) {
             JSONObject metadata = new JSONObject();
@@ -839,7 +845,7 @@ final public class FilibusterClientInstrumentor {
             invocationCompletePayload.put("instrumentation_type", "invocation_complete");
             invocationCompletePayload.put("generated_id", generatedId);
             invocationCompletePayload.put("execution_index", distributedExecutionIndex.toString());
-            invocationCompletePayload.put("vclock", vectorClock.toJSONObject());
+            invocationCompletePayload.put("vclock", vectorClock.toJsonObject());
             invocationCompletePayload.put("exception", exception);
             invocationCompletePayload.put("module", callsite.getClassOrModuleName());
             invocationCompletePayload.put("method", callsite.getMethodOrFunctionName());
@@ -873,7 +879,7 @@ final public class FilibusterClientInstrumentor {
             invocationCompletePayload.put("instrumentation_type", "invocation_complete");
             invocationCompletePayload.put("generated_id", generatedId);
             invocationCompletePayload.put("execution_index", distributedExecutionIndex.toString());
-            invocationCompletePayload.put("vclock", vectorClock.toJSONObject());
+            invocationCompletePayload.put("vclock", vectorClock.toJsonObject());
             invocationCompletePayload.put("byzantine_fault", byzantineFault);
             invocationCompletePayload.put("module", callsite.getClassOrModuleName());
             invocationCompletePayload.put("method", callsite.getMethodOrFunctionName());
@@ -912,7 +918,7 @@ final public class FilibusterClientInstrumentor {
             invocationCompletePayload.put("instrumentation_type", "invocation_complete");
             invocationCompletePayload.put("generated_id", generatedId);
             invocationCompletePayload.put("execution_index", distributedExecutionIndex.toString());
-            invocationCompletePayload.put("vclock", vectorClock.toJSONObject());
+            invocationCompletePayload.put("vclock", vectorClock.toJsonObject());
             invocationCompletePayload.put("transformer_fault", transformerFault);
             invocationCompletePayload.put("module", callsite.getClassOrModuleName());
             invocationCompletePayload.put("method", callsite.getMethodOrFunctionName());
@@ -934,7 +940,7 @@ final public class FilibusterClientInstrumentor {
      */
     public void afterInvocationComplete(
             String className,
-            HashMap<String, String> returnValueProperties
+            Map<String, String> returnValueProperties
     ) {
         afterInvocationComplete(className, returnValueProperties, null);
     }
@@ -949,7 +955,7 @@ final public class FilibusterClientInstrumentor {
      */
     public void afterInvocationComplete(
             String className,
-            HashMap<String, String> returnValueProperties,
+            Map<String, String> returnValueProperties,
             @Nullable Object returnValue
     ) {
         // Only if instrumented request, we should communicate, and we aren't inside of Filibuster instrumentation.
@@ -957,31 +963,31 @@ final public class FilibusterClientInstrumentor {
         logger.log(Level.INFO, "shouldCommunicateWithServer: " + shouldCommunicateWithServer);
 
         if (generatedId > -1 && shouldCommunicateWithServer && counterexampleNotProvided()) {
-            JSONObject returnValueJO = new JSONObject();
+            JSONObject returnValueJsonObject = new JSONObject();
 
-            returnValueJO.put("__class__", className);
+            returnValueJsonObject.put("__class__", className);
             if (returnValue != null && returnValue != JSONObject.NULL && returnValue != "") {  // Only serialise if return value is not null or empty.
                 try {
-                    returnValueJO.put("value", new Gson().toJson(returnValue));
+                    returnValueJsonObject.put("value", new Gson().toJson(returnValue));
                 } catch (RuntimeException e) {
                     logger.log(Level.WARNING, "Could not serialise return value to JSON: " + e);
                 }
             } else {
-                returnValueJO.put("value", returnValue);
+                returnValueJsonObject.put("value", returnValue);
             }
 
             for (Map.Entry<String, String> entry : returnValueProperties.entrySet()) {
                 // JSONObject does not allow null values.
                 // If the value in the HashMap is null, we need to put in JSONObject.NULL instead of null.
-                returnValueJO.put(entry.getKey(), entry.getValue() == null ? JSONObject.NULL : entry.getValue());
+                returnValueJsonObject.put(entry.getKey(), entry.getValue() == null ? JSONObject.NULL : entry.getValue());
             }
 
             JSONObject invocationCompletePayload = new JSONObject();
             invocationCompletePayload.put("instrumentation_type", "invocation_complete");
             invocationCompletePayload.put("generated_id", getGeneratedId());
             invocationCompletePayload.put("execution_index", distributedExecutionIndex.toString());
-            invocationCompletePayload.put("vclock", getVectorClock().toJSONObject());
-            invocationCompletePayload.put("return_value", returnValueJO);
+            invocationCompletePayload.put("vclock", getVectorClock().toJsonObject());
+            invocationCompletePayload.put("return_value", returnValueJsonObject);
             invocationCompletePayload.put("module", callsite.getClassOrModuleName());
             invocationCompletePayload.put("method", callsite.getMethodOrFunctionName());
 

@@ -70,7 +70,7 @@
             font-weight: lighter;
 		}
 
-        tr.success {
+        td.success {
             background-color: lightgreen;
         }
 
@@ -78,7 +78,7 @@
             background-color: lightyellow;
         }
 
-        tr.fault {
+        td.fault {
             background-color: lightcoral;
         }
 
@@ -130,95 +130,204 @@
         .debug {
             display: none;
         }
+
+        div.container {
+            width: 100%;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        /* unvisited link */
+        a:link {
+            color: black;
+        }
+
+        /* visited link */
+        a:visited {
+            color: black;
+        }
+
+        /* mouse over link */
+        a:hover {
+            color: black;
+        }
+
+        /* selected link */
+        a:active {
+            color: black;
+        }
+
+        .class_name {
+            padding: 0;
+            margin-bottom: 10px;
+            font-family: 'Inconsolata', sans-serif;
+            font-size: small;
+            font-weight: 500;
+            width: 100%;
+            text-align: left;
+        }
+
+        td.method_name {
+            font-family: 'Inconsolata', sans-serif;
+            font-size: small;
+            font-weight: 500;
+            vertical-align: middle;
+        }
+
+        td.warning {
+            font-family: 'Inconsolata', sans-serif;
+            font-size: small;
+            font-weight: 500;
+            vertical-align: middle;
+            background-color: lightyellow;
+        }
+
+		th,
+		td {
+			font-weight: bold;
+			padding: 10px;
+            vertical-align: top;
+            font-size: 11px;
+            text-align: left;
+            font-weight: normal;
+		}
+
+		td {
+            text-align: left;
+            font-weight: normal;
+		}
+
+        span.icon {
+            border-bottom: 1px dotted black;
+            float: left;
+            display: inline;
+            text-align: right;
+            text-decoration: none;
+            margin-bottom: 10px;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+
+        td.number {
+            text-align: center;
+        }
 	</style>
 </head>
 
 <body>
 <section>
-    <h3 id='status'></h3>
-    <div style="float: left"><a href="#" onClick="toggleDebug();">Toggle Debugging Information</a></div>
-    <br />
+    <div class="container" style="margin: 0 auto; padding: 0;">
+        <div style="width: 95vw; padding: 10px; margin-bottom: 10px; text-align: left;">
+            <span class="icon">
+                <a href="index.html">🔙</a>
+            </span>
 
-    <table id='invocations'>
-        <tr>
-            <th>RPC Method</th>
-            <th>RPC Request</th>
-            <th>RPC Response</th>
-        </tr>
+            <table id='endpoints' style="min-width: 95vw; margin-top: 10px;">
+                <tr>
+                    <th>RPC Method</th>
+                    <th style="text-align: center;">
+                        Authored Functional Tests
+                        <br/>
+                        <span style="display: block; width: auto; text-align: center;" id="testedEndpoints"></span>
+                    </th>
+                    <th style="text-align: center;">
+                        Authored Filibuster Tests
+                        <br/>
+                        <span style="display: block; width: auto; text-align: center;" id="filibusterTestedEndpoints"></span>
+                    </th>
+                    <th style="text-align: center;">
+                        Synthesized <br />
+                        Fault Injection Scenarios
+                    </th>
+                </tr>
+            </table>
+        </div>
+    </div>
 
-        <script>
-            function isEmpty(obj) {
-                return Object.keys(obj).length === 0;
-            }
+    <script>
+        function isEmpty(obj) {
+            return Object.keys(obj).length === 0;
+        }
 
-            function containsExceptionKey(obj) {
-                return "exception" in obj;
-            }
+        function containsExceptionKey(obj) {
+            return "exception" in obj;
+        }
 
-            function toggleDebug() {
-                $('tr.debug').toggle();
-            }
+        function toggleDebug() {
+            $('tr.debug').toggle();
+        }
 
-            var previousMethod = '';
+        var totalEndpoints = accessedGrpcEndpoints.methods.length;
+        var testedEndpoints = 0;
+        var filibusterTestedEndpoints = 0;
 
-            $(document).ready(function () {
-                for (i in serverInvocationReports.results) {
-                    var report = serverInvocationReports.results[i];
-                    console.log(report);
+        $(document).ready(function () {
+            for (i in accessedGrpcEndpoints.methods) {
+                var row = '';
+                var method = accessedGrpcEndpoints.methods[i].method;
+                var tests = accessedGrpcEndpoints.methods[i].tests;
+                var filibusterTests = accessedGrpcEndpoints.methods[i].filibuster_tests;
+                var filibusterExecutions = accessedGrpcEndpoints.methods[i].filibuster_executions;
+                var warning = accessedGrpcEndpoints.methods[i].warning;
 
-                    var row = '';
+                row += "<tr>";
 
-                    if (isEmpty(report.response)) {
-                        row += '<tr class="fault">';
-                    } else {
-                        row += '<tr class="success">';
-                    }
+                var displayMethod = method;
 
-                    if (previousMethod === report.method) {
-                        row += '<td>&nbsp;</td>';
-                    } else {
-                        row += '<td class="method">' + report.method + '</td>';
-                        previousMethod = report.method;
-                    }
-
-                    row += '<td class="args">';
-                    row += '<div class="class_name">' + report.request.class + '</div>';
-                    row += '<textarea>';
-                    row += report.request.toString;
-                    row += '</textarea>'
-                    row += '</td>';
-
-                    if (isEmpty(report.response)) {
-                        row += '<td>';
-                        row += '<div class="class_name">io.grpc.StatusRuntimeException</div>';
-                        row += '<textarea>';
-                        row += 'code = ' + report.status.code;
-
-                        if (report.status.cause !== undefined) {
-                            row += '\ncause = ' + report.status.cause;
-                        }
-
-                        if (report.status.description !== undefined) {
-                            row += '\ndescription = ' + report.status.description;
-                        }
-
-                        row += '</textarea>';
-                        row += '</td>';
-                    } else {
-                        row += '<td class="args">';
-                        row += '<div class="class_name">' + report.response.class + '</div>';
-                        row += '<textarea>';
-                        row += report.response.toString;
-                        row += '</textarea>'
-                        row += '</td>';
-                    }
-
-                    row += '</tr>';
-
-                    $('#invocations').append(row);
+                if (tests === 0 && filibusterTests === 0) {
+                    displayMethod = "❌ " + method;
+                } else if (filibusterTests > 0) {
+                    displayMethod = "✅ " + method;
+                } else {
+                    displayMethod = "⚠️ " + method;
                 }
-            });
-        </script>
+
+                if (warning) {
+                    row += "<td class='method_name warning'>" + displayMethod + "</td>";
+                } else {
+                    if (tests > 0 && filibusterTests > 0 && filibusterExecutions > 0) {
+                        row += "<td class='method_name success'>" + displayMethod + "</td>";
+                    } else {
+                        row += "<td class='method_name'>" + displayMethod + "</td>";
+                    }
+                }
+
+                if (tests === 0) {
+                    row += "<td class='number fault'>" + tests + "</td>";
+                } else {
+                    testedEndpoints = testedEndpoints + 1;
+                    row += "<td class='number success'>" + tests + "</td>";
+                }
+
+                if (filibusterTests === 0) {
+                    row += "<td class='number fault'>" + filibusterTests + "</td>";
+                } else {
+                    filibusterTestedEndpoints = filibusterTestedEndpoints + 1;
+                    row += "<td class='number success'>" + filibusterTests + "</td>";
+                }
+
+                if (filibusterExecutions === 0) {
+                    row += "<td class='number fault'>" + filibusterExecutions + "</td>";
+                } else {
+                    row += "<td class='number success'>" + filibusterExecutions + "</td>";
+                }
+
+                // warning todo
+
+                row += "</tr>";
+
+                var testedEndpointsPercentage = (testedEndpoints / totalEndpoints).toFixed(2);
+                $('#testedEndpoints').html("" + testedEndpoints + "/" + totalEndpoints + " (" + testedEndpointsPercentage + "%)");
+
+                var filibusterTestedEndpointsPercentage = (filibusterTestedEndpoints / totalEndpoints).toFixed(2);
+                $('#filibusterTestedEndpoints').html("" + filibusterTestedEndpoints + "/" + totalEndpoints + " (" + filibusterTestedEndpointsPercentage + "%)");
+
+                $('#endpoints').append(row);
+            }
+        });
+    </script>
 </section>
 </body>
 

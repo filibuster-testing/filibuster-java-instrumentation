@@ -16,7 +16,8 @@ import org.junit.jupiter.api.extension.ReflectiveInvocationContext;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Method;
-import java.util.HashMap;
+
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -29,9 +30,11 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
 
     private final FilibusterConfiguration filibusterConfiguration;
 
-    private final HashMap<Integer, Boolean> invocationCompletionMap;
+    private final Map<Integer, Boolean> invocationCompletionMap;
 
     private final int currentIteration;
+
+    public static boolean previousIterationFailed = false;
 
     private final int maxIterations;
 
@@ -73,7 +76,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             FilibusterConfiguration filibusterConfiguration,
             int currentIteration,
             int maxIterations,
-            HashMap<Integer, Boolean> invocationCompletionMap) {
+            Map<Integer, Boolean> invocationCompletionMap) {
         this.currentIteration = currentIteration;
         this.maxIterations = maxIterations;
         this.invocationCompletionMap = invocationCompletionMap;
@@ -128,7 +131,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
             // Test handling.
             if (currentIteration == 1) {
                 // First iteration always runs because it's the fault free execution.
-                FilibusterInvocationInterceptorHelpers.proceedAndLogException(invocation, currentIteration, getWebClient(), filibusterConfiguration);
+                FilibusterInvocationInterceptorHelpers.proceedAndLogException(this, invocation, currentIteration, getWebClient(), filibusterConfiguration);
             } else if (currentIteration == maxIterations) {
                 // Last iteration never runs.
                 invocation.skip();
@@ -136,10 +139,10 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
                 // Otherwise:
                 // (A) Conditionally mark teardown of the previous iteration complete, if not done yet.
                 // (B) Ask the server if we have a test iteration to run and run it if so.
-                if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(getWebClient(), currentIteration, "testTemplate")) {
+                if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(getWebClient(), currentIteration, "testTemplate", filibusterConfiguration.getAbortOnFirstFailure(), previousIterationFailed)) {
                     invocation.skip();
                 } else {
-                    FilibusterInvocationInterceptorHelpers.proceedAndLogException(invocation, currentIteration, getWebClient(), filibusterConfiguration);
+                    FilibusterInvocationInterceptorHelpers.proceedAndLogException(this, invocation, currentIteration, getWebClient(), filibusterConfiguration);
                 }
             }
 
@@ -257,7 +260,7 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
                 // (B) Ask the server if we have a test iteration to run and run it if so.
                 FilibusterInvocationInterceptorHelpers.conditionallyMarkTeardownComplete(invocationCompletionMap, currentIteration, getWebClient());
 
-                if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(getWebClient(), currentIteration, "beforeEach")) {
+                if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(getWebClient(), currentIteration, "beforeEach", filibusterConfiguration.getAbortOnFirstFailure(), previousIterationFailed)) {
                     invocation.skip();
                 } else {
                     invocation.proceed();
@@ -291,17 +294,17 @@ public class FilibusterInvocationInterceptor implements InvocationInterceptor {
         } else {
             if (currentIteration == 1) {
                 // First iteration always runs because it's the fault free execution.
-                FilibusterInvocationInterceptorHelpers.proceedAndLogException(invocation, currentIteration, getWebClient(), filibusterConfiguration,/* shouldWritePlaceholder= */false,/* shouldPrintRPCSummary= */false);
+                FilibusterInvocationInterceptorHelpers.proceedAndLogException(this, invocation, currentIteration, getWebClient(), filibusterConfiguration,/* shouldWritePlaceholder= */false,/* shouldPrintRpcSummary= */false);
             } else if (currentIteration == maxIterations) {
                 // Last iteration never runs.
                 invocation.skip();
             } else {
                 // Otherwise:
                 // (A) Ask the server if we have a test iteration to run and run it if so.
-                if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(getWebClient(), currentIteration, "afterEach")) {
+                if (FilibusterInvocationInterceptorHelpers.shouldBypassExecution(getWebClient(), currentIteration, "afterEach", filibusterConfiguration.getAbortOnFirstFailure(), previousIterationFailed)) {
                     invocation.skip();
                 } else {
-                    FilibusterInvocationInterceptorHelpers.proceedAndLogException(invocation, currentIteration, getWebClient(), filibusterConfiguration,/* shouldWritePlaceholder= */false,/* shouldPrintRPCSummary= */false);
+                    FilibusterInvocationInterceptorHelpers.proceedAndLogException(this, invocation, currentIteration, getWebClient(), filibusterConfiguration,/* shouldWritePlaceholder= */false,/* shouldPrintRpcSummary= */false);
                 }
             }
         }

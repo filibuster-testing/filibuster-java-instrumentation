@@ -1,15 +1,76 @@
+2.1.5:
+    - (cmeiklejohn) Improve UX.
+    - (MichaelA-ops) Attach transformer faults to Postgres/CockroachDB int, boolean, byte[] and string field types.
+2.1.4:
+    - (MichaelA-ops) Attach transformer faults to nested fields of JSONObjects.
+    - (MichaelA-ops) Inject boolean, string and JSONObject transformer faults in Redis values encoded as string or byte array.
+    - (cmeiklejohn) Add tool tips.
+2.1.3:
+    - (cmeiklejohn) Improve support for HTTP.
+2.1.2:
+    - (cmeiklejohn) Add missing Armeria Kotlin dependency.
+2.1.1:
+    - (MichaelA-ops) Implement GatewayTransformer for injecting Byzantine faults.
+    - (MichaelA-ops) Implement Transformer class for inverting booleans.
+    - (MichaelA-ops) Implement Transformer class for dropping JSONObject keys.
+2.1.0:
+    - (cmeiklejohn) Update assertion API to clarify usage.
+    - (MichaelA-ops) Support gRPC non-primitive Protobuf types and show them in the plugin.
+    - (MichaelA-ops) Fix bug where the plugin does not show all intercepted methods in a test iteration.
+    - (cmeiklejohn) Change RPC type to enum, requires breaking change from grpc to GRPC in any analysis configuration files.
+    - (cmeiklejohn) Alter dependencies.
+    - (cmeiklejohn) Improve the server invocation report.
+2.0.1:
+    - (MichaelA-ops) Add tests combining GRPC and Byzantine transformer faults.
 2.0.0:
-    - (MichaelA-ops) Use dynamic proxy interceptor for Redis and Cockroach
-    - (MichaelA-ops) Introduce transformer faults
-    - (MichaelA-ops) Generate transformer faults inductively, not up front
-    - (MichaelA-ops) Use a generic accumulator in transformer faults
-    - (MichaelA-ops) Implement String transformers
-    - (MichaelA-ops) Implement byte[] transformers
-    - (MichaelA-ops) Use different background colours in the plugin for Byzantine and transformer faults
-    - (MichaelA-ops) Implement afterInvocationWithByzantineFault and afterInvocationWithTransformerFault
-    - (MichaelA-ops) Add new test scenarios for transformer and Byzantine faults
-    - (MichaelA-ops) Add test services and unit tests for DynamoDB, Cassandra and Postgres
-    - (MichaelA-ops) Support null transformer fault injection for HTTP and GRPC
+    - (MichaelA-ops) Use dynamic proxy interceptor for Redis and Cockroach.
+    - (MichaelA-ops) Introduce transformer faults.
+    - (MichaelA-ops) Generate transformer faults inductively, not up front.
+    - (MichaelA-ops) Use a generic accumulator in transformer faults.
+    - (MichaelA-ops) Implement String transformers.
+    - (MichaelA-ops) Implement byte[] transformers.
+    - (MichaelA-ops) Use different background colours in the plugin for Byzantine and transformer faults.
+    - (MichaelA-ops) Implement afterInvocationWithByzantineFault and afterInvocationWithTransformerFault.
+    - (MichaelA-ops) Add new test scenarios for transformer and Byzantine faults.
+    - (MichaelA-ops) Add test services and unit tests for DynamoDB, Cassandra, CockroachDB and Postgres.
+    - (MichaelA-ops) Add exception config files for DynamoDB, Cassandra, CockroachDB and Postgres.
+    - (MichaelA-ops) Inject RedisConnectionException.
+    - (MichaelA-ops) Support null transformer fault injection for HTTP and GRPC.
+    - (MichaelA-ops) Inject faults on Future objects when they are resolved at a later point.
+    - (MichaelA-ops) Add Filibuster option and property FailIfFaultNotInjected.
+    - (MichaelA-ops) Implement feature to track invocations of a specific method on an intercepted object.
+    - (MichaelA-ops) Add Filibuster option and property FailIfFaultNotInjectedAndATrackedMethodIsInvoked.
+1.9.13:
+   - (cmeiklejohn) Don't assume class name is the service name.
+1.9.12:
+   - (cmeiklejohn) Add second constructor for invocation interceptor that takes a class directly.
+1.9.11:
+   - (cmeiklejohn) Invocation reporting fixes.
+   - (cmeiklejohn) Add invocation report into the main UX.
+   - (cmeiklejohn) Add option to fail on any organic failures.
+   - (cmeiklejohn) Add filters for fault injection.
+1.9.10:
+   - (MichaelA-ops) UI: Show fix messages on plugin for FilibusterGrpcTestRuntimeException.
+1.9.9:
+   - (cmeiklejohn) Fix overloads for consistency.
+1.9.8:
+   - (cmeiklejohn) Rebuild of bad package.
+   - (cmeiklejohn) New test UX/UI.
+1.9.7:
+   - (cmeiklejohn) Refactor compositional testing interface.
+   - (MichaelA-ops) UI: Underline currently selected test iteration.
+1.9.5:
+   - (cmeiklejohn) Fix of bad build.
+1.9.4:
+   - (cmeiklejohn) Fix a UX bug where the page is empty when Filibuster is disabled.
+1.9.3:
+   - (cmeiklejohn) Update invocation report to show hit endpoints.
+1.9.2:
+   - (cmeiklejohn) Minor API cleanup and documentation.
+1.9.1:
+   - (cmeiklejohn) Fix javadoc for proper publishing.
+1.9.0:
+   - (cmeiklejohn) Improve test interface.
 1.8.0:
    - (cmeiklejohn) New test interface style.
    - (cmeiklejohn) Fix bug in getAvoidInjectionsOnOrganicFailures.

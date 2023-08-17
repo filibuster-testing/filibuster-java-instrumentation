@@ -44,12 +44,17 @@ public final class NullTransformer implements Transformer<Object, Object> {
     }
 
     @Override
-    public Accumulator<Object, Object> getInitialAccumulator() {
-        return new Accumulator<>();
+    public Accumulator<Object, Object> getInitialAccumulator(Object referenceValue) {
+        this.result = referenceValue;
+
+        Accumulator<Object, Object> accumulator = new Accumulator<>();
+        accumulator.setReferenceValue(referenceValue);
+
+        return accumulator;
     }
 
     @Override
     public Accumulator<Object, Object> getNextAccumulator() {
-        return getInitialAccumulator();
+        return getInitialAccumulator(getResult());
     }
 }

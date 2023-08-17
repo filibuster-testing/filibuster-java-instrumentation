@@ -48,6 +48,8 @@ public class FilibusterLocalServerBackend implements FilibusterServerBackend {
             filibusterServer.stop();
         }
 
+        FilibusterCore.removeCurrentInstance();
+
         // Poke the GC once we dereference the FilibusterCore object (via FilibusterServer.)
         System.gc();
 
@@ -59,6 +61,11 @@ public class FilibusterLocalServerBackend implements FilibusterServerBackend {
     @Override
     public List<FilibusterSearchStrategy> supportedSearchStrategies() {
         return Arrays.asList(FilibusterSearchStrategy.BFS, FilibusterSearchStrategy.DFS);
+    }
+
+    @Override
+    public FilibusterSearchStrategy defaultSearchStrategy() {
+        return FilibusterSearchStrategy.BFS;
     }
 
     @Override

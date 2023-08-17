@@ -82,12 +82,13 @@
             width: 98vw;
         }
 
-        select{
+        select {
             vertical-align: middle;
             font-size: 11px;
             text-align: left;
-            display: inline;
-            border: 0px solid black;
+            display: inline-block;
+            width: auto;
+            border: 0 solid black;
         }
 
         .test-container
@@ -105,6 +106,50 @@
             border: none;
 
         }
+
+        .icon .icon-tooltip {
+            display: inline-block;
+            width: 120px;
+            background-color: #555;
+            color: #fff;
+            font-size: 11px;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 0;
+            position: absolute;
+            z-index: 1;
+            top: 2.5%;
+            right: 75px;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .icon .icon-tooltip-server::after {
+            content: "";
+            position: absolute;
+            bottom: 25%;
+            right: -10px;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent transparent transparent #555;
+        }
+
+        span.icon:hover .icon-tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        span.icon {
+            border-bottom: 1px dotted black;
+            float: right;
+            margin-right: 10px;
+            display: inline;
+            text-align: right;
+            text-decoration: none;
+            vertical-align: middle;
+        }
 	</style>
 </head>
 
@@ -112,9 +157,14 @@
 <section>
     <div class="container" style="margin: 0 auto; padding: 0;">
         <div style="display: block; width: 98%; padding: 10px; margin-bottom: 10px; text-align: left;">
+            <span class="icon">
+                <a href="server.html">💻</a>
+                <span class="icon-tooltip icon-tooltip-server">Show API Coverage</span>
+            </span>
             <span style="display: inline; font-size: 11px; vertical-align: middle" id="num_tests"></span>
-            <select name="tests" id="tests" onchange="selectTest()">
-            </select>
+            <span style="vertical-align: bottom;">
+                <select style="vertical-align: middle" name="tests" id="tests" onchange="selectTest()"></select>
+            </span>
         </div>
 
         <div class="test-container">
@@ -130,7 +180,6 @@
         function processClassName(classname)
         {
             return classname === "" ? "" : substringNamespace(classname);
-
         }
         function selectTest()
         {
@@ -141,9 +190,17 @@
         $(document).ready( () => {
             $("#num_tests").html("(" + summary.reports.length + ")");
             let testNames = summary.reports.map(report => `${report.status ? "✅" : "❌"} ${processClassName(report.class_name)}.${report.test_name}`);
+            let to_selected_index = summary.reports.length - 1;
+            for (let i = to_selected_index; i >= 0; i--) {
+                if(!summary.reports[i].status)
+                {
+                    to_selected_index = i;
+                    break;
+                }
+            }
             let options = testNames.map((testname,index) => `<option value="${index}">${testname}</option>`).join();
             $("#tests").append(options);
-            $("#tests option:last").attr("selected", "selected");
+            $(`#tests option:eq(${to_selected_index})`).attr('selected', 'selected');
             selectTest();
         });
     </script>

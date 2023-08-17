@@ -1,3 +1,5 @@
+2.1.6:
+    - (MichaelA-ops) Fix bug where order of transformer tests is incorrect.
 2.1.5:
     - (cmeiklejohn) Improve UX.
     - (MichaelA-ops) Attach transformer faults to Postgres/CockroachDB int, boolean, byte[] and string field types.

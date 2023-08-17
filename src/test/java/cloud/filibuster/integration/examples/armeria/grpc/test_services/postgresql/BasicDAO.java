@@ -307,7 +307,7 @@ public class BasicDAO {
      *
      * @return balance (int)
      */
-    public String[] getAccountIdByBalance(int balance) {
+    public List<String> getAccountIdByBalance(int balance) {
         List<String> id = new ArrayList<>();
 
         try (Connection connection = this.getConnection()) {
@@ -322,7 +322,7 @@ public class BasicDAO {
                     e.getSQLState(), e.getCause(), e.getMessage()));
         }
 
-        return id.toArray(new String[0]);
+        return id.stream().toList();
     }
 
 }

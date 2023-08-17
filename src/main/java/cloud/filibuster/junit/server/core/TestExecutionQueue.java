@@ -27,7 +27,11 @@ public class TestExecutionQueue<T extends TestExecution> extends LinkedBlockingD
     }
 
     @Override
-    public void addTestExecution(T testExecution) {
-        this.add(testExecution);
+    public void addTestExecution(T testExecution, boolean isAdHoc) {
+        if (isAdHoc) {
+            this.addFirst(testExecution);
+        } else {
+            this.add(testExecution);
+        }
     }
 }

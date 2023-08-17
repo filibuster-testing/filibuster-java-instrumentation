@@ -1,4 +1,5 @@
 2.1.6:
+    - (cmeiklejohn) Fix percentage error.
     - (MichaelA-ops) Fix bug where order of transformer tests is incorrect.
 2.1.5:
     - (cmeiklejohn) Improve UX.

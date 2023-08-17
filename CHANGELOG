@@ -1,3 +1,5 @@
+2.1.6:
+    - (cmeiklejohn) Fix percentage error.
 2.1.5:
     - (cmeiklejohn) Improve UX.
     - (MichaelA-ops) Attach transformer faults to Postgres/CockroachDB int, boolean, byte[] and string field types.

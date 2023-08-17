@@ -28,7 +28,10 @@ public class TestExecutionStack<T extends TestExecution> extends ArrayDeque<T> i
 
     @Override
     public void addTestExecution(T testExecution, boolean isAdHoc) {
-        // TODO: Add transformer logic
-        this.addFirst(testExecution);
+        if (isAdHoc) {
+            this.addLast(testExecution);
+        } else {
+            this.addFirst(testExecution);
+        }
     }
 }

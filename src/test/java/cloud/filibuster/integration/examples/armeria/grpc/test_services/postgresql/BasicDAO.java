@@ -308,21 +308,20 @@ public class BasicDAO {
      * @return balance (int)
      */
     public List<String> getAccountIdByBalance(int balance) {
-        List<String> id = new ArrayList<>();
+        List<String> ids = new ArrayList<>();
 
         try (Connection connection = this.getConnection()) {
 
             ResultSet res = connection.createStatement()
                     .executeQuery(String.format("SELECT id FROM accounts WHERE balance = '%d'", balance));
             while (res.next()) {
-                id.add(res.getString("id"));
+                ids.add(res.getString("id"));
             }
         } catch (SQLException e) {
             logger.log(Level.INFO, String.format("BasicDAO.getAccountIdByBalance ERROR: { state => %s, cause => %s, message => %s }\n",
                     e.getSQLState(), e.getCause(), e.getMessage()));
         }
 
-        return id.stream().toList();
+        return ids;
     }
-
 }

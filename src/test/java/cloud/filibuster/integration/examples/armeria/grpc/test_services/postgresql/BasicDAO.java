@@ -8,6 +8,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
@@ -234,6 +236,14 @@ public class BasicDAO {
     }
 
     /**
+     * Delete all accounts.
+     *
+     */
+    public void deleteAllAccounts() {
+        runSQL("DELETE FROM accounts");
+    }
+
+    /**
      * Transfer funds between one account and another.  Handles
      * transaction retries in case of conflict automatically on the
      * backend.
@@ -290,6 +300,29 @@ public class BasicDAO {
         }
 
         return balance;
+    }
+
+    /**
+     * Get the ids of accounts having a given balance.
+     *
+     * @return balance (int)
+     */
+    public String[] getAccountIdByBalance(int balance) {
+        List<String> id = new ArrayList<>();
+
+        try (Connection connection = this.getConnection()) {
+
+            ResultSet res = connection.createStatement()
+                    .executeQuery(String.format("SELECT id FROM accounts WHERE balance = '%d'", balance));
+            while (res.next()) {
+                id.add(res.getString("id"));
+            }
+        } catch (SQLException e) {
+            logger.log(Level.INFO, String.format("BasicDAO.getAccountIdByBalance ERROR: { state => %s, cause => %s, message => %s }\n",
+                    e.getSQLState(), e.getCause(), e.getMessage()));
+        }
+
+        return id.toArray(new String[0]);
     }
 
 }

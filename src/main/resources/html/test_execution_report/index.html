@@ -519,12 +519,16 @@
 
                     if (rpc.request.module.includes("WebClient")) {
                         var rpcArgs = rpc.request.args.toString.replace('[','').replace(']','').split(",");
+                        var rpcMethod = rpcArgs[0];
+                        var queryString = rpcArgs[0].substring(rpcArgs[0].indexOf("?") + 1);
+                        var rpcMethodWithoutQueryString = rpcMethod.replace(queryString, '').replace('?', '');
 
-                        row += '<td class="method"><div class="class_name">';
-                        row += substringNamespace(rpc.request.method);
-                        row += ' ';
-                        row += rpcArgs[0];
-                        row += '</div></td>';
+                        row += '<td class="method">';
+                        row += '<div class="class_name">' + substringNamespace(rpc.request.method) + ' ' + rpcMethodWithoutQueryString + '</div>';
+                        row += '<textarea>';
+                        row += queryString;
+                        row += '</textarea>'
+                        row += '</td>';
 
                         row += '<td class="args">';
                         row += '<div class="class_name">' + substringNamespace(rpc.request.args.__class__) + '</div>';

@@ -2,15 +2,12 @@ package cloud.filibuster.instrumentation.libraries.armeria.http;
 
 import cloud.filibuster.RpcType;
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
-import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
 import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.instrumentation.instrumentors.FilibusterClientInstrumentor;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
-import cloud.filibuster.junit.server.core.transformers.Accumulator;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import com.google.gson.Gson;
 import com.linecorp.armeria.client.*;
 import com.linecorp.armeria.common.*;
 import com.linecorp.armeria.common.logging.RequestLogBuilder;
@@ -23,6 +20,7 @@ import org.json.JSONObject;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -378,7 +376,7 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
         return new FilteredHttpResponse(response) {
 
             ResponseHeaders responseHeaders;
-            String response = "";
+            List<String> response = new ArrayList<>();
 
             @Override
             @CanIgnoreReturnValue
@@ -427,11 +425,31 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
                             HashMap<String, String> returnValueProperties = new HashMap<>();
                             returnValueProperties.put("status_code", statusCode);
 
-                            filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, statusCode);
+                            filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, /* isUpdate= */false, statusCode);
                         }
                     } else if (obj instanceof HttpData) {
+                        // Accumulate the response.
                         HttpData responseData = (HttpData) obj;
-                        // Nothing, for the moment, but we do need to accumulate the response.
+
+                        // Get response data.
+                        // Response might be sent over multiple chunks, so we need to append them all.
+                        if (!responseData.isEmpty()) {
+                            response.add(responseData.toStringAscii());
+                        }
+
+                        // This could be any subclass of HttpResponse: AggregatedHttpResponse, FilteredHttpResponse, etc.
+                        // Therefore, take the super -- I don't think Filibuster really does anything with this anyway.
+                        String className = "com.linecorp.armeria.common.HttpResponse";
+
+                        String statusCode = responseHeaders.get(HttpHeaderNames.STATUS);
+                        logger.log(Level.INFO, logPrefix + "statusCode: " + statusCode);
+
+                        // Notify Filibuster.
+                        logger.log(Level.INFO, logPrefix + "Notifying Filibuster!!!");
+                        HashMap<String, String> returnValueProperties = new HashMap<>();
+                        returnValueProperties.put("status_code", statusCode);
+
+                        filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, /* isUpdate= */true, String.join("", response));
                     }
                 }
 

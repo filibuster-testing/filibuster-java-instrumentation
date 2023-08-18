@@ -854,7 +854,7 @@ final public class FilibusterClientInstrumentor {
                 invocationCompletePayload.put("preliminary_execution_index", preliminaryDistributedExecutionIndex.toString());
             }
 
-            recordInvocationComplete(invocationCompletePayload);
+            recordInvocationComplete(invocationCompletePayload, /* isUpdate= */false);
         }
     }
 
@@ -888,7 +888,7 @@ final public class FilibusterClientInstrumentor {
                 invocationCompletePayload.put("preliminary_execution_index", preliminaryDistributedExecutionIndex.toString());
             }
 
-            recordInvocationComplete(invocationCompletePayload);
+            recordInvocationComplete(invocationCompletePayload, /* isUpdate= */false);
         }
     }
 
@@ -927,7 +927,7 @@ final public class FilibusterClientInstrumentor {
                 invocationCompletePayload.put("preliminary_execution_index", preliminaryDistributedExecutionIndex.toString());
             }
 
-            recordInvocationComplete(invocationCompletePayload);
+            recordInvocationComplete(invocationCompletePayload, /* isUpdate= */false);
         }
     }
 
@@ -942,7 +942,7 @@ final public class FilibusterClientInstrumentor {
             String className,
             Map<String, String> returnValueProperties
     ) {
-        afterInvocationComplete(className, returnValueProperties, null);
+        afterInvocationComplete(className, returnValueProperties, /* isUpdate= */false, null);
     }
 
 
@@ -956,6 +956,7 @@ final public class FilibusterClientInstrumentor {
     public void afterInvocationComplete(
             String className,
             Map<String, String> returnValueProperties,
+            boolean isUpdate,
             @Nullable Object returnValue
     ) {
         // Only if instrumented request, we should communicate, and we aren't inside of Filibuster instrumentation.
@@ -995,18 +996,18 @@ final public class FilibusterClientInstrumentor {
                 invocationCompletePayload.put("preliminary_execution_index", preliminaryDistributedExecutionIndex.toString());
             }
 
-            recordInvocationComplete(invocationCompletePayload);
+            recordInvocationComplete(invocationCompletePayload, isUpdate);
         }
     }
 
     @SuppressWarnings("VoidMissingNullable")
-    private void recordInvocationComplete(JSONObject invocationCompletePayload) {
+    private void recordInvocationComplete(JSONObject invocationCompletePayload, boolean isUpdate) {
         logger.log(Level.INFO, "invocationCompletePayload: about to make call.");
         logger.log(Level.INFO, "invocationCompletePayload: " + invocationCompletePayload);
 
         if (getServerBackendCanInvokeDirectlyProperty()) {
             if (FilibusterCore.hasCurrentInstance()) {
-                FilibusterCore.getCurrentInstance().endInvocation(invocationCompletePayload);
+                FilibusterCore.getCurrentInstance().endInvocation(invocationCompletePayload, isUpdate);
             } else {
                 throw new FilibusterRuntimeException("No current filibuster core instance, this could indicate a problem.");
             }
@@ -1021,7 +1022,9 @@ final public class FilibusterClientInstrumentor {
                         HttpHeaderNames.CONTENT_TYPE,
                         "application/json",
                         "X-Filibuster-Instrumentation",
-                        "true");
+                        "true",
+                        "X-Filibuster-Is-Update",
+                        String.valueOf(isUpdate));
                 webClient.execute(postJson, invocationCompletePayload.toString()).aggregate().join();
 
                 return null;

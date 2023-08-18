@@ -7,8 +7,11 @@ import cloud.filibuster.instrumentation.libraries.armeria.http.FilibusterDecorat
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterServerInterceptor;
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterServerInvocationInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.MyAPIService;
+import com.linecorp.armeria.common.HttpData;
 import com.linecorp.armeria.common.HttpRequest;
 import com.linecorp.armeria.common.HttpResponse;
+import com.linecorp.armeria.common.HttpResponseWriter;
+import com.linecorp.armeria.common.ResponseHeaders;
 import com.linecorp.armeria.server.AbstractHttpService;
 import com.linecorp.armeria.server.Server;
 import com.linecorp.armeria.server.ServerBuilder;
@@ -37,6 +40,20 @@ public class APIServer {
 
         ServerServiceDefinition interceptService = ServerInterceptors.intercept(new MyAPIService(), List.of(new FilibusterServerInterceptor(serviceName), new FilibusterServerInvocationInterceptor(APIServiceGrpc.class)));
         sb.service(GrpcService.builder().addService(interceptService).build());
+
+        sb.service("/chunked-json", (ctx, req) -> {
+            final HttpResponseWriter streaming = HttpResponse.streaming();
+            streaming.write(ResponseHeaders.of(200));
+            streaming.write(HttpData.ofUtf8("{"));
+            streaming.whenConsumed().thenAccept(v -> {
+                streaming.write(HttpData.ofUtf8("\"foo\": \"bar\""));
+                streaming.whenConsumed().thenAccept(v2 -> {
+                    streaming.write(HttpData.ofUtf8("}"));
+                    streaming.close();
+                });
+            });
+            return streaming;
+        });
 
         sb.service("/health-check", new AbstractHttpService() {
             @Override

@@ -309,7 +309,7 @@ public class FilibusterCore {
                     setNextAccumulator(newFaultObject.getJSONObject("transformer_fault"),
                             transformationResult.getNextAccumulator());
                     generateAndSetTransformerValue(newFaultObject.getJSONObject("transformer_fault"));
-                    createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, newFaultObject, /* isAdHoc= */true);
+                    createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, newFaultObject, /* isScheduledByTransformer= */true);
                 }
 
                 logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using transformer_fault: " + transformerFaultObject.toString(4));
@@ -464,7 +464,7 @@ public class FilibusterCore {
                                         initialAccumulator
                                 );
                                 generateAndSetTransformerValue(handledTransformer.getJSONObject("transformer_fault"));
-                                createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, new JSONObject(handledTransformer.toMap()), /* isAdHoc= */false);
+                                createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, new JSONObject(handledTransformer.toMap()), /* isScheduledByTransformer= */false);
                             } catch (Throwable e) {
                                 logger.warning("[FILIBUSTER-CORE]: generateByzantineAndTransformerFaults, an exception occurred in generateByzantineAndTransformerFaults: " + e);
                                 throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: generateByzantineAndTransformerFaults: ", e);
@@ -476,7 +476,7 @@ public class FilibusterCore {
                     List<JSONObject> byzantineFaultObjects = filibusterAnalysisConfiguration.getByzantineFaultObjects();
 
                     for (JSONObject faultObject : byzantineFaultObjects) {
-                        createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject, /* isAdHoc= */false);
+                        createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject, /* isScheduledByTransformer= */false);
                     }
                 }
             }
@@ -650,14 +650,14 @@ public class FilibusterCore {
                     // Don't add to explored queue if it's already there.
                     numberOfAbstractExecutionsExecuted++;
 
-                    exploredTestExecutions.addTestExecution(currentAbstractTestExecution, /* isAdHoc= */false);
+                    exploredTestExecutions.addTestExecution(currentAbstractTestExecution, /* isScheduledByTransformer= */false);
                 } else {
                     logger.severe("[FILIBUSTER-CORE]: teardownsCompleted called, currentAbstractTestExecution already exists in the explored queue, this could indicate a problem in Filibuster.");
                 }
             }
 
             if (!exploredTestExecutions.containsTestExecution(currentConcreteTestExecution)) {
-                exploredTestExecutions.addTestExecution(currentConcreteTestExecution, /* isAdHoc= */false);
+                exploredTestExecutions.addTestExecution(currentConcreteTestExecution, /* isScheduledByTransformer= */false);
             }
             numberOfConcreteExecutionsExecuted++;
 
@@ -1088,7 +1088,7 @@ public class FilibusterCore {
                         }
 
                         if (matcher.find()) {
-                            createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject, /* isAdHoc= */false);
+                            createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject, /* isScheduledByTransformer= */false);
                         }
                     }
 
@@ -1098,7 +1098,7 @@ public class FilibusterCore {
                     for (JSONObject faultObject : exceptionFaultObjects) {
                         // If we shouldn't execute this, skip it.
                         if (filibusterFaultInjectionFilter.shouldInjectFault(methodName)) {
-                            createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject, /* isAdHoc= */false);
+                            createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject, /* isScheduledByTransformer= */false);
                         }
                     }
 
@@ -1119,7 +1119,7 @@ public class FilibusterCore {
                                 HashMap faultTypeMap = (HashMap) obj;
                                 JSONObject faultTypeObject = new JSONObject();
                                 faultTypeObject.put("failure_metadata", faultTypeMap);
-                                createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultTypeObject, /* isAdHoc= */false);
+                                createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultTypeObject, /* isScheduledByTransformer= */false);
                             }
                         }
                     }
@@ -1205,7 +1205,7 @@ public class FilibusterCore {
             FilibusterConfiguration filibusterConfiguration,
             DistributedExecutionIndex distributedExecutionIndex,
             JSONObject faultObject,
-            boolean isAdHoc) {
+            boolean isScheduledByTransformer) {
         logger.info("[FILIBUSTER-CORE]: createAndScheduleAbstractTestExecution called.");
 
         if (currentConcreteTestExecution != null) {
@@ -1219,14 +1219,14 @@ public class FilibusterCore {
             if (!abstractIsExploredExecution && !abstractIsScheduledExecution && !abstractIsCurrentExecution) {
                 if (filibusterConfiguration.getSuppressCombinations()) {
                     if (!(abstractTestExecution.getFaultsToInjectSize() > 1)) {
-                        unexploredTestExecutions.addTestExecution(abstractTestExecution, isAdHoc);
+                        unexploredTestExecutions.addTestExecution(abstractTestExecution, isScheduledByTransformer);
                         logger.info("[FILIBUSTER-CORE]: createAndScheduleAbstractTestExecution, adding new execution to the queue.");
                     } else {
                         logger.info("[FILIBUSTER-CORE]: createAndScheduleAbstractTestExecution, not scheduling test execution because it contains > 1 fault.");
                     }
                 } else {
                     logger.info("[FILIBUSTER-CORE]: createAndScheduleAbstractTestExecution, adding new execution to the queue.");
-                    unexploredTestExecutions.addTestExecution(abstractTestExecution, isAdHoc);
+                    unexploredTestExecutions.addTestExecution(abstractTestExecution, isScheduledByTransformer);
                 }
             }
         }

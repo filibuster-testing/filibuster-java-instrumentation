@@ -27,8 +27,8 @@ public class TestExecutionQueue<T extends TestExecution> extends LinkedBlockingD
     }
 
     @Override
-    public void addTestExecution(T testExecution, boolean isAdHoc) {
-        if (isAdHoc) {
+    public void addTestExecution(T testExecution, boolean isScheduledByTransformer) {
+        if (isScheduledByTransformer) {
             this.addFirst(testExecution);
         } else {
             this.add(testExecution);

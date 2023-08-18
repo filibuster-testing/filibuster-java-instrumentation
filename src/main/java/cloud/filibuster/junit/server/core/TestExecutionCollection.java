@@ -13,5 +13,5 @@ public interface TestExecutionCollection<T extends TestExecution> {
 
     int size();
 
-    void addTestExecution(T testExecution, boolean isAdHoc);
+    void addTestExecution(T testExecution, boolean isScheduledByTransformer);
 }

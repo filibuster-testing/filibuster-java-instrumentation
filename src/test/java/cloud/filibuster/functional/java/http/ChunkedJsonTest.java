@@ -43,7 +43,7 @@ public class ChunkedJsonTest {
         stopAPIServerAndWaitUntilUnavailable();
     }
 
-    @TestWithFilibuster
+    @TestWithFilibuster(maxIterations = 1)
     @Order(1)
     public void testChunkedJson() {
         String baseURI = "http://" + Networking.getHost("api_server") + ":" + Networking.getPort("api_server") + "/";

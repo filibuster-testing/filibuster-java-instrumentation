@@ -371,7 +371,10 @@ public class FilibusterCore {
     // Only needed for:
     // 1. Dynamic Reduction because we need to keep track of responses.
     // 2. HTTP calls, so we know which service we actually invoked.
-    public synchronized JSONObject endInvocation(JSONObject payload) {
+    public synchronized JSONObject endInvocation(
+            JSONObject payload,
+            boolean isUpdate
+    ) {
         logger.info("[FILIBUSTER-CORE]: endInvocation called");
 
         String distributedExecutionIndexString = payload.getString("execution_index");
@@ -385,9 +388,11 @@ public class FilibusterCore {
 
         currentConcreteTestExecution.addDistributedExecutionIndexWithResponsePayload(distributedExecutionIndex, payload);
 
-        // Transformer faults are initially scheduled in the endInvocation since we need to know the response value.
-        // For consistency, we also initially schedule Byzantine faults in the endInvocation
-        scheduleByzantineAndTransformerFaults(payload, distributedExecutionIndex);
+        if (!isUpdate) {
+            // Transformer faults are initially scheduled in the endInvocation since we need to know the response value.
+            // For consistency, we also initially schedule Byzantine faults in the endInvocation
+            scheduleByzantineAndTransformerFaults(payload, distributedExecutionIndex);
+        }
 
         JSONObject response = new JSONObject();
         response.put("execution_index", payload.getString("execution_index"));

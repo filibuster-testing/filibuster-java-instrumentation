@@ -1,3 +1,9 @@
+2.1.7:
+    - (cmeiklejohn) Fix bug where UX incorrectly displayed HTTP errors as warnings.
+    - (cmeiklejohn) Remove HTTP transformer fault support due to incompatibility with HTTP chunking.
+    - (cmeiklejohn) Revert to status code reporting for HTTP.
+    - (cmeiklejohn) Accumulate chunked responses.
+    - (cmeiklejohn) Fix display of query string in the UX.
 2.1.6:
     - (cmeiklejohn) Fix percentage error.
 2.1.5:

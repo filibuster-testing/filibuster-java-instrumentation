@@ -470,7 +470,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                 String className = message.getClass().getName();
                 HashMap<String, String> returnValueProperties = new HashMap<>();
                 returnValueProperties.put("toString", message.toString());
-                filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, message);
+                filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, /* isUpdate= */false, message);
 
                 // Delegate.
                 delegate().onMessage(message);

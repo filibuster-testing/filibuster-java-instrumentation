@@ -12,6 +12,7 @@ import com.linecorp.armeria.server.ServerBuilder;
 import com.linecorp.armeria.server.ServiceRequestContext;
 import com.linecorp.armeria.server.annotation.ConsumesJson;
 import com.linecorp.armeria.server.annotation.Get;
+import com.linecorp.armeria.server.annotation.Header;
 import com.linecorp.armeria.server.annotation.Param;
 import com.linecorp.armeria.server.annotation.Post;
 import com.linecorp.armeria.server.annotation.ProducesJson;
@@ -38,13 +39,14 @@ public class FilibusterServer {
             }
         });
 
+
         sb.annotatedService(new Object() {
             @Post("/filibuster/update")
             @ProducesJson
             @ConsumesJson
-            public HttpResponse update(AggregatedHttpRequest request) {
+            public HttpResponse update(@Header("X-Filibuster-Is-Update") boolean isUpdate, AggregatedHttpRequest request) {
                 JSONObject payload = new JSONObject(request.contentUtf8());
-                JSONObject response = FilibusterCore.getCurrentInstance().endInvocation(payload);
+                JSONObject response = FilibusterCore.getCurrentInstance().endInvocation(payload, isUpdate);
                 return HttpResponse.of(response.toString());
             }
         });

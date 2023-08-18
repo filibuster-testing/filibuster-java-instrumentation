@@ -42,7 +42,7 @@ public class APIServer {
         sb.service(GrpcService.builder().addService(interceptService).build());
 
         sb.service("/chunked-json", (ctx, req) -> {
-            final HttpResponseWriter streaming = HttpResponse.streaming();
+            HttpResponseWriter streaming = HttpResponse.streaming();
             streaming.write(ResponseHeaders.of(200));
             streaming.write(HttpData.ofUtf8("{"));
             streaming.whenConsumed().thenAccept(v -> {

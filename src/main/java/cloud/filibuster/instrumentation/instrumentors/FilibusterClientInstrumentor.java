@@ -1021,6 +1021,9 @@ final public class FilibusterClientInstrumentor {
             // 1000 things are broken in the multi-server runs because we haven't supported that style of testing
             // for over two years.
             //
+            // Long term fix: deprecate the Python client, always call this for the Java server, fix all
+            // the integration tests to check for this.  We'll do this when someone actually needs this feature.
+            //
             if (!isUpdate) {
                 CompletableFuture<Void> updateFuture = CompletableFuture.supplyAsync(() -> {
                     // Call instrumentation using instrumentation to verify short-circuit.

@@ -414,26 +414,7 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
                                 HashMap<String, String> returnValueProperties = new HashMap<>();
                                 filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties);
                             }
-                        }
-
-                    } else if (obj instanceof HttpData) {
-                        HttpData responseData = (HttpData) obj;
-
-                        // Get response data.
-                        // Response might be sent over multiple chunks, so we need to append them all.
-                        if (!responseData.isEmpty()) {
-                            response = response + " " + responseData.toStringAscii();
-                        }
-
-                        // If we have reached the end of the stream, we can notify Filibuster.
-                        // We have checked previously if obj is instance of ResponseHeaders.
-                        // In that if-block, we notify Filibuster about GRPC responses that were sent as HTTP.
-                        // Therefore, we do not notify Filibuster about these requests again here.
-                        if (responseData.isEndOfStream() && !isResponseGrpcAsHttp(responseHeaders)) {
-                            if(responseHeaders == null) {
-                                throw new FilibusterRuntimeException("responseHeaders should not be null at this point, something fatal occurred.");
-                            }
-
+                        } else {
                             // This could be any subclass of HttpResponse: AggregatedHttpResponse, FilteredHttpResponse, etc.
                             // Therefore, take the super -- I don't think Filibuster really does anything with this anyway.
                             String className = "com.linecorp.armeria.common.HttpResponse";
@@ -446,27 +427,11 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
                             HashMap<String, String> returnValueProperties = new HashMap<>();
                             returnValueProperties.put("status_code", statusCode);
 
-                            JSONObject transformerFault = filibusterClientInstrumentor.getTransformerFault();
-                            if (transformerFault == null) {
-                                // Only communicate a successful invocation if there was no transformer fault.
-                                if (response.isEmpty()) {
-                                    filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, statusCode);
-                                } else {
-                                    filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, response);
-                                }
-                            } else {
-                                // Extract the transformer fault value from the transformerFault JSONObject.
-                                Object transformerFaultValue = transformerFault.get("value");
-                                String sTransformerValue = transformerFaultValue.toString();
-
-                                // Extract the accumulator from the transformerFault JSONObject.
-                                Accumulator<?, ?> accumulator = new Gson().fromJson(transformerFault.get("accumulator").toString(), Accumulator.class);
-
-                                logger.log(Level.INFO, logPrefix + "Notifying Filibuster of the transformer fault with value: " + transformerFaultValue);
-                                filibusterClientInstrumentor.afterInvocationWithTransformerFault(sTransformerValue,
-                                        HttpResponse.class.toString(), accumulator);
-                            }
+                            filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, statusCode);
                         }
+                    } else if (obj instanceof HttpData) {
+                        HttpData responseData = (HttpData) obj;
+                        // Nothing, for the moment, but we do need to accumulate the response.
                     }
                 }
 

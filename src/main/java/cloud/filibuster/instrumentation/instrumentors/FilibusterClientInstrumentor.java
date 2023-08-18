@@ -1012,31 +1012,42 @@ final public class FilibusterClientInstrumentor {
                 throw new FilibusterRuntimeException("No current filibuster core instance, this could indicate a problem.");
             }
         } else {
-            CompletableFuture<Void> updateFuture = CompletableFuture.supplyAsync(() -> {
-                // Call instrumentation using instrumentation to verify short-circuit.
-                WebClient webClient = FilibusterExecutor.getDecoratedWebClient(filibusterBaseUri, filibusterServiceName);
+            // The only thing that's updated here is the TestExecutionReport that is only supported via the Java server
+            // so, don't call again -- this actually won't break anything in the Python server by calling it again
+            // but checking that it gets called again isn't really useful.
+            //
+            // Just don't call it: eventually, we will need to fix this so that in the multi-server configuraiton if
+            // some service calls the Java server with the header, it's handled correctly.  Right now, I assume about
+            // 1000 things are broken in the multi-server runs because we haven't supported that style of testing
+            // for over two years.
+            //
+            if (!isUpdate) {
+                CompletableFuture<Void> updateFuture = CompletableFuture.supplyAsync(() -> {
+                    // Call instrumentation using instrumentation to verify short-circuit.
+                    WebClient webClient = FilibusterExecutor.getDecoratedWebClient(filibusterBaseUri, filibusterServiceName);
 
-                RequestHeaders postJson = RequestHeaders.of(
-                        HttpMethod.POST,
-                        "/filibuster/update",
-                        HttpHeaderNames.CONTENT_TYPE,
-                        "application/json",
-                        "X-Filibuster-Instrumentation",
-                        "true",
-                        "X-Filibuster-Is-Update",
-                        String.valueOf(isUpdate));
-                webClient.execute(postJson, invocationCompletePayload.toString()).aggregate().join();
+                    RequestHeaders postJson = RequestHeaders.of(
+                            HttpMethod.POST,
+                            "/filibuster/update",
+                            HttpHeaderNames.CONTENT_TYPE,
+                            "application/json",
+                            "X-Filibuster-Instrumentation",
+                            "true",
+                            "X-Filibuster-Is-Update",
+                            String.valueOf(isUpdate));
+                    webClient.execute(postJson, invocationCompletePayload.toString()).aggregate().join();
 
-                return null;
-            }, FilibusterExecutor.getExecutorService());
+                    return null;
+                }, FilibusterExecutor.getExecutorService());
 
-            try {
-                updateFuture.get();
-            } catch (InterruptedException | ExecutionException e) {
-                logger.log(Level.SEVERE, "cannot get information from Filibuster server: " + e);
+                try {
+                    updateFuture.get();
+                } catch (InterruptedException | ExecutionException e) {
+                    logger.log(Level.SEVERE, "cannot get information from Filibuster server: " + e);
+                }
+
+                logger.log(Level.INFO, "invocationCompletePayload: finished.");
             }
-
-            logger.log(Level.INFO, "invocationCompletePayload: finished.");
         }
     }
 }

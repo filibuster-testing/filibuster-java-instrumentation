@@ -13,13 +13,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import static cloud.filibuster.junit.assertions.protocols.GenericAssertions.wasFaultInjected;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -59,8 +59,8 @@ public class JUnitCockroachDBTransformerTest extends JUnitAnnotationBaseTest {
             assertEquals(initBalance2, cockroachDAO.getAccountBalance(id2));
 
             // Assert that the correct account IDs are returned for the given balances
-            assertArrayEquals(new String[]{id1.toString()}, cockroachDAO.getAccountIdByBalance(initBalance1));
-            assertArrayEquals(new String[]{id2.toString()}, cockroachDAO.getAccountIdByBalance(initBalance2));
+            assertEquals(Collections.singletonList(id1.toString()), cockroachDAO.getAccountIdByBalance(initBalance1));
+            assertEquals(Collections.singletonList(id2.toString()), cockroachDAO.getAccountIdByBalance(initBalance2));
 
             // Remove all accounts from DB
             cockroachDAO.deleteAllAccounts();

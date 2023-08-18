@@ -27,7 +27,11 @@ public class TestExecutionStack<T extends TestExecution> extends ArrayDeque<T> i
     }
 
     @Override
-    public void addTestExecution(T testExecution) {
-        this.addFirst(testExecution);
+    public void addTestExecution(T testExecution, boolean isScheduledByTransformer) {
+        if (isScheduledByTransformer) {
+            this.addLast(testExecution);
+        } else {
+            this.addFirst(testExecution);
+        }
     }
 }

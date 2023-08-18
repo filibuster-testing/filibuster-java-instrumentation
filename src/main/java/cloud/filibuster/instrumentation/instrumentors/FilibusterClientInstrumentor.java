@@ -999,7 +999,6 @@ final public class FilibusterClientInstrumentor {
         }
     }
 
-
     @SuppressWarnings("VoidMissingNullable")
     private void recordInvocationComplete(JSONObject invocationCompletePayload) {
         logger.log(Level.INFO, "invocationCompletePayload: about to make call.");

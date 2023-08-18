@@ -854,7 +854,7 @@ final public class FilibusterClientInstrumentor {
                 invocationCompletePayload.put("preliminary_execution_index", preliminaryDistributedExecutionIndex.toString());
             }
 
-            recordInvocationComplete(invocationCompletePayload);
+            recordInvocationComplete(invocationCompletePayload, /* isUpdate= */false);
         }
     }
 
@@ -888,7 +888,7 @@ final public class FilibusterClientInstrumentor {
                 invocationCompletePayload.put("preliminary_execution_index", preliminaryDistributedExecutionIndex.toString());
             }
 
-            recordInvocationComplete(invocationCompletePayload);
+            recordInvocationComplete(invocationCompletePayload, /* isUpdate= */false);
         }
     }
 
@@ -927,7 +927,7 @@ final public class FilibusterClientInstrumentor {
                 invocationCompletePayload.put("preliminary_execution_index", preliminaryDistributedExecutionIndex.toString());
             }
 
-            recordInvocationComplete(invocationCompletePayload);
+            recordInvocationComplete(invocationCompletePayload, /* isUpdate= */false);
         }
     }
 
@@ -942,7 +942,7 @@ final public class FilibusterClientInstrumentor {
             String className,
             Map<String, String> returnValueProperties
     ) {
-        afterInvocationComplete(className, returnValueProperties, null);
+        afterInvocationComplete(className, returnValueProperties, /* isUpdate= */false, null);
     }
 
 
@@ -956,6 +956,7 @@ final public class FilibusterClientInstrumentor {
     public void afterInvocationComplete(
             String className,
             Map<String, String> returnValueProperties,
+            boolean isUpdate,
             @Nullable Object returnValue
     ) {
         // Only if instrumented request, we should communicate, and we aren't inside of Filibuster instrumentation.
@@ -995,46 +996,61 @@ final public class FilibusterClientInstrumentor {
                 invocationCompletePayload.put("preliminary_execution_index", preliminaryDistributedExecutionIndex.toString());
             }
 
-            recordInvocationComplete(invocationCompletePayload);
+            recordInvocationComplete(invocationCompletePayload, isUpdate);
         }
     }
 
-
     @SuppressWarnings("VoidMissingNullable")
-    private void recordInvocationComplete(JSONObject invocationCompletePayload) {
+    private void recordInvocationComplete(JSONObject invocationCompletePayload, boolean isUpdate) {
         logger.log(Level.INFO, "invocationCompletePayload: about to make call.");
         logger.log(Level.INFO, "invocationCompletePayload: " + invocationCompletePayload);
 
         if (getServerBackendCanInvokeDirectlyProperty()) {
             if (FilibusterCore.hasCurrentInstance()) {
-                FilibusterCore.getCurrentInstance().endInvocation(invocationCompletePayload);
+                FilibusterCore.getCurrentInstance().endInvocation(invocationCompletePayload, isUpdate);
             } else {
                 throw new FilibusterRuntimeException("No current filibuster core instance, this could indicate a problem.");
             }
         } else {
-            CompletableFuture<Void> updateFuture = CompletableFuture.supplyAsync(() -> {
-                // Call instrumentation using instrumentation to verify short-circuit.
-                WebClient webClient = FilibusterExecutor.getDecoratedWebClient(filibusterBaseUri, filibusterServiceName);
+            // The only thing that's updated here is the TestExecutionReport that is only supported via the Java server
+            // so, don't call again -- this actually won't break anything in the Python server by calling it again
+            // but checking that it gets called again isn't really useful.
+            //
+            // Just don't call it: eventually, we will need to fix this so that in the multi-server configuraiton if
+            // some service calls the Java server with the header, it's handled correctly.  Right now, I assume about
+            // 1000 things are broken in the multi-server runs because we haven't supported that style of testing
+            // for over two years.
+            //
+            // Long term fix: deprecate the Python client, always call this for the Java server, fix all
+            // the integration tests to check for this.  We'll do this when someone actually needs this feature.
+            //
+            if (!isUpdate) {
+                CompletableFuture<Void> updateFuture = CompletableFuture.supplyAsync(() -> {
+                    // Call instrumentation using instrumentation to verify short-circuit.
+                    WebClient webClient = FilibusterExecutor.getDecoratedWebClient(filibusterBaseUri, filibusterServiceName);
 
-                RequestHeaders postJson = RequestHeaders.of(
-                        HttpMethod.POST,
-                        "/filibuster/update",
-                        HttpHeaderNames.CONTENT_TYPE,
-                        "application/json",
-                        "X-Filibuster-Instrumentation",
-                        "true");
-                webClient.execute(postJson, invocationCompletePayload.toString()).aggregate().join();
+                    RequestHeaders postJson = RequestHeaders.of(
+                            HttpMethod.POST,
+                            "/filibuster/update",
+                            HttpHeaderNames.CONTENT_TYPE,
+                            "application/json",
+                            "X-Filibuster-Instrumentation",
+                            "true",
+                            "X-Filibuster-Is-Update",
+                            String.valueOf(isUpdate));
+                    webClient.execute(postJson, invocationCompletePayload.toString()).aggregate().join();
 
-                return null;
-            }, FilibusterExecutor.getExecutorService());
+                    return null;
+                }, FilibusterExecutor.getExecutorService());
 
-            try {
-                updateFuture.get();
-            } catch (InterruptedException | ExecutionException e) {
-                logger.log(Level.SEVERE, "cannot get information from Filibuster server: " + e);
+                try {
+                    updateFuture.get();
+                } catch (InterruptedException | ExecutionException e) {
+                    logger.log(Level.SEVERE, "cannot get information from Filibuster server: " + e);
+                }
+
+                logger.log(Level.INFO, "invocationCompletePayload: finished.");
             }
-
-            logger.log(Level.INFO, "invocationCompletePayload: finished.");
         }
     }
 }

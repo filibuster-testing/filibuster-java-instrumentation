@@ -18,7 +18,7 @@ public class RedisTransformBitInByteArrAndByzantineAnalysisConfigurationFile imp
 
         filibusterAnalysisConfigurationBuilderRedisExceptions.transformer(BitInByteArrTransformer.class);
 
-        // Byzantine fault: Inject null value
+        // Byzantine transformer faults
         filibusterAnalysisConfigurationBuilderRedisExceptions.transformer(ByteArrByzantineValueTransformer.class);
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());

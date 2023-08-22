@@ -57,7 +57,7 @@ public class RedisFilibusterByzantineByteArrTest extends JUnitAnnotationBaseTest
         byte[] returnVal = myRedisCommands.get(key);
 
         if (!wasFaultInjected()) {
-            assertArrayEquals(value, returnVal, "The value returned from Redis was not the expected value although no byzantine fault was injected.");
+            assertArrayEquals(value, returnVal, "The value returned from Redis was not the expected value although no transformer byzantine fault was injected.");
         } else {
             actualValues.add(returnVal);
             String returnValStr = returnVal == null ? null : new String(returnVal, Charset.defaultCharset());

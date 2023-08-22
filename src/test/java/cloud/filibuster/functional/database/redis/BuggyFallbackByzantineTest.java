@@ -32,7 +32,7 @@ public class BuggyFallbackByzantineTest {
         RedisClientService.getInstance().redisClient.connect().sync().set(key, value);
     }
 
-    @DisplayName("Tests reading data from APIService with Redis byzantine fault injection")
+    @DisplayName("Tests reading data from APIService with Redis transformer byzantine value fault injection")
     @TestWithFilibuster(analysisConfigurationFile = RedisSingleGetBasicStringByzantineFaultAnalysisConfigurationFile.class)
     public void testRedisByzantineBuggyFallback() {
         ManagedChannel apiChannel = ManagedChannelBuilder.forAddress(Networking.getHost("api_server"), Networking.getPort("api_server")).usePlaintext().build();
@@ -47,7 +47,7 @@ public class BuggyFallbackByzantineTest {
                 assertTrue(wasFaultInjectedOnJavaClassAndMethod("io.lettuce.core.api.sync.RedisStringCommands/get"), "Fault was not injected on the expected Redis method");
                 String expectedErrorMessage = "INTERNAL: INTERNAL: java.lang.Exception: An exception was thrown at Hello service\n" +
                         "MyAPIService could not process the request as an exception was thrown";
-                assertTrue(t.getMessage().contains(expectedErrorMessage), "Unexpected return error message for injected byzantine fault");
+                assertTrue(t.getMessage().contains(expectedErrorMessage), "Unexpected return error message for injected transformer byzantine fault");
                 return;
             }
             throw t;

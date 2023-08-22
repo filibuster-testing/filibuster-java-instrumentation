@@ -52,7 +52,7 @@ public class RedisFilibusterByzantineStringTest extends JUnitAnnotationBaseTest 
         String returnVal = myRedisCommands.get(key);
 
         if (!wasFaultInjected()) {
-            assertEquals(value, returnVal, "The value returned from Redis was not the expected value although no byzantine fault was injected.");
+            assertEquals(value, returnVal, "The value returned from Redis was not the expected value although no transformer byzantine fault was injected.");
         } else {
             actualValues.add(returnVal);
             assertTrue(expectedValues.contains(returnVal), "An unexpected value was returned: " + returnVal);

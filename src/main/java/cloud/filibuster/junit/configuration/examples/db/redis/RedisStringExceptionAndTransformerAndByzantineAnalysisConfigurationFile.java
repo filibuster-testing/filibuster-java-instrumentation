@@ -40,7 +40,7 @@ public class RedisStringExceptionAndTransformerAndByzantineAnalysisConfiguration
                 .pattern("io.lettuce.core.api.sync.RedisStringCommands/get\\b");
         filibusterAnalysisConfigurationBuilderRedisExceptions.transformer(StringTransformer.class);
 
-        // Byzantine faults
+        // Byzantine transformer faults
         filibusterAnalysisConfigurationBuilderRedisExceptions.transformer(NullTransformer.class);
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());

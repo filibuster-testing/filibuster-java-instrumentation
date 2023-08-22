@@ -12,7 +12,7 @@ public class RedisSingleGetBasicStringByzantineFaultAnalysisConfigurationFile im
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
-                .name("java.transformers.basic_byzantine_string_values")
+                .name("java.transformers.byzantine.basic_string")
                 .pattern("io.lettuce.core.api.sync.RedisStringCommands/get\\b");
 
 

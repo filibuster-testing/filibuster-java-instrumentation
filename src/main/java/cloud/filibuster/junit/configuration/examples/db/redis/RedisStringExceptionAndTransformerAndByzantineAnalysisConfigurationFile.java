@@ -3,7 +3,7 @@ package cloud.filibuster.junit.configuration.examples.db.redis;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
-import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineStringFaultType;
+import cloud.filibuster.junit.server.core.transformers.NullTransformer;
 import cloud.filibuster.junit.server.core.transformers.StringTransformer;
 
 import java.util.HashMap;
@@ -41,11 +41,7 @@ public class RedisStringExceptionAndTransformerAndByzantineAnalysisConfiguration
         filibusterAnalysisConfigurationBuilderRedisExceptions.transformer(StringTransformer.class);
 
         // Byzantine faults
-        String[] possibleValues = {null};
-        for (String value : possibleValues) {
-            // Communicate the byzantine fault type and value to the analysis configuration builder
-            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(new ByzantineStringFaultType(), value);
-        }
+        filibusterAnalysisConfigurationBuilderRedisExceptions.transformer(NullTransformer.class);
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());
 

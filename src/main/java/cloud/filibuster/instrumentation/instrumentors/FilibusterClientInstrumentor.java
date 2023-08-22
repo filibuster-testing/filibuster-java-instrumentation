@@ -208,9 +208,6 @@ final public class FilibusterClientInstrumentor {
     private JSONObject failureMetadata;
 
     @Nullable
-    private JSONObject byzantineFault;
-
-    @Nullable
     private JSONObject transformerFault;
 
     private String requestId;
@@ -448,16 +445,6 @@ final public class FilibusterClientInstrumentor {
     }
 
     /**
-     * Return byzantine fault that needs to be injected.
-     * This value will be null until the Filibuster server has been contacted for this request.
-     *
-     * @return JSON object containing failure to inject.
-     */
-    public JSONObject getByzantineFault() {
-        return this.byzantineFault;
-    }
-
-    /**
      * Return transformer fault that needs to be injected.
      * This value will be null until the Filibuster server has been contacted for this request.
      *
@@ -683,10 +670,6 @@ final public class FilibusterClientInstrumentor {
                 failureMetadata = jsonObject.getJSONObject("failure_metadata");
             }
 
-            if (jsonObject.has("byzantine_fault")) {
-                byzantineFault = jsonObject.getJSONObject("byzantine_fault");
-            }
-
             if (jsonObject.has("transformer_fault")) {
                 transformerFault = jsonObject.getJSONObject("transformer_fault");
             }
@@ -702,10 +685,6 @@ final public class FilibusterClientInstrumentor {
 
                     if (jsonObject.has("failure_metadata")) {
                         failureMetadata = jsonObject.getJSONObject("failure_metadata");
-                    }
-
-                    if (jsonObject.has("byzantine_fault")) {
-                        byzantineFault = jsonObject.getJSONObject("byzantine_fault");
                     }
 
                     if (jsonObject.has("transformer_fault")) {
@@ -750,10 +729,6 @@ final public class FilibusterClientInstrumentor {
 
                         if (jsonObject.has("failure_metadata")) {
                             failureMetadata = jsonObject.getJSONObject("failure_metadata");
-                        }
-
-                        if (jsonObject.has("byzantine_fault")) {
-                            byzantineFault = jsonObject.getJSONObject("byzantine_fault");
                         }
 
                         if (jsonObject.has("transformer_fault")) {
@@ -860,47 +835,13 @@ final public class FilibusterClientInstrumentor {
 
 
     /**
-     * Invoked after a remote call has been completed if the remote call injects a byzantine value.
-     *
-     * @param value the byzantine value that was injected.
-     * @param type  type of the injected byzantine value (e.g., String).
-     */
-    public void afterInvocationWithByzantineFault(
-            String value,
-            String type
-    ) {
-        if (generatedId > -1 && shouldCommunicateWithServer && counterexampleNotProvided()) {
-
-            JSONObject byzantineFault = new JSONObject();
-            byzantineFault.put("value", value);
-            byzantineFault.put("type", type);
-
-            JSONObject invocationCompletePayload = new JSONObject();
-            invocationCompletePayload.put("instrumentation_type", "invocation_complete");
-            invocationCompletePayload.put("generated_id", generatedId);
-            invocationCompletePayload.put("execution_index", distributedExecutionIndex.toString());
-            invocationCompletePayload.put("vclock", vectorClock.toJsonObject());
-            invocationCompletePayload.put("byzantine_fault", byzantineFault);
-            invocationCompletePayload.put("module", callsite.getClassOrModuleName());
-            invocationCompletePayload.put("method", callsite.getMethodOrFunctionName());
-
-            if (preliminaryDistributedExecutionIndex != null) {
-                invocationCompletePayload.put("preliminary_execution_index", preliminaryDistributedExecutionIndex.toString());
-            }
-
-            recordInvocationComplete(invocationCompletePayload, /* isUpdate= */false);
-        }
-    }
-
-
-    /**
      * Invoked after a remote call has been completed if the remote call injects a transformer value.
      *
-     * @param value       the byzantine value that was injected.
-     * @param type        type of the injected byzantine value (e.g., String).
+     * @param value       the transformer value that was injected.
+     * @param type        type of the injected transformer value (e.g., String).
      * @param accumulator containing any additional information that should be communicated to the server and used in
-     *                    subsequent byzantine faults (e.g., original value before mutation and idx of mutated char in
-     *                    case of a byzantine string transformation).
+     *                    subsequent transformer faults (e.g., original value before mutation and idx of mutated char in
+     *                    case of a transformer string transformation).
      */
     public void afterInvocationWithTransformerFault(
             String value,

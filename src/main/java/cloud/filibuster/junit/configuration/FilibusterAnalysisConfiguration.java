@@ -3,11 +3,9 @@ package cloud.filibuster.junit.configuration;
 import cloud.filibuster.RpcType;
 import cloud.filibuster.instrumentation.datatypes.Pair;
 import cloud.filibuster.junit.server.core.transformers.Transformer;
-import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineFaultType;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import org.json.JSONObject;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +19,6 @@ public class FilibusterAnalysisConfiguration {
     private final List<JSONObject> exceptionFaultObjects = new ArrayList<>();
     private final List<JSONObject> errorFaultObjects = new ArrayList<>();
     private final List<JSONObject> latencyFaultObjects = new ArrayList<>();
-    private final List<JSONObject> byzantineFaultObjects = new ArrayList<>();
     private final List<JSONObject> transformerFaultObjects = new ArrayList<>();
     private final String name;
     private final String pattern;
@@ -66,22 +63,12 @@ public class FilibusterAnalysisConfiguration {
             }
         }
 
-        if (builder.byzantines.size() > 0) {
-            configurationObject.put("byzantines", builder.byzantines);
-
-            for (JSONObject byzantineObject : builder.byzantines) {
-                JSONObject byzantine = new JSONObject();
-                byzantine.put("byzantine_fault", byzantineObject);
-                byzantineFaultObjects.add(byzantine);
-            }
-        }
-
         if (builder.transformers.size() > 0) {
             configurationObject.put("transformers", builder.transformers);
 
-            for (JSONObject byzantineObject : builder.transformers) {
+            for (JSONObject transformerObject : builder.transformers) {
                 JSONObject transformerJson = new JSONObject();
-                transformerJson.put("transformer_fault", byzantineObject);
+                transformerJson.put("transformer_fault", transformerObject);
                 transformerFaultObjects.add(transformerJson);
             }
         }
@@ -91,10 +78,6 @@ public class FilibusterAnalysisConfiguration {
 
     public List<JSONObject> getExceptionFaultObjects() {
         return this.exceptionFaultObjects;
-    }
-
-    public List<JSONObject> getByzantineFaultObjects() {
-        return this.byzantineFaultObjects;
     }
 
     public List<JSONObject> getTransformerFaultObjects() {
@@ -139,7 +122,6 @@ public class FilibusterAnalysisConfiguration {
         private final List<JSONObject> exceptions = new ArrayList<>();
         private final List<JSONObject> errors = new ArrayList<>();
         private final List<JSONObject> latencies = new ArrayList<>();
-        private final List<JSONObject> byzantines = new ArrayList<>();
         private final List<JSONObject> transformers = new ArrayList<>();
 
         @CanIgnoreReturnValue
@@ -169,17 +151,6 @@ public class FilibusterAnalysisConfiguration {
             exception.put("name", name);
             exception.put("metadata", metadata);
             exceptions.add(exception);
-            return this;
-        }
-
-        @CanIgnoreReturnValue
-        public <T> Builder byzantine(ByzantineFaultType<?> faultType, @Nullable T value) {
-            JSONObject byzantine = new JSONObject();
-            byzantine.put("type", faultType);
-            // JSONObject does not accept keys with null values
-            // Instead, we use JSONObject.NULL (https://developer.android.com/reference/org/json/JSONObject.html#NULL)
-            byzantine.put("value", value != null ? value : JSONObject.NULL);
-            byzantines.add(byzantine);
             return this;
         }
 

@@ -4,7 +4,7 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.db.byzantine.redis.RedisSingleGetStringByzantineFaultAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.db.redis.byzantine.RedisSingleGetStringByzantineFaultAnalysisConfigurationFile;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import org.junit.jupiter.api.BeforeAll;

@@ -3,7 +3,7 @@ package cloud.filibuster.junit.configuration.examples.db.byzantine.redis;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
-import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineStringFaultType;
+import cloud.filibuster.junit.server.core.transformers.StringBasicByzantineValueTransformer;
 
 public class RedisSingleGetBasicStringByzantineFaultAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
@@ -12,15 +12,11 @@ public class RedisSingleGetBasicStringByzantineFaultAnalysisConfigurationFile im
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
-                .name("java.lettuce.byzantine.basic_string")
+                .name("java.transformers.basic_byzantine_string_values")
                 .pattern("io.lettuce.core.api.sync.RedisStringCommands/get\\b");
 
 
-        String[] possibleValues = {null, ""};
-        for (String value : possibleValues) {
-            // Communicate the byzantine fault type and value to the analysis configuration builder
-            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(new ByzantineStringFaultType(), value);
-        }
+        filibusterAnalysisConfigurationBuilderRedisExceptions.transformer(StringBasicByzantineValueTransformer.class);
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());
 

@@ -277,7 +277,7 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
                         returnType.toString(), accumulator);
 
                 // Return the transformer fault value.
-                return transformerFaultValue;
+                return transformerFaultValue == JSONObject.NULL ? null : transformerFaultValue;
             } else {
                 String missingKey;
                 if (transformerFault.has("value")) {

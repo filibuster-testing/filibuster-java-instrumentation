@@ -22,14 +22,20 @@ import io.grpc.Status;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationServerCommunicationEnabledProperty;
+import static cloud.filibuster.instrumentation.instrumentors.FilibusterGrpcHeaders.FILIBUSTER_EXCEPTION_CAUSE;
+import static cloud.filibuster.instrumentation.instrumentors.FilibusterGrpcHeaders.FILIBUSTER_EXCEPTION_CAUSE_MESSAGE;
+import static cloud.filibuster.instrumentation.instrumentors.FilibusterGrpcHeaders.FILIBUSTER_EXCEPTION_CODE;
+import static cloud.filibuster.instrumentation.instrumentors.FilibusterGrpcHeaders.FILIBUSTER_EXCEPTION_DESCRIPTION;
+import static cloud.filibuster.instrumentation.instrumentors.FilibusterGrpcHeaders.FILIBUSTER_EXCEPTION_NAME;
 import static cloud.filibuster.instrumentation.instrumentors.FilibusterShared.generateExceptionFromForcedException;
+import static cloud.filibuster.instrumentation.instrumentors.FilibusterShared.getForcedExceptionMetadataValue;
+import static cloud.filibuster.instrumentation.instrumentors.FilibusterShared.getForcedExceptionValue;
 import static java.util.Objects.requireNonNull;
 
 public class FilibusterClientInterceptor implements ClientInterceptor {
@@ -312,7 +318,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                     // ******************************************************************************************
                     // Setup additional failure headers, if necessary.
                     // ******************************************************************************************
-
+                    
                     if (forcedException != null) {
                         JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
 
@@ -326,6 +332,35 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                             headers.put(
                                     Metadata.Key.of("x-filibuster-forced-sleep", Metadata.ASCII_STRING_MARSHALLER),
                                     String.valueOf(0)
+                            );
+                        }
+
+                        if (forcedExceptionMetadata.has("defer") && forcedExceptionMetadata.getBoolean("defer")) {
+                            String exceptionNameString = getForcedExceptionValue(forcedException, "name", "");
+                            String codeStr = getForcedExceptionMetadataValue(forcedException, "code", "");
+                            String descriptionStr = getForcedExceptionMetadataValue(forcedException, "description", "");
+                            String causeString = getForcedExceptionMetadataValue(forcedException, "cause", "");
+                            String causeMessageString = getForcedExceptionMetadataValue(forcedException, "cause_message", "");
+
+                            headers.put(
+                                    Metadata.Key.of(FILIBUSTER_EXCEPTION_NAME, Metadata.ASCII_STRING_MARSHALLER),
+                                    exceptionNameString
+                            );
+                            headers.put(
+                                    Metadata.Key.of(FILIBUSTER_EXCEPTION_CODE, Metadata.ASCII_STRING_MARSHALLER),
+                                    codeStr
+                            );
+                            headers.put(
+                                    Metadata.Key.of(FILIBUSTER_EXCEPTION_DESCRIPTION, Metadata.ASCII_STRING_MARSHALLER),
+                                    descriptionStr
+                            );
+                            headers.put(
+                                    Metadata.Key.of(FILIBUSTER_EXCEPTION_CAUSE, Metadata.ASCII_STRING_MARSHALLER),
+                                    causeString
+                            );
+                            headers.put(
+                                    Metadata.Key.of(FILIBUSTER_EXCEPTION_CAUSE_MESSAGE, Metadata.ASCII_STRING_MARSHALLER),
+                                    causeMessageString
                             );
                         }
                     }

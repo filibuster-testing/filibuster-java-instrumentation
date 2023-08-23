@@ -9,6 +9,7 @@ import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
 import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineFaultType;
 import cloud.filibuster.junit.server.core.transformers.Accumulator;
+import cloud.filibuster.junit.server.core.transformers.DBException;
 import com.datastax.oss.driver.api.core.servererrors.InvalidQueryException;
 import com.datastax.oss.driver.api.core.servererrors.OverloadedException;
 import com.datastax.oss.driver.api.core.servererrors.ReadFailureException;
@@ -172,6 +173,16 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
         String futureInvokeExceptionOnMethod = null;
         JSONObject futureExceptionMetadata = null;
 
+        if (transformerFault != null && filibusterClientInstrumentor.shouldAbort()) {
+            Object transformerFaultValue = injectTransformerFault(filibusterClientInstrumentor, transformerFault, method.getReturnType());
+
+            if (transformerFaultValue instanceof DBException) {
+                forcedException = getJsonExceptionFromTransformerFault((DBException) transformerFaultValue);
+            } else {
+                return transformerFaultValue;
+            }
+        }
+
         if (forcedException != null && filibusterClientInstrumentor.shouldAbort()) {
             boolean shouldInjectExceptionOnCurrentMethod = shouldInjectExceptionOnCurrentMethod(forcedException, fullMethodName);
 
@@ -197,10 +208,6 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
 
         if (byzantineFault != null && filibusterClientInstrumentor.shouldAbort()) {
             return injectByzantineFault(filibusterClientInstrumentor, byzantineFault, method.getReturnType());
-        }
-
-        if (transformerFault != null && filibusterClientInstrumentor.shouldAbort()) {
-            return injectTransformerFault(filibusterClientInstrumentor, transformerFault, method.getReturnType());
         }
 
         // ******************************************************************************************
@@ -245,6 +252,13 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
         }
 
         return invocationResult;
+    }
+
+    private static JSONObject getJsonExceptionFromTransformerFault(DBException transformerFaultValue) {
+        JSONObject forcedException = new JSONObject();
+        forcedException.put("name", transformerFaultValue.getName());
+        forcedException.put("metadata", transformerFaultValue.getMetadata());
+        return forcedException;
     }
 
     private Object invokeOnInterceptedObject(Method method, Object[] args) throws InvocationTargetException, IllegalAccessException {

@@ -9,6 +9,7 @@ import io.grpc.Metadata;
 import io.grpc.ServerCall;
 import io.grpc.ServerCallHandler;
 import io.grpc.ServerInterceptor;
+import io.grpc.Status;
 
 import javax.annotation.Nullable;
 import java.util.logging.Level;
@@ -16,6 +17,12 @@ import java.util.logging.Logger;
 
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationServerCommunicationEnabledProperty;
+import static cloud.filibuster.instrumentation.instrumentors.FilibusterGrpcHeaders.FILIBUSTER_EXCEPTION_CAUSE;
+import static cloud.filibuster.instrumentation.instrumentors.FilibusterGrpcHeaders.FILIBUSTER_EXCEPTION_CAUSE_MESSAGE;
+import static cloud.filibuster.instrumentation.instrumentors.FilibusterGrpcHeaders.FILIBUSTER_EXCEPTION_CODE;
+import static cloud.filibuster.instrumentation.instrumentors.FilibusterGrpcHeaders.FILIBUSTER_EXCEPTION_DESCRIPTION;
+import static cloud.filibuster.instrumentation.instrumentors.FilibusterGrpcHeaders.FILIBUSTER_EXCEPTION_NAME;
+import static cloud.filibuster.instrumentation.instrumentors.FilibusterShared.generateExceptionFromForcedException;
 
 public class FilibusterServerInterceptor implements ServerInterceptor {
     private static final Logger logger = Logger.getLogger(FilibusterServerInterceptor.class.getName());
@@ -153,6 +160,23 @@ public class FilibusterServerInterceptor implements ServerInterceptor {
                 }
             }
 
+            String exceptionNameString = headers.get(Metadata.Key.of(FILIBUSTER_EXCEPTION_NAME, Metadata.ASCII_STRING_MARSHALLER));
+            String codeString = headers.get(Metadata.Key.of(FILIBUSTER_EXCEPTION_CODE, Metadata.ASCII_STRING_MARSHALLER));
+            String descriptionString = headers.get(Metadata.Key.of(FILIBUSTER_EXCEPTION_DESCRIPTION, Metadata.ASCII_STRING_MARSHALLER));
+            String causeString = headers.get(Metadata.Key.of(FILIBUSTER_EXCEPTION_CAUSE, Metadata.ASCII_STRING_MARSHALLER));
+            String causeMessageString = headers.get(Metadata.Key.of(FILIBUSTER_EXCEPTION_CAUSE_MESSAGE, Metadata.ASCII_STRING_MARSHALLER));
+            Status status = null;
+
+            if (exceptionNameString != null && !exceptionNameString.isEmpty()) {
+                status = generateExceptionFromForcedException(
+                        exceptionNameString,
+                        codeString,
+                        descriptionString,
+                        causeString,
+                        causeMessageString
+                );
+            }
+
             // ******************************************************************************************
             // Notify Filibuster before delegation.
             // ******************************************************************************************
@@ -168,6 +192,11 @@ public class FilibusterServerInterceptor implements ServerInterceptor {
             // ******************************************************************************************
 
             logger.log(Level.INFO, logPrefix + "Leaving server interceptor...");
+
+            // Return error directly if we need to.
+            if (status != null) {
+                return next.startCall(new FilibusterErrorServerCall<>(call, status), headers);
+            }
         }
 
         return next.startCall(new FilibusterServerCall<>(call), headers);
@@ -178,6 +207,15 @@ public class FilibusterServerInterceptor implements ServerInterceptor {
             extends ForwardingServerCall.SimpleForwardingServerCall<REQUEST, RESPONSE> {
         public FilibusterServerCall(ServerCall<REQUEST, RESPONSE> delegate) {
             super(delegate);
+        }
+    }
+
+    @SuppressWarnings("ClassCanBeStatic")
+    final class FilibusterErrorServerCall<REQUEST, RESPONSE>
+            extends ForwardingServerCall.SimpleForwardingServerCall<REQUEST, RESPONSE> {
+        public FilibusterErrorServerCall(ServerCall<REQUEST, RESPONSE> delegate, Status status) {
+            super(delegate);
+            delegate.close(status, new Metadata());
         }
     }
 }

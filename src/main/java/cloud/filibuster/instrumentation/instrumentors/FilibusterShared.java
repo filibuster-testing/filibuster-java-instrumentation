@@ -10,7 +10,6 @@ import java.util.HashMap;
 import static java.util.Objects.requireNonNull;
 
 public class FilibusterShared {
-    @SuppressWarnings("Varifier")
     public static Status generateExceptionFromForcedException(FilibusterClientInstrumentor filibusterClientInstrumentor) {
         JSONObject forcedException = filibusterClientInstrumentor.getForcedException();
         requireNonNull(forcedException);
@@ -35,6 +34,30 @@ public class FilibusterShared {
             causeMessageString = forcedExceptionMetadata.getString("cause_message");
         }
 
+        Status status = generateExceptionFromForcedException(
+                exceptionNameString,
+                codeStr,
+                descriptionStr,
+                causeString,
+                causeMessageString);
+
+        // Notify Filibuster of failure.
+        HashMap<String, String> additionalMetadata = new HashMap<>();
+        additionalMetadata.put("code", codeStr);
+        additionalMetadata.put("description", descriptionStr);
+        filibusterClientInstrumentor.afterInvocationWithException(exceptionNameString, causeString, additionalMetadata);
+
+        // Return status.
+        return status;
+    }
+
+    public static Status generateExceptionFromForcedException(
+            String exceptionNameString,
+            String codeStr,
+            String descriptionStr,
+            String causeString,
+            String causeMessageString
+    ) {
         // Status object to return to the user.
         Status status;
 
@@ -66,12 +89,6 @@ public class FilibusterShared {
             // Otherwise, we do not know what to inject.
             throw new FilibusterFaultInjectionException("No code or cause provided for injection of io.grpc.StatusRuntimeException.");
         }
-
-        // Notify Filibuster of failure.
-        HashMap<String, String> additionalMetadata = new HashMap<>();
-        additionalMetadata.put("code", codeStr);
-        additionalMetadata.put("description", descriptionStr);
-        filibusterClientInstrumentor.afterInvocationWithException(exceptionNameString, causeString, additionalMetadata);
 
         return status;
     }

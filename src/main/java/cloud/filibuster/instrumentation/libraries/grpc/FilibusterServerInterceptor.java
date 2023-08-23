@@ -134,7 +134,7 @@ public class FilibusterServerInterceptor implements ServerInterceptor {
             logger.log(Level.INFO, logPrefix + "!!! Leaving constructor.");
 
             // ******************************************************************************************
-            // Force sleep if necessary.
+            // Force sleep, if necessary.
             // ******************************************************************************************
 
             String sleepIntervalStr = headers.get(

@@ -10,29 +10,38 @@ import java.util.HashMap;
 import static java.util.Objects.requireNonNull;
 
 public class FilibusterShared {
+    public static String getForcedExceptionValue(JSONObject forcedException, String keyName, String defaultValue) {
+        requireNonNull(forcedException);
+
+        if (forcedException.has(keyName)) {
+            return forcedException.getString(keyName);
+        } else {
+            return defaultValue;
+        }
+    }
+
+    public static String getForcedExceptionMetadataValue(JSONObject forcedException, String keyName, String defaultValue) {
+        requireNonNull(forcedException);
+
+        JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
+
+        if (forcedExceptionMetadata.has(keyName)) {
+            return forcedExceptionMetadata.getString(keyName);
+        } else {
+            return defaultValue;
+        }
+    }
+
     public static Status generateExceptionFromForcedException(FilibusterClientInstrumentor filibusterClientInstrumentor) {
         JSONObject forcedException = filibusterClientInstrumentor.getForcedException();
         requireNonNull(forcedException);
 
         // Get description of the fault.
-        String exceptionNameString = forcedException.getString("name");
-        JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
-        String codeStr = forcedExceptionMetadata.getString("code");
-
-        String descriptionStr = null;
-        if (forcedExceptionMetadata.has("description")) {
-            descriptionStr = forcedExceptionMetadata.getString("description");
-        }
-
-        String causeString = null;
-        if (forcedExceptionMetadata.has("cause")) {
-            causeString = forcedExceptionMetadata.getString("cause");
-        }
-
-        String causeMessageString = null;
-        if (forcedExceptionMetadata.has("cause_message")) {
-            causeMessageString = forcedExceptionMetadata.getString("cause_message");
-        }
+        String exceptionNameString = getForcedExceptionValue(forcedException, "name", "");
+        String codeStr = getForcedExceptionMetadataValue(forcedException, "code", null);
+        String descriptionStr = getForcedExceptionMetadataValue(forcedException, "description", null);
+        String causeString = getForcedExceptionMetadataValue(forcedException, "cause", null);
+        String causeMessageString = getForcedExceptionMetadataValue(forcedException, "cause_message", null);
 
         Status status = generateExceptionFromForcedException(
                 exceptionNameString,

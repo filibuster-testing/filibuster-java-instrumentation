@@ -174,7 +174,7 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
         JSONObject futureExceptionMetadata = null;
 
         if (transformerFault != null && filibusterClientInstrumentor.shouldAbort()) {
-            Object transformerFaultValue = injectTransformerFault(filibusterClientInstrumentor, transformerFault, method.getReturnType());
+            Object transformerFaultValue = getTransformerFaultValue(filibusterClientInstrumentor, transformerFault, method.getReturnType());
 
             if (transformerFaultValue instanceof DBException) {
                 forcedException = getJsonExceptionFromTransformerFault((DBException) transformerFaultValue);
@@ -258,6 +258,7 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
         JSONObject forcedException = new JSONObject();
         forcedException.put("name", transformerFaultValue.getName());
         forcedException.put("metadata", transformerFaultValue.getMetadata());
+        forcedException.put("isTransformerFault", true);
         return forcedException;
     }
 
@@ -273,12 +274,13 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
         }
     }
 
-    private static Object injectTransformerFault(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject transformerFault, Class<?> returnType) {
+    private static Object getTransformerFaultValue(FilibusterClientInstrumentor filibusterClientInstrumentor, JSONObject transformerFault, Class<?> returnType) {
         try {
             if (transformerFault.has("value") && transformerFault.has("accumulator")) {
 
-                // Extract the transformer fault value from the transformerFault JSONObject.
+                // Extract the transformer fault value from the transformerFault JSONObject and return it.
                 Object transformerFaultValue = transformerFault.get("value");
+                // Extract the transformer fault value from the transformerFault JSONObject.
                 String sTransformerValue = String.valueOf(transformerFaultValue);
 
                 logger.log(Level.INFO, logPrefix + "Injecting the transformed fault value: " + sTransformerValue);
@@ -287,8 +289,13 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
                 Accumulator<?, ?> accumulator = new Gson().fromJson(transformerFault.get("accumulator").toString(), Accumulator.class);
 
                 // Notify Filibuster.
-                filibusterClientInstrumentor.afterInvocationWithTransformerFault(sTransformerValue,
-                        returnType.toString(), accumulator);
+                if (transformerFaultValue instanceof DBException) {
+                    filibusterClientInstrumentor.afterInvocationWithTransformerFault(sTransformerValue,
+                            ((DBException) transformerFaultValue).getName(), accumulator);
+                } else {
+                    filibusterClientInstrumentor.afterInvocationWithTransformerFault(sTransformerValue,
+                            returnType.toString(), accumulator);
+                }
 
                 // Return the transformer fault value.
                 return transformerFaultValue;
@@ -378,11 +385,12 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
         JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
         String sCause = forcedExceptionMetadata.getString("cause");
         String sCode = forcedExceptionMetadata.getString("code");
+        boolean isTransformerFault = forcedException.has("isTransformerFault") && forcedException.getBoolean("isTransformerFault");
 
-        throwExceptionAndNotifyFilibuster(filibusterClientInstrumentor, sExceptionName, sCause, sCode);
+        throwExceptionAndNotifyFilibuster(filibusterClientInstrumentor, sExceptionName, sCause, sCode, isTransformerFault);
     }
 
-    private static void throwExceptionAndNotifyFilibuster(FilibusterClientInstrumentor filibusterClientInstrumentor, String exceptionName, String cause, String code) throws Exception {
+    private static void throwExceptionAndNotifyFilibuster(FilibusterClientInstrumentor filibusterClientInstrumentor, String exceptionName, String cause, String code, boolean isTransformerFault) throws Exception {
         Exception exceptionToThrow;
         Random rand = new Random(0);
 
@@ -458,7 +466,9 @@ public final class DynamicProxyInterceptor<T> implements InvocationHandler {
         }
 
         // Notify Filibuster.
-        filibusterClientInstrumentor.afterInvocationWithException(exceptionToThrow);
+        if (!isTransformerFault) {
+            filibusterClientInstrumentor.afterInvocationWithException(exceptionToThrow);
+        }
 
         // Throw callsite exception.
         throw exceptionToThrow;

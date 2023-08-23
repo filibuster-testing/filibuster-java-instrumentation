@@ -22,6 +22,14 @@ public class DBException {
         return metadata;
     }
 
+    @Override
+    public String toString() {
+        return "DBException{" +
+                "name='" + name + '\'' +
+                ", metadata=" + metadata +
+                '}';
+    }
+
     public static class Builder {
         private String name;
         private Map<String, String> metadata;

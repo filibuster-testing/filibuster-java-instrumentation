@@ -154,7 +154,7 @@ public class FilibusterServerInterceptor implements ServerInterceptor {
             int sleepInterval = Integer.parseInt(sleepIntervalStr);
             if (sleepInterval > 0) {
                 try {
-                    Thread.sleep(sleepInterval * 1000L);
+                    Thread.sleep(sleepInterval);
                 } catch (InterruptedException e) {
                     // Do nothing.
                 }

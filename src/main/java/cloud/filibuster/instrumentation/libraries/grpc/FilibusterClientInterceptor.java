@@ -318,7 +318,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                     // ******************************************************************************************
                     // Setup additional failure headers, if necessary.
                     // ******************************************************************************************
-                    
+
                     if (forcedException != null) {
                         JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
 

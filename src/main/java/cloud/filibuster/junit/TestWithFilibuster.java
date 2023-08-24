@@ -194,6 +194,18 @@ public @interface TestWithFilibuster {
     String analysisFile() default "";
 
     /**
+     * Analysis resource file that should be used for this configuration of Filibuster.
+     *
+     * <p>When supplied, {@code analysisConfigurationFile()} and {@code analysisFile()} is ignored.
+     *
+     * <p>When not specified, a default analysis file will be generated to test common faults for Google's gRPC.
+     * (i.e., DEADLINE_EXCEEDED, UNAVAILABLE)
+     *
+     * @return absolute path of the analysis file to use.
+     */
+    String analysisResourceFile() default "";
+
+    /**
      * Analysis configuration file for Filibuster.
      *
      * <p>Will be written out to a file and supplied as a command line argument to the Filibuster server.

@@ -72,7 +72,17 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
 
         FilibusterTestDisplayNameFormatter formatter = displayNameFormatter(testWithFilibuster, testMethod, displayName);
 
-        if (!testWithFilibuster.analysisFile().isEmpty()) {
+        if (!testWithFilibuster.analysisResourceFile().isEmpty()) {
+            // Annotation analysisResourceFile always takes precedence.
+            String analysisResourceFile = testWithFilibuster.analysisResourceFile();
+            URL analysisFileResourcePath = FilibusterTestExtension.class.getClassLoader().getResource(analysisResourceFile);
+
+            if (analysisFileResourcePath == null) {
+                throw new FilibusterAnalysisFileResourcePathException("Analysis resource file property is set, but file does not exist.");
+            }
+
+            analysisFile = analysisFileResourcePath.getPath();
+        } else if (!testWithFilibuster.analysisFile().isEmpty()) {
             // Annotation analysisFile always takes precedence.
             analysisFile = testWithFilibuster.analysisFile();
         } else if (!getTestAnalysisResourceFileProperty().isEmpty()) {

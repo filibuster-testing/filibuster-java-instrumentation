@@ -1,10 +1,12 @@
-package cloud.filibuster.functional.java.basic;
+package cloud.filibuster.functional.java.basic.rpc;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.TestWithFilibuster;
+import com.linecorp.armeria.client.circuitbreaker.CircuitBreakerClient;
+import com.linecorp.armeria.client.circuitbreaker.CircuitBreakerRule;
 import com.linecorp.armeria.client.grpc.GrpcClients;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -26,10 +28,10 @@ public class RpcClientTest extends JUnitAnnotationBaseTest {
     @TestWithFilibuster
     @Order(1)
     public void testHello() {
+        String helloServiceUri = "gproto+http://" + Networking.getHost("hello") + ":" + Networking.getPort("hello") + "/";
+        HelloServiceGrpc.HelloServiceBlockingStub helloService = GrpcClients.builder(helloServiceUri).build(HelloServiceGrpc.HelloServiceBlockingStub.class);
+
         try {
-            HelloServiceGrpc.HelloServiceBlockingStub helloService = GrpcClients.newClient(
-                    "gproto+http://" + Networking.getHost("hello") + ":" + Networking.getPort("hello") + "/",
-                    HelloServiceGrpc.HelloServiceBlockingStub.class); // or HelloServiceFutureStub.class or HelloServiceStub.class
             Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
             Hello.HelloReply reply = helloService.partialHello(request);
             assertEquals("Hello, Armerian World!!", reply.getMessage());

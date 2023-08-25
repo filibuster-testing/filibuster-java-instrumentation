@@ -1,5 +1,8 @@
-2.1.8:
+2.1.9:
     - (MichaelA-ops) Encapsulate Byzantine faults in transformers.
+2.1.8:
+    - (cmeiklejohn) Add option for deferment of exception to server interceptor.
+    - (cmeiklejohn) Add sleep option with deferment for injection of fault at server interceptor.
 2.1.7:
     - (cmeiklejohn) Fix bug where UX incorrectly displayed HTTP errors as warnings.
     - (cmeiklejohn) Remove HTTP transformer fault support due to incompatibility with HTTP chunking.

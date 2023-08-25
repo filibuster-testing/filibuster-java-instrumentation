@@ -470,6 +470,10 @@ final public class FilibusterClientInstrumentor {
                 if (forcedExceptionMetadata.has("abort") && !forcedExceptionMetadata.getBoolean("abort")) {
                     return false;
                 }
+
+                if (forcedExceptionMetadata.has("defer") && forcedExceptionMetadata.getBoolean("defer")) {
+                    return false;
+                }
             }
         }
 

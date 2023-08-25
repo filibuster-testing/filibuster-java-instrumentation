@@ -14,7 +14,6 @@ import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.server.core.transformers.Accumulator;
 import cloud.filibuster.junit.server.core.transformers.Transformer;
 import cloud.filibuster.junit.assertions.BlockType;
-import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineFaultType;
 import cloud.filibuster.junit.filters.FilibusterFaultInjectionFilter;
 import cloud.filibuster.junit.server.core.reports.TestSuiteReport;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
@@ -295,10 +294,6 @@ public class FilibusterCore {
                 JSONObject failureMetadataFaultObject = faultObject.getJSONObject("failure_metadata");
                 logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using failure_metadata: " + failureMetadataFaultObject.toString(4));
                 response.put("failure_metadata", failureMetadataFaultObject);
-            } else if (faultObject.has("byzantine_fault")) {
-                JSONObject byzantineFaultObject = faultObject.getJSONObject("byzantine_fault");
-                logger.info("[FILIBUSTER-CORE]: beginInvocation, injecting faults using byzantine_fault: " + byzantineFaultObject.toString(4));
-                response.put("byzantine_fault", byzantineFaultObject);
             } else if (faultObject.has("transformer_fault")) {
                 JSONObject transformerFaultObject = faultObject.getJSONObject("transformer_fault");
                 Transformer<?, ?> transformationResult = getTransformerResult(transformerFaultObject);
@@ -390,8 +385,7 @@ public class FilibusterCore {
 
         if (!isUpdate) {
             // Transformer faults are initially scheduled in the endInvocation since we need to know the response value.
-            // For consistency, we also initially schedule Byzantine faults in the endInvocation
-            scheduleByzantineAndTransformerFaults(payload, distributedExecutionIndex);
+            scheduleTransformerFaults(payload, distributedExecutionIndex);
         }
 
         JSONObject response = new JSONObject();
@@ -402,7 +396,7 @@ public class FilibusterCore {
         return response;
     }
 
-    private void scheduleByzantineAndTransformerFaults(JSONObject payload, DistributedExecutionIndex distributedExecutionIndex) {
+    private void scheduleTransformerFaults(JSONObject payload, DistributedExecutionIndex distributedExecutionIndex) {
         boolean shouldGenerateNewAbstractExecutions;
 
         if (currentAbstractTestExecution == null) {
@@ -422,23 +416,23 @@ public class FilibusterCore {
         if (shouldGenerateNewAbstractExecutions && faultInjectionEnabled) {
             if (filibusterConfiguration.getAvoidRedundantInjections()) {
                 if (!hasSeenRpcUnderSameOrDifferentDistributedExecutionIndex) {
-                    generateByzantineAndTransformerFaults(payload, distributedExecutionIndex);
+                    generateTransformerFaults(payload, distributedExecutionIndex);
                 }
             } else {
-                generateByzantineAndTransformerFaults(payload, distributedExecutionIndex);
+                generateTransformerFaults(payload, distributedExecutionIndex);
             }
         }
     }
 
-    private void generateByzantineAndTransformerFaults(JSONObject payload, DistributedExecutionIndex distributedExecutionIndex) {
+    private void generateTransformerFaults(JSONObject payload, DistributedExecutionIndex distributedExecutionIndex) {
         // Instrumentation_type is set to request_received if the request is coming from the server instrumentor
-        // In that case, we don't want to inject Byzantine or transformer faults.
+        // In that case, we don't want to inject transformer faults.
         if (payload.has("instrumentation_type") && payload.getString("instrumentation_type").equals("request_received")) {
             return;
         }
 
         if (!payload.has("module") || !payload.has("method")) {
-            throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: generateByzantineAndTransformerFaults, payload missing module or method: " + payload.toString(4));
+            throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: generateTransformerFaults, payload missing module or method: " + payload.toString(4));
         }
 
         String moduleName = payload.getString("module");
@@ -448,7 +442,7 @@ public class FilibusterCore {
             for (FilibusterAnalysisConfiguration filibusterAnalysisConfiguration : filibusterCustomAnalysisConfigurationFile.getFilibusterAnalysisConfigurations()) {
                 // Second check here (concat) is a legacy check for the old Python server compatibility.
                 if (filibusterAnalysisConfiguration.isPatternMatch(methodName) || filibusterAnalysisConfiguration.isPatternMatch(moduleName + "." + methodName)) {
-                    // Transformer Byzantine faults
+                    // Transformer faults
                     List<JSONObject> transformerFaults = filibusterAnalysisConfiguration.getTransformerFaultObjects();
 
                     for (JSONObject transformer : transformerFaults) {
@@ -471,18 +465,12 @@ public class FilibusterCore {
                                 generateAndSetTransformerValue(handledTransformer.getJSONObject("transformer_fault"));
                                 createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, new JSONObject(handledTransformer.toMap()));
                             } catch (Throwable e) {
-                                logger.warning("[FILIBUSTER-CORE]: generateByzantineAndTransformerFaults, an exception occurred in generateByzantineAndTransformerFaults: " + e);
-                                throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: generateByzantineAndTransformerFaults: ", e);
+                                logger.warning("[FILIBUSTER-CORE]: generateTransformerFaults, an exception occurred in generateTransformerFaults: " + e);
+                                throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: generateTransformerFaults: ", e);
                             }
                         }
                     }
 
-                    // Byzantine faults
-                    List<JSONObject> byzantineFaultObjects = filibusterAnalysisConfiguration.getByzantineFaultObjects();
-
-                    for (JSONObject faultObject : byzantineFaultObjects) {
-                        createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, faultObject);
-                    }
                 }
             }
         }
@@ -947,32 +935,6 @@ public class FilibusterCore {
                 }
             }
 
-            if (nameObject.has("byzantines")) {
-                try {
-                    JSONArray jsonArray = nameObject.getJSONArray("byzantines");
-
-                    for (Object obj : jsonArray) {
-                        JSONObject errorObject = (JSONObject) obj;
-
-                        if (errorObject.has("type") && errorObject.has("value")) {
-                            String byzantineFaultType = errorObject.getString("type");
-                            Object value = errorObject.get("value");
-
-                            filibusterAnalysisConfigurationBuilder.byzantine(ByzantineFaultType.fromFaultType(byzantineFaultType), value);
-                            logger.info("[FILIBUSTER-CORE]: analysisFile, found new configuration, byzantineFaultType: " + byzantineFaultType + ", byzantineValue: " + value);
-                        } else {
-                            logger.warning("[FILIBUSTER-CORE]: Either the key 'type' or 'value' was not defined for a byzantine" +
-                                    "fault object.");
-                            throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: analysisFile, either the key 'type' or 'value' was not defined for a byzantine" +
-                                    "fault object.");
-                        }
-                    }
-                } catch (RuntimeException e) {
-                    logger.warning("[FILIBUSTER-CORE]: analysisFile, could not process byzantine fault object.");
-                    throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: analysisFile, could not process byzantine fault object.", e);
-                }
-            }
-
             if (nameObject.has("transformers")) {
                 JSONArray jsonArray = nameObject.getJSONArray("transformers");
 
@@ -992,7 +954,7 @@ public class FilibusterCore {
                                 throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: analysisFile/transformers, could not find transformer class: " + transformerClassName, e);
                             }
 
-                            logger.info("[FILIBUSTER-CORE]: analysisFile/transformers, found new configuration, transformedByzantines: " + transformerClassName);
+                            logger.info("[FILIBUSTER-CORE]: analysisFile/transformers, found new configuration, transformerClassName: " + transformerClassName);
                         } else {
                             logger.warning("[FILIBUSTER-CORE]: analysisFile/transformers: Either the key 'transformer', 'transformerClassName' does not exist.");
                             throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: analysisFile/transformers, either the key 'transformer', 'transformerClassName' does not exist.");

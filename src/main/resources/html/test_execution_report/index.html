@@ -88,10 +88,6 @@
             background-color: lightyellow;
         }
 
-        tr.byzantine {
-            background-color: coral;
-        }
-
         tr.transformer {
             background-color: orange;
         }
@@ -368,10 +364,6 @@
                 return "exception" in obj;
             }
 
-            function containsByzantineFaultKey(obj) {
-                return "byzantine_fault" in obj;
-            }
-
             function containsTransformerFaultKey(obj) {
                 return "transformer_fault" in obj;
             }
@@ -427,7 +419,6 @@
                     var rpc = analysis.rpcs[i];
                     var isFaulted = !isEmpty(rpc.fault);
                     var isExceptionResponse = containsExceptionKey(rpc.response);
-                    var isByzantineFault = containsByzantineFaultKey(rpc.response);
                     var isTransformerFault = containsTransformerFaultKey(rpc.response);
 
                     if (rpc.group !== group) {
@@ -509,8 +500,6 @@
                                 row += '<tr class="success">';
                             }
                         }
-                    } else if (isByzantineFault) {
-                        row += '<tr class="byzantine">';
                     } else if (isTransformerFault) {
                         row += '<tr class="transformer">';
                     } else {
@@ -549,12 +538,6 @@
 
                     if (isEmpty(rpc.response)) {
                         row += '<td>⚠️ No RPC response was recorded.</td>';
-                    } else if (isByzantineFault) {
-                        row += '<td>';
-                        row += '<div class="class_name">' + substringNamespace(rpc.response.byzantine_fault.type) + '</div>';
-                        row += '<textarea>';
-                        row += rpc.response.byzantine_fault.value.toString();
-                        row += '</textarea></td>';
                     } else if (isTransformerFault) {
                         row += '<td>';
                         row += '<div class="class_name">' + substringNamespace(rpc.response.transformer_fault.type) + '</div>';
@@ -599,7 +582,7 @@
                         row += '</td>';
                     }
 
-                    if (!isFaulted || isByzantineFault) {
+                    if (!isFaulted) {
                         row += '<td></td>';
                     } else {
                         if ('forced_exception' in rpc.fault) {

@@ -4,7 +4,7 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.db.byzantine.redis.RedisSingleGetStringByzantineFaultAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.db.redis.byzantine.RedisSingleGetStringByzantineFaultAnalysisConfigurationFile;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import org.junit.jupiter.api.BeforeAll;
@@ -52,7 +52,7 @@ public class RedisFilibusterByzantineStringTest extends JUnitAnnotationBaseTest 
         String returnVal = myRedisCommands.get(key);
 
         if (!wasFaultInjected()) {
-            assertEquals(value, returnVal, "The value returned from Redis was not the expected value although no byzantine fault was injected.");
+            assertEquals(value, returnVal, "The value returned from Redis was not the expected value although no transformer byzantine fault was injected.");
         } else {
             actualValues.add(returnVal);
             assertTrue(expectedValues.contains(returnVal), "An unexpected value was returned: " + returnVal);

@@ -1,5 +1,6 @@
 2.1.9:
     - (MichaelA-ops) Encapsulate Byzantine faults in transformers.
+    - (cmeiklejohn) Add analysisResourceFile property.
 2.1.8:
     - (cmeiklejohn) Add option for deferment of exception to server interceptor.
     - (cmeiklejohn) Add sleep option with deferment for injection of fault at server interceptor.

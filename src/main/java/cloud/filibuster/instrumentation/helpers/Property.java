@@ -491,6 +491,28 @@ public class Property {
     }
 
     /***********************************************************************************
+     ** filibuster.test.fail_if_fault_injection_mismatch
+     ***********************************************************************************/
+
+    public static final boolean FAIL_IF_FAULT_INJECTION_MISMATCH_DEFAULT = false;
+
+    private final static String FAIL_IF_FAULT_INJECTION_MISMATCH = "filibuster.test.fail_if_fault_injection_mismatch";
+
+    public static void setFailIfFaultInjectionMismatch(boolean value) {
+        System.setProperty(FAIL_IF_FAULT_INJECTION_MISMATCH, String.valueOf(value));
+    }
+
+    public static boolean getFailIfFaultInjectionMismatch() {
+        String propertyValue = System.getProperty(FAIL_IF_FAULT_INJECTION_MISMATCH);
+
+        if (isPropertyNull(propertyValue)) {
+            return FAIL_IF_FAULT_INJECTION_MISMATCH_DEFAULT;
+        } else {
+            return Boolean.parseBoolean(propertyValue);
+        }
+    }
+
+    /***********************************************************************************
      ** filibuster.test.fail_if_fault_not_injected
      ***********************************************************************************/
 

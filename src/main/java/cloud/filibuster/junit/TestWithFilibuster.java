@@ -289,9 +289,16 @@ public @interface TestWithFilibuster {
     /**
      * Fail the test if a fault is not injected.
      *
-     * @return whether service should fail.
+     * @return whether test should fail.
      */
     boolean failIfFaultNotInjected() default false;
+
+    /**
+     * Fail the test if the fault at the callsite was not the fault that was injected.
+     *
+     * @return whether test should fail.
+     */
+    boolean failIfFaultInjectionMismatch() default false;
 
     /**
      * Fail the test if a fault is not injected and a tracked method is invoked.

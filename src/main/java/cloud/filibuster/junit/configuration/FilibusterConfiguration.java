@@ -61,6 +61,8 @@ public class FilibusterConfiguration {
 
     private final boolean failIfFaultNotInjected;
 
+    private final boolean failIfFaultInjectionMismatch;
+
     private final boolean failIfFaultNotInjectedAndATrackedMethodIsInvoked;
 
     private FilibusterConfiguration(Builder builder) {
@@ -84,6 +86,7 @@ public class FilibusterConfiguration {
         this.serviceProfileBehavior = builder.serviceProfileBehavior;
         this.className = builder.className;
         this.failIfFaultNotInjected = builder.failIfFaultNotInjected;
+        this.failIfFaultInjectionMismatch = builder.failIfFaultInjectionMismatch;
         this.failIfFaultNotInjectedAndATrackedMethodIsInvoked = builder.failIfFaultNotInjectedAndATrackedMethodIsInvoked;
     }
 
@@ -220,10 +223,19 @@ public class FilibusterConfiguration {
     /**
      * Fail the test if a fault is not injected.
      *
-     * @return whether service should fail.
+     * @return whether test should fail.
      */
     public boolean getFailIfFaultNotInjected() {
         return this.failIfFaultNotInjected;
+    }
+
+    /**
+     * Fail the test if a fault injected doesn't match the fault surfaced.
+     *
+     * @return whether test should fail.
+     */
+    public boolean getFailIfFaultInjectionMismatch() {
+        return this.failIfFaultInjectionMismatch;
     }
 
     /**
@@ -333,6 +345,7 @@ public class FilibusterConfiguration {
 
         private ServiceProfileBehavior serviceProfileBehavior;
 
+        private boolean failIfFaultInjectionMismatch;
         private boolean failIfFaultNotInjected;
         private boolean failIfFaultNotInjectedAndATrackedMethodIsInvoked;
 
@@ -554,6 +567,12 @@ public class FilibusterConfiguration {
         @CanIgnoreReturnValue
         public Builder failIfFaultNotInjected(boolean failIfFaultNotInjected) {
             this.failIfFaultNotInjected = failIfFaultNotInjected;
+            return this;
+        }
+
+        @CanIgnoreReturnValue
+        public Builder failIfFaultInjectionMismatch(boolean failIfFaultInjectionMismatch) {
+            this.failIfFaultInjectionMismatch = failIfFaultInjectionMismatch;
             return this;
         }
 

@@ -1,25 +1,22 @@
-package cloud.filibuster.junit.configuration.examples.db.byzantine.redis;
+package cloud.filibuster.junit.configuration.examples.db.redis.byzantine;
 
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
-import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineStringFaultType;
+import cloud.filibuster.junit.server.core.transformers.StringBasicByzantineValueTransformer;
 
-public class RedisSingleGetStringByzantineFaultAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
+public class RedisSingleGetBasicStringByzantineFaultAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
     static {
         FilibusterCustomAnalysisConfigurationFile.Builder filibusterCustomAnalysisConfigurationFileBuilder = new FilibusterCustomAnalysisConfigurationFile.Builder();
 
         FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilderRedisExceptions = new FilibusterAnalysisConfiguration.Builder()
-                .name("java.lettuce.byzantine.string")
+                .name("java.transformers.byzantine.basic_string")
                 .pattern("io.lettuce.core.api.sync.RedisStringCommands/get\\b");
 
 
-        String[] possibleValues = {null, "123", "", "abcd", "-123ABC", "ThisIsATestString"};
-        for (String value : possibleValues) {
-            filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(new ByzantineStringFaultType(), value);
-        }
+        filibusterAnalysisConfigurationBuilderRedisExceptions.transformer(StringBasicByzantineValueTransformer.class);
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());
 

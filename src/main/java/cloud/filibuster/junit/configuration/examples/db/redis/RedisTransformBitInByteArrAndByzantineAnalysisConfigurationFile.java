@@ -3,8 +3,8 @@ package cloud.filibuster.junit.configuration.examples.db.redis;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
-import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineStringFaultType;
 import cloud.filibuster.junit.server.core.transformers.BitInByteArrTransformer;
+import cloud.filibuster.junit.server.core.transformers.ByteArrByzantineValueTransformer;
 
 public class RedisTransformBitInByteArrAndByzantineAnalysisConfigurationFile implements FilibusterAnalysisConfigurationFile {
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
@@ -18,8 +18,8 @@ public class RedisTransformBitInByteArrAndByzantineAnalysisConfigurationFile imp
 
         filibusterAnalysisConfigurationBuilderRedisExceptions.transformer(BitInByteArrTransformer.class);
 
-        // Byzantine fault: Inject null value
-        filibusterAnalysisConfigurationBuilderRedisExceptions.byzantine(new ByzantineStringFaultType(), null);
+        // Byzantine transformer faults
+        filibusterAnalysisConfigurationBuilderRedisExceptions.transformer(ByteArrByzantineValueTransformer.class);
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderRedisExceptions.build());
 

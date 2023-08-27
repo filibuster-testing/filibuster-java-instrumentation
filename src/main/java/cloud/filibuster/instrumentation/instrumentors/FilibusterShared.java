@@ -4,13 +4,14 @@ import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
 import io.grpc.Status;
 import org.json.JSONObject;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 
 import static java.util.Objects.requireNonNull;
 
 public class FilibusterShared {
-    public static String getForcedExceptionValue(JSONObject forcedException, String keyName, String defaultValue) {
+    public static String getForcedExceptionValue(JSONObject forcedException, String keyName, @Nullable String defaultValue) {
         requireNonNull(forcedException);
 
         if (forcedException.has(keyName)) {
@@ -20,7 +21,7 @@ public class FilibusterShared {
         }
     }
 
-    public static String getForcedExceptionMetadataValue(JSONObject forcedException, String keyName, String defaultValue) {
+    public static String getForcedExceptionMetadataValue(JSONObject forcedException, String keyName, @Nullable String defaultValue) {
         requireNonNull(forcedException);
 
         JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
@@ -62,10 +63,10 @@ public class FilibusterShared {
 
     public static Status generateExceptionFromForcedException(
             String exceptionNameString,
-            String codeStr,
-            String descriptionStr,
-            String causeString,
-            String causeMessageString
+            @Nullable String codeStr,
+            @Nullable String descriptionStr,
+            @Nullable String causeString,
+            @Nullable String causeMessageString
     ) {
         // Status object to return to the user.
         Status status;

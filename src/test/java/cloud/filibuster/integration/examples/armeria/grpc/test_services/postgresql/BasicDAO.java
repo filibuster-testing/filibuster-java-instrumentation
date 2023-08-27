@@ -307,6 +307,7 @@ public class BasicDAO {
      *
      * @return balance (int)
      */
+    @SuppressWarnings("AvoidObjectArrays")
     public String[] getAccountIdByBalance(int balance) {
         List<String> id = new ArrayList<>();
 

@@ -63,15 +63,15 @@ public class RpcClientWithCircuitBreakerClientTest extends JUnitAnnotationBaseTe
     // Share CB and client across all requests and treat every single request as failure.
     // Note: all GRPC failures are 200 OK with embedded error status in header if service is online.
     //
-    private final CircuitBreakerRule CIRCUIT_BREAKER_RULE = CircuitBreakerRule.builder()
+    private final CircuitBreakerRule circuitBreakerRule = CircuitBreakerRule.builder()
             .onStatus(HttpStatus.OK)
             .thenFailure();
 
-    private final String HELLO_SERVICE_URI = "gproto+http://" + Networking.getHost("hello") + ":" + Networking.getPort("hello") + "/";
+    private final String helloServiceUri = "gproto+http://" + Networking.getHost("hello") + ":" + Networking.getPort("hello") + "/";
 
-    private final HelloServiceGrpc.HelloServiceBlockingStub HELLO_SERVICE = GrpcClients.builder(HELLO_SERVICE_URI)
+    private final HelloServiceGrpc.HelloServiceBlockingStub helloService = GrpcClients.builder(helloServiceUri)
             .intercept(new FilibusterClientInterceptor("test"))
-            .decorator(CircuitBreakerClient.builder(CIRCUIT_BREAKER_RULE).newDecorator())
+            .decorator(CircuitBreakerClient.builder(circuitBreakerRule).newDecorator())
             .build(HelloServiceGrpc.HelloServiceBlockingStub.class);
 
     @TestWithFilibuster(analysisConfigurationFile = FilibusterGrpcBasicAnalysisConfigurationFile.class)
@@ -81,7 +81,7 @@ public class RpcClientWithCircuitBreakerClientTest extends JUnitAnnotationBaseTe
             testBlock(() -> {
                 try {
                     Hello.HelloRequest request = Hello.HelloRequest.newBuilder().setName("Armerian").build();
-                    Hello.HelloReply reply = HELLO_SERVICE.partialHello(request);
+                    Hello.HelloReply reply = helloService.partialHello(request);
                     assertEquals("Hello, Armerian World!!", reply.getMessage());
                 } catch (RuntimeException e) {
                     assertTrue(wasFaultInjected());

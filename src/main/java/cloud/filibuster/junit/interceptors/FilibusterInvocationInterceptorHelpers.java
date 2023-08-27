@@ -70,7 +70,10 @@ public class FilibusterInvocationInterceptorHelpers {
             invocation.proceed();
 
             if (filibusterConfiguration.getFailOnOrganicFailures() && FilibusterCore.hasCurrentInstance() && FilibusterCore.getCurrentInstance().testContainsOrganicFailures()) {
-                FilibusterOrganicFailuresPresentException t = new FilibusterOrganicFailuresPresentException("Organic failures present: did you stubs for all invoked RPCs?");
+                FilibusterOrganicFailuresPresentException t = new FilibusterOrganicFailuresPresentException("Organic failures present and test failed because failOnOrganicFailures = true!\n" +
+                        "a.) did you write stubs for all invoked RPCs?\n" +
+                        "b.) are all downstream services running and able to respond to RPCs?\n" +
+                        "c.) did a circuit breaker activate and prohibit testing?\n");
                 FilibusterServerAPI.recordIterationComplete(webClient, currentIteration, /* exceptionOccurred= */ true, t, shouldPrintRpcSummary);
                 FilibusterInvocationInterceptor.previousIterationFailed = true;
                 throw t;

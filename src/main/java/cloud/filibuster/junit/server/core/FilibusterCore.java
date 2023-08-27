@@ -5,6 +5,7 @@ import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.dei.implementations.DistributedExecutionIndexV1;
 import cloud.filibuster.exceptions.filibuster.FilibusterCoreLogicException;
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionException;
+import cloud.filibuster.exceptions.filibuster.FilibusterFaultInjectionMismatchException;
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultNotInjectedAndATrackedMethodInvokedException;
 import cloud.filibuster.exceptions.filibuster.FilibusterFaultNotInjectedException;
 import cloud.filibuster.exceptions.filibuster.FilibusterLatencyInjectionException;
@@ -526,6 +527,37 @@ public class FilibusterCore {
                 currentConcreteTestExecution.writeTestExecutionReport(currentIteration, /* exceptionOccurred= */ exceptionOccurred != 0, /* throwable= */ throwable);
             } else {
                 currentConcreteTestExecution.writeTestExecutionReport(currentIteration, /* exceptionOccurred= */ exceptionOccurred != 0, /* throwable= */ null);
+            }
+
+            if (filibusterConfiguration.getFailIfFaultInjectionMismatch()) {
+                if (throwable == null || !throwable.getClass().equals(FilibusterFaultNotInjectedException.class)) {
+                    Map<DistributedExecutionIndex, JSONObject> faultsToInject = currentConcreteTestExecution.getFaultsToInject();
+                    Map<DistributedExecutionIndex, JSONObject> failedRpcs = currentConcreteTestExecution.getFailedRpcs();
+
+                    for (Map.Entry<DistributedExecutionIndex, JSONObject> faultToInject : faultsToInject.entrySet()) {
+                        JSONObject faultToInjectObject = faultToInject.getValue();
+
+                        if (faultToInjectObject.has("forced_exception")) {
+                            JSONObject forcedExceptionObject = faultToInjectObject.getJSONObject("forced_exception");
+                            if (forcedExceptionObject.has("metadata")) {
+                                JSONObject forcedMetadataObject = forcedExceptionObject.getJSONObject("metadata");
+
+                                if (failedRpcs.containsKey(faultToInject.getKey())) {
+                                    JSONObject failedRpc = failedRpcs.get(faultToInject.getKey());
+                                    if (failedRpc.has("exception")) {
+                                        JSONObject exceptionObject = failedRpc.getJSONObject("exception");
+                                        if (exceptionObject.has("metadata")) {
+                                            JSONObject metadataObject = exceptionObject.getJSONObject("metadata");
+                                            if (!metadataObject.similar(forcedMetadataObject)) {
+                                                throw new FilibusterFaultInjectionMismatchException("Injected fault does not match the fault that occurred: does the application have resilience measures that were activated by repeated fault injection?  Expected: " + forcedMetadataObject + "; actual: " + metadataObject);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             if (filibusterConfiguration.getFailIfFaultNotInjected()) {

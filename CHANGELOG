@@ -1,3 +1,5 @@
+2.1.10:
+    - (cmeiklejohn) Render nested RPCs properly in the UX.
 2.1.9:
     - (MichaelA-ops) Encapsulate Byzantine faults in transformers.
     - (cmeiklejohn) Add analysisResourceFile property.

@@ -54,13 +54,19 @@
             font-size: small;
             resize: none;
         }
-        select{
+
+        textarea.arguments {
+            margin-top: 10px;
+        }
+
+        select {
             vertical-align: middle;
             font-size: 11px;
             text-align: left;
             display: inline;
             border: 0px solid black;
         }
+
         th {
             background-color: lightgrey;
         }
@@ -523,14 +529,14 @@
                         var rpcMethodWithoutQueryString = rpcMethod.replace(queryString, '').replace('?', '');
 
                         row += '<div class="class_name">' + substringNamespace(rpc.request.method) + ' ' + rpcMethodWithoutQueryString + '</div>';
-                        row += '<textarea>';
+                        row += '<textarea class="arguments">';
                         row += queryString;
                         row += '</textarea>'
                         row += '</td>';
 
                         row += '<td class="args">';
                         row += '<div class="class_name">' + substringNamespace(rpc.request.args.__class__) + '</div>';
-                        row += '<textarea>';
+                        row += '<textarea class="arguments">';
                         row += escapeHtml(rpcArgs.slice(1).toString());
                         row += '</textarea>'
                         row += '</td>';
@@ -539,7 +545,7 @@
 
                         row += '<td class="args">';
                         row += '<div class="class_name">' + substringNamespace(rpc.request.args.__class__) + '</div>';
-                        row += '<textarea>';
+                        row += '<textarea class="arguments">';
                         row += escapeHtml(rpc.request.args.toString);
                         row += '</textarea>'
                         row += '</td>';
@@ -550,13 +556,13 @@
                     } else if (isTransformerFault) {
                         row += '<td>';
                         row += '<div class="class_name">' + substringNamespace(rpc.response.transformer_fault.type) + '</div>';
-                        row += '<textarea>';
+                        row += '<textarea class="arguments">';
                         row += rpc.response.transformer_fault.value.toString();
                         row += '</textarea></td>';
                     } else if (isExceptionResponse) {
                         row += '<td>';
                         row += '<div class="class_name">' + substringNamespace(rpc.response.exception.name) + '</div>';
-                        row += '<textarea>';
+                        row += '<textarea class="arguments">';
                         row += 'code = ' + rpc.response.exception.metadata.code;
 
                         if (rpc.response.exception.metadata.cause === "" || rpc.response.exception.metadata.cause === undefined) {
@@ -576,7 +582,7 @@
                         row += '<td class="response">';
                         row += '<div class="class_name">' + substringNamespace(rpc.response.return_value.__class__) + '</div>';
 
-                        row += '<textarea>';
+                        row += '<textarea class="arguments">';
                         if (substringNamespace(rpc.response.return_value.__class__) === "HttpResponse") {
                             row += "status_code = " + rpc.response.return_value.status_code;
 
@@ -597,7 +603,7 @@
                         if ('forced_exception' in rpc.fault) {
                             row += '<td>';
                             row += '<div class="class_name">' + substringNamespace(rpc.fault.forced_exception.name) + '</div>';
-                            row += '<textarea>';
+                            row += '<textarea class="arguments">';
                             row += 'code = ' + rpc.fault.forced_exception.metadata.code;
 
                             if (rpc.fault.forced_exception.metadata.cause === "" || rpc.fault.forced_exception.metadata.cause === undefined) {
@@ -631,7 +637,7 @@
                         if ('latency' in rpc.fault) {
                             row += '<td>';
                             row += '<div class="class_name">&nbsp;</div>';
-                            row += '<textarea>';
+                            row += '<textarea class="arguments">';
                             row += 'milliseconds = ' + rpc.fault.latency.milliseconds;
                             row += '</textarea>';
                             row += '</td>';
@@ -640,7 +646,7 @@
                         if ('failure_metadata' in rpc.fault) {
                             row += '<td>';
                             row += '<div class="class_name">HttpResponse</div>';
-                            row += '<textarea>';
+                            row += '<textarea class="arguments">';
                             row += 'status_code = ' + rpc.fault.failure_metadata.return_value.status_code;
                             row += '</textarea>';
                             row += '</td>';
@@ -649,7 +655,7 @@
                         if(isTransformerFault) {
                             row += '<td>';
                             row += '<div class="class_name">' + substringNamespace(rpc.response.transformer_fault.type) + '</div>';
-                            row += '<textarea>';
+                            row += '<textarea class="arguments">';
                             row += '\naccumulator = ' + JSON.stringify(JSON.parse(rpc.response.transformer_fault.accumulator));
                             row += '</textarea>';
                             row += '</td>';

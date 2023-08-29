@@ -213,6 +213,10 @@
         td.number {
             text-align: center;
         }
+
+        tr.samples {
+            display: none;
+        }
 	</style>
 </head>
 
@@ -228,18 +232,14 @@
                 <tr>
                     <th>RPC Method</th>
                     <th style="text-align: center;">
-                        Authored Functional Tests
+                        Functional Tests
                         <br/>
                         <span style="display: block; width: auto; text-align: center;" id="testedEndpoints"></span>
                     </th>
                     <th style="text-align: center;">
-                        Authored Filibuster Tests
+                        Filibuster Tests
                         <br/>
                         <span style="display: block; width: auto; text-align: center;" id="filibusterTestedEndpoints"></span>
-                    </th>
-                    <th style="text-align: center;">
-                        Synthesized <br />
-                        Fault Injection Scenarios
                     </th>
                 </tr>
             </table>
@@ -257,6 +257,10 @@
 
         function toggleDebug() {
             $('tr.debug').toggle();
+        }
+
+        function toggleClass(className) {
+            $('.' + className).toggle();
         }
 
         var totalEndpoints = accessedGrpcEndpoints.methods.length;
@@ -278,10 +282,25 @@
 
                 if (tests === 0 && filibusterTests === 0) {
                     displayMethod = "❌ " + method;
-                } else if (filibusterTests > 0) {
+                } else  if (filibusterTests > 0) {
                     displayMethod = "✅ " + method;
                 } else {
                     displayMethod = "⚠️ " + method;
+                }
+
+                var samplesForEndpointCount = 0;
+
+                for (j in serverInvocationReports.results) {
+                    var sample = serverInvocationReports.results[j];
+                    if (sample.method === method) {
+                        samplesForEndpointCount = samplesForEndpointCount + 1;
+                    }
+                }
+
+                if (samplesForEndpointCount > 0) {
+                    displayMethod = displayMethod + " <a href='#' style='border-bottom: 1px dotted black;' onClick='toggleClass(\"" + i + "\");'>(" + samplesForEndpointCount + ")</a>";
+                } else {
+                    displayMethod = displayMethod + " (" + samplesForEndpointCount + ")";
                 }
 
                 if (warning) {
@@ -302,30 +321,74 @@
                 }
 
                 if (filibusterTests === 0) {
-                    row += "<td class='number fault'>" + filibusterTests + "</td>";
+                    row += "<td class='number fault'>" + filibusterTests + " ";
+                    row += "(" + filibusterExecutions + ")";
+                    row += "</td>";
                 } else {
                     filibusterTestedEndpoints = filibusterTestedEndpoints + 1;
-                    row += "<td class='number success'>" + filibusterTests + "</td>";
+                    row += "<td class='number success'>" + filibusterTests + " ";
+                    row += "(" + filibusterExecutions + ")";
+                    row += "</td>";
                 }
-
-                if (filibusterExecutions === 0) {
-                    row += "<td class='number fault'>" + filibusterExecutions + "</td>";
-                } else {
-                    row += "<td class='number success'>" + filibusterExecutions + "</td>";
-                }
-
-                // warning todo
 
                 row += "</tr>";
 
-                var testedEndpointsPercentage = ((testedEndpoints / totalEndpoints).toFixed(2) * 100.00);
-                $('#testedEndpoints').html("" + testedEndpoints + "/" + totalEndpoints + " (" + testedEndpointsPercentage + "%)");
-
-                var filibusterTestedEndpointsPercentage = ((filibusterTestedEndpoints / totalEndpoints).toFixed(2) * 100.00);
-                $('#filibusterTestedEndpoints').html("" + filibusterTestedEndpoints + "/" + totalEndpoints + " (" + filibusterTestedEndpointsPercentage + "%)");
-
                 $('#endpoints').append(row);
+
+                // Header row for samples.
+                row  = "";
+                row += "<tr class='samples " + i + "'>";
+                row += "<td></td>";
+                row += "<th colspan='2' style='text-align: center;'>Request/Response Samples</th>";
+                row += "</tr>";
+                $('#endpoints').append(row);
+
+                for (j in serverInvocationReports.results) {
+                    var sample = serverInvocationReports.results[j];
+                    if (sample.method === method) {
+                        // Data rows.
+                        row = "";
+
+                        row += "<tr class='samples " + i + "'>";
+
+                        row += "<td>";
+                        row += "</td>";
+
+                        if (Object.keys(sample.response).length === 0) {
+                            row += "<td class='fault'>";
+                            row += "<div class='class_name'>" + sample.request.class + "</div>";
+                            row += "<textarea class='arguments'>" + JSON.stringify(sample.request.gson, null, 4) + "</textarea>";
+                            row += "</td>";
+
+                            row += "<td class='fault'>";
+                            row += "<div class='class_name'>io.grpc.StatusRuntimeException</div>";
+                            row += "<textarea>" + JSON.stringify(sample.status, null, 4) + "</textarea>";
+                            row += "</td>";
+                        } else {
+                            row += "<td class='success'>";
+                            row += "<div class='class_name'>" + sample.request.class + "</div>";
+                            row += "<textarea class='arguments'>" + JSON.stringify(sample.request.gson, null, 4) + "</textarea>";
+                            row += "</td>";
+
+                            row += "<td class='success'>";
+                            row += "<div class='class_name'>" + sample.response.class + "</div>";
+                            row += "<textarea class='arguments'>" + JSON.stringify(sample.response.gson, null, 4) + "</textarea>";
+                            row += "</td>";
+                        }
+
+                        row += "</tr>";
+
+                        $('#endpoints').append(row);
+                    }
+                }
+
             }
+
+            var testedEndpointsPercentage = ((testedEndpoints / totalEndpoints).toFixed(2) * 100.00);
+            $('#testedEndpoints').html("" + testedEndpoints + "/" + totalEndpoints + " (" + testedEndpointsPercentage + "%)");
+
+            var filibusterTestedEndpointsPercentage = ((filibusterTestedEndpoints / totalEndpoints).toFixed(2) * 100.00);
+            $('#filibusterTestedEndpoints').html("" + filibusterTestedEndpoints + "/" + totalEndpoints + " (" + filibusterTestedEndpointsPercentage + "%)");
         });
     </script>
 </section>

@@ -93,14 +93,17 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
         // Ignored cause here because this call path is used for cross-language failures and cause doesn't propagate across RPC boundaries.
         String causeString = "";
 
+        // Generate status.
+        Status status = Status.fromCode(code);
+
         // Notify Filibuster of failure.
         HashMap<String, String> additionalMetadata = new HashMap<>();
         additionalMetadata.put("name", exceptionNameString);
         additionalMetadata.put("code", codeStr);
-        filibusterClientInstrumentor.afterInvocationWithException(exceptionNameString, causeString, additionalMetadata);
+        filibusterClientInstrumentor.afterInvocationWithException(exceptionNameString, causeString, additionalMetadata, status);
 
         // Return status.
-        return Status.fromCode(code);
+        return status;
     }
 
     public FilibusterClientInterceptor() {
@@ -496,7 +499,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                 }
 
                 // exception cause is always null, because it doesn't serialize and pass through even if provided.
-                filibusterClientInstrumentor.afterInvocationWithException(exceptionName, cause, additionalMetadata);
+                filibusterClientInstrumentor.afterInvocationWithException(exceptionName, cause, additionalMetadata, status);
             }
 
             delegate().onClose(status, trailers);

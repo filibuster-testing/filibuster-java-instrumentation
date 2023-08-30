@@ -491,6 +491,28 @@ public class Property {
     }
 
     /***********************************************************************************
+     ** filibuster.test.v2.exception
+     ***********************************************************************************/
+
+    public static final boolean TEST_V2_EXCEPTION_DEFAULT = true;
+
+    private final static String TEST_V2_EXCEPTION = "filibuster.test.v2.exception";
+
+    public static void setTestV2Exception(boolean value) {
+        System.setProperty(TEST_V2_EXCEPTION, String.valueOf(value));
+    }
+
+    public static boolean getTestV2Exception() {
+        String propertyValue = System.getProperty(TEST_V2_EXCEPTION);
+
+        if (isPropertyNull(propertyValue)) {
+            return TEST_V2_EXCEPTION_DEFAULT;
+        } else {
+            return Boolean.parseBoolean(propertyValue);
+        }
+    }
+
+    /***********************************************************************************
      ** filibuster.test.v2.return_value
      ***********************************************************************************/
 

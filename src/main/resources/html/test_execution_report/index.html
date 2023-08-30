@@ -573,24 +573,31 @@
                         row += rpc.response.transformer_fault.value.toString();
                         row += '</textarea></td>';
                     } else if (isExceptionResponse) {
-                        row += '<td>';
-                        row += '<div class="class_name">' + substringNamespace(rpc.response.exception.name) + '</div>';
-                        row += '<textarea class="arguments">';
-                        row += 'code = ' + rpc.response.exception.metadata.code;
-
-                        if (rpc.response.exception.metadata.cause === "" || rpc.response.exception.metadata.cause === undefined) {
-                            // Do nothing.
+                        if ('exception_v2' in rpc.response) {
+                            row += "<td>";
+                            row += "<div class='class_name'>StatusRuntimeException</div>";
+                            row += '<textarea class="arguments">' + JSON.stringify(rpc.response.exception_v2, null, 4) + '</textarea>';
+                            row += "</td>";
                         } else {
-                            row += '\ncause = ' + rpc.response.exception.metadata.cause;
-                        }
+                            row += '<td>';
+                            row += '<div class="class_name">' + substringNamespace(rpc.response.exception.name) + '</div>';
+                            row += '<textarea class="arguments">';
+                            row += 'code = ' + rpc.response.exception.metadata.code;
 
-                        if (rpc.response.exception.metadata.description == "" || rpc.response.exception.metadata.description === undefined) {
-                            // Do nothing.
-                        } else {
-                            row += '\ndescription = ' + rpc.response.exception.metadata.description;
-                        }
+                            if (rpc.response.exception.metadata.cause === "" || rpc.response.exception.metadata.cause === undefined) {
+                                // Do nothing.
+                            } else {
+                                row += '\ncause = ' + rpc.response.exception.metadata.cause;
+                            }
 
-                        row += '</textarea></td>';
+                            if (rpc.response.exception.metadata.description == "" || rpc.response.exception.metadata.description === undefined) {
+                                // Do nothing.
+                            } else {
+                                row += '\ndescription = ' + rpc.response.exception.metadata.description;
+                            }
+
+                            row += '</textarea></td>';
+                        }
                     } else {
                         row += '<td class="response">';
 

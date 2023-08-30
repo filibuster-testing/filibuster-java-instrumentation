@@ -16,6 +16,7 @@ import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.exceptions.filibuster.FilibusterServerBadResponseException;
 import cloud.filibuster.junit.server.core.FilibusterCore;
 import cloud.filibuster.junit.server.core.serializers.GeneratedMessageV3Serializer;
+import cloud.filibuster.junit.server.core.serializers.StatusSerializer;
 import cloud.filibuster.junit.server.core.transformers.Accumulator;
 import com.google.gson.Gson;
 import com.google.protobuf.GeneratedMessageV3;
@@ -25,6 +26,8 @@ import com.linecorp.armeria.common.ResponseHeaders;
 import com.linecorp.armeria.common.AggregatedHttpResponse;
 import com.linecorp.armeria.common.HttpHeaderNames;
 import com.linecorp.armeria.common.RequestHeaders;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
@@ -44,6 +47,7 @@ import static cloud.filibuster.instrumentation.helpers.Counterexample.shouldFail
 import static cloud.filibuster.instrumentation.helpers.Property.getClientInstrumentorUseOverrideRequestIdProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendCanInvokeDirectlyProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestV2Arguments;
+import static cloud.filibuster.instrumentation.helpers.Property.getTestV2Exception;
 import static cloud.filibuster.instrumentation.helpers.Property.getTestV2ReturnValue;
 import static cloud.filibuster.instrumentation.instrumentors.FilibusterLocks.distributedExecutionIndexLock;
 import static cloud.filibuster.instrumentation.instrumentors.FilibusterLocks.vectorClockLock;
@@ -801,6 +805,14 @@ final public class FilibusterClientInstrumentor {
         afterInvocationWithException(exceptionName, exceptionCause, additionalMetadata);
     }
 
+    public void afterInvocationWithException(
+            String exceptionName,
+            String exceptionCause,
+            Map<String, String> additionalMetadata
+    ) {
+        afterInvocationWithException(exceptionName, exceptionCause, additionalMetadata, null);
+    }
+
     /**
      * Invoked after a remote call has been completed if the remote call threw an exception.
      *
@@ -811,7 +823,8 @@ final public class FilibusterClientInstrumentor {
     public void afterInvocationWithException(
             String exceptionName,
             String exceptionCause,
-            Map<String, String> additionalMetadata
+            Map<String, String> additionalMetadata,
+            @Nullable Object exceptionDetails
     ) {
         if (generatedId > -1 && shouldCommunicateWithServer && counterexampleNotProvided()) {
             JSONObject metadata = new JSONObject();
@@ -844,6 +857,16 @@ final public class FilibusterClientInstrumentor {
             invocationCompletePayload.put("execution_index", distributedExecutionIndex.toString());
             invocationCompletePayload.put("vclock", vectorClock.toJsonObject());
             invocationCompletePayload.put("exception", exception);
+
+            // In the future, find a way to be a bit smarter about this.
+            if(getTestV2Exception() && exceptionDetails != null) {
+                if (exceptionDetails instanceof Status) {
+                    Status responseStatus = (Status) exceptionDetails;
+                    JSONObject serializedExceptionV2 = StatusSerializer.toJsonObject(responseStatus);
+                    invocationCompletePayload.put("exception_v2", serializedExceptionV2);
+                }
+            }
+
             invocationCompletePayload.put("module", callsite.getClassOrModuleName());
             invocationCompletePayload.put("method", callsite.getMethodOrFunctionName());
 

@@ -45,7 +45,7 @@
 
         textarea {
             width: 100%;
-            height: 50px;
+            height: 60px;
             padding: 10px 10px;
             box-sizing: border-box;
             border: 2px solid #ccc;
@@ -54,13 +54,19 @@
             font-size: small;
             resize: none;
         }
-        select{
+
+        textarea.arguments {
+            margin-top: 10px;
+        }
+
+        select {
             vertical-align: middle;
             font-size: 11px;
             text-align: left;
             display: inline;
             border: 0px solid black;
         }
+
         th {
             background-color: lightgrey;
         }
@@ -418,6 +424,7 @@
 
                 for (i in analysis.rpcs) {
                     var rpc = analysis.rpcs[i];
+                    console.log(rpc);
                     var isFaulted = !isEmpty(rpc.fault);
                     var isExceptionResponse = containsExceptionKey(rpc.response);
                     var isTransformerFault = containsTransformerFaultKey(rpc.response);
@@ -523,14 +530,14 @@
                         var rpcMethodWithoutQueryString = rpcMethod.replace(queryString, '').replace('?', '');
 
                         row += '<div class="class_name">' + substringNamespace(rpc.request.method) + ' ' + rpcMethodWithoutQueryString + '</div>';
-                        row += '<textarea>';
+                        row += '<textarea class="arguments">';
                         row += queryString;
                         row += '</textarea>'
                         row += '</td>';
 
                         row += '<td class="args">';
                         row += '<div class="class_name">' + substringNamespace(rpc.request.args.__class__) + '</div>';
-                        row += '<textarea>';
+                        row += '<textarea class="arguments">';
                         row += escapeHtml(rpcArgs.slice(1).toString());
                         row += '</textarea>'
                         row += '</td>';
@@ -538,9 +545,21 @@
                         row += '<div class="class_name">' + substringNamespace(rpc.request.method) + '</div></td>';
 
                         row += '<td class="args">';
-                        row += '<div class="class_name">' + substringNamespace(rpc.request.args.__class__) + '</div>';
-                        row += '<textarea>';
-                        row += escapeHtml(rpc.request.args.toString);
+
+                        if ('args_v2' in rpc.request) {
+                            row += '<div class="class_name">' + substringNamespace(rpc.request.args_v2.class) + '</div>';
+                        } else {
+                            row += '<div class="class_name">' + substringNamespace(rpc.request.args.__class__) + '</div>';
+                        }
+
+                        row += '<textarea class="arguments">';
+
+                        if ('args_v2' in rpc.request) {
+                            row += JSON.stringify(rpc.request.args_v2.gson, null, 4);
+                        } else {
+                            row += escapeHtml(rpc.request.args.toString);
+                        }
+
                         row += '</textarea>'
                         row += '</td>';
                     }
@@ -550,33 +569,45 @@
                     } else if (isTransformerFault) {
                         row += '<td>';
                         row += '<div class="class_name">' + substringNamespace(rpc.response.transformer_fault.type) + '</div>';
-                        row += '<textarea>';
+                        row += '<textarea class="arguments">';
                         row += rpc.response.transformer_fault.value.toString();
                         row += '</textarea></td>';
                     } else if (isExceptionResponse) {
-                        row += '<td>';
-                        row += '<div class="class_name">' + substringNamespace(rpc.response.exception.name) + '</div>';
-                        row += '<textarea>';
-                        row += 'code = ' + rpc.response.exception.metadata.code;
-
-                        if (rpc.response.exception.metadata.cause === "" || rpc.response.exception.metadata.cause === undefined) {
-                            // Do nothing.
+                        if ('exception_v2' in rpc.response) {
+                            row += "<td>";
+                            row += "<div class='class_name'>StatusRuntimeException</div>";
+                            row += '<textarea class="arguments">' + JSON.stringify(rpc.response.exception_v2, null, 4) + '</textarea>';
+                            row += "</td>";
                         } else {
-                            row += '\ncause = ' + rpc.response.exception.metadata.cause;
-                        }
+                            row += '<td>';
+                            row += '<div class="class_name">' + substringNamespace(rpc.response.exception.name) + '</div>';
+                            row += '<textarea class="arguments">';
+                            row += 'code = ' + rpc.response.exception.metadata.code;
 
-                        if (rpc.response.exception.metadata.description == "" || rpc.response.exception.metadata.description === undefined) {
-                            // Do nothing.
-                        } else {
-                            row += '\ndescription = ' + rpc.response.exception.metadata.description;
-                        }
+                            if (rpc.response.exception.metadata.cause === "" || rpc.response.exception.metadata.cause === undefined) {
+                                // Do nothing.
+                            } else {
+                                row += '\ncause = ' + rpc.response.exception.metadata.cause;
+                            }
 
-                        row += '</textarea></td>';
+                            if (rpc.response.exception.metadata.description == "" || rpc.response.exception.metadata.description === undefined) {
+                                // Do nothing.
+                            } else {
+                                row += '\ndescription = ' + rpc.response.exception.metadata.description;
+                            }
+
+                            row += '</textarea></td>';
+                        }
                     } else {
                         row += '<td class="response">';
-                        row += '<div class="class_name">' + substringNamespace(rpc.response.return_value.__class__) + '</div>';
 
-                        row += '<textarea>';
+                        if ('return_value_v2' in rpc.response) {
+                            row += '<div class="class_name">' + substringNamespace(rpc.response.return_value_v2.class) + '</div>';
+                        } else {
+                            row += '<div class="class_name">' + substringNamespace(rpc.response.return_value.__class__) + '</div>';
+                        }
+
+                        row += '<textarea class="arguments">';
                         if (substringNamespace(rpc.response.return_value.__class__) === "HttpResponse") {
                             row += "status_code = " + rpc.response.return_value.status_code;
 
@@ -585,7 +616,13 @@
                                 row += rpc.response.return_value.value;
                             }
                         } else {
-                            row += escapeHtml(rpc.response.return_value.toString);
+
+                            if ('return_value_v2' in rpc.response) {
+                                row += JSON.stringify(rpc.response.return_value_v2.gson, null, 4);
+                            } else {
+                                row += escapeHtml(rpc.response.return_value.toString);
+                            }
+
                         }
                         row += '</textarea>'
                         row += '</td>';
@@ -597,7 +634,7 @@
                         if ('forced_exception' in rpc.fault) {
                             row += '<td>';
                             row += '<div class="class_name">' + substringNamespace(rpc.fault.forced_exception.name) + '</div>';
-                            row += '<textarea>';
+                            row += '<textarea class="arguments">';
                             row += 'code = ' + rpc.fault.forced_exception.metadata.code;
 
                             if (rpc.fault.forced_exception.metadata.cause === "" || rpc.fault.forced_exception.metadata.cause === undefined) {
@@ -631,7 +668,7 @@
                         if ('latency' in rpc.fault) {
                             row += '<td>';
                             row += '<div class="class_name">&nbsp;</div>';
-                            row += '<textarea>';
+                            row += '<textarea class="arguments">';
                             row += 'milliseconds = ' + rpc.fault.latency.milliseconds;
                             row += '</textarea>';
                             row += '</td>';
@@ -640,7 +677,7 @@
                         if ('failure_metadata' in rpc.fault) {
                             row += '<td>';
                             row += '<div class="class_name">HttpResponse</div>';
-                            row += '<textarea>';
+                            row += '<textarea class="arguments">';
                             row += 'status_code = ' + rpc.fault.failure_metadata.return_value.status_code;
                             row += '</textarea>';
                             row += '</td>';
@@ -649,7 +686,7 @@
                         if(isTransformerFault) {
                             row += '<td>';
                             row += '<div class="class_name">' + substringNamespace(rpc.response.transformer_fault.type) + '</div>';
-                            row += '<textarea>';
+                            row += '<textarea class="arguments">';
                             row += '\naccumulator = ' + JSON.stringify(JSON.parse(rpc.response.transformer_fault.accumulator));
                             row += '</textarea>';
                             row += '</td>';

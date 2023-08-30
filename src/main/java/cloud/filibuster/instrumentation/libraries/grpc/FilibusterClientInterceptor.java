@@ -10,6 +10,7 @@ import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
 import cloud.filibuster.junit.server.core.transformers.Accumulator;
 import com.google.gson.Gson;
+import com.google.protobuf.GeneratedMessageV3;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
@@ -92,14 +93,17 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
         // Ignored cause here because this call path is used for cross-language failures and cause doesn't propagate across RPC boundaries.
         String causeString = "";
 
+        // Generate status.
+        Status status = Status.fromCode(code);
+
         // Notify Filibuster of failure.
         HashMap<String, String> additionalMetadata = new HashMap<>();
         additionalMetadata.put("name", exceptionNameString);
         additionalMetadata.put("code", codeStr);
-        filibusterClientInstrumentor.afterInvocationWithException(exceptionNameString, causeString, additionalMetadata);
+        filibusterClientInstrumentor.afterInvocationWithException(exceptionNameString, causeString, additionalMetadata, status);
 
         // Return status.
-        return Status.fromCode(code);
+        return status;
     }
 
     public FilibusterClientInterceptor() {
@@ -259,7 +263,13 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                             contextStorage,
                             callsite
                     );
-                    filibusterClientInstrumentor.prepareForInvocation();
+
+                    if (message instanceof GeneratedMessageV3) {
+                        GeneratedMessageV3 generatedMessageV3 = (GeneratedMessageV3) message;
+                        filibusterClientInstrumentor.prepareForInvocation(generatedMessageV3);
+                    } else {
+                        filibusterClientInstrumentor.prepareForInvocation();
+                    }
 
                     // ******************************************************************************************
                     // Record invocation.
@@ -441,7 +451,13 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                 String className = message.getClass().getName();
                 HashMap<String, String> returnValueProperties = new HashMap<>();
                 returnValueProperties.put("toString", message.toString());
-                filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, /* isUpdate= */false, message);
+
+                if (message instanceof GeneratedMessageV3) {
+                    GeneratedMessageV3 generatedMessageV3 = (GeneratedMessageV3) message;
+                    filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, /* isUpdate= */false, message, generatedMessageV3);
+                } else {
+                    filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, /* isUpdate= */false, message);
+                }
 
                 // Delegate.
                 delegate().onMessage(message);
@@ -483,7 +499,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                 }
 
                 // exception cause is always null, because it doesn't serialize and pass through even if provided.
-                filibusterClientInstrumentor.afterInvocationWithException(exceptionName, cause, additionalMetadata);
+                filibusterClientInstrumentor.afterInvocationWithException(exceptionName, cause, additionalMetadata, status);
             }
 
             delegate().onClose(status, trailers);

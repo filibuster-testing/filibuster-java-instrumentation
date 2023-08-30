@@ -1,3 +1,5 @@
+2.2.0:
+    - (cmeiklejohn) Clean up reporting to use GSON response.
 2.1.10:
     - (cmeiklejohn) Render nested RPCs properly in the UX.
 2.1.9:

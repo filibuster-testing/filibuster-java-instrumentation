@@ -55,7 +55,7 @@ public class FilibusterShared {
         HashMap<String, String> additionalMetadata = new HashMap<>();
         additionalMetadata.put("code", codeStr);
         additionalMetadata.put("description", descriptionStr);
-        filibusterClientInstrumentor.afterInvocationWithException(exceptionNameString, causeString, additionalMetadata);
+        filibusterClientInstrumentor.afterInvocationWithException(exceptionNameString, causeString, additionalMetadata, status);
 
         // Return status.
         return status;

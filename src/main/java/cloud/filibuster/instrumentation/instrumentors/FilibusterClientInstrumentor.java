@@ -15,8 +15,10 @@ import cloud.filibuster.instrumentation.helpers.Response;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.exceptions.filibuster.FilibusterServerBadResponseException;
 import cloud.filibuster.junit.server.core.FilibusterCore;
+import cloud.filibuster.junit.server.core.serializers.GeneratedMessageV3Serializer;
 import cloud.filibuster.junit.server.core.transformers.Accumulator;
 import com.google.gson.Gson;
+import com.google.protobuf.GeneratedMessageV3;
 import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.HttpMethod;
 import com.linecorp.armeria.common.ResponseHeaders;
@@ -41,6 +43,8 @@ import static cloud.filibuster.instrumentation.helpers.Counterexample.shouldFail
 
 import static cloud.filibuster.instrumentation.helpers.Property.getClientInstrumentorUseOverrideRequestIdProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendCanInvokeDirectlyProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.getTestV2Arguments;
+import static cloud.filibuster.instrumentation.helpers.Property.getTestV2ReturnValue;
 import static cloud.filibuster.instrumentation.instrumentors.FilibusterLocks.distributedExecutionIndexLock;
 import static cloud.filibuster.instrumentation.instrumentors.FilibusterLocks.vectorClockLock;
 
@@ -227,6 +231,9 @@ final public class FilibusterClientInstrumentor {
 
     @Nullable
     RpcType rpcType;
+
+    @Nullable
+    GeneratedMessageV3 requestMessage;
 
     final private static String filibusterServiceName = "filibuster-instrumentation";
 
@@ -549,6 +556,11 @@ final public class FilibusterClientInstrumentor {
         return false;
     }
 
+    public void prepareForInvocation(GeneratedMessageV3 message) {
+        this.requestMessage = message;
+        prepareForInvocation();
+    }
+
     /**
      * Invoked before the remote call is handled to set up internal state of the instrumentor.
      */
@@ -648,6 +660,12 @@ final public class FilibusterClientInstrumentor {
         CallsiteArguments callsiteArguments = callsite.getCallsiteArguments();
         JSONObject invocationArguments = callsiteArguments.toJsonObject();
         invocationPayload.put("args", invocationArguments);
+
+        if (getTestV2Arguments() && requestMessage != null) {
+            JSONObject serializedRequestArgumentsV2 = GeneratedMessageV3Serializer.toJsonObject(requestMessage);
+            invocationPayload.put("args_v2", serializedRequestArgumentsV2);
+        }
+
         invocationPayload.put("kwargs", new JSONObject());
         invocationPayload.put("callsite_file", callsite.getFileName());
         invocationPayload.put("callsite_line", callsite.getLineNumber());
@@ -891,6 +909,15 @@ final public class FilibusterClientInstrumentor {
     }
 
 
+    public void afterInvocationComplete(
+            String className,
+            Map<String, String> returnValueProperties,
+            boolean isUpdate,
+            @Nullable Object returnValue
+    ) {
+        afterInvocationComplete(className, returnValueProperties, isUpdate, returnValue, null);
+    }
+
     /**
      * Invoked after a remote call has been completed if the remote call completed successfully.
      *
@@ -902,7 +929,8 @@ final public class FilibusterClientInstrumentor {
             String className,
             Map<String, String> returnValueProperties,
             boolean isUpdate,
-            @Nullable Object returnValue
+            @Nullable Object returnValue,
+            @Nullable GeneratedMessageV3 responseMessage
     ) {
         // Only if instrumented request, we should communicate, and we aren't inside of Filibuster instrumentation.
         logger.log(Level.INFO, "generatedId: " + generatedId);
@@ -934,6 +962,12 @@ final public class FilibusterClientInstrumentor {
             invocationCompletePayload.put("execution_index", distributedExecutionIndex.toString());
             invocationCompletePayload.put("vclock", getVectorClock().toJsonObject());
             invocationCompletePayload.put("return_value", returnValueJsonObject);
+
+            if (getTestV2ReturnValue() && responseMessage != null) {
+                JSONObject serializedResponseArgumentsV2 = GeneratedMessageV3Serializer.toJsonObject(responseMessage);
+                invocationCompletePayload.put("return_value_v2", serializedResponseArgumentsV2);
+            }
+
             invocationCompletePayload.put("module", callsite.getClassOrModuleName());
             invocationCompletePayload.put("method", callsite.getMethodOrFunctionName());
 

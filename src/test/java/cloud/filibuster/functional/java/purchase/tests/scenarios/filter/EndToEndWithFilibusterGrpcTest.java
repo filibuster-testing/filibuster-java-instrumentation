@@ -10,7 +10,6 @@ import cloud.filibuster.functional.java.purchase.configurations.GRPCAnalysisConf
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.FilibusterSearchStrategy;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.filters.WorldServiceFilter;
 import org.grpcmock.junit5.GrpcMockExtension;
 import org.json.JSONObject;
 import org.junit.jupiter.api.MethodOrderer;

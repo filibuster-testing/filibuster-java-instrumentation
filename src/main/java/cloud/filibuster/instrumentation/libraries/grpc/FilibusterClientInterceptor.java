@@ -10,6 +10,7 @@ import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
 import cloud.filibuster.junit.server.core.transformers.Accumulator;
 import com.google.gson.Gson;
+import com.google.protobuf.GeneratedMessageV3;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
@@ -259,7 +260,13 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                             contextStorage,
                             callsite
                     );
-                    filibusterClientInstrumentor.prepareForInvocation();
+
+                    if (message instanceof GeneratedMessageV3) {
+                        GeneratedMessageV3 generatedMessageV3 = (GeneratedMessageV3) message;
+                        filibusterClientInstrumentor.prepareForInvocation(generatedMessageV3);
+                    } else {
+                        filibusterClientInstrumentor.prepareForInvocation();
+                    }
 
                     // ******************************************************************************************
                     // Record invocation.
@@ -441,7 +448,13 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                 String className = message.getClass().getName();
                 HashMap<String, String> returnValueProperties = new HashMap<>();
                 returnValueProperties.put("toString", message.toString());
-                filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, /* isUpdate= */false, message);
+
+                if (message instanceof GeneratedMessageV3) {
+                    GeneratedMessageV3 generatedMessageV3 = (GeneratedMessageV3) message;
+                    filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, /* isUpdate= */false, message, generatedMessageV3);
+                } else {
+                    filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, /* isUpdate= */false, message);
+                }
 
                 // Delegate.
                 delegate().onMessage(message);

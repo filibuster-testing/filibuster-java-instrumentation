@@ -24,8 +24,8 @@ import static cloud.filibuster.junit.Assertions.wasFaultInjectedOnMethodWherePay
 import static cloud.filibuster.junit.assertions.protocols.GrpcAssertions.wasFaultInjectedOnRequest;
 import static cloud.filibuster.junit.assertions.protocols.GrpcAssertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Test simple annotation usage.
@@ -39,7 +39,7 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitAnnot
     private static int numberOfExceptionsThrown = 0;
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @TestWithFilibuster(maxIterations=10)
+    @TestWithFilibuster(maxIterations=20)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -59,9 +59,9 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitAnnot
             assertEquals("Hello, Armerian World!!", reply.getMessage());
 //            assertFalse(wasFaultInjected());
         } catch (Throwable t) {
-            if (numberOfTestsExecuted == 11) {
+            if (numberOfTestsExecuted == 12) {
                 // Too many synthesized tests.
-                assertFalse(true);
+                fail();
             }
 
             numberOfExceptionsThrown++;
@@ -148,13 +148,13 @@ public class JUnitFilibusterHelloPartialHelloExternalHttpTest extends JUnitAnnot
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEquals(10, numberOfTestsExecuted);
+        assertEquals(11, numberOfTestsExecuted);
     }
 
     @DisplayName("Verify correct number of exceptions thrown.")
     @Test
     @Order(4)
     public void numberOfExceptionsThrown() {
-        assertEquals(9, numberOfExceptionsThrown);
+        assertEquals(10, numberOfExceptionsThrown);
     }
 }

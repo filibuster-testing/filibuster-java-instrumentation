@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class EndToEndWithFilibusterGrpcTest extends PurchaseBaseTest {
+public class EndToEndWithSingleFilibusterGrpcTest extends PurchaseBaseTest {
     @RegisterExtension
     static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
             .withPort(Networking.getPort("mock"))

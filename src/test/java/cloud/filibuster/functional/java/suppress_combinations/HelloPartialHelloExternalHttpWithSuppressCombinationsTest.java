@@ -39,7 +39,7 @@ public class HelloPartialHelloExternalHttpWithSuppressCombinationsTest extends J
     private static int numberOfExceptionsThrown = 0;
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @TestWithFilibuster(suppressCombinations=true, maxIterations=10)
+    @TestWithFilibuster(suppressCombinations=true, maxIterations=20)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder
@@ -143,13 +143,13 @@ public class HelloPartialHelloExternalHttpWithSuppressCombinationsTest extends J
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEquals(10, numberOfTestsExecuted);
+        assertEquals(11, numberOfTestsExecuted);
     }
 
     @DisplayName("Verify correct number of exceptions thrown.")
     @Test
     @Order(4)
     public void numberOfExceptionsThrown() {
-        assertEquals(9, numberOfExceptionsThrown);
+        assertEquals(10, numberOfExceptionsThrown);
     }
 }

@@ -509,6 +509,8 @@ public class FilibusterDecoratingHttpClient extends SimpleDecoratingHttpClient {
             } else {
                 throw new FilibusterFaultInjectionException("Cannot determine the execution cause to throw: " + causeString);
             }
+        } else if (exceptionNameString.equals("com.linecorp.armeria.client.ResponseTimeoutException")) {
+            exceptionToThrow = ResponseTimeoutException.get();
         } else if (Objects.equals(exceptionNameString, "io.grpc.StatusRuntimeException")){
             String grpcErrorCode = forcedException.getJSONObject("metadata").get("code").toString();
             exceptionToThrow = new StatusRuntimeException(Status.fromCode(Status.Code.valueOf(grpcErrorCode)));

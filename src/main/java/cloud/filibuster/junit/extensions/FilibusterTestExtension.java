@@ -29,6 +29,7 @@ import org.junit.platform.commons.util.Preconditions;
 import static cloud.filibuster.instrumentation.helpers.Property.AVOID_INJECTIONS_ON_ORGANIC_FAILURES_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.AVOID_REDUNDANT_INJECTIONS_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.DATA_NONDETERMINISM_DEFAULT;
+import static cloud.filibuster.instrumentation.helpers.Property.FAIL_IF_FAULT_INJECTION_MISMATCH_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.FAIL_IF_FAULT_NOT_INJECTED_AND_A_TRACKED_METHOD_IS_INVOKED_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.FAIL_IF_FAULT_NOT_INJECTED_DEFAULT;
 import static cloud.filibuster.instrumentation.helpers.Property.FAIL_ON_ORGANIC_FAILURES_DEFAULT;
@@ -72,7 +73,17 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
 
         FilibusterTestDisplayNameFormatter formatter = displayNameFormatter(testWithFilibuster, testMethod, displayName);
 
-        if (!testWithFilibuster.analysisFile().isEmpty()) {
+        if (!testWithFilibuster.analysisResourceFile().isEmpty()) {
+            // Annotation analysisResourceFile always takes precedence.
+            String analysisResourceFile = testWithFilibuster.analysisResourceFile();
+            URL analysisFileResourcePath = FilibusterTestExtension.class.getClassLoader().getResource(analysisResourceFile);
+
+            if (analysisFileResourcePath == null) {
+                throw new FilibusterAnalysisFileResourcePathException("Analysis resource file property is set, but file does not exist.");
+            }
+
+            analysisFile = analysisFileResourcePath.getPath();
+        } else if (!testWithFilibuster.analysisFile().isEmpty()) {
             // Annotation analysisFile always takes precedence.
             analysisFile = testWithFilibuster.analysisFile();
         } else if (!getTestAnalysisResourceFileProperty().isEmpty()) {
@@ -137,6 +148,13 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
             suppressCombinations = getTestSuppressCombinationsProperty();
         }
 
+        boolean failIfFaultInjectionMismatch = testWithFilibuster.failIfFaultInjectionMismatch();
+
+        if (failIfFaultInjectionMismatch == FAIL_IF_FAULT_INJECTION_MISMATCH_DEFAULT) {
+            // Check the property to see if it was set.
+            failIfFaultInjectionMismatch = getFailIfFaultNotInjectedProperty();
+        }
+
         boolean failIfFaultInjected = testWithFilibuster.failIfFaultNotInjected();
 
         if (failIfFaultInjected == FAIL_IF_FAULT_NOT_INJECTED_DEFAULT) {
@@ -179,6 +197,7 @@ public class FilibusterTestExtension implements TestTemplateInvocationContextPro
                 .testName(displayName)
                 .className(className)
                 .failIfFaultNotInjected(failIfFaultInjected)
+                .failIfFaultInjectionMismatch(failIfFaultInjectionMismatch)
                 .failIfFaultNotInjectedAndATrackedMethodIsInvoked(failIfFaultNotInjectedAndATrackedMethodIsInvoked)
                 .build();
 

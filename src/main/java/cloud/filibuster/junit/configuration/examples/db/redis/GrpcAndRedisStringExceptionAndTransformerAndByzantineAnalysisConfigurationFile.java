@@ -4,7 +4,7 @@ import cloud.filibuster.RpcType;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfigurationFile;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
-import cloud.filibuster.junit.configuration.examples.db.byzantine.types.ByzantineStringFaultType;
+import cloud.filibuster.junit.server.core.transformers.NullTransformer;
 import cloud.filibuster.junit.server.core.transformers.StringTransformer;
 
 import java.util.HashMap;
@@ -44,12 +44,8 @@ public class GrpcAndRedisStringExceptionAndTransformerAndByzantineAnalysisConfig
         transformerAnyByzantineConfigBuilder.transformer(StringTransformer.class);
 
 
-        // Byzantine faults
-        String[] possibleValues = {null};
-        for (String value : possibleValues) {
-            // Communicate the byzantine fault type and value to the analysis configuration builder
-            transformerAnyByzantineConfigBuilder.byzantine(new ByzantineStringFaultType(), value);
-        }
+        // Byzantine transformer faults
+        transformerAnyByzantineConfigBuilder.transformer(NullTransformer.class);
 
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(transformerAnyByzantineConfigBuilder.build());
 

@@ -15,6 +15,13 @@ public class FilibusterDefaultAnalysisConfigurationFile implements FilibusterAna
     private static final List<String> exhaustiveGrpcErrorCodeList = new ArrayList<>();
     private static final FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile;
 
+    private static Map<String, String> createGrpcErrorMap() {
+        Map<String,String> myMap = new HashMap<>();
+        myMap.put("cause", "");
+        myMap.put("code", "");
+        return myMap;
+    }
+
     private static Map<String, String> createGrpcErrorMap(String code) {
         Map<String,String> myMap = new HashMap<>();
         myMap.put("cause", "");
@@ -86,6 +93,8 @@ public class FilibusterDefaultAnalysisConfigurationFile implements FilibusterAna
                 .name("java.WebClient.exceptions")
                 .pattern("WebClient\\.(GET|PUT|POST|HEAD)");
         filibusterAnalysisConfigurationBuilderHttpExceptions.exception("com.linecorp.armeria.client.UnprocessedRequestException", createHttpErrorMap("io.netty.channel.ConnectTimeoutException"));
+        filibusterAnalysisConfigurationBuilderHttpExceptions.exception("com.linecorp.armeria.client.ResponseTimeoutException", createGrpcErrorMap());
+
         filibusterCustomAnalysisConfigurationFileBuilder.analysisConfiguration(filibusterAnalysisConfigurationBuilderHttpExceptions.build());
 
         // Armeria's WebClient error types.

@@ -15,14 +15,19 @@ import cloud.filibuster.instrumentation.helpers.Response;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.exceptions.filibuster.FilibusterServerBadResponseException;
 import cloud.filibuster.junit.server.core.FilibusterCore;
+import cloud.filibuster.junit.server.core.serializers.GeneratedMessageV3Serializer;
+import cloud.filibuster.junit.server.core.serializers.StatusSerializer;
 import cloud.filibuster.junit.server.core.transformers.Accumulator;
 import com.google.gson.Gson;
+import com.google.protobuf.GeneratedMessageV3;
 import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.HttpMethod;
 import com.linecorp.armeria.common.ResponseHeaders;
 import com.linecorp.armeria.common.AggregatedHttpResponse;
 import com.linecorp.armeria.common.HttpHeaderNames;
 import com.linecorp.armeria.common.RequestHeaders;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
@@ -41,6 +46,9 @@ import static cloud.filibuster.instrumentation.helpers.Counterexample.shouldFail
 
 import static cloud.filibuster.instrumentation.helpers.Property.getClientInstrumentorUseOverrideRequestIdProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendCanInvokeDirectlyProperty;
+import static cloud.filibuster.instrumentation.helpers.Property.getTestV2Arguments;
+import static cloud.filibuster.instrumentation.helpers.Property.getTestV2Exception;
+import static cloud.filibuster.instrumentation.helpers.Property.getTestV2ReturnValue;
 import static cloud.filibuster.instrumentation.instrumentors.FilibusterLocks.distributedExecutionIndexLock;
 import static cloud.filibuster.instrumentation.instrumentors.FilibusterLocks.vectorClockLock;
 
@@ -208,9 +216,6 @@ final public class FilibusterClientInstrumentor {
     private JSONObject failureMetadata;
 
     @Nullable
-    private JSONObject byzantineFault;
-
-    @Nullable
     private JSONObject transformerFault;
 
     private String requestId;
@@ -230,6 +235,9 @@ final public class FilibusterClientInstrumentor {
 
     @Nullable
     RpcType rpcType;
+
+    @Nullable
+    GeneratedMessageV3 requestMessage;
 
     final private static String filibusterServiceName = "filibuster-instrumentation";
 
@@ -448,16 +456,6 @@ final public class FilibusterClientInstrumentor {
     }
 
     /**
-     * Return byzantine fault that needs to be injected.
-     * This value will be null until the Filibuster server has been contacted for this request.
-     *
-     * @return JSON object containing failure to inject.
-     */
-    public JSONObject getByzantineFault() {
-        return this.byzantineFault;
-    }
-
-    /**
      * Return transformer fault that needs to be injected.
      * This value will be null until the Filibuster server has been contacted for this request.
      *
@@ -481,6 +479,10 @@ final public class FilibusterClientInstrumentor {
                 JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
 
                 if (forcedExceptionMetadata.has("abort") && !forcedExceptionMetadata.getBoolean("abort")) {
+                    return false;
+                }
+
+                if (forcedExceptionMetadata.has("defer") && forcedExceptionMetadata.getBoolean("defer")) {
                     return false;
                 }
             }
@@ -556,6 +558,11 @@ final public class FilibusterClientInstrumentor {
         }
 
         return false;
+    }
+
+    public void prepareForInvocation(GeneratedMessageV3 message) {
+        this.requestMessage = message;
+        prepareForInvocation();
     }
 
     /**
@@ -657,6 +664,12 @@ final public class FilibusterClientInstrumentor {
         CallsiteArguments callsiteArguments = callsite.getCallsiteArguments();
         JSONObject invocationArguments = callsiteArguments.toJsonObject();
         invocationPayload.put("args", invocationArguments);
+
+        if (getTestV2Arguments() && requestMessage != null) {
+            JSONObject serializedRequestArgumentsV2 = GeneratedMessageV3Serializer.toJsonObject(requestMessage);
+            invocationPayload.put("args_v2", serializedRequestArgumentsV2);
+        }
+
         invocationPayload.put("kwargs", new JSONObject());
         invocationPayload.put("callsite_file", callsite.getFileName());
         invocationPayload.put("callsite_line", callsite.getLineNumber());
@@ -683,10 +696,6 @@ final public class FilibusterClientInstrumentor {
                 failureMetadata = jsonObject.getJSONObject("failure_metadata");
             }
 
-            if (jsonObject.has("byzantine_fault")) {
-                byzantineFault = jsonObject.getJSONObject("byzantine_fault");
-            }
-
             if (jsonObject.has("transformer_fault")) {
                 transformerFault = jsonObject.getJSONObject("transformer_fault");
             }
@@ -702,10 +711,6 @@ final public class FilibusterClientInstrumentor {
 
                     if (jsonObject.has("failure_metadata")) {
                         failureMetadata = jsonObject.getJSONObject("failure_metadata");
-                    }
-
-                    if (jsonObject.has("byzantine_fault")) {
-                        byzantineFault = jsonObject.getJSONObject("byzantine_fault");
                     }
 
                     if (jsonObject.has("transformer_fault")) {
@@ -750,10 +755,6 @@ final public class FilibusterClientInstrumentor {
 
                         if (jsonObject.has("failure_metadata")) {
                             failureMetadata = jsonObject.getJSONObject("failure_metadata");
-                        }
-
-                        if (jsonObject.has("byzantine_fault")) {
-                            byzantineFault = jsonObject.getJSONObject("byzantine_fault");
                         }
 
                         if (jsonObject.has("transformer_fault")) {
@@ -804,6 +805,14 @@ final public class FilibusterClientInstrumentor {
         afterInvocationWithException(exceptionName, exceptionCause, additionalMetadata);
     }
 
+    public void afterInvocationWithException(
+            String exceptionName,
+            String exceptionCause,
+            Map<String, String> additionalMetadata
+    ) {
+        afterInvocationWithException(exceptionName, exceptionCause, additionalMetadata, null);
+    }
+
     /**
      * Invoked after a remote call has been completed if the remote call threw an exception.
      *
@@ -814,7 +823,8 @@ final public class FilibusterClientInstrumentor {
     public void afterInvocationWithException(
             String exceptionName,
             String exceptionCause,
-            Map<String, String> additionalMetadata
+            Map<String, String> additionalMetadata,
+            @Nullable Object exceptionDetails
     ) {
         if (generatedId > -1 && shouldCommunicateWithServer && counterexampleNotProvided()) {
             JSONObject metadata = new JSONObject();
@@ -847,40 +857,16 @@ final public class FilibusterClientInstrumentor {
             invocationCompletePayload.put("execution_index", distributedExecutionIndex.toString());
             invocationCompletePayload.put("vclock", vectorClock.toJsonObject());
             invocationCompletePayload.put("exception", exception);
-            invocationCompletePayload.put("module", callsite.getClassOrModuleName());
-            invocationCompletePayload.put("method", callsite.getMethodOrFunctionName());
 
-            if (preliminaryDistributedExecutionIndex != null) {
-                invocationCompletePayload.put("preliminary_execution_index", preliminaryDistributedExecutionIndex.toString());
+            // In the future, find a way to be a bit smarter about this.
+            if(getTestV2Exception() && exceptionDetails != null) {
+                if (exceptionDetails instanceof Status) {
+                    Status responseStatus = (Status) exceptionDetails;
+                    JSONObject serializedExceptionV2 = StatusSerializer.toJsonObject(responseStatus);
+                    invocationCompletePayload.put("exception_v2", serializedExceptionV2);
+                }
             }
 
-            recordInvocationComplete(invocationCompletePayload, /* isUpdate= */false);
-        }
-    }
-
-
-    /**
-     * Invoked after a remote call has been completed if the remote call injects a byzantine value.
-     *
-     * @param value the byzantine value that was injected.
-     * @param type  type of the injected byzantine value (e.g., String).
-     */
-    public void afterInvocationWithByzantineFault(
-            String value,
-            String type
-    ) {
-        if (generatedId > -1 && shouldCommunicateWithServer && counterexampleNotProvided()) {
-
-            JSONObject byzantineFault = new JSONObject();
-            byzantineFault.put("value", value);
-            byzantineFault.put("type", type);
-
-            JSONObject invocationCompletePayload = new JSONObject();
-            invocationCompletePayload.put("instrumentation_type", "invocation_complete");
-            invocationCompletePayload.put("generated_id", generatedId);
-            invocationCompletePayload.put("execution_index", distributedExecutionIndex.toString());
-            invocationCompletePayload.put("vclock", vectorClock.toJsonObject());
-            invocationCompletePayload.put("byzantine_fault", byzantineFault);
             invocationCompletePayload.put("module", callsite.getClassOrModuleName());
             invocationCompletePayload.put("method", callsite.getMethodOrFunctionName());
 
@@ -896,11 +882,11 @@ final public class FilibusterClientInstrumentor {
     /**
      * Invoked after a remote call has been completed if the remote call injects a transformer value.
      *
-     * @param value       the byzantine value that was injected.
-     * @param type        type of the injected byzantine value (e.g., String).
+     * @param value       the transformer value that was injected.
+     * @param type        type of the injected transformer value (e.g., String).
      * @param accumulator containing any additional information that should be communicated to the server and used in
-     *                    subsequent byzantine faults (e.g., original value before mutation and idx of mutated char in
-     *                    case of a byzantine string transformation).
+     *                    subsequent transformer faults (e.g., original value before mutation and idx of mutated char in
+     *                    case of a transformer string transformation).
      */
     public void afterInvocationWithTransformerFault(
             String value,
@@ -946,6 +932,15 @@ final public class FilibusterClientInstrumentor {
     }
 
 
+    public void afterInvocationComplete(
+            String className,
+            Map<String, String> returnValueProperties,
+            boolean isUpdate,
+            @Nullable Object returnValue
+    ) {
+        afterInvocationComplete(className, returnValueProperties, isUpdate, returnValue, null);
+    }
+
     /**
      * Invoked after a remote call has been completed if the remote call completed successfully.
      *
@@ -957,7 +952,8 @@ final public class FilibusterClientInstrumentor {
             String className,
             Map<String, String> returnValueProperties,
             boolean isUpdate,
-            @Nullable Object returnValue
+            @Nullable Object returnValue,
+            @Nullable GeneratedMessageV3 responseMessage
     ) {
         // Only if instrumented request, we should communicate, and we aren't inside of Filibuster instrumentation.
         logger.log(Level.INFO, "generatedId: " + generatedId);
@@ -989,6 +985,12 @@ final public class FilibusterClientInstrumentor {
             invocationCompletePayload.put("execution_index", distributedExecutionIndex.toString());
             invocationCompletePayload.put("vclock", getVectorClock().toJsonObject());
             invocationCompletePayload.put("return_value", returnValueJsonObject);
+
+            if (getTestV2ReturnValue() && responseMessage != null) {
+                JSONObject serializedResponseArgumentsV2 = GeneratedMessageV3Serializer.toJsonObject(responseMessage);
+                invocationCompletePayload.put("return_value_v2", serializedResponseArgumentsV2);
+            }
+
             invocationCompletePayload.put("module", callsite.getClassOrModuleName());
             invocationCompletePayload.put("method", callsite.getMethodOrFunctionName());
 

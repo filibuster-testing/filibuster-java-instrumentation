@@ -10,6 +10,7 @@ import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.instrumentation.storage.ThreadLocalContextStorage;
 import cloud.filibuster.junit.server.core.transformers.Accumulator;
 import com.google.gson.Gson;
+import com.google.protobuf.GeneratedMessageV3;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
@@ -22,13 +23,20 @@ import io.grpc.Status;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationEnabledProperty;
 import static cloud.filibuster.instrumentation.helpers.Property.getInstrumentationServerCommunicationEnabledProperty;
+import static cloud.filibuster.instrumentation.instrumentors.FilibusterGrpcHeaders.FILIBUSTER_EXCEPTION_CAUSE;
+import static cloud.filibuster.instrumentation.instrumentors.FilibusterGrpcHeaders.FILIBUSTER_EXCEPTION_CAUSE_MESSAGE;
+import static cloud.filibuster.instrumentation.instrumentors.FilibusterGrpcHeaders.FILIBUSTER_EXCEPTION_CODE;
+import static cloud.filibuster.instrumentation.instrumentors.FilibusterGrpcHeaders.FILIBUSTER_EXCEPTION_DESCRIPTION;
+import static cloud.filibuster.instrumentation.instrumentors.FilibusterGrpcHeaders.FILIBUSTER_EXCEPTION_NAME;
+import static cloud.filibuster.instrumentation.instrumentors.FilibusterShared.generateExceptionFromForcedException;
+import static cloud.filibuster.instrumentation.instrumentors.FilibusterShared.getForcedExceptionMetadataValue;
+import static cloud.filibuster.instrumentation.instrumentors.FilibusterShared.getForcedExceptionValue;
 import static java.util.Objects.requireNonNull;
 
 public class FilibusterClientInterceptor implements ClientInterceptor {
@@ -71,71 +79,6 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
     }
 
     @SuppressWarnings("Varifier")
-    public static Status generateExceptionFromForcedException(FilibusterClientInstrumentor filibusterClientInstrumentor) {
-        JSONObject forcedException = filibusterClientInstrumentor.getForcedException();
-        requireNonNull(forcedException);
-
-        // Get description of the fault.
-        String exceptionNameString = forcedException.getString("name");
-        JSONObject forcedExceptionMetadata = forcedException.getJSONObject("metadata");
-        String codeStr = forcedExceptionMetadata.getString("code");
-
-        String descriptionStr = null;
-        if (forcedExceptionMetadata.has("description")) {
-            descriptionStr = forcedExceptionMetadata.getString("description");
-        }
-
-        String causeString = null;
-        if (forcedExceptionMetadata.has("cause")) {
-            causeString = forcedExceptionMetadata.getString("cause");
-        }
-
-        String causeMessageString = null;
-        if (forcedExceptionMetadata.has("cause_message")) {
-            causeMessageString = forcedExceptionMetadata.getString("cause_message");
-        }
-
-        // Status object to return to the user.
-        Status status;
-
-        if (causeString != null && !causeString.isEmpty()) {
-            // Cause always takes priority in gRPC because it implies a UNKNOWN response.
-            try {
-                String throwableMessage = "Filibuster generated exception.";
-
-                if (causeMessageString != null && !causeMessageString.isEmpty()) {
-                    throwableMessage = causeMessageString;
-                }
-
-                Throwable throwable = Class.forName(causeString).asSubclass(Throwable.class).getConstructor(new Class[]{String.class}).newInstance(throwableMessage);
-                status = Status.fromThrowable(throwable);
-            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException |
-                     InvocationTargetException e) {
-                throw new FilibusterFaultInjectionException("Unable to generate custom exception from string '" + causeString + "':" + e, e);
-            }
-        } else if (!codeStr.isEmpty()) {
-            // Code is checked secondary and ignored if cause is present.
-            Status.Code code = Status.Code.valueOf(codeStr);
-
-            if (descriptionStr != null) {
-                status = Status.fromCode(code).withDescription(descriptionStr);
-            } else {
-                status = Status.fromCode(code);
-            }
-        } else {
-            // Otherwise, we do not know what to inject.
-            throw new FilibusterFaultInjectionException("No code or cause provided for injection of io.grpc.StatusRuntimeException.");
-        }
-
-        // Notify Filibuster of failure.
-        HashMap<String, String> additionalMetadata = new HashMap<>();
-        additionalMetadata.put("code", codeStr);
-        additionalMetadata.put("description", descriptionStr);
-        filibusterClientInstrumentor.afterInvocationWithException(exceptionNameString, causeString, additionalMetadata);
-
-        return status;
-    }
-
     private static Status generateExceptionFromFailureMetadata(FilibusterClientInstrumentor filibusterClientInstrumentor) {
         JSONObject failureMetadata = filibusterClientInstrumentor.getFailureMetadata();
         requireNonNull(failureMetadata);
@@ -150,14 +93,17 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
         // Ignored cause here because this call path is used for cross-language failures and cause doesn't propagate across RPC boundaries.
         String causeString = "";
 
+        // Generate status.
+        Status status = Status.fromCode(code);
+
         // Notify Filibuster of failure.
         HashMap<String, String> additionalMetadata = new HashMap<>();
         additionalMetadata.put("name", exceptionNameString);
         additionalMetadata.put("code", codeStr);
-        filibusterClientInstrumentor.afterInvocationWithException(exceptionNameString, causeString, additionalMetadata);
+        filibusterClientInstrumentor.afterInvocationWithException(exceptionNameString, causeString, additionalMetadata, status);
 
         // Return status.
-        return Status.fromCode(code);
+        return status;
     }
 
     public FilibusterClientInterceptor() {
@@ -317,7 +263,13 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                             contextStorage,
                             callsite
                     );
-                    filibusterClientInstrumentor.prepareForInvocation();
+
+                    if (message instanceof GeneratedMessageV3) {
+                        GeneratedMessageV3 generatedMessageV3 = (GeneratedMessageV3) message;
+                        filibusterClientInstrumentor.prepareForInvocation(generatedMessageV3);
+                    } else {
+                        filibusterClientInstrumentor.prepareForInvocation();
+                    }
 
                     // ******************************************************************************************
                     // Record invocation.
@@ -390,6 +342,35 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                             headers.put(
                                     Metadata.Key.of("x-filibuster-forced-sleep", Metadata.ASCII_STRING_MARSHALLER),
                                     String.valueOf(0)
+                            );
+                        }
+
+                        if (forcedExceptionMetadata.has("defer") && forcedExceptionMetadata.getBoolean("defer")) {
+                            String exceptionNameString = getForcedExceptionValue(forcedException, "name", "");
+                            String codeStr = getForcedExceptionMetadataValue(forcedException, "code", "");
+                            String descriptionStr = getForcedExceptionMetadataValue(forcedException, "description", "");
+                            String causeString = getForcedExceptionMetadataValue(forcedException, "cause", "");
+                            String causeMessageString = getForcedExceptionMetadataValue(forcedException, "cause_message", "");
+
+                            headers.put(
+                                    Metadata.Key.of(FILIBUSTER_EXCEPTION_NAME, Metadata.ASCII_STRING_MARSHALLER),
+                                    exceptionNameString
+                            );
+                            headers.put(
+                                    Metadata.Key.of(FILIBUSTER_EXCEPTION_CODE, Metadata.ASCII_STRING_MARSHALLER),
+                                    codeStr
+                            );
+                            headers.put(
+                                    Metadata.Key.of(FILIBUSTER_EXCEPTION_DESCRIPTION, Metadata.ASCII_STRING_MARSHALLER),
+                                    descriptionStr
+                            );
+                            headers.put(
+                                    Metadata.Key.of(FILIBUSTER_EXCEPTION_CAUSE, Metadata.ASCII_STRING_MARSHALLER),
+                                    causeString
+                            );
+                            headers.put(
+                                    Metadata.Key.of(FILIBUSTER_EXCEPTION_CAUSE_MESSAGE, Metadata.ASCII_STRING_MARSHALLER),
+                                    causeMessageString
                             );
                         }
                     }
@@ -470,7 +451,13 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                 String className = message.getClass().getName();
                 HashMap<String, String> returnValueProperties = new HashMap<>();
                 returnValueProperties.put("toString", message.toString());
-                filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, /* isUpdate= */false, message);
+
+                if (message instanceof GeneratedMessageV3) {
+                    GeneratedMessageV3 generatedMessageV3 = (GeneratedMessageV3) message;
+                    filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, /* isUpdate= */false, message, generatedMessageV3);
+                } else {
+                    filibusterClientInstrumentor.afterInvocationComplete(className, returnValueProperties, /* isUpdate= */false, message);
+                }
 
                 // Delegate.
                 delegate().onMessage(message);
@@ -512,7 +499,7 @@ public class FilibusterClientInterceptor implements ClientInterceptor {
                 }
 
                 // exception cause is always null, because it doesn't serialize and pass through even if provided.
-                filibusterClientInstrumentor.afterInvocationWithException(exceptionName, cause, additionalMetadata);
+                filibusterClientInstrumentor.afterInvocationWithException(exceptionName, cause, additionalMetadata, status);
             }
 
             delegate().onClose(status, trailers);

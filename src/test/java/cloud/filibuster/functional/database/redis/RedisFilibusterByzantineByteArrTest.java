@@ -4,7 +4,7 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.db.byzantine.redis.RedisSingleGetByteArrByzantineFaultAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.db.redis.byzantine.RedisSingleGetByteArrByzantineFaultAnalysisConfigurationFile;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.codec.ByteArrayCodec;
@@ -57,7 +57,7 @@ public class RedisFilibusterByzantineByteArrTest extends JUnitAnnotationBaseTest
         byte[] returnVal = myRedisCommands.get(key);
 
         if (!wasFaultInjected()) {
-            assertArrayEquals(value, returnVal, "The value returned from Redis was not the expected value although no byzantine fault was injected.");
+            assertArrayEquals(value, returnVal, "The value returned from Redis was not the expected value although no transformer byzantine fault was injected.");
         } else {
             actualValues.add(returnVal);
             String returnValStr = returnVal == null ? null : new String(returnVal, Charset.defaultCharset());

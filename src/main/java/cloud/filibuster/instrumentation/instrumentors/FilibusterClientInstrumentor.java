@@ -27,7 +27,6 @@ import com.linecorp.armeria.common.AggregatedHttpResponse;
 import com.linecorp.armeria.common.HttpHeaderNames;
 import com.linecorp.armeria.common.RequestHeaders;
 import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;

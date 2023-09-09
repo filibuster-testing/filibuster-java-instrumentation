@@ -4,7 +4,6 @@ import cloud.filibuster.functional.java.JUnitAnnotationBaseTest;
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
 import cloud.filibuster.integration.examples.armeria.grpc.test_services.RedisClientService;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.examples.db.redis.RedisTransformerTimeoutExceptionsAnalysisConfigurationFile;
 import io.lettuce.core.RedisCommandTimeoutException;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
@@ -27,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class RedisFilibusterTransformerExceptionTest extends JUnitAnnotationBaseTest {
+public class RedisFilibusterTransformerExceptionWithAnalysisResourceFileTest extends JUnitAnnotationBaseTest {
     static final String key = "test";
     static final String value = "example";
     static StatefulRedisConnection<String, String> statefulRedisConnection;
@@ -51,7 +50,7 @@ public class RedisFilibusterTransformerExceptionTest extends JUnitAnnotationBase
 
     @DisplayName("Tests whether Redis sync interceptor can read from existing key - Exception injected using transformers")
     @Order(1)
-    @TestWithFilibuster(analysisConfigurationFile = RedisTransformerTimeoutExceptionsAnalysisConfigurationFile.class)
+    @TestWithFilibuster(analysisResourceFile = "fac/redisTimeoutExceptionTransformer.fac")
     public void testRedisSyncGet() {
         try {
             numberOfTestExecutions++;

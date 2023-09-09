@@ -7,16 +7,31 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
-public final class DBExceptionTransformer implements Transformer<Object, Integer> {
+public final class RedisTimeoutExceptionTransformer implements Transformer<Object, Integer> {
     private boolean hasNext = true;
     private Object result;
     private Accumulator<Object, Integer> accumulator;
     private static final ArrayList<DBException> dbExceptions = new ArrayList<>();
 
+    static {
+        DBException.Builder commandTimeoutBuilder = new DBException.Builder();
+        commandTimeoutBuilder.name("io.lettuce.core.RedisCommandTimeoutException");
+
+        Map<String, String> exceptionMap = new HashMap<>();
+        exceptionMap.put("cause", "Command timed out after 100 millisecond(s)");
+        exceptionMap.put("code", "");
+        commandTimeoutBuilder.metadata(exceptionMap);
+
+        DBException commandTimeoutException = commandTimeoutBuilder.build();
+        dbExceptions.add(commandTimeoutException);
+    }
+
     @Override
     @CanIgnoreReturnValue
-    public DBExceptionTransformer transform(Object payload, Accumulator<Object, Integer> accumulator) {
+    public RedisTimeoutExceptionTransformer transform(Object payload, Accumulator<Object, Integer> accumulator) {
 
         // Get exception corresponding to idx in context
         this.result = dbExceptions.get(accumulator.getContext());
@@ -80,10 +95,6 @@ public final class DBExceptionTransformer implements Transformer<Object, Integer
         } else {
             return accumulator;
         }
-    }
-
-    public static void addDbException(DBException dbException) {
-        DBExceptionTransformer.dbExceptions.add(dbException);
     }
 
 }

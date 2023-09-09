@@ -1,0 +1,4 @@
+{"java.lettuce.core.RedisCommandTimeoutException": {
+    "transformers": [{"transformerClassName": "cloud.filibuster.junit.server.core.transformers.RedisTimeoutExceptionTransformer"}],
+    "pattern": "io.lettuce.core.api.sync.RedisStringCommands/(get|set)\\b"
+}}

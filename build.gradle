@@ -335,6 +335,8 @@ task testIntegration(type: Test) {
     maxHeapSize = "2048m" // maximum heap size
     jvmArgs '-XX:MaxPermSize=256m' // mem argument for the test JVM
 
+    systemProperty "filibuster.enabled", "TRUE"
+
     filter {
         includeTestsMatching('cloud.filibuster.integration.*')
     }

@@ -319,6 +319,8 @@ sourceSets.main.output.dir genOutputDir, builtBy: generateVersionTxt
 task testUnit(type: Test) {
     useJUnitPlatform()
 
+    systemProperty "filibuster.enabled", "TRUE"
+
     filter {
         includeTestsMatching('cloud.filibuster.unit.*')
     }

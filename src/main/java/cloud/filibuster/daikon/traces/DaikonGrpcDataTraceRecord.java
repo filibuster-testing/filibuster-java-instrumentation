@@ -1,5 +1,6 @@
-package cloud.filibuster.daikon;
+package cloud.filibuster.daikon.traces;
 
+import cloud.filibuster.daikon.DaikonPptType;
 import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.junit.server.core.transformers.JsonUtils;
 import com.google.protobuf.GeneratedMessageV3;
@@ -11,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+
+import static cloud.filibuster.daikon.DaikonPpt.generatePpt;
 
 public class DaikonGrpcDataTraceRecord {
     public String programPointName;
@@ -41,18 +44,7 @@ public class DaikonGrpcDataTraceRecord {
         return builder.toString();
     }
 
-    public static DaikonGrpcDataTraceRecord fromGeneratedMessageV3(String nonceString, DaikonPptType daikonPptType, String programPointName, GeneratedMessageV3 generatedMessageV3) {
-        // Update program point name.
-        String messageName = generatedMessageV3.getDescriptorForType().getName();
-        programPointName = programPointName.replace("/", ".");
-        String concreteProgramPointName;
-
-        if (daikonPptType.equals(DaikonPptType.EXIT)) {
-            concreteProgramPointName = programPointName + "(" + messageName + "):::" + daikonPptType + "0"; // assume single exit point for GRPC for now, no way to really know currently.
-        } else {
-            concreteProgramPointName = programPointName + "(" + messageName + "):::" + daikonPptType;
-        }
-
+    public static DaikonGrpcDataTraceRecord fromGeneratedMessageV3(String nonceString, String ppt, GeneratedMessageV3 generatedMessageV3) {
         // Convert to JSON and include all default key names.
         try {
             String serializedMessage = JsonFormat.printer().preservingProtoFieldNames().includingDefaultValueFields().print(generatedMessageV3);
@@ -72,7 +64,7 @@ public class DaikonGrpcDataTraceRecord {
             }
 
             // Generate the trace record.
-            return new DaikonGrpcDataTraceRecord(concreteProgramPointName, nonceString, variables);
+            return new DaikonGrpcDataTraceRecord(ppt, nonceString, variables);
         } catch (InvalidProtocolBufferException e) {
             throw new FilibusterRuntimeException(e);
         }
@@ -87,10 +79,10 @@ public class DaikonGrpcDataTraceRecord {
     }
 
     public static DaikonGrpcDataTraceRecord onRequest(String nonceString, String fullMethodName, GeneratedMessageV3 request) {
-        return fromGeneratedMessageV3(nonceString, DaikonPptType.ENTER, fullMethodName, request);
+        return fromGeneratedMessageV3(nonceString, generatePpt(fullMethodName, DaikonPptType.ENTER, request), request);
     }
 
     public static DaikonGrpcDataTraceRecord onResponse(String nonceString, String fullMethodName, GeneratedMessageV3 response) {
-        return fromGeneratedMessageV3(nonceString, DaikonPptType.EXIT, fullMethodName, response);
+        return fromGeneratedMessageV3(nonceString, generatePpt(fullMethodName, DaikonPptType.EXIT, response), response);
     }
 }

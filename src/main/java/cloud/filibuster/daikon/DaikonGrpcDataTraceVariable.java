@@ -1,9 +1,9 @@
 package cloud.filibuster.daikon;
 
 public class DaikonGrpcDataTraceVariable {
-    private String name;
+    private final String name;
 
-    private String value;
+    private final String value;
 
     private int modified = 1;
 

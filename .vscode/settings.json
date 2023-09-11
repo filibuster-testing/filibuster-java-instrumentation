@@ -1,0 +1,11 @@
+{
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.test.config": [
+        {
+            "name": "filibuster",
+            "workingDirectory": "${workspaceFolder}",
+            "vmargs": [ "-Dfilibuster.enabled=true" ],
+            "env": { "key": "value" },
+        }
+    ]
+}

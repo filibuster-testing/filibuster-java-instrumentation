@@ -467,7 +467,7 @@ public class FilibusterCore {
                                 createAndScheduleAbstractTestExecution(filibusterConfiguration, distributedExecutionIndex, new JSONObject(handledTransformer.toMap()));
                             } catch (Throwable e) {
                                 logger.warning("[FILIBUSTER-CORE]: generateTransformerFaults, an exception occurred in generateTransformerFaults: " + e);
-                                throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: generateTransformerFaults: ", e);
+                                throw new FilibusterFaultInjectionException("[FILIBUSTER-CORE]: generateTransformerFaults: " + e.getMessage(), e);
                             }
                         }
                     }

@@ -257,6 +257,30 @@ public class ServerInvocationAndResponseReport {
         return output;
     }
 
+    private static String toDaikonTrace() {
+        StringBuilder builder = new StringBuilder();
+
+        for (DaikonGrpcDataTraceRecord record: daikonGrpcDataTraceRecords) {
+            builder.append(record.toString());
+            builder.append("\n");
+        }
+
+        return builder.toString();
+    }
+
+    private static String toDaikonDecls() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("decl-version 2.0\n");
+        builder.append("\n");
+
+        for (DaikonGrpcProgramPointRecord record : daikonGrpcDataDeclRecords) {
+            builder.append(record.toString());
+            builder.append("\n");
+        }
+
+        return builder.toString();
+    }
+
     public static Set<Class> findAllClassesUsingClassLoader(String packageName) {
         InputStream stream = ClassLoader.getSystemClassLoader()
                 .getResourceAsStream(packageName.replaceAll("[.]", "/"));

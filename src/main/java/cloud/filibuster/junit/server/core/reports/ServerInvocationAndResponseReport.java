@@ -137,8 +137,21 @@ public class ServerInvocationAndResponseReport {
         incompleteServerInvocationAndResponses.put(requestId, message);
     }
 
-    public static void endServerInvocation(String requestId, String fullMethodName, Status status, GeneratedMessageV3 responseMessage) {
+    public static void endServerInvocation(String requestId, String fullMethodName, Status status, @Nullable GeneratedMessageV3 responseMessage) {
         GeneratedMessageV3 requestMessage = incompleteServerInvocationAndResponses.get(requestId);
+
+        if (responseMessage != null && getDaikonEnabledProperty()) {
+            try {
+                List<DaikonGrpcDataTraceRecord> traceRecords = DaikonGrpcDataTraceRecord.onRequestAndResponse(fullMethodName, requestMessage, responseMessage);
+                daikonGrpcDataTraceRecords.addAll(traceRecords);
+
+                List<DaikonGrpcProgramPointRecord> declRecords = DaikonGrpcProgramPointRecord.onRequestAndResponse(fullMethodName, requestMessage, responseMessage);
+                daikonGrpcDataDeclRecords.addAll(declRecords);
+            } catch (RuntimeException re) {
+                throw new FilibusterDaikonRuntimeException("could not generate Daikon trace files due to runtime exception: " + re, re);
+            }
+        }
+
         ServerInvocationAndResponse serverInvocationAndResponse = new ServerInvocationAndResponse(requestId, fullMethodName, requestMessage, status, responseMessage);
         serverInvocationAndResponses.add(serverInvocationAndResponse);
 
@@ -213,7 +226,7 @@ public class ServerInvocationAndResponseReport {
                 throw new FilibusterTestReportWriterException("Filibuster failed to write out the server invocation report: ", e);
             }
         }
-        
+
         // Write out index file.
         Path indexPath = Paths.get(reportDirectory + "/server.html");
         byte[] indexBytes = ReportUtilities.getResourceAsBytes(ServerInvocationAndResponseReport.class.getClassLoader(),"html/server_invocation_report/index.html");

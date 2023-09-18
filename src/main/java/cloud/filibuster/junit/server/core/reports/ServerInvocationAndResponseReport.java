@@ -1,5 +1,7 @@
 package cloud.filibuster.junit.server.core.reports;
 
+import cloud.filibuster.daikon.ppt.DaikonGrpcProgramPointRecord;
+import cloud.filibuster.daikon.traces.DaikonGrpcDataTraceRecord;
 import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterException;
 import cloud.filibuster.junit.server.core.FilibusterCore;
 import cloud.filibuster.junit.server.core.profiles.ServiceProfile;
@@ -69,6 +71,10 @@ public class ServerInvocationAndResponseReport {
     private static final TreeMap<String, Integer> grpcMethodInvokedByFilibusterTests = new TreeMap<>();
 
     private static final TreeMap<String, Integer> grpcMethodInvokedByUniqueFilibusterTests = new TreeMap<>();
+
+    private static final List<DaikonGrpcDataTraceRecord> daikonGrpcDataTraceRecords = new ArrayList<>();
+
+    private static final List<DaikonGrpcProgramPointRecord> daikonGrpcDataDeclRecords = new ArrayList<>();
 
     @SuppressWarnings("ConstantPatternCompile")
     public static void loadGrpcEndpoints(Class<?> c) {

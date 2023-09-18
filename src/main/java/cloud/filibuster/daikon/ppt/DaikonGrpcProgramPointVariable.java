@@ -1,18 +1,33 @@
 package cloud.filibuster.daikon.ppt;
 
-import java.util.Collections;
-import java.util.List;
+import javax.annotation.Nullable;
 
 public class DaikonGrpcProgramPointVariable {
     private final String name;
-    private static final String varKind = "variable";
-    private static final String decType = "java.lang.String";
-    private static final String repType = "java.lang.String";
-    private final List<String> flags = Collections.singletonList("is_param");
-    private static final String comparability = "1";
+    private final String varKind;
+    private final String decType;
+    private final String repType;
+    private final String flags;
+    private final String comparability;
 
-    public DaikonGrpcProgramPointVariable(String name) {
+    private final String enclosingVar;
+
+    public DaikonGrpcProgramPointVariable(
+            String name,
+            String varKind,
+            @Nullable String enclosingVar,
+            String decType,
+            String repType,
+            String flags,
+            String comparability
+    ) {
         this.name = name;
+        this.varKind = varKind;
+        this.enclosingVar = enclosingVar;
+        this.decType = decType;
+        this.repType = repType;
+        this.flags = flags;
+        this.comparability = comparability;
     }
 
     public String getName() {
@@ -20,7 +35,7 @@ public class DaikonGrpcProgramPointVariable {
     }
 
     public String getVarKind() {
-        return varKind;
+        return this.varKind;
     }
 
     public String getDecType() {
@@ -32,10 +47,14 @@ public class DaikonGrpcProgramPointVariable {
     }
 
     public String getFlags() {
-        return String.join(" ", this.flags);
+        return flags;
     }
 
     public String getComparability() {
         return comparability;
+    }
+
+    @Nullable public String getEnclosingVar() {
+        return enclosingVar;
     }
 }

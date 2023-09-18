@@ -4,10 +4,10 @@ import cloud.filibuster.daikon.DaikonPptType;
 import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.junit.server.core.transformers.JsonUtils;
 import com.google.protobuf.GeneratedMessageV3;
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
 import org.json.JSONObject;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -16,73 +16,77 @@ import java.util.UUID;
 import static cloud.filibuster.daikon.DaikonPpt.generatePpt;
 
 public class DaikonGrpcDataTraceRecord {
-    public String programPointName;
-    public String thisInvocationNonce = "this_invocation_nonce";
     public String nonceString;
-    public List<DaikonGrpcDataTraceVariable> variables;
+    private final String ppt;
+    private final List<DaikonGrpcDataTraceVariable> variables;
 
-    public DaikonGrpcDataTraceRecord(String programPointName, String nonceString, List<DaikonGrpcDataTraceVariable> variables) {
-        this.programPointName = programPointName;
+    public DaikonGrpcDataTraceRecord(String nonceString, String fullMethodName, DaikonPptType daikonPptType, GeneratedMessageV3 requestMessage, @Nullable GeneratedMessageV3 responseMessage) {
+        this.ppt = generatePpt(fullMethodName, daikonPptType, requestMessage);
         this.nonceString = nonceString;
-        this.variables = variables;
+
+        try {
+            List<DaikonGrpcDataTraceVariable> variables = new ArrayList<>();
+
+            if (daikonPptType.equals(DaikonPptType.ENTER) || daikonPptType.equals(DaikonPptType.EXIT)) {
+                variables.add(new DaikonGrpcDataTraceVariable("this", null, requestMessage.hashCode()));
+
+                String serializedMessage = JsonFormat.printer().preservingProtoFieldNames().includingDefaultValueFields().print(requestMessage);
+                JSONObject jsonObject = new JSONObject(serializedMessage);
+                jsonObject = JsonUtils.flatten(jsonObject);
+                Iterator<String> keys = jsonObject.keys();
+
+                while(keys.hasNext()) {
+                    String key = keys.next();
+                    Object value = jsonObject.get(key);
+                    variables.add(new DaikonGrpcDataTraceVariable("this." + key, value.toString(), value.hashCode()));
+                }
+            }
+
+            if (daikonPptType.equals(DaikonPptType.EXIT)) {
+                variables.add(new DaikonGrpcDataTraceVariable("return", null, responseMessage.hashCode()));
+
+                String serializedMessage = JsonFormat.printer().preservingProtoFieldNames().includingDefaultValueFields().print(responseMessage);
+                JSONObject jsonObject = new JSONObject(serializedMessage);
+                jsonObject = JsonUtils.flatten(jsonObject);
+                Iterator<String> keys = jsonObject.keys();
+
+                while(keys.hasNext()) {
+                    String key = keys.next();
+                    Object value = jsonObject.get(key);
+                    variables.add(new DaikonGrpcDataTraceVariable("return." + key, value.toString(), value.hashCode()));
+                }
+            }
+
+            this.variables = variables;
+        } catch (Throwable t) {
+            throw new FilibusterRuntimeException(t);
+        }
     }
 
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
 
-        builder.append(programPointName + "\n");
-        builder.append(thisInvocationNonce + "\n");
-        builder.append(nonceString + "\n");
+        builder.append(ppt + "\n");
 
         for (DaikonGrpcDataTraceVariable variable : variables) {
             builder.append(variable.getName() + "\n");
-            builder.append("\"" + variable.getValue() + "\"\n");
+            if (variable.getValue() == null) {
+                builder.append(variable.getHashCode() + "\n");
+            } else {
+                builder.append("\"" + variable.getValue() + "\"\n");
+            }
             builder.append(variable.getModified() + "\n");
         }
 
         return builder.toString();
     }
 
-    public static DaikonGrpcDataTraceRecord fromGeneratedMessageV3(String nonceString, String ppt, GeneratedMessageV3 generatedMessageV3) {
-        // Convert to JSON and include all default key names.
-        try {
-            String serializedMessage = JsonFormat.printer().preservingProtoFieldNames().includingDefaultValueFields().print(generatedMessageV3);
-            JSONObject jsonObject = new JSONObject(serializedMessage);
-
-            // Flatten to uniformly (easily) handle nested GRPC messages.
-            jsonObject = JsonUtils.flatten(jsonObject);
-
-            // Iterate all the keys.
-            Iterator<String> keys = jsonObject.keys();
-            List<DaikonGrpcDataTraceVariable> variables = new ArrayList<>();
-
-            while(keys.hasNext()) {
-                String key = keys.next();
-                Object value = jsonObject.get(key);
-                variables.add(new DaikonGrpcDataTraceVariable(key, value.toString()));
-            }
-
-            // Generate the trace record.
-            return new DaikonGrpcDataTraceRecord(ppt, nonceString, variables);
-        } catch (InvalidProtocolBufferException e) {
-            throw new FilibusterRuntimeException(e);
-        }
-    }
-
     public static List<DaikonGrpcDataTraceRecord> onRequestAndResponse(String fullMethodName, GeneratedMessageV3 request, GeneratedMessageV3 response) {
         String nonceString = UUID.randomUUID().toString();
         List<DaikonGrpcDataTraceRecord> traceRecords = new ArrayList<>();
-        traceRecords.add(onRequest(nonceString, fullMethodName, request));
-        traceRecords.add(onResponse(nonceString, fullMethodName, response));
+        traceRecords.add(new DaikonGrpcDataTraceRecord(nonceString, fullMethodName, DaikonPptType.ENTER, request, null));
+        traceRecords.add(new DaikonGrpcDataTraceRecord(nonceString, fullMethodName, DaikonPptType.EXIT, request, response));
         return traceRecords;
-    }
-
-    public static DaikonGrpcDataTraceRecord onRequest(String nonceString, String fullMethodName, GeneratedMessageV3 request) {
-        return fromGeneratedMessageV3(nonceString, generatePpt(fullMethodName, DaikonPptType.ENTER, request), request);
-    }
-
-    public static DaikonGrpcDataTraceRecord onResponse(String nonceString, String fullMethodName, GeneratedMessageV3 response) {
-        return fromGeneratedMessageV3(nonceString, generatePpt(fullMethodName, DaikonPptType.EXIT, response), response);
     }
 }

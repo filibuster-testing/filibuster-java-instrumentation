@@ -2,6 +2,7 @@ package cloud.filibuster.junit.server.core.reports;
 
 import cloud.filibuster.daikon.ppt.DaikonGrpcProgramPointRecord;
 import cloud.filibuster.daikon.traces.DaikonGrpcDataTraceRecord;
+import cloud.filibuster.exceptions.filibuster.FilibusterDaikonRuntimeException;
 import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterException;
 import cloud.filibuster.junit.server.core.FilibusterCore;
 import cloud.filibuster.junit.server.core.profiles.ServiceProfile;
@@ -33,6 +34,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static cloud.filibuster.instrumentation.helpers.Property.getDaikonEnabledProperty;
 
 public class ServerInvocationAndResponseReport {
 

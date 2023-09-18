@@ -194,6 +194,23 @@ public class ServerInvocationAndResponseReport {
             throw new FilibusterTestReportWriterException("Filibuster failed to write out the server invocation report: ", e);
         }
 
+        if (getDaikonEnabledProperty()) {
+            // Write out the Daikon results.
+            try {
+                Path daikonDeclsFile = Paths.get(reportDirectory + "/filibuster.decls");
+                Files.write(daikonDeclsFile, toDaikonDecls().getBytes(Charset.defaultCharset()));
+            } catch (IOException e) {
+                throw new FilibusterTestReportWriterException("Filibuster failed to write out the server invocation report: ", e);
+            }
+
+            try {
+                Path daikonTraceFile = Paths.get(reportDirectory + "/filibuster.dtrace");
+                Files.write(daikonTraceFile, toDaikonTrace().getBytes(Charset.defaultCharset()));
+            } catch (IOException e) {
+                throw new FilibusterTestReportWriterException("Filibuster failed to write out the server invocation report: ", e);
+            }
+        }
+        
         // Write out index file.
         Path indexPath = Paths.get(reportDirectory + "/server.html");
         byte[] indexBytes = ReportUtilities.getResourceAsBytes(ServerInvocationAndResponseReport.class.getClassLoader(),"html/server_invocation_report/index.html");

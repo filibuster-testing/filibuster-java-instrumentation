@@ -1,5 +1,8 @@
 package cloud.filibuster.junit.server.core.reports;
 
+import cloud.filibuster.daikon.ppt.DaikonGrpcProgramPointRecord;
+import cloud.filibuster.daikon.traces.DaikonGrpcDataTraceRecord;
+import cloud.filibuster.exceptions.filibuster.FilibusterDaikonRuntimeException;
 import cloud.filibuster.exceptions.filibuster.FilibusterTestReportWriterException;
 import cloud.filibuster.junit.server.core.FilibusterCore;
 import cloud.filibuster.junit.server.core.profiles.ServiceProfile;
@@ -31,6 +34,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static cloud.filibuster.instrumentation.helpers.Property.getDaikonEnabledProperty;
 
 public class ServerInvocationAndResponseReport {
 
@@ -69,6 +74,10 @@ public class ServerInvocationAndResponseReport {
     private static final TreeMap<String, Integer> grpcMethodInvokedByFilibusterTests = new TreeMap<>();
 
     private static final TreeMap<String, Integer> grpcMethodInvokedByUniqueFilibusterTests = new TreeMap<>();
+
+    private static final List<DaikonGrpcDataTraceRecord> daikonGrpcDataTraceRecords = new ArrayList<>();
+
+    private static final List<DaikonGrpcProgramPointRecord> daikonGrpcDataDeclRecords = new ArrayList<>();
 
     @SuppressWarnings("ConstantPatternCompile")
     public static void loadGrpcEndpoints(Class<?> c) {
@@ -128,8 +137,21 @@ public class ServerInvocationAndResponseReport {
         incompleteServerInvocationAndResponses.put(requestId, message);
     }
 
-    public static void endServerInvocation(String requestId, String fullMethodName, Status status, GeneratedMessageV3 responseMessage) {
+    public static void endServerInvocation(String requestId, String fullMethodName, Status status, @Nullable GeneratedMessageV3 responseMessage) {
         GeneratedMessageV3 requestMessage = incompleteServerInvocationAndResponses.get(requestId);
+
+        if (responseMessage != null && getDaikonEnabledProperty()) {
+            try {
+                List<DaikonGrpcDataTraceRecord> traceRecords = DaikonGrpcDataTraceRecord.onRequestAndResponse(fullMethodName, requestMessage, responseMessage);
+                daikonGrpcDataTraceRecords.addAll(traceRecords);
+
+                List<DaikonGrpcProgramPointRecord> declRecords = DaikonGrpcProgramPointRecord.onRequestAndResponse(fullMethodName, requestMessage, responseMessage);
+                daikonGrpcDataDeclRecords.addAll(declRecords);
+            } catch (RuntimeException re) {
+                throw new FilibusterDaikonRuntimeException("could not generate Daikon trace files due to runtime exception: " + re, re);
+            }
+        }
+
         ServerInvocationAndResponse serverInvocationAndResponse = new ServerInvocationAndResponse(requestId, fullMethodName, requestMessage, status, responseMessage);
         serverInvocationAndResponses.add(serverInvocationAndResponse);
 
@@ -186,6 +208,23 @@ public class ServerInvocationAndResponseReport {
             Files.write(scriptFile, toJavascript().getBytes(Charset.defaultCharset()));
         } catch (IOException e) {
             throw new FilibusterTestReportWriterException("Filibuster failed to write out the server invocation report: ", e);
+        }
+
+        if (getDaikonEnabledProperty()) {
+            // Write out the Daikon results.
+            try {
+                Path daikonDeclsFile = Paths.get(reportDirectory + "/filibuster.decls");
+                Files.write(daikonDeclsFile, toDaikonDecls().getBytes(Charset.defaultCharset()));
+            } catch (IOException e) {
+                throw new FilibusterTestReportWriterException("Filibuster failed to write out the server invocation report: ", e);
+            }
+
+            try {
+                Path daikonTraceFile = Paths.get(reportDirectory + "/filibuster.dtrace");
+                Files.write(daikonTraceFile, toDaikonTrace().getBytes(Charset.defaultCharset()));
+            } catch (IOException e) {
+                throw new FilibusterTestReportWriterException("Filibuster failed to write out the server invocation report: ", e);
+            }
         }
 
         // Write out index file.
@@ -249,6 +288,30 @@ public class ServerInvocationAndResponseReport {
         output += "var serverInvocationReports = " + toServerInvocationReportJsonObject().toString(4) + ";\n";
         output += "var accessedGrpcEndpoints = " + toAccessedGrpcEndpointsJsonObject().toString(4) + ";\n";
         return output;
+    }
+
+    private static String toDaikonTrace() {
+        StringBuilder builder = new StringBuilder();
+
+        for (DaikonGrpcDataTraceRecord record: daikonGrpcDataTraceRecords) {
+            builder.append(record.toString());
+            builder.append("\n");
+        }
+
+        return builder.toString();
+    }
+
+    private static String toDaikonDecls() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("decl-version 2.0\n");
+        builder.append("\n");
+
+        for (DaikonGrpcProgramPointRecord record : daikonGrpcDataDeclRecords) {
+            builder.append(record.toString());
+            builder.append("\n");
+        }
+
+        return builder.toString();
     }
 
     public static Set<Class> findAllClassesUsingClassLoader(String packageName) {

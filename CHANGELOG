@@ -1,3 +1,5 @@
+2.2.3:
+    - (cmeiklejohn) Add Daikon instrumentors.
 2.2.2:
     - (MichaelA-ops) Implement transformers wrapping DB exceptions.
 2.2.1:

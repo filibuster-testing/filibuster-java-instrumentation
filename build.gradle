@@ -246,7 +246,7 @@ javadoc {
 
 group = "cloud.filibuster"
 archivesBaseName = "instrumentation"
-version = "2.2.2"
+version = "2.2.3"
 
 java {
     withJavadocJar()

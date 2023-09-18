@@ -126,6 +126,26 @@ public class Property {
     }
 
     /***********************************************************************************
+     ** filibuster.daikon.enabled
+     ***********************************************************************************/
+
+    private final static String DAIKON_ENABLED = "filibuster.daikon.enabled";
+
+    public static void setDaikonEnabledProperty(boolean value) {
+        System.setProperty(DAIKON_ENABLED, String.valueOf(value));
+    }
+
+    public static boolean getDaikonEnabledProperty() {
+        String propertyValue = System.getProperty(DAIKON_ENABLED);
+
+        if (isPropertyNull(propertyValue)) {
+            return false;
+        } else {
+            return Boolean.valueOf(propertyValue);
+        }
+    }
+
+    /***********************************************************************************
      ** filibuster.enabled
      ***********************************************************************************/
 

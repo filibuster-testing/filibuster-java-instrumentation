@@ -1,3 +1,6 @@
+2.2.3:
+    - (cmeiklejohn) Add Daikon instrumentors.
+    - (MichaelA-ops) Adjust order of transformer faults.
 2.2.2:
     - (MichaelA-ops) Implement transformers wrapping DB exceptions.
 2.2.1:

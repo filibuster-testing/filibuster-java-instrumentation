@@ -1,3 +1,5 @@
+2.2.2:
+    - (MichaelA-ops) Implement transformers wrapping DB exceptions.
 2.2.1:
     - (cmeiklejohn) Add default injection of ResponseTimeoutException.
 2.2.0:

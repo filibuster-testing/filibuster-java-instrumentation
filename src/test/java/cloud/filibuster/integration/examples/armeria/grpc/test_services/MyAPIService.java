@@ -362,14 +362,14 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     private static String getUserFromSession(Channel channel, String sessionId) {
         UserServiceGrpc.UserServiceBlockingStub userServiceBlockingStub = UserServiceGrpc.newBlockingStub(channel);
         Hello.GetUserRequest request = Hello.GetUserRequest.newBuilder().setSessionId(sessionId).build();
-        Hello.GetUserResponse response = userServiceBlockingStub.getUserFromSession(request);
+        Hello.GetUserResponse response = userServiceBlockingStub.getUser(request);
         return response.getUserId();
     }
 
     private static Hello.GetCartResponse getCartFromSession(Channel channel, String sessionId) {
         CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
         Hello.GetCartRequest request = Hello.GetCartRequest.newBuilder().setSessionId(sessionId).build();
-        return cartServiceBlockingStub.getCartForSession(request);
+        return cartServiceBlockingStub.getCart(request);
     }
 
     private static Hello.GetDiscountResponse getDiscountOnCart(Channel channel, String discountCode) {

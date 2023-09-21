@@ -36,7 +36,7 @@ public class EndToEndFilibusterGrpcWithPricingAdjustmentServiceTest extends Purc
 
         // Failure of the getUserFromSession call results in upstream receiving UNAVAILABLE exception.
         assertFaultThrows(
-                UserServiceGrpc.getGetUserFromSessionMethod(),
+                UserServiceGrpc.getGetUserMethod(),
                 Status.Code.UNAVAILABLE,
                 "Purchase could not be completed at this time, please retry the request: user could not be retrieved."
         );
@@ -63,7 +63,7 @@ public class EndToEndFilibusterGrpcWithPricingAdjustmentServiceTest extends Purc
 
             // Notify the system some endpoints are read-only and therefore OK to skip
             // when we return a failure.
-            readOnlyRpc(CartServiceGrpc.getGetCartForSessionMethod());
+            readOnlyRpc(CartServiceGrpc.getGetCartMethod());
         });
 
         // State what the state of the system was on UNAVAILABLE.
@@ -74,12 +74,12 @@ public class EndToEndFilibusterGrpcWithPricingAdjustmentServiceTest extends Purc
 
             // Notify the system some endpoints are read-only and therefore OK to skip
             // when we return a failure.
-            readOnlyRpc(CartServiceGrpc.getGetCartForSessionMethod());
+            readOnlyRpc(CartServiceGrpc.getGetCartMethod());
 
             Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
                     .setCode(PurchaseWorkflowWithPricingAdjustmentService.getDiscountCode().getKey())
                     .build();
-            readOnlyRpc(PricingAdjustmentServiceGrpc.getGetDiscountMethod(), request);
+            readOnlyRpc(PricingAdjustmentServiceGrpc.getGetAdjustmentMethod(), request);
         });
 
         // State what the state of the system was on UNAVAILABLE.
@@ -90,12 +90,12 @@ public class EndToEndFilibusterGrpcWithPricingAdjustmentServiceTest extends Purc
 
             // Notify the system some endpoints are read-only and therefore OK to skip
             // when we return a failure.
-            readOnlyRpc(CartServiceGrpc.getGetCartForSessionMethod());
+            readOnlyRpc(CartServiceGrpc.getGetCartMethod());
 
             Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
                     .setCode(PurchaseWorkflowWithPricingAdjustmentService.getDiscountCode().getKey())
                     .build();
-            readOnlyRpc(PricingAdjustmentServiceGrpc.getGetDiscountMethod(), request);
+            readOnlyRpc(PricingAdjustmentServiceGrpc.getGetAdjustmentMethod(), request);
 
             sideEffectingRpc(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
         });
@@ -110,19 +110,19 @@ public class EndToEndFilibusterGrpcWithPricingAdjustmentServiceTest extends Purc
 
             // Notify the system some endpoints are read-only and therefore OK to skip
             // when we return a failure.
-            readOnlyRpc(CartServiceGrpc.getGetCartForSessionMethod());
+            readOnlyRpc(CartServiceGrpc.getGetCartMethod());
 
             Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
                     .setCode(PurchaseWorkflowWithPricingAdjustmentService.getDiscountCode().getKey())
                     .build();
-            readOnlyRpc(PricingAdjustmentServiceGrpc.getGetDiscountMethod(), request);
+            readOnlyRpc(PricingAdjustmentServiceGrpc.getGetAdjustmentMethod(), request);
 
             sideEffectingRpc(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
         });
 
         // Failure of the getCartFromSession call results in upstream receiving UNAVAILABLE exception.
         assertFaultThrows(
-                CartServiceGrpc.getGetCartForSessionMethod(),
+                CartServiceGrpc.getGetCartMethod(),
                 Status.Code.UNAVAILABLE,
                 Status.Code.UNAVAILABLE,
                 "Purchase could not be completed at this time, please retry the request: cart could not be retrieved."
@@ -136,14 +136,14 @@ public class EndToEndFilibusterGrpcWithPricingAdjustmentServiceTest extends Purc
         //
         if (random.nextBoolean()) {
             assertFaultThrows(
-                    CartServiceGrpc.getGetCartForSessionMethod(),
+                    CartServiceGrpc.getGetCartMethod(),
                     Hello.GetCartRequest.newBuilder().setSessionId(sessionId.toString()).build(),
                     Status.Code.UNAVAILABLE,
                     "Purchase could not be completed at this time, please retry the request: cart could not be retrieved."
             );
         } else {
             assertFaultThrows(
-                    CartServiceGrpc.getGetCartForSessionMethod(),
+                    CartServiceGrpc.getGetCartMethod(),
                     Status.Code.DEADLINE_EXCEEDED,
                     Hello.GetCartRequest.newBuilder().setSessionId(sessionId.toString()).build(),
                     Status.Code.UNAVAILABLE,
@@ -153,7 +153,7 @@ public class EndToEndFilibusterGrpcWithPricingAdjustmentServiceTest extends Purc
 
         // Failure of the getDiscount call results in no discount.
         assertOnFault(
-                PricingAdjustmentServiceGrpc.getGetDiscountMethod(),
+                PricingAdjustmentServiceGrpc.getGetAdjustmentMethod(),
                 Hello.GetDiscountRequest.newBuilder()
                         .setCode("FIRST-TIME")
                         .build(),
@@ -205,11 +205,11 @@ public class EndToEndFilibusterGrpcWithPricingAdjustmentServiceTest extends Purc
 
     @Override
     public void stubBlock() {
-        stubFor(UserServiceGrpc.getGetUserFromSessionMethod(),
+        stubFor(UserServiceGrpc.getGetUserMethod(),
                 Hello.GetUserRequest.newBuilder().setSessionId(sessionId.toString()).build(),
                 Hello.GetUserResponse.newBuilder().setUserId(consumerId.toString()).build());
 
-        stubFor(CartServiceGrpc.getGetCartForSessionMethod(),
+        stubFor(CartServiceGrpc.getGetCartMethod(),
                 Hello.GetCartRequest.newBuilder().setSessionId(sessionId.toString()).build(),
                 Hello.GetCartResponse.newBuilder()
                         .setCartId(cartId.toString())
@@ -217,7 +217,7 @@ public class EndToEndFilibusterGrpcWithPricingAdjustmentServiceTest extends Purc
                         .setMerchantId(merchantId.toString())
                         .build());
 
-        stubFor(PricingAdjustmentServiceGrpc.getGetDiscountMethod(),
+        stubFor(PricingAdjustmentServiceGrpc.getGetAdjustmentMethod(),
                 Hello.GetDiscountRequest.newBuilder().setCode("FIRST-TIME").build(),
                 Hello.GetDiscountResponse.newBuilder().setPercent("10").build());
 
@@ -260,14 +260,14 @@ public class EndToEndFilibusterGrpcWithPricingAdjustmentServiceTest extends Purc
 
     @Override
     public void assertStubBlock() {
-        verifyThat(UserServiceGrpc.getGetUserFromSessionMethod(), 1);
-        verifyThat(CartServiceGrpc.getGetCartForSessionMethod(), 1);
+        verifyThat(UserServiceGrpc.getGetUserMethod(), 1);
+        verifyThat(CartServiceGrpc.getGetCartMethod(), 1);
 
         Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
                 .setCode(PurchaseWorkflowWithPricingAdjustmentService.getDiscountCode().getKey())
                 .build();
 
-        verifyThat(PricingAdjustmentServiceGrpc.getGetDiscountMethod(), request, 1);
+        verifyThat(PricingAdjustmentServiceGrpc.getGetAdjustmentMethod(), request, 1);
 
         verifyThat(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 1);
     }

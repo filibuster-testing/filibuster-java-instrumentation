@@ -124,7 +124,7 @@ public class PurchaseWorkflowWithPricingAdjustmentService {
         int discountPercentage = 0;
 
         try {
-            Hello.GetDiscountResponse getDiscountResponse = getDiscountOnCart(channel, getDiscountCode().getKey());
+            Hello.GetDiscountResponse getDiscountResponse = getAdjustment(channel, getDiscountCode().getKey());
             discountPercentage = Integer.parseInt(getDiscountResponse.getPercent());
         } catch (StatusRuntimeException statusRuntimeException) {
             // Nothing, ignore discount failure.
@@ -225,20 +225,20 @@ public class PurchaseWorkflowWithPricingAdjustmentService {
     private static String getUserFromSession(Channel channel, String sessionId) {
         UserServiceGrpc.UserServiceBlockingStub userServiceBlockingStub = UserServiceGrpc.newBlockingStub(channel);
         Hello.GetUserRequest request = Hello.GetUserRequest.newBuilder().setSessionId(sessionId).build();
-        Hello.GetUserResponse response = userServiceBlockingStub.getUserFromSession(request);
+        Hello.GetUserResponse response = userServiceBlockingStub.getUser(request);
         return response.getUserId();
     }
 
     private static Hello.GetCartResponse getCartFromSession(Channel channel, String sessionId) {
         CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
         Hello.GetCartRequest request = Hello.GetCartRequest.newBuilder().setSessionId(sessionId).build();
-        return cartServiceBlockingStub.getCartForSession(request);
+        return cartServiceBlockingStub.getCart(request);
     }
 
-    private static Hello.GetDiscountResponse getDiscountOnCart(Channel channel, String discountCode) {
+    private static Hello.GetDiscountResponse getAdjustment(Channel channel, String discountCode) {
         PricingAdjustmentServiceGrpc.PricingAdjustmentServiceBlockingStub pricingAdjustmentServiceBlockingStub = PricingAdjustmentServiceGrpc.newBlockingStub(channel);
         Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder().setCode(discountCode).build();
-        return pricingAdjustmentServiceBlockingStub.getDiscount(request);
+        return pricingAdjustmentServiceBlockingStub.getAdjustment(request);
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")

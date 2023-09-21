@@ -80,14 +80,14 @@ public class EndToEndWithFilibusterGrpcTest extends PurchaseBaseTest {
         // Stub dependencies.
         // ****************************************************************
 
-        stubFor(unaryMethod(UserServiceGrpc.getGetUserFromSessionMethod())
+        stubFor(unaryMethod(UserServiceGrpc.getGetUserMethod())
                 .willReturn(Hello.GetUserResponse.newBuilder()
                         .setUserId(consumerId.toString())
                         .build()));
         stubFor(unaryMethod(UserServiceGrpc.getValidateSessionMethod())
                 .willReturn(Hello.ValidateSessionResponse.newBuilder()
                         .build()));
-        stubFor(unaryMethod(CartServiceGrpc.getGetCartForSessionMethod())
+        stubFor(unaryMethod(CartServiceGrpc.getGetCartMethod())
                 .willReturn(Hello.GetCartResponse.newBuilder()
                         .setCartId(cartId.toString())
                         .setTotal("10000")
@@ -143,9 +143,9 @@ public class EndToEndWithFilibusterGrpcTest extends PurchaseBaseTest {
         // Assert stub invocations.
         // ****************************************************************
 
-        verifyThat(UserServiceGrpc.getGetUserFromSessionMethod(), times(1));
+        verifyThat(UserServiceGrpc.getGetUserMethod(), times(1));
 
-        verifyThat(CartServiceGrpc.getGetCartForSessionMethod(), times(1));
+        verifyThat(CartServiceGrpc.getGetCartMethod(), times(1));
 
         for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
             verifyThat(calledMethod(CartServiceGrpc.getGetDiscountOnCartMethod())

@@ -41,7 +41,7 @@ public class EndToEndFilibusterDiscountError50GrpcTest extends EndToEndFilibuste
             // Notify the system some endpoints are read-only and therefore OK to skip
             // when we return a failure.
             readOnlyRpc(UserServiceGrpc.getValidateSessionMethod());
-            readOnlyRpc(CartServiceGrpc.getGetCartForSessionMethod());
+            readOnlyRpc(CartServiceGrpc.getGetCartMethod());
 
             for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
                 Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
@@ -65,7 +65,7 @@ public class EndToEndFilibusterDiscountError50GrpcTest extends EndToEndFilibuste
             // Notify the system some endpoints are read-only and therefore OK to skip
             // when we return a failure.
             readOnlyRpc(UserServiceGrpc.getValidateSessionMethod());
-            readOnlyRpc(CartServiceGrpc.getGetCartForSessionMethod());
+            readOnlyRpc(CartServiceGrpc.getGetCartMethod());
 
             for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
                 Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
@@ -100,7 +100,7 @@ public class EndToEndFilibusterDiscountError50GrpcTest extends EndToEndFilibuste
             // Notify the system some endpoints are read-only and therefore OK to skip
             // when we return a failure.
             readOnlyRpc(UserServiceGrpc.getValidateSessionMethod());
-            readOnlyRpc(CartServiceGrpc.getGetCartForSessionMethod());
+            readOnlyRpc(CartServiceGrpc.getGetCartMethod());
 
             for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
                 Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
@@ -122,11 +122,11 @@ public class EndToEndFilibusterDiscountError50GrpcTest extends EndToEndFilibuste
                 Hello.ValidateSessionRequest.newBuilder().setSessionId(sessionId.toString()).build(),
                 Hello.ValidateSessionResponse.newBuilder().build());
 
-        stubFor(UserServiceGrpc.getGetUserFromSessionMethod(),
+        stubFor(UserServiceGrpc.getGetUserMethod(),
                 Hello.GetUserRequest.newBuilder().setSessionId(sessionId.toString()).build(),
                 Hello.GetUserResponse.newBuilder().setUserId(consumerId.toString()).build());
 
-        stubFor(CartServiceGrpc.getGetCartForSessionMethod(),
+        stubFor(CartServiceGrpc.getGetCartMethod(),
                 Hello.GetCartRequest.newBuilder().setSessionId(sessionId.toString()).build(),
                 Hello.GetCartResponse.newBuilder()
                         .setCartId(cartId.toString())
@@ -165,8 +165,8 @@ public class EndToEndFilibusterDiscountError50GrpcTest extends EndToEndFilibuste
     @Override
     public void assertStubBlock() {
         verifyThat(UserServiceGrpc.getValidateSessionMethod(), 1);
-        verifyThat(UserServiceGrpc.getGetUserFromSessionMethod(), 1);
-        verifyThat(CartServiceGrpc.getGetCartForSessionMethod(), 1);
+        verifyThat(UserServiceGrpc.getGetUserMethod(), 1);
+        verifyThat(CartServiceGrpc.getGetCartMethod(), 1);
 
         for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
             Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()

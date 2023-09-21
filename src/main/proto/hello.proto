@@ -68,7 +68,7 @@ message GetUserResponse {
 
 service UserService {
   rpc ValidateSession (ValidateSessionRequest) returns (ValidateSessionResponse) {}
-  rpc GetUserFromSession (GetUserRequest) returns (GetUserResponse) {}
+  rpc GetUser (GetUserRequest) returns (GetUserResponse) {}
 }
 
 message ValidateSessionRequest {
@@ -106,7 +106,7 @@ message NotifyDiscountAppliedResponse {
 }
 
 service CartService {
-  rpc GetCartForSession (GetCartRequest) returns (GetCartResponse) {}
+  rpc GetCart (GetCartRequest) returns (GetCartResponse) {}
   rpc GetDiscountOnCart (GetDiscountRequest) returns (GetDiscountResponse) {}
   rpc NotifyDiscountApplied (NotifyDiscountAppliedRequest) returns (NotifyDiscountAppliedResponse) {}
 }
@@ -186,5 +186,5 @@ message RedisReply {
 }
 
 service PricingAdjustmentService {
-  rpc GetDiscount (GetDiscountRequest) returns (GetDiscountResponse) {}
+  rpc GetAdjustment (GetDiscountRequest) returns (GetDiscountResponse) {}
 }

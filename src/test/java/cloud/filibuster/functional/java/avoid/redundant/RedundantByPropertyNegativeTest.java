@@ -113,7 +113,7 @@ public class RedundantByPropertyNegativeTest {
         for (FilibusterAnalyzerWarning warning : warnings) {
             String warningDetails = warning.getDetails();
             switch (warningDetails) {
-                case "cloud.filibuster.examples.UserService/GetUserFromSession":
+                case "cloud.filibuster.examples.UserService/GetUser":
                     assertTrue(warning instanceof RedundantRPCWarning);
                     break;
                 case "cloud.filibuster.examples.CartService/GetDiscountOnCart":

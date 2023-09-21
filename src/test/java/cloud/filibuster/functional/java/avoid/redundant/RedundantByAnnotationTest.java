@@ -66,9 +66,9 @@ public class RedundantByAnnotationTest {
     public void testPurchase() {
         testInvocationCount++;
 
-        stubFor(unaryMethod(UserServiceGrpc.getGetUserFromSessionMethod())
+        stubFor(unaryMethod(UserServiceGrpc.getGetUserMethod())
                 .willReturn(Hello.GetUserResponse.newBuilder().setUserId("1").build()));
-        stubFor(unaryMethod(CartServiceGrpc.getGetCartForSessionMethod())
+        stubFor(unaryMethod(CartServiceGrpc.getGetCartMethod())
                 .willReturn(Hello.GetCartResponse.newBuilder().setCartId("1").build()));
 
         String sessionId = UUID.randomUUID().toString();
@@ -115,7 +115,7 @@ public class RedundantByAnnotationTest {
         for (FilibusterAnalyzerWarning warning : warnings) {
             String warningDetails = warning.getDetails();
             switch (warningDetails) {
-                case "cloud.filibuster.examples.UserService/GetUserFromSession":
+                case "cloud.filibuster.examples.UserService/GetUser":
                     assertTrue(warning instanceof RedundantRPCWarning);
                     break;
                 case "cloud.filibuster.examples.CartService/GetDiscountOnCart":

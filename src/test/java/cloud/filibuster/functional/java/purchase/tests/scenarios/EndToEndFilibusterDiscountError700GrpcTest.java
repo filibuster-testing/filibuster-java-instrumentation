@@ -46,7 +46,7 @@ public class EndToEndFilibusterDiscountError700GrpcTest extends EndToEndFilibust
             // Notify the system some endpoints are read-only and therefore OK to skip
             // when we return a failure.
             readOnlyRpc(UserServiceGrpc.getValidateSessionMethod());
-            readOnlyRpc(CartServiceGrpc.getGetCartForSessionMethod());
+            readOnlyRpc(CartServiceGrpc.getGetCartMethod());
 
             for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
                 Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()

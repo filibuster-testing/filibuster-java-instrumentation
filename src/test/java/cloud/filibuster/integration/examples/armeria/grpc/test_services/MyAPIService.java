@@ -6,6 +6,7 @@ import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.exceptions.CircuitBreakerException;
+import cloud.filibuster.functional.java.purchase.PurchaseWorkflowWithPricingAdjustmentService;
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.libraries.dynamic.proxy.DynamicProxyInterceptor;
@@ -38,7 +39,6 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.Random;
 
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.Map;
@@ -362,14 +362,14 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
     private static String getUserFromSession(Channel channel, String sessionId) {
         UserServiceGrpc.UserServiceBlockingStub userServiceBlockingStub = UserServiceGrpc.newBlockingStub(channel);
         Hello.GetUserRequest request = Hello.GetUserRequest.newBuilder().setSessionId(sessionId).build();
-        Hello.GetUserResponse response = userServiceBlockingStub.getUserFromSession(request);
+        Hello.GetUserResponse response = userServiceBlockingStub.getUser(request);
         return response.getUserId();
     }
 
     private static Hello.GetCartResponse getCartFromSession(Channel channel, String sessionId) {
         CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
         Hello.GetCartRequest request = Hello.GetCartRequest.newBuilder().setSessionId(sessionId).build();
-        return cartServiceBlockingStub.getCartForSession(request);
+        return cartServiceBlockingStub.getCart(request);
     }
 
     private static Hello.GetDiscountResponse getDiscountOnCart(Channel channel, String discountCode) {
@@ -424,6 +424,48 @@ public class MyAPIService extends APIServiceGrpc.APIServiceImplBase {
             }
         } catch (InterruptedException ie) {
             logger.log(Level.SEVERE, "Failed to terminate channel: " + ie);
+        }
+    }
+
+    @Override
+    public void makePurchase(Hello.PurchaseRequest req, StreamObserver<Hello.PurchaseResponse> responseObserver) {
+        PurchaseWorkflowWithPricingAdjustmentService purchaseWorkflow = new PurchaseWorkflowWithPricingAdjustmentService(req.getSessionId(), req.getAbortOnNoDiscount(), req.getAbortOnLessThanDiscountAmount());
+        PurchaseWorkflowWithPricingAdjustmentService.PurchaseWorkflowResponse workflowResponse = purchaseWorkflow.execute();
+        Status status;
+
+        switch (workflowResponse) {
+            case SUCCESS:
+                Hello.PurchaseResponse purchaseResponse = Hello.PurchaseResponse.newBuilder()
+                        .setSuccess(true)
+                        .setTotal(String.valueOf(purchaseWorkflow.getPurchaseTotal()))
+                        .build();
+                responseObserver.onNext(purchaseResponse);
+                responseObserver.onCompleted();
+                break;
+            case NO_DISCOUNT:
+                status = Status.FAILED_PRECONDITION.withDescription("Consumer did not get a discount.");
+                responseObserver.onError(status.asRuntimeException());
+                break;
+            case INSUFFICIENT_DISCOUNT:
+                status = Status.FAILED_PRECONDITION.withDescription("Consumer did not get enough of a discount.");
+                responseObserver.onError(status.asRuntimeException());
+                break;
+            case INSUFFICIENT_FUNDS:
+                status = Status.FAILED_PRECONDITION.withDescription("Consumer did not have sufficient funds to make purchase.");
+                responseObserver.onError(status.asRuntimeException());
+                break;
+            case UNPROCESSED:
+                status = Status.INTERNAL.withDescription("Purchase has not yet been completed.");
+                responseObserver.onError(status.asRuntimeException());
+                break;
+            case USER_UNAVAILABLE:
+                status = Status.UNAVAILABLE.withDescription("Purchase could not be completed at this time, please retry the request: user could not be retrieved.");
+                responseObserver.onError(status.asRuntimeException());
+                break;
+            case CART_UNAVAILABLE:
+                status = Status.UNAVAILABLE.withDescription("Purchase could not be completed at this time, please retry the request: cart could not be retrieved.");
+                responseObserver.onError(status.asRuntimeException());
+                break;
         }
     }
 

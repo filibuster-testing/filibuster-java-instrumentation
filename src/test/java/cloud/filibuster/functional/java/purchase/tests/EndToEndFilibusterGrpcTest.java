@@ -39,7 +39,7 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
 
         // Failure of the getUserFromSession call results in upstream receiving UNAVAILABLE exception.
         assertFaultThrows(
-                UserServiceGrpc.getGetUserFromSessionMethod(),
+                UserServiceGrpc.getGetUserMethod(),
                 Status.Code.UNAVAILABLE,
                 "Purchase could not be completed at this time, please retry the request: user could not be retrieved."
         );
@@ -71,7 +71,7 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
             // Notify the system some endpoints are read-only and therefore OK to skip
             // when we return a failure.
             readOnlyRpc(UserServiceGrpc.getValidateSessionMethod());
-            readOnlyRpc(CartServiceGrpc.getGetCartForSessionMethod());
+            readOnlyRpc(CartServiceGrpc.getGetCartMethod());
         });
 
         // State what the state of the system was on UNAVAILABLE.
@@ -83,7 +83,7 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
             // Notify the system some endpoints are read-only and therefore OK to skip
             // when we return a failure.
             readOnlyRpc(UserServiceGrpc.getValidateSessionMethod());
-            readOnlyRpc(CartServiceGrpc.getGetCartForSessionMethod());
+            readOnlyRpc(CartServiceGrpc.getGetCartMethod());
 
             for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
                 Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
@@ -102,7 +102,7 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
             // Notify the system some endpoints are read-only and therefore OK to skip
             // when we return a failure.
             readOnlyRpc(UserServiceGrpc.getValidateSessionMethod());
-            readOnlyRpc(CartServiceGrpc.getGetCartForSessionMethod());
+            readOnlyRpc(CartServiceGrpc.getGetCartMethod());
 
             for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
                 Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
@@ -126,7 +126,7 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
             // Notify the system some endpoints are read-only and therefore OK to skip
             // when we return a failure.
             readOnlyRpc(UserServiceGrpc.getValidateSessionMethod());
-            readOnlyRpc(CartServiceGrpc.getGetCartForSessionMethod());
+            readOnlyRpc(CartServiceGrpc.getGetCartMethod());
 
             for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
                 Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
@@ -140,7 +140,7 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
 
         // Failure of the getCartFromSession call results in upstream receiving UNAVAILABLE exception.
         assertFaultThrows(
-                CartServiceGrpc.getGetCartForSessionMethod(),
+                CartServiceGrpc.getGetCartMethod(),
                 Status.Code.UNAVAILABLE,
                 Status.Code.UNAVAILABLE,
                 "Purchase could not be completed at this time, please retry the request: cart could not be retrieved."
@@ -154,14 +154,14 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
         //
         if (random.nextBoolean()) {
             assertFaultThrows(
-                    CartServiceGrpc.getGetCartForSessionMethod(),
+                    CartServiceGrpc.getGetCartMethod(),
                     Hello.GetCartRequest.newBuilder().setSessionId(sessionId.toString()).build(),
                     Status.Code.UNAVAILABLE,
                     "Purchase could not be completed at this time, please retry the request: cart could not be retrieved."
             );
         } else {
             assertFaultThrows(
-                    CartServiceGrpc.getGetCartForSessionMethod(),
+                    CartServiceGrpc.getGetCartMethod(),
                     Status.Code.DEADLINE_EXCEEDED,
                     Hello.GetCartRequest.newBuilder().setSessionId(sessionId.toString()).build(),
                     Status.Code.UNAVAILABLE,
@@ -293,11 +293,11 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
                 Hello.ValidateSessionRequest.newBuilder().setSessionId(sessionId.toString()).build(),
                 Hello.ValidateSessionResponse.newBuilder().build());
 
-        stubFor(UserServiceGrpc.getGetUserFromSessionMethod(),
+        stubFor(UserServiceGrpc.getGetUserMethod(),
                 Hello.GetUserRequest.newBuilder().setSessionId(sessionId.toString()).build(),
                 Hello.GetUserResponse.newBuilder().setUserId(consumerId.toString()).build());
 
-        stubFor(CartServiceGrpc.getGetCartForSessionMethod(),
+        stubFor(CartServiceGrpc.getGetCartMethod(),
                 Hello.GetCartRequest.newBuilder().setSessionId(sessionId.toString()).build(),
                 Hello.GetCartResponse.newBuilder()
                         .setCartId(cartId.toString())
@@ -357,8 +357,8 @@ public class EndToEndFilibusterGrpcTest extends PurchaseBaseTest implements Fili
     @Override
     public void assertStubBlock() {
         verifyThat(UserServiceGrpc.getValidateSessionMethod(), 1);
-        verifyThat(UserServiceGrpc.getGetUserFromSessionMethod(), 1);
-        verifyThat(CartServiceGrpc.getGetCartForSessionMethod(), 1);
+        verifyThat(UserServiceGrpc.getGetUserMethod(), 1);
+        verifyThat(CartServiceGrpc.getGetCartMethod(), 1);
 
         for (Map.Entry<String, String> discountCode : PurchaseWorkflow.getDiscountCodes()) {
             Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()

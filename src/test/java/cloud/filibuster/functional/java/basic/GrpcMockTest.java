@@ -67,9 +67,9 @@ public class GrpcMockTest {
     public void testPurchase() {
         testInvocationCount++;
 
-        stubFor(unaryMethod(UserServiceGrpc.getGetUserFromSessionMethod())
+        stubFor(unaryMethod(UserServiceGrpc.getGetUserMethod())
                 .willReturn(Hello.GetUserResponse.newBuilder().setUserId("1").build()));
-        stubFor(unaryMethod(CartServiceGrpc.getGetCartForSessionMethod())
+        stubFor(unaryMethod(CartServiceGrpc.getGetCartMethod())
                 .willReturn(Hello.GetCartResponse.newBuilder().setCartId("1").build()));
         stubFor(unaryMethod(CartServiceGrpc.getGetDiscountOnCartMethod())
                 .willReturn(Hello.GetDiscountResponse.newBuilder().build()));

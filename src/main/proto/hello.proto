@@ -20,6 +20,7 @@ service APIService {
   rpc RedisHello (RedisRequest) returns (RedisReply) {};
   rpc SimulatePurchase (PurchaseRequest) returns (PurchaseResponse) {}
   rpc Purchase (PurchaseRequest) returns (PurchaseResponse) {}
+  rpc MakePurchase (PurchaseRequest) returns (PurchaseResponse) {}
   rpc RedisHelloRetry (RedisRequest) returns (RedisReply) {};
   rpc CreateSession (CreateSessionRequest) returns (CreateSessionResponse) {};
   rpc GetSession (GetSessionRequest) returns (GetSessionResponse) {};
@@ -67,7 +68,7 @@ message GetUserResponse {
 
 service UserService {
   rpc ValidateSession (ValidateSessionRequest) returns (ValidateSessionResponse) {}
-  rpc GetUserFromSession (GetUserRequest) returns (GetUserResponse) {}
+  rpc GetUser (GetUserRequest) returns (GetUserResponse) {}
 }
 
 message ValidateSessionRequest {
@@ -76,6 +77,16 @@ message ValidateSessionRequest {
 
 message ValidateSessionResponse {
 
+}
+
+message UpdateCartRequest {
+  string cart_id = 1;
+  string discount_amount = 2;
+}
+
+message UpdateCartResponse {
+  string cart_id = 1;
+  string total = 2;
 }
 
 message GetCartRequest {
@@ -105,7 +116,8 @@ message NotifyDiscountAppliedResponse {
 }
 
 service CartService {
-  rpc GetCartForSession (GetCartRequest) returns (GetCartResponse) {}
+  rpc UpdateCart (UpdateCartRequest) returns (UpdateCartResponse) {}
+  rpc GetCart (GetCartRequest) returns (GetCartResponse) {}
   rpc GetDiscountOnCart (GetDiscountRequest) returns (GetDiscountResponse) {}
   rpc NotifyDiscountApplied (NotifyDiscountAppliedRequest) returns (NotifyDiscountAppliedResponse) {}
 }
@@ -182,4 +194,8 @@ message RedisRequest {
 
 message RedisReply {
   string value = 1;
+}
+
+service PricingAdjustmentService {
+  rpc GetAdjustment (GetDiscountRequest) returns (GetDiscountResponse) {}
 }

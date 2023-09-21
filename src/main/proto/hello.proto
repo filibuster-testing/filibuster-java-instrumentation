@@ -20,6 +20,7 @@ service APIService {
   rpc RedisHello (RedisRequest) returns (RedisReply) {};
   rpc SimulatePurchase (PurchaseRequest) returns (PurchaseResponse) {}
   rpc Purchase (PurchaseRequest) returns (PurchaseResponse) {}
+  rpc MakePurchase (PurchaseRequest) returns (PurchaseResponse) {}
   rpc RedisHelloRetry (RedisRequest) returns (RedisReply) {};
   rpc CreateSession (CreateSessionRequest) returns (CreateSessionResponse) {};
   rpc GetSession (GetSessionRequest) returns (GetSessionResponse) {};
@@ -182,4 +183,8 @@ message RedisRequest {
 
 message RedisReply {
   string value = 1;
+}
+
+service PricingAdjustmentService {
+  rpc GetDiscount (GetDiscountRequest) returns (GetDiscountResponse) {}
 }

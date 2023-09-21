@@ -7,9 +7,15 @@ import cloud.filibuster.examples.PricingAdjustmentServiceGrpc;
 import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.functional.java.purchase.PurchaseBaseTest;
 import cloud.filibuster.functional.java.purchase.PurchaseWorkflowWithPricingAdjustmentService;
+import cloud.filibuster.functional.java.purchase.configurations.GRPCAnalysisConfigurationFile;
+import cloud.filibuster.instrumentation.helpers.Networking;
+import cloud.filibuster.junit.FilibusterSearchStrategy;
+import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.statem.FilibusterGrpcTest;
 import io.grpc.Status;
+import org.grpcmock.junit5.GrpcMockExtension;
 import org.json.JSONObject;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Random;
 import java.util.UUID;
@@ -21,6 +27,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class EndToEndFilibusterGrpcWithPricingAdjustmentServiceTest extends PurchaseBaseTest implements FilibusterGrpcTest {
+    // You cannot use this in a superclass because the stupid library doesn't know when to shut down.
+    @RegisterExtension
+    static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
+            .withPort(Networking.getPort("mock"))
+            .build();
+
     public final UUID sessionId = UUID.randomUUID();
     protected final UUID consumerId = UUID.randomUUID();
     protected final UUID merchantId = UUID.randomUUID();
@@ -174,8 +186,9 @@ public class EndToEndFilibusterGrpcWithPricingAdjustmentServiceTest extends Purc
         Hello.PurchaseRequest request = Hello.PurchaseRequest.newBuilder()
                 .setSessionId(sessionId.toString())
                 .setAbortOnNoDiscount(false)
+                .setAbortOnLessThanDiscountAmount(0)
                 .build();
-        response.set(blockingStub.purchase(request));
+        response.set(blockingStub.makePurchase(request));
     }
 
     public void assertTestBlock(int total) {
@@ -224,5 +237,16 @@ public class EndToEndFilibusterGrpcWithPricingAdjustmentServiceTest extends Purc
 
         // Reset database state.
         PurchaseWorkflowWithPricingAdjustmentService.deleteAccount(merchantId);
+    }
+
+    @TestWithFilibuster(
+            analysisConfigurationFile = GRPCAnalysisConfigurationFile.class,
+            abortOnFirstFailure = true,
+            maxIterations = 100,
+            dataNondeterminism = true,
+            searchStrategy = FilibusterSearchStrategy.BFS
+    )
+    public void test() {
+        execute();
     }
 }

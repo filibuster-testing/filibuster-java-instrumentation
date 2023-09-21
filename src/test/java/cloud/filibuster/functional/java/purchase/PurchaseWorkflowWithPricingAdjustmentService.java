@@ -120,32 +120,22 @@ public class PurchaseWorkflowWithPricingAdjustmentService {
             return PurchaseWorkflowResponse.CART_UNAVAILABLE;
         }
 
-        // Get the maximum discount.
-        int discountPercentage = 0;
+        // Get the pricing adjustment.
+        String discountPercentage = null;
 
         try {
             Hello.GetDiscountResponse getDiscountResponse = getAdjustment(channel, getDiscountCode().getKey());
-            discountPercentage = Integer.parseInt(getDiscountResponse.getPercent());
+            discountPercentage = getDiscountResponse.getPercent();
         } catch (StatusRuntimeException statusRuntimeException) {
             // Nothing, ignore discount failure.
         }
 
-        // Apply discount.
-        float discountPct = discountPercentage / 100.00F;
-        float discountAmount = cartTotal * discountPct;
-        cartTotal = cartTotal - (int) discountAmount;
+        // If we get a discount back that is not zero, update the cart and get the new total.
+        Hello.UpdateCartResponse updateCartResponse = null;
 
-        // Notify of applied discount.
-        if (discountAmount > 0) {
-            if (abortOnLessThanDiscountAmount > 0 && discountAmount < abortOnLessThanDiscountAmount) {
-                return PurchaseWorkflowResponse.INSUFFICIENT_DISCOUNT;
-            } else {
-                notifyOfDiscountApplied(channel, cartId);
-            }
-        } else {
-            if (abortOnNoDiscount) {
-                return PurchaseWorkflowResponse.NO_DISCOUNT;
-            }
+        if (discountPercentage != null && Integer.parseInt(discountPercentage) > 0) {
+            updateCartResponse = updateCart(channel, cartId, discountPercentage, String.valueOf(cartTotal));
+            cartTotal = Integer.parseInt(updateCartResponse.getTotal());
         }
 
         // Verify the user has sufficient funds.
@@ -241,15 +231,14 @@ public class PurchaseWorkflowWithPricingAdjustmentService {
         return pricingAdjustmentServiceBlockingStub.getAdjustment(request);
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    private static void notifyOfDiscountApplied(Channel channel, String cartId) {
+    private static Hello.UpdateCartResponse updateCart(Channel channel, String cartId, String discountAmount, String totalPriorToDiscount) {
         CartServiceGrpc.CartServiceBlockingStub cartServiceBlockingStub = CartServiceGrpc.newBlockingStub(channel);
-        Hello.NotifyDiscountAppliedRequest notifyDiscountAppliedRequest = Hello.NotifyDiscountAppliedRequest.newBuilder().setCartId(cartId).build();
+        Hello.UpdateCartRequest updateCartRequest = Hello.UpdateCartRequest.newBuilder().setCartId(cartId).setDiscountAmount(discountAmount).build();
         try {
-            cartServiceBlockingStub.notifyDiscountApplied(notifyDiscountAppliedRequest);
+            return cartServiceBlockingStub.updateCart(updateCartRequest);
         } catch (StatusRuntimeException statusRuntimeException) {
-            // Nothing, ignore the failure.
+            // Return default response with original total.
+            return Hello.UpdateCartResponse.newBuilder().setCartId(cartId).setTotal(totalPriorToDiscount).build();
         }
     }
-
 }

@@ -79,6 +79,16 @@ message ValidateSessionResponse {
 
 }
 
+message UpdateCartRequest {
+  string cart_id = 1;
+  string discount_amount = 2;
+}
+
+message UpdateCartResponse {
+  string cart_id = 1;
+  string total = 2;
+}
+
 message GetCartRequest {
   string session_id = 1;
 }
@@ -106,6 +116,7 @@ message NotifyDiscountAppliedResponse {
 }
 
 service CartService {
+  rpc UpdateCart (UpdateCartRequest) returns (UpdateCartResponse) {}
   rpc GetCart (GetCartRequest) returns (GetCartResponse) {}
   rpc GetDiscountOnCart (GetDiscountRequest) returns (GetDiscountResponse) {}
   rpc NotifyDiscountApplied (NotifyDiscountAppliedRequest) returns (NotifyDiscountAppliedResponse) {}

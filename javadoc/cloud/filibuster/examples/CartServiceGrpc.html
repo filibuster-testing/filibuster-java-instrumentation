@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9};
+var data = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -218,7 +218,7 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>static io.grpc.MethodDescriptor&lt;<a href="Hello.GetCartRequest.html" title="class in cloud.filibuster.examples">Hello.GetCartRequest</a>,&#8203;<a href="Hello.GetCartResponse.html" title="class in cloud.filibuster.examples">Hello.GetCartResponse</a>&gt;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getGetCartForSessionMethod()">getGetCartForSessionMethod</a></span>()</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getGetCartMethod()">getGetCartMethod</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr id="i1" class="rowColor">
@@ -237,20 +237,25 @@ extends java.lang.Object</pre>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr id="i4" class="altColor">
+<td class="colFirst"><code>static io.grpc.MethodDescriptor&lt;<a href="Hello.UpdateCartRequest.html" title="class in cloud.filibuster.examples">Hello.UpdateCartRequest</a>,&#8203;<a href="Hello.UpdateCartResponse.html" title="class in cloud.filibuster.examples">Hello.UpdateCartResponse</a>&gt;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getUpdateCartMethod()">getUpdateCartMethod</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>static <a href="CartServiceGrpc.CartServiceBlockingStub.html" title="class in cloud.filibuster.examples">CartServiceGrpc.CartServiceBlockingStub</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#newBlockingStub(io.grpc.Channel)">newBlockingStub</a></span>&#8203;(io.grpc.Channel&nbsp;channel)</code></th>
 <td class="colLast">
 <div class="block">Creates a new blocking-style stub that supports unary and streaming output calls on the service</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>static <a href="CartServiceGrpc.CartServiceFutureStub.html" title="class in cloud.filibuster.examples">CartServiceGrpc.CartServiceFutureStub</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#newFutureStub(io.grpc.Channel)">newFutureStub</a></span>&#8203;(io.grpc.Channel&nbsp;channel)</code></th>
 <td class="colLast">
 <div class="block">Creates a new ListenableFuture-style stub that supports unary calls on the service</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>static <a href="CartServiceGrpc.CartServiceStub.html" title="class in cloud.filibuster.examples">CartServiceGrpc.CartServiceStub</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#newStub(io.grpc.Channel)">newStub</a></span>&#8203;(io.grpc.Channel&nbsp;channel)</code></th>
 <td class="colLast">
@@ -304,13 +309,22 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a id="getGetCartForSessionMethod()">
+<a id="getUpdateCartMethod()">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getGetCartForSessionMethod</h4>
-<pre class="methodSignature">public static&nbsp;io.grpc.MethodDescriptor&lt;<a href="Hello.GetCartRequest.html" title="class in cloud.filibuster.examples">Hello.GetCartRequest</a>,&#8203;<a href="Hello.GetCartResponse.html" title="class in cloud.filibuster.examples">Hello.GetCartResponse</a>&gt;&nbsp;getGetCartForSessionMethod()</pre>
+<h4>getUpdateCartMethod</h4>
+<pre class="methodSignature">public static&nbsp;io.grpc.MethodDescriptor&lt;<a href="Hello.UpdateCartRequest.html" title="class in cloud.filibuster.examples">Hello.UpdateCartRequest</a>,&#8203;<a href="Hello.UpdateCartResponse.html" title="class in cloud.filibuster.examples">Hello.UpdateCartResponse</a>&gt;&nbsp;getUpdateCartMethod()</pre>
+</li>
+</ul>
+<a id="getGetCartMethod()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getGetCartMethod</h4>
+<pre class="methodSignature">public static&nbsp;io.grpc.MethodDescriptor&lt;<a href="Hello.GetCartRequest.html" title="class in cloud.filibuster.examples">Hello.GetCartRequest</a>,&#8203;<a href="Hello.GetCartResponse.html" title="class in cloud.filibuster.examples">Hello.GetCartResponse</a>&gt;&nbsp;getGetCartMethod()</pre>
 </li>
 </ul>
 <a id="getGetDiscountOnCartMethod()">

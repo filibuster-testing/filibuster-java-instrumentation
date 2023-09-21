@@ -19,9 +19,7 @@ import io.grpc.StatusRuntimeException;
 import io.lettuce.core.api.StatefulRedisConnection;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -70,12 +68,8 @@ public class PurchaseWorkflowWithPricingAdjustmentService {
         return "last_purchase_for_user_" + consumer;
     }
 
-    public static List<Map.Entry<String, String>> getDiscountCodes() {
-        ArrayList<Map.Entry<String, String>> discountCodes = new ArrayList<>();
-        discountCodes.add(Pair.of("FIRST-TIME", "10"));
-        discountCodes.add(Pair.of("RETURNING", "5"));
-        discountCodes.add(Pair.of("DAILY", "1"));
-        return discountCodes;
+    public static Map.Entry<String, String> getDiscountCode() {
+        return Pair.of("FIRST-TIME", "10");
     }
 
     private final String sessionId;
@@ -116,9 +110,6 @@ public class PurchaseWorkflowWithPricingAdjustmentService {
             return PurchaseWorkflowResponse.USER_UNAVAILABLE;
         }
 
-        // Validate session, let any errors propagate back to the caller.
-        validateSession(channel, sessionId);
-
         // Get cart.
         try {
             Hello.GetCartResponse getCartResponse = getCartFromSession(channel, sessionId);
@@ -130,20 +121,17 @@ public class PurchaseWorkflowWithPricingAdjustmentService {
         }
 
         // Get the maximum discount.
-        int maxDiscountPercentage = 0;
+        int discountPercentage = 0;
 
-        for (Map.Entry<String, String> discountCode : getDiscountCodes()) {
-            try {
-                Hello.GetDiscountResponse getDiscountResponse = getDiscountOnCart(channel, discountCode.getKey());
-                int discountPercentage = Integer.parseInt(getDiscountResponse.getPercent());
-                maxDiscountPercentage = Integer.max(maxDiscountPercentage, discountPercentage);
-            } catch (StatusRuntimeException statusRuntimeException) {
-                // Nothing, ignore discount failure.
-            }
+        try {
+            Hello.GetDiscountResponse getDiscountResponse = getDiscountOnCart(channel, getDiscountCode().getKey());
+            discountPercentage = Integer.parseInt(getDiscountResponse.getPercent());
+        } catch (StatusRuntimeException statusRuntimeException) {
+            // Nothing, ignore discount failure.
         }
 
         // Apply discount.
-        float discountPct = maxDiscountPercentage / 100.00F;
+        float discountPct = discountPercentage / 100.00F;
         float discountAmount = cartTotal * discountPct;
         cartTotal = cartTotal - (int) discountAmount;
 
@@ -264,10 +252,4 @@ public class PurchaseWorkflowWithPricingAdjustmentService {
         }
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    private static void validateSession(Channel channel, String sessionId) {
-        UserServiceGrpc.UserServiceBlockingStub userServiceBlockingStub = UserServiceGrpc.newBlockingStub(channel);
-        Hello.ValidateSessionRequest request = Hello.ValidateSessionRequest.newBuilder().setSessionId(sessionId).build();
-        userServiceBlockingStub.validateSession(request);
-    }
 }

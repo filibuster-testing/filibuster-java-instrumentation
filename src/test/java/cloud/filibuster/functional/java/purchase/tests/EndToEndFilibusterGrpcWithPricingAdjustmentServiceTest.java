@@ -7,12 +7,10 @@ import cloud.filibuster.examples.PricingAdjustmentServiceGrpc;
 import cloud.filibuster.examples.UserServiceGrpc;
 import cloud.filibuster.functional.java.purchase.PurchaseBaseTest;
 import cloud.filibuster.functional.java.purchase.PurchaseWorkflowWithPricingAdjustmentService;
-import cloud.filibuster.junit.statem.CompositeFaultSpecification;
 import cloud.filibuster.junit.statem.FilibusterGrpcTest;
 import io.grpc.Status;
 import org.json.JSONObject;
 
-import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
@@ -55,10 +53,6 @@ public class EndToEndFilibusterGrpcWithPricingAdjustmentServiceTest extends Purc
             // Verify transaction did not occur.
             assertEquals(20000, PurchaseWorkflowWithPricingAdjustmentService.getAccountBalance(consumerId));
             assertEquals(0, PurchaseWorkflowWithPricingAdjustmentService.getAccountBalance(merchantId));
-
-            // Notify the system some endpoints are read-only and therefore OK to skip
-            // when we return a failure.
-            readOnlyRpc(UserServiceGrpc.getValidateSessionMethod());
         });
 
         // State what the state of the system was on UNAVAILABLE.
@@ -69,7 +63,6 @@ public class EndToEndFilibusterGrpcWithPricingAdjustmentServiceTest extends Purc
 
             // Notify the system some endpoints are read-only and therefore OK to skip
             // when we return a failure.
-            readOnlyRpc(UserServiceGrpc.getValidateSessionMethod());
             readOnlyRpc(CartServiceGrpc.getGetCartForSessionMethod());
         });
 
@@ -81,15 +74,12 @@ public class EndToEndFilibusterGrpcWithPricingAdjustmentServiceTest extends Purc
 
             // Notify the system some endpoints are read-only and therefore OK to skip
             // when we return a failure.
-            readOnlyRpc(UserServiceGrpc.getValidateSessionMethod());
             readOnlyRpc(CartServiceGrpc.getGetCartForSessionMethod());
 
-            for (Map.Entry<String, String> discountCode : PurchaseWorkflowWithPricingAdjustmentService.getDiscountCodes()) {
-                Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
-                        .setCode(discountCode.getKey())
-                        .build();
-                readOnlyRpc(PricingAdjustmentServiceGrpc.getGetDiscountMethod(), request);
-            }
+            Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
+                    .setCode(PurchaseWorkflowWithPricingAdjustmentService.getDiscountCode().getKey())
+                    .build();
+            readOnlyRpc(PricingAdjustmentServiceGrpc.getGetDiscountMethod(), request);
         });
 
         // State what the state of the system was on UNAVAILABLE.
@@ -100,21 +90,17 @@ public class EndToEndFilibusterGrpcWithPricingAdjustmentServiceTest extends Purc
 
             // Notify the system some endpoints are read-only and therefore OK to skip
             // when we return a failure.
-            readOnlyRpc(UserServiceGrpc.getValidateSessionMethod());
             readOnlyRpc(CartServiceGrpc.getGetCartForSessionMethod());
 
-            for (Map.Entry<String, String> discountCode : PurchaseWorkflowWithPricingAdjustmentService.getDiscountCodes()) {
-                Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
-                        .setCode(discountCode.getKey())
-                        .build();
-                readOnlyRpc(PricingAdjustmentServiceGrpc.getGetDiscountMethod(), request);
-            }
+            Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
+                    .setCode(PurchaseWorkflowWithPricingAdjustmentService.getDiscountCode().getKey())
+                    .build();
+            readOnlyRpc(PricingAdjustmentServiceGrpc.getGetDiscountMethod(), request);
 
             sideEffectingRpc(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
         });
 
         // No error handling, propagate back to the upstream.
-        assertFaultPropagates(UserServiceGrpc.getValidateSessionMethod());
 
         // State what the state of the system was on DEADLINE_EXCEEDED.
         assertOnException(Status.Code.DEADLINE_EXCEEDED, () -> {
@@ -124,15 +110,12 @@ public class EndToEndFilibusterGrpcWithPricingAdjustmentServiceTest extends Purc
 
             // Notify the system some endpoints are read-only and therefore OK to skip
             // when we return a failure.
-            readOnlyRpc(UserServiceGrpc.getValidateSessionMethod());
             readOnlyRpc(CartServiceGrpc.getGetCartForSessionMethod());
 
-            for (Map.Entry<String, String> discountCode : PurchaseWorkflowWithPricingAdjustmentService.getDiscountCodes()) {
-                Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
-                        .setCode(discountCode.getKey())
-                        .build();
-                readOnlyRpc(PricingAdjustmentServiceGrpc.getGetDiscountMethod(), request);
-            }
+            Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
+                    .setCode(PurchaseWorkflowWithPricingAdjustmentService.getDiscountCode().getKey())
+                    .build();
+            readOnlyRpc(PricingAdjustmentServiceGrpc.getGetDiscountMethod(), request);
 
             sideEffectingRpc(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
         });
@@ -168,47 +151,17 @@ public class EndToEndFilibusterGrpcWithPricingAdjustmentServiceTest extends Purc
             );
         }
 
-        // Failure of the first getDiscountOnCart call results in a 5% discount.
+        // Failure of the getDiscount call results in no discount.
         assertOnFault(
                 PricingAdjustmentServiceGrpc.getGetDiscountMethod(),
                 Hello.GetDiscountRequest.newBuilder()
                         .setCode("FIRST-TIME")
                         .build(),
-                () -> { assertTestBlock(9500); }
+                () -> {
+                    assertTestBlock(10000);
+                    sideEffectingRpc(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
+                }
         );
-
-        // Failure of the second or third getDiscountOnCart call results in a 10% discount.
-        // We can write this several different ways too.
-        //
-        // Randomly sample the two different APIs across Filibuster just as a form of
-        // regression test.
-        //
-        if (random.nextBoolean()) {
-            assertOnFault(
-                    PricingAdjustmentServiceGrpc.getGetDiscountMethod(),
-                    this::assertTestBlock
-            );
-        } else {
-            assertOnFault(
-                    PricingAdjustmentServiceGrpc.getGetDiscountMethod(),
-                    Status.Code.UNAVAILABLE,
-                    Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build(),
-                    this::assertTestBlock
-            );
-
-            assertOnFault(
-                    PricingAdjustmentServiceGrpc.getGetDiscountMethod(),
-                    Status.Code.UNAVAILABLE,
-                    Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build(),
-                    this::assertTestBlock
-            );
-
-            assertOnFault(
-                    PricingAdjustmentServiceGrpc.getGetDiscountMethod(),
-                    Status.Code.DEADLINE_EXCEEDED,
-                    this::assertTestBlock
-            );
-        }
 
         // Failure of the getNotifyDiscountAppliedMethod has no effect.
         // We can write this several different ways too.
@@ -234,42 +187,6 @@ public class EndToEndFilibusterGrpcWithPricingAdjustmentServiceTest extends Purc
         } else {
             assertFaultHasNoImpact(CartServiceGrpc.getNotifyDiscountAppliedMethod());
         }
-
-        // Multiple faults.
-
-        // Failure of the first two getDiscountOnCart calls results in a 1% discount.
-        CompositeFaultSpecification firstTwoCartRequestsFaultSpecification = new CompositeFaultSpecification.Builder()
-                .faultOnRequest(PricingAdjustmentServiceGrpc.getGetDiscountMethod(), Hello.GetDiscountRequest.newBuilder().setCode("FIRST-TIME").build())
-                .faultOnRequest(PricingAdjustmentServiceGrpc.getGetDiscountMethod(), Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build())
-                .build();
-        assertOnFault(firstTwoCartRequestsFaultSpecification, () -> { assertTestBlock(9900); });
-
-        // Failure of the first and third getDiscountOnCart calls results in a 5% discount.
-        CompositeFaultSpecification firstAndThirdCartRequestsFaultSpecification = new CompositeFaultSpecification.Builder()
-                .faultOnRequest(PricingAdjustmentServiceGrpc.getGetDiscountMethod(), Hello.GetDiscountRequest.newBuilder().setCode("FIRST-TIME").build())
-                .faultOnRequest(PricingAdjustmentServiceGrpc.getGetDiscountMethod(), Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build())
-                .build();
-        assertOnFault(firstAndThirdCartRequestsFaultSpecification, () -> { assertTestBlock(9500); });
-
-        // Failure of the second and third getDiscountOnCart calls results in a 10% discount.
-        CompositeFaultSpecification secondAndThirdCartRequestsFaultSpecification = new CompositeFaultSpecification.Builder()
-                .faultOnRequest(PricingAdjustmentServiceGrpc.getGetDiscountMethod(), Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build())
-                .faultOnRequest(PricingAdjustmentServiceGrpc.getGetDiscountMethod(), Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build())
-                .build();
-        assertOnFault(secondAndThirdCartRequestsFaultSpecification, () -> { assertTestBlock(9000); });
-
-        // Failure of all getDiscountOnCart calls results in no discount.
-        CompositeFaultSpecification allCartRequestsFaultSpecification = new CompositeFaultSpecification.Builder()
-                .faultOnRequest(PricingAdjustmentServiceGrpc.getGetDiscountMethod(), Hello.GetDiscountRequest.newBuilder().setCode("FIRST-TIME").build())
-                .faultOnRequest(PricingAdjustmentServiceGrpc.getGetDiscountMethod(), Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build())
-                .faultOnRequest(PricingAdjustmentServiceGrpc.getGetDiscountMethod(), Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build())
-                .build();
-        assertOnFault(
-                allCartRequestsFaultSpecification,
-                () -> {
-                    assertTestBlock(10000);
-                    sideEffectingRpc(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 0);
-                });
     }
 
     @Override
@@ -288,10 +205,6 @@ public class EndToEndFilibusterGrpcWithPricingAdjustmentServiceTest extends Purc
 
     @Override
     public void stubBlock() {
-        stubFor(UserServiceGrpc.getValidateSessionMethod(),
-                Hello.ValidateSessionRequest.newBuilder().setSessionId(sessionId.toString()).build(),
-                Hello.ValidateSessionResponse.newBuilder().build());
-
         stubFor(UserServiceGrpc.getGetUserFromSessionMethod(),
                 Hello.GetUserRequest.newBuilder().setSessionId(sessionId.toString()).build(),
                 Hello.GetUserResponse.newBuilder().setUserId(consumerId.toString()).build());
@@ -307,14 +220,6 @@ public class EndToEndFilibusterGrpcWithPricingAdjustmentServiceTest extends Purc
         stubFor(PricingAdjustmentServiceGrpc.getGetDiscountMethod(),
                 Hello.GetDiscountRequest.newBuilder().setCode("FIRST-TIME").build(),
                 Hello.GetDiscountResponse.newBuilder().setPercent("10").build());
-
-        stubFor(PricingAdjustmentServiceGrpc.getGetDiscountMethod(),
-                Hello.GetDiscountRequest.newBuilder().setCode("RETURNING").build(),
-                Hello.GetDiscountResponse.newBuilder().setPercent("5").build());
-
-        stubFor(PricingAdjustmentServiceGrpc.getGetDiscountMethod(),
-                Hello.GetDiscountRequest.newBuilder().setCode("DAILY").build(),
-                Hello.GetDiscountResponse.newBuilder().setPercent("1").build());
 
         stubFor(CartServiceGrpc.getNotifyDiscountAppliedMethod(),
                 Hello.NotifyDiscountAppliedRequest.newBuilder().setCartId(cartId.toString()).build(),
@@ -355,17 +260,14 @@ public class EndToEndFilibusterGrpcWithPricingAdjustmentServiceTest extends Purc
 
     @Override
     public void assertStubBlock() {
-        verifyThat(UserServiceGrpc.getValidateSessionMethod(), 1);
         verifyThat(UserServiceGrpc.getGetUserFromSessionMethod(), 1);
         verifyThat(CartServiceGrpc.getGetCartForSessionMethod(), 1);
 
-        for (Map.Entry<String, String> discountCode : PurchaseWorkflowWithPricingAdjustmentService.getDiscountCodes()) {
-            Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
-                    .setCode(discountCode.getKey())
-                    .build();
+        Hello.GetDiscountRequest request = Hello.GetDiscountRequest.newBuilder()
+                .setCode(PurchaseWorkflowWithPricingAdjustmentService.getDiscountCode().getKey())
+                .build();
 
-            verifyThat(PricingAdjustmentServiceGrpc.getGetDiscountMethod(), request, 1);
-        }
+        verifyThat(PricingAdjustmentServiceGrpc.getGetDiscountMethod(), request, 1);
 
         verifyThat(CartServiceGrpc.getNotifyDiscountAppliedMethod(), 1);
     }

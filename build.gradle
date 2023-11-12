@@ -340,3 +340,13 @@ task testWithFaultInjectionDocker(type: Test) {
 
 project.setProperty("mainClassName", "cloud.filibuster.instrumentation.Main")
 
+
+jar {
+    manifest {
+        attributes("Main-Class": "cloud.filibuster.instrumentation.Main")
+        attributes("Add-Exports": "java.base/sun.security.x509")
+        attributes("Implementation-Version": project.version)
+        attributes("Implementation-Title": "Filibuster")
+    }
+}
+

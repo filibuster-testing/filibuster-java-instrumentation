@@ -6,6 +6,7 @@ buildscript {
 
 plugins {
     id 'java'
+    id 'java-library'
     id "com.diffplug.spotless" version "5.0.0"
     id 'signing'
     id 'maven-publish'

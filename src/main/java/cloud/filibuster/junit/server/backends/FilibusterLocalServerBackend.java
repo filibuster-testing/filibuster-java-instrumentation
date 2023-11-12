@@ -28,15 +28,6 @@ public class FilibusterLocalServerBackend implements FilibusterServerBackend {
         // object can be accessed via FilibusterCore.getCurrentInstance
         new FilibusterCore(filibusterConfiguration);
 
-        if (filibusterServer == null) {
-            filibusterServer = FilibusterServer.serve();
-        }
-        if(filibusterServer == null)
-        {
-            throw new FilibusterServerNullException("The Filibuster Server should not be null at this point.");
-        }
-        filibusterServer.start();
-
         setServerBackendCanInvokeDirectlyProperty(true);
 
         return true;

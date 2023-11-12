@@ -1,9 +1,11 @@
 package cloud.filibuster.junit.server;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.exceptions.FilibusterServerUnavailabilityException;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.configuration.FilibusterConfiguration;
+import cloud.filibuster.junit.server.backends.FilibusterLocalServerBackend;
 import com.linecorp.armeria.client.WebClient;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,6 +50,16 @@ public class FilibusterServerLifecycle {
 
         if (!started) {
             FilibusterServerBackend filibusterServerBackend = filibusterConfiguration.getServerBackend();
+
+            if (filibusterServerBackend instanceof FilibusterLocalServerBackend) {
+                try {
+                    filibusterServerBackend.start(filibusterConfiguration);
+                } catch (Throwable e) {
+                    throw new FilibusterRuntimeException("we should never hit here, since the local server should always start.");
+                }
+
+                return getNewWebClient();
+            }
 
             try {
                 filibusterServerBackend.start(filibusterConfiguration);

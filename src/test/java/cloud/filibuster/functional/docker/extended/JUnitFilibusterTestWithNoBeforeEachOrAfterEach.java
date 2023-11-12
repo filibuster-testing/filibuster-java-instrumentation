@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.python.extended;
+package cloud.filibuster.functional.docker.extended;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
@@ -9,6 +9,7 @@ import cloud.filibuster.instrumentation.libraries.grpc.FilibusterClientIntercept
 import cloud.filibuster.instrumentation.libraries.grpc.FilibusterServerInterceptor;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
+import cloud.filibuster.junit.server.backends.FilibusterDockerServerBackend;
 import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -48,7 +49,7 @@ public class JUnitFilibusterTestWithNoBeforeEachOrAfterEach {
      */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
-    @TestWithFilibuster(serverBackend=FilibusterLocalProcessServerBackend.class)
+    @TestWithFilibuster(serverBackend= FilibusterDockerServerBackend.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException, IOException {
         MyHelloService.shouldReturnRuntimeExceptionWithCause = false;

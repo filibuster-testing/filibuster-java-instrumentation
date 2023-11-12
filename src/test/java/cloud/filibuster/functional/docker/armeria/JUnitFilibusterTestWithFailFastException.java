@@ -1,5 +1,6 @@
-package cloud.filibuster.functional.python.custom;
+package cloud.filibuster.functional.docker.armeria;
 
+import cloud.filibuster.RpcType;
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
@@ -7,10 +8,12 @@ import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
+import cloud.filibuster.junit.server.backends.FilibusterDockerServerBackend;
 import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
 import cloud.filibuster.functional.JUnitBaseTest;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -25,20 +28,24 @@ import java.util.concurrent.TimeUnit;
 
 import static cloud.filibuster.junit.assertions.protocols.GenericAssertions.wasFaultInjected;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Verify that the Filibuster analysis can be configured to use a custom set of faults.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("Java8ApiChecker")
-public class JUnitFilibusterTestWithCustomAnalysisFile extends JUnitBaseTest {
+public class JUnitFilibusterTestWithFailFastException extends JUnitBaseTest {
     private static final String analysisFilePath = "/tmp/filibuster-custom-analysis-file";
 
-    static {
-        @SuppressWarnings("Java8ApiChecker")
+    @BeforeAll
+    public static void writeCustomAnalysisFile() {
         FilibusterAnalysisConfiguration filibusterAnalysisConfiguration = new FilibusterAnalysisConfiguration.Builder()
                 .name("java.grpc")
                 .pattern("(.*/.*)")
+                .rpcType(RpcType.GRPC)
+
+                // Base exceptions.
                 .exception("io.grpc.StatusRuntimeException", Map.of(
                         "cause", "",
                         "code", "UNAVAILABLE"
@@ -55,11 +62,23 @@ public class JUnitFilibusterTestWithCustomAnalysisFile extends JUnitBaseTest {
                         "cause", "",
                         "code", "NOT_FOUND"
                 ))
+                .exception("io.grpc.StatusRuntimeException", Map.of(
+                        "cause", "",
+                        "code", "UNKNOWN"
+                ))
+
+                // Custom exception type, but must support the RuntimeException set of constructors.
+                .exception("io.grpc.StatusRuntimeException", Map.of(
+                        "cause", "cloud.filibuster.exceptions.CircuitBreakerException",
+                        "code", "UNKNOWN"
+                ))
+
                 .build();
         FilibusterCustomAnalysisConfigurationFile filibusterAnalysisConfigurationFile = new FilibusterCustomAnalysisConfigurationFile.Builder()
                 .analysisConfiguration(filibusterAnalysisConfiguration)
                 .build();
-        filibusterAnalysisConfigurationFile.writeToDisk(analysisFilePath);
+        boolean result = filibusterAnalysisConfigurationFile.writeToDisk(analysisFilePath);
+        assertTrue(result);
     }
 
     private final static Set<String> testExceptionsThrown = new HashSet<>();
@@ -70,7 +89,7 @@ public class JUnitFilibusterTestWithCustomAnalysisFile extends JUnitBaseTest {
      * @throws InterruptedException thrown if the gRPC channel fails to terminate.
      */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @TestWithFilibuster(analysisFile=analysisFilePath, serverBackend=FilibusterLocalProcessServerBackend.class)
+    @TestWithFilibuster(analysisFile=analysisFilePath, serverBackend=FilibusterDockerServerBackend.class)
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
@@ -106,6 +125,14 @@ public class JUnitFilibusterTestWithCustomAnalysisFile extends JUnitBaseTest {
                     expected = true;
                 }
 
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNKNOWN")) {
+                    expected = true;
+                }
+
+                if (t.getMessage().equals("INTERNAL: io.grpc.StatusRuntimeException: UNKNOWN")) {
+                    expected = true;
+                }
+
                 if (! expected) {
                     throw t;
                 }
@@ -126,6 +153,6 @@ public class JUnitFilibusterTestWithCustomAnalysisFile extends JUnitBaseTest {
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(4, testExceptionsThrown.size());
+        assertEquals(6, testExceptionsThrown.size());
     }
 }

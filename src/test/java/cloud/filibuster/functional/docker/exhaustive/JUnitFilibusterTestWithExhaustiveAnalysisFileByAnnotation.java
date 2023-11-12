@@ -1,12 +1,12 @@
-package cloud.filibuster.functional.python.exhaustive;
+package cloud.filibuster.functional.docker.exhaustive;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
-import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
+import cloud.filibuster.junit.configuration.examples.FilibusterGrpcExhaustiveAnalysisConfigurationFile;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
+import cloud.filibuster.junit.server.backends.FilibusterDockerServerBackend;
 import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
 import cloud.filibuster.functional.JUnitBaseTest;
 import io.grpc.ManagedChannel;
@@ -21,7 +21,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -30,8 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("Java8ApiChecker")
-public class JUnitFilibusterTestWithExhaustiveAnalysisFile extends JUnitBaseTest {
-    private static final String analysisFilePath = "/tmp/filibuster-exhaustive-analysis-file";
+public class JUnitFilibusterTestWithExhaustiveAnalysisFileByAnnotation extends JUnitBaseTest {
     private static final List<String> exhaustiveGrpcErrorCodeList = new ArrayList<>();
 
     static {
@@ -51,30 +50,13 @@ public class JUnitFilibusterTestWithExhaustiveAnalysisFile extends JUnitBaseTest
         exhaustiveGrpcErrorCodeList.add("UNAVAILABLE");
         exhaustiveGrpcErrorCodeList.add("DATA_LOSS");
         exhaustiveGrpcErrorCodeList.add("UNAUTHENTICATED");
-
-        FilibusterAnalysisConfiguration.Builder filibusterAnalysisConfigurationBuilder = new FilibusterAnalysisConfiguration.Builder()
-                .name("java.grpc")
-                .pattern("(.*/.*)");
-
-        for (String errorCode: exhaustiveGrpcErrorCodeList) {
-            filibusterAnalysisConfigurationBuilder.exception("io.grpc.StatusRuntimeException", Map.of(
-                    "cause", "",
-                    "code", errorCode
-            ));
-        }
-
-        FilibusterAnalysisConfiguration filibusterAnalysisConfiguration = filibusterAnalysisConfigurationBuilder.build();
-        FilibusterCustomAnalysisConfigurationFile filibusterCustomAnalysisConfigurationFile = new FilibusterCustomAnalysisConfigurationFile.Builder()
-                .analysisConfiguration(filibusterAnalysisConfiguration)
-                .build();
-        filibusterCustomAnalysisConfigurationFile.writeToDisk(analysisFilePath);
     }
 
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
-    @TestWithFilibuster(analysisFile=analysisFilePath, serverBackend=FilibusterLocalProcessServerBackend.class)
+    @TestWithFilibuster(analysisConfigurationFile=FilibusterGrpcExhaustiveAnalysisConfigurationFile.class, serverBackend= FilibusterDockerServerBackend.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder

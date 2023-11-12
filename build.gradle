@@ -337,3 +337,6 @@ task testWithFaultInjectionDocker(type: Test) {
         includeTestsMatching('cloud.filibuster.functional.docker.*')
     }
 }
+
+project.setProperty("mainClassName", "cloud.filibuster.instrumentation.Main")
+

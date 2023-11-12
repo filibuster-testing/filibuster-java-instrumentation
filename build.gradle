@@ -185,6 +185,40 @@ nexusPublishing {
 
 publishing {
     publications {
+        standaloneJar(MavenPublication) { publication ->
+            artifact sourcesJar
+            artifact javadocJar
+
+            pom {
+                name = 'Filibuster instrumentation for the JVM'
+                artifactId = 'instrumentation-standalone'
+                packaging = 'jar'
+                description = 'Instrumtation for the JVM to enable the Filibuster testing utility.'
+                url = 'https://github.com/filibuster-testing/filibuster-java-instrumentation'
+
+                scm {
+                    connection = 'scm:git:git://github.com/filibuster-testing/filibuster-java-instrumentation.git'
+                    developerConnection = 'scm:git:ssh://github.com/filibuster-testing/filibuster-java-instrumentation.git'
+                    url = 'https://github.com/filibuster-testing/filibuster-java-instrumentation'
+                }
+
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'cmeiklejohn'
+                        name = 'Christopher S. Meiklejohn'
+                        email = 'christopher.meiklejohn@gmail.com'
+                    }
+                }
+            }
+        }
+
         mavenJava(MavenPublication) {
             from components.java
 

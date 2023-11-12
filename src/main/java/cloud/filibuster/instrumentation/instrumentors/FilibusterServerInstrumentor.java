@@ -160,7 +160,9 @@ final public class FilibusterServerInstrumentor {
                             HttpHeaderNames.CONTENT_TYPE,
                             "application/json",
                             "X-Filibuster-Instrumentation",
-                            "true");
+                            "true",
+                            "X-Filibuster-Is-Update",
+                            String.valueOf(false));
                     AggregatedHttpResponse response = webClient.execute(postJson, payload.toString()).aggregate().join();
 
                     ResponseHeaders headers = response.headers();

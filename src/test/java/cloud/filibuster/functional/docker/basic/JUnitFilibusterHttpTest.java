@@ -44,7 +44,7 @@ public class JUnitFilibusterHttpTest extends JUnitBaseTest {
      */
     @DisplayName("Test world route with Filibuster.")
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
-    @TestWithFilibuster(serverBackend= FilibusterDockerServerBackend.class)
+    @TestWithFilibuster(serverBackend=FilibusterDockerServerBackend.class)
     @Order(1)
     public void testHelloAndWorldServiceWithFilibuster() {
         numberOfTestsExecuted++;

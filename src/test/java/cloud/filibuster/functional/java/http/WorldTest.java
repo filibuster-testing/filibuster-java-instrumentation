@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.java.basic;
+package cloud.filibuster.functional.java.http;
 
 import cloud.filibuster.examples.APIServiceGrpc;
 import cloud.filibuster.examples.Hello;

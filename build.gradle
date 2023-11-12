@@ -372,6 +372,39 @@ task testWithFaultInjectionDocker(type: Test) {
     }
 }
 
+shadowJar {
+    archiveBaseName.set('instrumentation-standalone')
+    archiveClassifier.set('')
+    configurations = [
+            project.configurations.runtimeClasspath
+    ]
+
+    zip64 = true
+
+    relocate "com.linecorp", "filibuster.com.linecorp"
+    relocate "io.lettuce", "filibuster.io.lettuce"
+    relocate "org.postgresql", "filibuster.org.postgresql"
+    relocate "com.datastax", "filibuster.com.datastax"
+    relocate "software.amazon", "filibuster.software.amazon"
+    relocate 'com.datastax', "filibuster.com.datastax"
+    relocate "com.github", "filibuster.com.github"
+    relocate "org.json", "filibuster.org.json"
+    relocate "org.jetbrains", "filibuster.org.jetbrains"
+    relocate "io.grpc", "filibuster.io.grpc"
+    relocate 'com.google', "filibuster.com.google"
+    relocate 'org.grpcmock', "filibuster.org.grpcmock"
+    relocate 'org.eclipse', "filibuster.org.eclipse"
+    relocate 'org.junit', "filibuster.org.junit"
+    relocate "org.testcontainers", "filibuster.org.testcontainers"
+    relocate "org.apache", "filibuster.org.apache"
+    relocate "org.jxls", "filibuster.org.jxls"
+    relocate "org.dhatim", "filibuster.org.dhatim"
+
+    mergeServiceFiles()
+
+    exclude 'META-INF/maven/**'
+    exclude 'module-info.class'
+}
 project.setProperty("mainClassName", "cloud.filibuster.instrumentation.Main")
 
 

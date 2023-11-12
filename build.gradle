@@ -372,6 +372,23 @@ task testWithFaultInjectionDocker(type: Test) {
     }
 }
 
+assemble.dependsOn jar, shadowJar
+
+project.setProperty("mainClassName", "cloud.filibuster.instrumentation.Main")
+
+allprojects {
+    shadowJar.dependsOn jar
+}
+
+jar {
+    manifest {
+        attributes("Main-Class": "cloud.filibuster.instrumentation.Main")
+        attributes("Add-Exports": "java.base/sun.security.x509")
+        attributes("Implementation-Version": project.version)
+        attributes("Implementation-Title": "Filibuster")
+    }
+}
+
 shadowJar {
     archiveBaseName.set('instrumentation-standalone')
     archiveClassifier.set('')
@@ -404,16 +421,5 @@ shadowJar {
 
     exclude 'META-INF/maven/**'
     exclude 'module-info.class'
-}
-project.setProperty("mainClassName", "cloud.filibuster.instrumentation.Main")
-
-
-jar {
-    manifest {
-        attributes("Main-Class": "cloud.filibuster.instrumentation.Main")
-        attributes("Add-Exports": "java.base/sun.security.x509")
-        attributes("Implementation-Version": project.version)
-        attributes("Implementation-Title": "Filibuster")
-    }
 }
 

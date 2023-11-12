@@ -98,9 +98,7 @@ dependencies {
 
     testImplementation 'io.opentelemetry:opentelemetry-api:1.6.0'
     testImplementation 'io.opentelemetry:opentelemetry-extension-annotations:1.6.0'
-
     testImplementation 'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:1.6.0-alpha'
-
     testImplementation 'com.github.tomakehurst:wiremock-standalone:2.27.2'
     testImplementation 'io.netty:netty-tcnative-boringssl-static:2.0.61.Final'
 }

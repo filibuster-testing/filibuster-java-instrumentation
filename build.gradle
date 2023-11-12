@@ -12,7 +12,7 @@ plugins {
     id 'maven-publish'
     id 'io.github.gradle-nexus.publish-plugin' version '1.1.0'
     id 'com.adarshr.test-logger' version '3.2.0'
-    id 'com.github.johnrengelman.shadow' version '8.1.0'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 apply plugin: 'java'
@@ -21,6 +21,8 @@ apply plugin: 'eclipse'
 apply plugin: 'application'
 apply plugin: 'com.diffplug.spotless'
 apply plugin: 'com.google.protobuf'
+apply plugin: 'maven-publish'
+apply plugin: 'com.github.johnrengelman.shadow'
 
 compileJava {
     sourceCompatibility = '1.8'
@@ -169,40 +171,6 @@ nexusPublishing {
 
 publishing {
     publications {
-        standaloneJar(MavenPublication) { publication ->
-            artifact sourcesJar
-            artifact javadocJar
-
-            pom {
-                name = 'Filibuster instrumentation for the JVM'
-                artifactId = 'instrumentation-standalone'
-                packaging = 'jar'
-                description = 'Instrumtation for the JVM to enable the Filibuster testing utility.'
-                url = 'https://github.com/filibuster-testing/filibuster-java-instrumentation'
-
-                scm {
-                    connection = 'scm:git:git://github.com/filibuster-testing/filibuster-java-instrumentation.git'
-                    developerConnection = 'scm:git:ssh://github.com/filibuster-testing/filibuster-java-instrumentation.git'
-                    url = 'https://github.com/filibuster-testing/filibuster-java-instrumentation'
-                }
-
-                licenses {
-                    license {
-                        name = 'The Apache License, Version 2.0'
-                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    }
-                }
-
-                developers {
-                    developer {
-                        id = 'cmeiklejohn'
-                        name = 'Christopher S. Meiklejohn'
-                        email = 'christopher.meiklejohn@gmail.com'
-                    }
-                }
-            }
-        }
-
         mavenJava(MavenPublication) {
             from components.java
 
@@ -356,53 +324,41 @@ task testWithFaultInjectionDocker(type: Test) {
     }
 }
 
-assemble.dependsOn jar, shadowJar
-
 project.setProperty("mainClassName", "cloud.filibuster.instrumentation.Main")
 
-allprojects {
-    shadowJar.dependsOn jar
-}
+tasks {
+    shadowJar {
+        archiveClassifier = "standalone"
 
-jar {
-    manifest {
-        attributes("Main-Class": "cloud.filibuster.instrumentation.Main")
-        attributes("Add-Exports": "java.base/sun.security.x509")
-        attributes("Implementation-Version": project.version)
-        attributes("Implementation-Title": "Filibuster")
+        configurations = [
+                project.configurations.runtimeClasspath
+        ]
+
+        zip64 = true
+
+        relocate "com.linecorp", "filibuster.com.linecorp"
+        relocate "io.lettuce", "filibuster.io.lettuce"
+        relocate "org.postgresql", "filibuster.org.postgresql"
+        relocate "com.datastax", "filibuster.com.datastax"
+        relocate "software.amazon", "filibuster.software.amazon"
+        relocate 'com.datastax', "filibuster.com.datastax"
+        relocate "com.github", "filibuster.com.github"
+        relocate "org.json", "filibuster.org.json"
+        relocate "org.jetbrains", "filibuster.org.jetbrains"
+        relocate "io.grpc", "filibuster.io.grpc"
+        relocate 'com.google', "filibuster.com.google"
+        relocate 'org.grpcmock', "filibuster.org.grpcmock"
+        relocate 'org.eclipse', "filibuster.org.eclipse"
+        relocate 'org.junit', "filibuster.org.junit"
+        relocate "org.testcontainers", "filibuster.org.testcontainers"
+        relocate "org.apache", "filibuster.org.apache"
+        relocate "org.jxls", "filibuster.org.jxls"
+        relocate "org.dhatim", "filibuster.org.dhatim"
+
+        mergeServiceFiles()
+
+        exclude 'META-INF/maven/**'
+        exclude 'module-info.class'
     }
 }
 
-shadowJar {
-    archiveBaseName.set('instrumentation-standalone')
-    archiveClassifier.set('')
-    configurations = [
-            project.configurations.runtimeClasspath
-    ]
-
-    zip64 = true
-
-    relocate "com.linecorp", "filibuster.com.linecorp"
-    relocate "io.lettuce", "filibuster.io.lettuce"
-    relocate "org.postgresql", "filibuster.org.postgresql"
-    relocate "com.datastax", "filibuster.com.datastax"
-    relocate "software.amazon", "filibuster.software.amazon"
-    relocate 'com.datastax', "filibuster.com.datastax"
-    relocate "com.github", "filibuster.com.github"
-    relocate "org.json", "filibuster.org.json"
-    relocate "org.jetbrains", "filibuster.org.jetbrains"
-    relocate "io.grpc", "filibuster.io.grpc"
-    relocate 'com.google', "filibuster.com.google"
-    relocate 'org.grpcmock', "filibuster.org.grpcmock"
-    relocate 'org.eclipse', "filibuster.org.eclipse"
-    relocate 'org.junit', "filibuster.org.junit"
-    relocate "org.testcontainers", "filibuster.org.testcontainers"
-    relocate "org.apache", "filibuster.org.apache"
-    relocate "org.jxls", "filibuster.org.jxls"
-    relocate "org.dhatim", "filibuster.org.dhatim"
-
-    mergeServiceFiles()
-
-    exclude 'META-INF/maven/**'
-    exclude 'module-info.class'
-}

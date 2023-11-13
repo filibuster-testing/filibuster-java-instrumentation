@@ -47,7 +47,7 @@ dependencies {
      'armeria-thrift0.13',
      'armeria-tomcat9',
      'armeria-zookeeper3'].each {
-        api "com.linecorp.armeria:${it}:1.14.0"
+        api "com.linecorp.armeria:${it}:1.22.1"
     }
     api "io.lettuce:lettuce-core:6.2.2.RELEASE"
     api 'org.postgresql:postgresql:42.3.3'

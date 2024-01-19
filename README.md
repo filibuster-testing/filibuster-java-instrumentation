@@ -41,7 +41,7 @@ Learn about the peer reviewed research behind the Filibuster fault injection tec
 
 1. Christopher S. Meiklejohn, Andrea Estrada, Yiwen Song, Heather Miller, and Rohan Padhye. 2021. Service-Level Fault Injection Testing. In Proceedings of the ACM Symposium on Cloud Computing (SoCC '21). Association for Computing Machinery, New York, NY, USA, 388–402. https://doi.org/10.1145/3472883.3487005
 2. Christopher Meiklejohn, Lydia Stark, Cesare Celozzi, Matt Ranney, and Heather Miller. 2022. Method overloading the circuit. In Proceedings of the 13th Symposium on Cloud Computing (SoCC '22). Association for Computing Machinery, New York, NY, USA, 273–288. https://doi.org/10.1145/3542929.3563466
-3. Christopher Meiklejohn, Rohan Padhye, and Heahter Miller. 2022. Distributed Execution Indexing (Version 1). arXiv. https://doi.org/10.48550/ARXIV.2209.08740
+3. Christopher Meiklejohn, Rohan Padhye, and Heather Miller. 2022. Distributed Execution Indexing (Version 1). arXiv. https://doi.org/10.48550/ARXIV.2209.08740
 
 Learn more about Filibuster:
 http://filibuster.cloud

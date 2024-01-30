@@ -7,10 +7,9 @@ buildscript {
 plugins {
     id 'java'
     id "com.diffplug.spotless" version "5.0.0"
-    id "net.ltgt.errorprone" version "2.0.2"
     id 'signing'
     id 'maven-publish'
-    id('io.github.gradle-nexus.publish-plugin') version '1.1.0'
+    id 'io.github.gradle-nexus.publish-plugin' version '1.1.0'
     id 'com.adarshr.test-logger' version '3.2.0'
 }
 
@@ -31,14 +30,7 @@ repositories {
     mavenCentral()
 }
 
-dependencyLocking {
-    lockAllConfigurations()
-}
-
 dependencies {
-    errorprone "com.google.errorprone:error_prone_core:latest.release"
-    errorproneJavac "com.google.errorprone:javac:9+181-r4173-1"
-
     ['armeria',
      'armeria-brave',
      'armeria-grpc',
@@ -134,73 +126,6 @@ tasks.withType(JavaCompile) {
 
 tasks.withType(JavaCompile).configureEach {
     options.forkOptions.jvmArgs.addAll(['--add-opens', 'jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED'])
-
-    // stolen from opentelemetry.
-    options.errorprone {
-        enabled = rootProject.findProperty("disableErrorProne") != "true"
-        disableWarningsInGeneratedCode = true
-        allDisabledChecksAsWarnings = true
-
-        excludedPaths = ".*/build/generated/.*"
-
-        // Doesn't work well with Java 8
-        disable("FutureReturnValueIgnored")
-
-        // Require Guava
-        disable("AutoValueImmutableFields")
-        disable("StringSplitter")
-        disable("ImmutableMemberCollection")
-
-        // Don't currently use this (to indicate a local variable that's mutated) but could
-        // consider for future.
-        disable("Var")
-
-        // Don't support Android without desugar
-        disable("AndroidJdkLibsChecker")
-        disable("Java7ApiChecker")
-        disable("StaticOrDefaultInterfaceMethod")
-
-        // Great check, but for bytecode manipulation it's too common to separate over
-        // onEnter / onExit
-        disable("MustBeClosedChecker")
-
-        // Common to avoid an allocation. Revisit if it's worth opt-in suppressing instead of
-        // disabling entirely.
-        disable("MixedMutabilityReturnType")
-
-        // We end up using obsolete types if a library we're instrumenting uses them.
-        disable("JdkObsolete")
-        disable("JavaUtilDate")
-
-        // Storing into a variable in onEnter triggers this unfortunately.
-        disable("UnusedVariable")
-
-        // some moving.
-        disable("DefaultPackage")
-
-        // var usage: potentially need to revert for opentelemetry integration.
-        disable("Varifier")
-
-        // wildcard import: potentially need to revert for opentelemetry integration.
-        disable("WildcardImport")
-
-        // address this.
-        disable("PrivateConstructorForUtilityClass")
-
-        // with older APIs.
-        disable("InconsistentOverloads")
-        disable("TypeParameterNaming")
-
-        // We don't use tools that recognize.
-        disable("InlineMeSuggester")
-        disable("DoNotCallSuggester")
-
-        disable("UnnecessarilyFullyQualified")
-
-        if (name.contains("Jmh") || name.contains("Test")) {
-            disable("MemberName")
-        }
-    }
 }
 
 protobuf {

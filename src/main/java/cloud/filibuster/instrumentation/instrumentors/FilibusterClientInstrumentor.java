@@ -4,6 +4,7 @@ import cloud.filibuster.RpcType;
 import cloud.filibuster.dei.DistributedExecutionIndex;
 import cloud.filibuster.dei.DistributedExecutionIndexType;
 import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
+import cloud.filibuster.instrumentation.FilibusterJsonSerializer;
 import cloud.filibuster.instrumentation.datatypes.Callsite;
 import cloud.filibuster.instrumentation.datatypes.CallsiteArguments;
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
@@ -18,6 +19,7 @@ import cloud.filibuster.junit.server.core.FilibusterCore;
 import cloud.filibuster.junit.server.core.serializers.GeneratedMessageV3Serializer;
 import cloud.filibuster.junit.server.core.serializers.StatusSerializer;
 import cloud.filibuster.junit.server.core.transformers.Accumulator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.Gson;
 import com.google.protobuf.GeneratedMessageV3;
 import com.linecorp.armeria.client.WebClient;
@@ -964,8 +966,9 @@ final public class FilibusterClientInstrumentor {
             returnValueJsonObject.put("__class__", className);
             if (returnValue != null && returnValue != JSONObject.NULL && returnValue != "") {  // Only serialise if return value is not null or empty.
                 try {
-                    returnValueJsonObject.put("value", new Gson().toJson(returnValue));
-                } catch (RuntimeException e) {
+                    String returnValueSerialized = FilibusterJsonSerializer.toJson(returnValue);
+                    returnValueJsonObject.put("value", returnValueSerialized);
+                } catch (RuntimeException | JsonProcessingException e) {
                     logger.log(Level.WARNING, "Could not serialise return value to JSON: " + e);
                 }
             } else {

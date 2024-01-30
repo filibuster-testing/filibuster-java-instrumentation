@@ -13,8 +13,4 @@ public class FilibusterJsonSerializer {
     public static String toJson(Object obj) throws JsonProcessingException {
         return objectMapper.writeValueAsString(obj);
     }
-
-    public static Object fromJson(String json, Class cls) throws JsonProcessingException {
-        return objectMapper.readValue(json, cls);
-    }
 }

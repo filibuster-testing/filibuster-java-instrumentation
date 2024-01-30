@@ -17,7 +17,7 @@ public class GeneratedMessageV3Serializer {
 
     static class Keys {
         public static final String CLASS_KEY = "class";
-        public static final String GSON_KEY = "gson";
+        public static final String PAYLOAD_KEY = "payload";
         public static final String TO_STRING_KEY = "toString";
     }
 
@@ -26,7 +26,7 @@ public class GeneratedMessageV3Serializer {
             String serializedMessage = JsonFormat.printer().preservingProtoFieldNames().includingDefaultValueFields().print(generatedMessageV3);
             return new JSONObject(serializedMessage);
         } catch (InvalidProtocolBufferException e) {
-            logger.log(Level.SEVERE, "[toJSONObjectWithOnlyGsonPayload]: Failed to serialize message using JsonFormat. Throwing... " + generatedMessageV3, e);
+            logger.log(Level.SEVERE, "[toJsonObjectWithOnlyPayload]: Failed to serialize message using JsonFormat. Throwing... " + generatedMessageV3, e);
             throw new FilibusterMessageSerializationException("Failed to serialize message using JsonFormat: " + generatedMessageV3, e);
         }
     }
@@ -34,7 +34,7 @@ public class GeneratedMessageV3Serializer {
     public static JSONObject toJsonObjectWithClassIncluded(GeneratedMessageV3 generatedMessageV3) {
         JSONObject newJsonObject = new JSONObject();
         newJsonObject.put(Keys.CLASS_KEY, generatedMessageV3.getClass().getName());
-        newJsonObject.put(Keys.GSON_KEY, toJsonObjectWithOnlyPayload(generatedMessageV3));
+        newJsonObject.put(Keys.PAYLOAD_KEY, toJsonObjectWithOnlyPayload(generatedMessageV3));
         newJsonObject.put(Keys.TO_STRING_KEY, generatedMessageV3.toString());
         return newJsonObject;
     }
@@ -45,13 +45,13 @@ public class GeneratedMessageV3Serializer {
 
     public static GeneratedMessageV3 fromJsonObject(JSONObject jsonObject) {
         String className = jsonObject.getString(Keys.CLASS_KEY);
-        JSONObject gsonPayload = jsonObject.getJSONObject(Keys.GSON_KEY);
-        String gsonPayloadString = gsonPayload.toString();
+        JSONObject payload = jsonObject.getJSONObject(Keys.PAYLOAD_KEY);
+        String payloadString = payload.toString();
 
         try {
             Class<?> clazz = Class.forName(className);
             AbstractMessage.Builder<?> messageBuilder = (AbstractMessage.Builder<?>) clazz.getMethod("newBuilder").invoke(null);
-            JsonFormat.parser().merge(gsonPayloadString, messageBuilder);
+            JsonFormat.parser().merge(payloadString, messageBuilder);
             return (GeneratedMessageV3) messageBuilder.build();
         } catch (ClassNotFoundException | InvalidProtocolBufferException | IllegalAccessException |
                  IllegalArgumentException |

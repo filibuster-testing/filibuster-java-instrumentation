@@ -555,7 +555,7 @@
                         row += '<textarea class="arguments">';
 
                         if ('args_v2' in rpc.request) {
-                            row += JSON.stringify(rpc.request.args_v2.gson, null, 4);
+                            row += JSON.stringify(rpc.request.args_v2.payload, null, 4);
                         } else {
                             row += escapeHtml(rpc.request.args.toString);
                         }
@@ -618,7 +618,7 @@
                         } else {
 
                             if ('return_value_v2' in rpc.response) {
-                                row += JSON.stringify(rpc.response.return_value_v2.gson, null, 4);
+                                row += JSON.stringify(rpc.response.return_value_v2.payload, null, 4);
                             } else {
                                 row += escapeHtml(rpc.response.return_value.toString);
                             }

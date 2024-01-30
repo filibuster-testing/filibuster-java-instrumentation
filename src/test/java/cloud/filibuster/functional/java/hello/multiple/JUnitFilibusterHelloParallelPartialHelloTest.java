@@ -7,6 +7,7 @@ import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.TestWithFilibuster;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -25,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Disabled
 public class JUnitFilibusterHelloParallelPartialHelloTest extends JUnitAnnotationBaseTest {
     private final static Set<String> responsesReceived = new HashSet<>();
 

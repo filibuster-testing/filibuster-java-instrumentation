@@ -74,10 +74,6 @@ public class PurchaseWorkflowWithPricingAdjustmentService {
 
     private final String sessionId;
 
-    private final boolean abortOnNoDiscount;
-
-    private final int abortOnLessThanDiscountAmount;
-
     private final Channel channel;
 
     private final StatefulRedisConnection<String, String> connection;
@@ -90,8 +86,6 @@ public class PurchaseWorkflowWithPricingAdjustmentService {
 
     public PurchaseWorkflowWithPricingAdjustmentService(String sessionId, boolean abortOnNoDiscount, int abortOnLessThanDiscountAmount) {
         this.sessionId = sessionId;
-        this.abortOnNoDiscount = abortOnNoDiscount;
-        this.abortOnLessThanDiscountAmount = abortOnLessThanDiscountAmount;
         this.channel = getRpcChannel();
         this.connection = getRedisConnection();
         this.dao = getCockroachDAO();

@@ -40,6 +40,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static cloud.filibuster.RpcType.GRPC;
 import static cloud.filibuster.instrumentation.helpers.Counterexample.canLoadCounterexample;
 import static cloud.filibuster.instrumentation.helpers.Counterexample.loadCounterexampleAsJsonObjectFromEnvironment;
 import static cloud.filibuster.instrumentation.helpers.Counterexample.loadTestExecutionFromCounterexample;
@@ -966,7 +967,13 @@ final public class FilibusterClientInstrumentor {
             returnValueJsonObject.put("__class__", className);
             if (returnValue != null && returnValue != JSONObject.NULL && returnValue != "") {  // Only serialise if return value is not null or empty.
                 try {
-                    String returnValueSerialized = FilibusterJsonSerializer.toJson(returnValue);
+                    String returnValueSerialized;
+
+                    if (rpcType != null && rpcType.equals(GRPC)) {
+                        returnValueSerialized = FilibusterJsonSerializer.toJson(returnValue);
+                    } else {
+                        returnValueSerialized = new Gson().toJson(returnValue);
+                    }
                     returnValueJsonObject.put("value", returnValueSerialized);
                 } catch (RuntimeException | JsonProcessingException e) {
                     logger.log(Level.WARNING, "Could not serialise return value to JSON: " + e);

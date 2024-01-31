@@ -6,13 +6,11 @@ buildscript {
 
 plugins {
     id 'java'
-    id 'java-library'
     id "com.diffplug.spotless" version "5.0.0"
     id 'signing'
     id 'maven-publish'
     id 'io.github.gradle-nexus.publish-plugin' version '1.1.0'
     id 'com.adarshr.test-logger' version '3.2.0'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 apply plugin: 'java'
@@ -21,8 +19,6 @@ apply plugin: 'eclipse'
 apply plugin: 'application'
 apply plugin: 'com.diffplug.spotless'
 apply plugin: 'com.google.protobuf'
-apply plugin: 'maven-publish'
-apply plugin: 'com.github.johnrengelman.shadow'
 
 compileJava {
     sourceCompatibility = '1.8'
@@ -325,24 +321,4 @@ task testWithFaultInjectionDocker(type: Test) {
 }
 
 project.setProperty("mainClassName", "cloud.filibuster.instrumentation.Main")
-
-tasks {
-    shadowJar {
-        archiveClassifier = "standalone"
-
-        configurations = [
-                project.configurations.runtimeClasspath
-        ]
-
-        zip64 = true
-
-        relocate 'org.eclipse', "filibuster.org.eclipse"
-        relocate 'io.netty', "filibuster.io.netty"
-
-        mergeServiceFiles()
-
-        exclude 'META-INF/maven/**'
-        exclude 'module-info.class'
-    }
-}
 

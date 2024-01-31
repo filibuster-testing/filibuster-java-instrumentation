@@ -1,10 +1,11 @@
-package cloud.filibuster.functional.python.extended;
+package cloud.filibuster.functional.docker.extended;
 
 import cloud.filibuster.integration.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.examples.FilibusterWorldExtendedDefaultAnalysisConfigurationFile;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
+import cloud.filibuster.junit.server.backends.FilibusterDockerServerBackend;
 import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
 import cloud.filibuster.functional.JUnitBaseTest;
 import com.linecorp.armeria.client.WebClient;
@@ -43,7 +44,7 @@ public class JUnitFilibusterWorldExtendedHttpTest extends JUnitBaseTest {
      * Inject faults between Hello and World using Filibuster and assert proper faults are injected.
      */
     @DisplayName("Test world route with Filibuster.")
-    @TestWithFilibuster(analysisConfigurationFile=FilibusterWorldExtendedDefaultAnalysisConfigurationFile.class, serverBackend=FilibusterLocalProcessServerBackend.class)
+    @TestWithFilibuster(analysisConfigurationFile=FilibusterWorldExtendedDefaultAnalysisConfigurationFile.class, serverBackend= FilibusterDockerServerBackend.class)
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Order(1)
     public void testHelloAndWorldServiceWithFilibuster() {

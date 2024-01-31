@@ -1,11 +1,13 @@
 package cloud.filibuster.instrumentation.instrumentors;
 
+import cloud.filibuster.exceptions.filibuster.FilibusterRuntimeException;
 import cloud.filibuster.instrumentation.datatypes.FilibusterExecutor;
 import cloud.filibuster.instrumentation.datatypes.VectorClock;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.instrumentation.helpers.Response;
 import cloud.filibuster.instrumentation.storage.ContextStorage;
 import cloud.filibuster.exceptions.filibuster.FilibusterServerBadResponseException;
+import cloud.filibuster.junit.server.core.FilibusterCore;
 import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.AggregatedHttpResponse;
 import com.linecorp.armeria.common.HttpHeaderNames;
@@ -24,6 +26,7 @@ import java.util.logging.Logger;
 import static cloud.filibuster.instrumentation.helpers.Counterexample.canLoadCounterexample;
 import static cloud.filibuster.instrumentation.helpers.Counterexample.loadCounterexampleAsJsonObjectFromEnvironment;
 import static cloud.filibuster.instrumentation.helpers.Counterexample.loadTestExecutionFromCounterexample;
+import static cloud.filibuster.instrumentation.helpers.Property.getServerBackendCanInvokeDirectlyProperty;
 
 /**
  * Server instrumentor for Filibuster.
@@ -139,65 +142,75 @@ final public class FilibusterServerInstrumentor {
         logger.log(Level.INFO, "beforeInvocation [server]: about to make call.");
 
         if (getDistributedExecutionIndex() != null) {
-            JSONObject payload = new JSONObject();
-            payload.put("instrumentation_type", "request_received");
-            payload.put("generated_id", getGeneratedId());
-            payload.put("target_service_name", serviceName);
-            payload.put("execution_index", getDistributedExecutionIndex());
+            JSONObject requestReceivedPayload = new JSONObject();
+            requestReceivedPayload.put("instrumentation_type", "request_received");
+            requestReceivedPayload.put("generated_id", getGeneratedId());
+            requestReceivedPayload.put("target_service_name", serviceName);
+            requestReceivedPayload.put("execution_index", getDistributedExecutionIndex());
 
-            logger.log(Level.INFO, "payload: " + payload);
+            logger.log(Level.INFO, "requestReceivedPayload: " + requestReceivedPayload);
 
             if (shouldCommunicateWithServer && counterexampleNotProvided()) {
-                CompletableFuture<String> updateFuture = CompletableFuture.supplyAsync(() -> {
-                    String uri = "http://" + Networking.getFilibusterHost() + ":" + Networking.getFilibusterPort() + "/";
-                    logger.log(Level.INFO, "making call to filibuster server, update with body: " + payload);
-                    logger.log(Level.INFO, "URI: " + uri);
-                    WebClient webClient = FilibusterExecutor.getWebClient("http://" + Networking.getFilibusterHost() + ":" + Networking.getFilibusterPort() + "/");
+                if (getServerBackendCanInvokeDirectlyProperty()) {
+                    if (FilibusterCore.hasCurrentInstance()) {
+                        FilibusterCore.getCurrentInstance().endInvocation(requestReceivedPayload, false);
+                    } else {
+                        throw new FilibusterRuntimeException("No current filibuster core instance, this could indicate a problem.");
+                    }
+                } else {
+                    CompletableFuture<String> updateFuture = CompletableFuture.supplyAsync(() -> {
+                        String uri = "http://" + Networking.getFilibusterHost() + ":" + Networking.getFilibusterPort() + "/";
+                        logger.log(Level.INFO, "making call to filibuster server, update with body: " + requestReceivedPayload);
+                        logger.log(Level.INFO, "URI: " + uri);
+                        WebClient webClient = FilibusterExecutor.getWebClient("http://" + Networking.getFilibusterHost() + ":" + Networking.getFilibusterPort() + "/");
 
-                    RequestHeaders postJson = RequestHeaders.of(
-                            HttpMethod.POST,
-                            "/filibuster/update",
-                            HttpHeaderNames.CONTENT_TYPE,
-                            "application/json",
-                            "X-Filibuster-Instrumentation",
-                            "true");
-                    AggregatedHttpResponse response = webClient.execute(postJson, payload.toString()).aggregate().join();
+                        RequestHeaders postJson = RequestHeaders.of(
+                                HttpMethod.POST,
+                                "/filibuster/update",
+                                HttpHeaderNames.CONTENT_TYPE,
+                                "application/json",
+                                "X-Filibuster-Instrumentation",
+                                "true",
+                                "X-Filibuster-Is-Update",
+                                String.valueOf(false));
+                        AggregatedHttpResponse response = webClient.execute(postJson, requestReceivedPayload.toString()).aggregate().join();
 
-                    ResponseHeaders headers = response.headers();
-                    String statusCode = headers.get(HttpHeaderNames.STATUS);
+                        ResponseHeaders headers = response.headers();
+                        String statusCode = headers.get(HttpHeaderNames.STATUS);
 
-                    if (statusCode == null) {
-                        FilibusterServerBadResponseException.logAndThrow("beforeInvocation, statusCode: null");
+                        if (statusCode == null) {
+                            FilibusterServerBadResponseException.logAndThrow("beforeInvocation, statusCode: null");
+                        }
+
+                        if (!Objects.equals(statusCode, "200")) {
+                            FilibusterServerBadResponseException.logAndThrow("beforeInvocation, statusCode: " + statusCode);
+                        }
+
+                        JSONObject jsonObject = Response.aggregatedHttpResponseToJsonObject(response);
+
+                        if (jsonObject.has("execution_index")) {
+                            distributedExecutionIndex = jsonObject.getString("execution_index");
+                            return distributedExecutionIndex;
+                        }
+
+                        return null;
+                    }, FilibusterExecutor.getExecutorService());
+
+                    try {
+                        String newDistributedExecutionIndex = updateFuture.get();
+
+                        if (newDistributedExecutionIndex != null) {
+                            logger.log(Level.INFO, "rewriting EI from: " + contextStorage.getDistributedExecutionIndex() + " to " + distributedExecutionIndex);
+                            contextStorage.setDistributedExecutionIndex(distributedExecutionIndex);
+                        }
+                    } catch (InterruptedException | ExecutionException e) {
+                        logger.log(Level.SEVERE, "cannot get information from Filibuster server: " + e);
                     }
 
-                    if (!Objects.equals(statusCode, "200")) {
-                        FilibusterServerBadResponseException.logAndThrow("beforeInvocation, statusCode: " + statusCode);
-                    }
+                    logger.log(Level.INFO, "beforeInvocation [server]: finished.");
 
-                    JSONObject jsonObject = Response.aggregatedHttpResponseToJsonObject(response);
-
-                    if (jsonObject.has("execution_index")) {
-                        distributedExecutionIndex = jsonObject.getString("execution_index");
-                        return distributedExecutionIndex;
-                    }
-
-                    return null;
-                }, FilibusterExecutor.getExecutorService());
-
-                try {
-                    String newDistributedExecutionIndex = updateFuture.get();
-
-                    if (newDistributedExecutionIndex != null) {
-                        logger.log(Level.INFO, "rewriting EI from: " + contextStorage.getDistributedExecutionIndex() + " to " + distributedExecutionIndex);
-                        contextStorage.setDistributedExecutionIndex(distributedExecutionIndex);
-                    }
-                } catch (InterruptedException | ExecutionException e) {
-                    logger.log(Level.SEVERE, "cannot get information from Filibuster server: " + e);
+                    logger.log(Level.INFO, "call complete.");
                 }
-
-                logger.log(Level.INFO, "beforeInvocation [server]: finished.");
-
-                logger.log(Level.INFO, "call complete.");
             } else {
                 logger.log(Level.INFO, "skipping!");
             }

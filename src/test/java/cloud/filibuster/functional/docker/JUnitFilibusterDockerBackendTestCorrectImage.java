@@ -39,7 +39,7 @@ public class JUnitFilibusterDockerBackendTestCorrectImage extends JUnitBaseTest 
      * @throws InterruptedException if teardown of gRPC channel fails.
      */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @TestWithFilibuster(serverBackend = FilibusterDockerServerBackend.class)
+    @TestWithFilibuster(serverBackend=FilibusterDockerServerBackend.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
         ManagedChannel helloChannel = ManagedChannelBuilder

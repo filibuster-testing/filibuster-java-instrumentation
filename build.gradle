@@ -17,7 +17,6 @@ apply plugin: 'java'
 apply plugin: 'idea'
 apply plugin: 'eclipse'
 apply plugin: 'application'
-apply plugin: 'jacoco'
 apply plugin: 'com.diffplug.spotless'
 apply plugin: 'com.google.protobuf'
 
@@ -44,9 +43,8 @@ dependencies {
      'armeria-thrift0.13',
      'armeria-tomcat9',
      'armeria-zookeeper3'].each {
-        implementation "com.linecorp.armeria:${it}:1.14.0"
+        implementation "com.linecorp.armeria:${it}:1.22.1"
     }
-
     implementation "io.lettuce:lettuce-core:6.2.2.RELEASE"
     implementation 'org.postgresql:postgresql:42.3.3'
     implementation 'com.datastax.cassandra:cassandra-driver-core:4.0.0'
@@ -59,47 +57,31 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.9'
     implementation 'org.grpcmock:grpcmock-junit5:0.9.3'
     implementation 'com.google.protobuf:protobuf-java-util:3.21.7'
-
-    // Pinned jetty for WireMock
     implementation 'org.eclipse.jetty:jetty-http:9.4.46.v20220331'
     implementation 'org.eclipse.jetty:jetty-io:9.4.46.v20220331'
     implementation 'org.eclipse.jetty:jetty-server:9.4.46.v20220331'
     implementation 'org.eclipse.jetty:jetty-util:9.4.46.v20220331'
-
-    // JUnit annotations
     implementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
-
-    // Test Containers
     implementation "org.testcontainers:testcontainers:1.17.5"
-
-    // Excel
     implementation "org.apache.poi:poi:5.2.0"
     implementation "org.apache.poi:poi-ooxml:5.2.0"
     implementation "org.jxls:jxls-jexcel:1.0.9"
     implementation "org.dhatim:fastexcel:0.15.3"
     implementation "org.dhatim:fastexcel-reader:0.15.3"
 
-    // Logging
     runtimeOnly 'ch.qos.logback:logback-classic:1.2.3'
     runtimeOnly 'org.slf4j:log4j-over-slf4j:1.7.30'
 
-    // Test dependencies are used for testing Filibuster.  Any jUnit, etc. have to be main dependencies
-    // with the assumption that Filibuster is only pulled in as a test dependency in the application that
-    // uses it.
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
-
     testImplementation 'io.opentelemetry:opentelemetry-api:1.6.0'
     testImplementation 'io.opentelemetry:opentelemetry-extension-annotations:1.6.0'
-
     testImplementation 'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:1.6.0-alpha'
-
     testImplementation 'com.github.tomakehurst:wiremock-standalone:2.27.2'
     testImplementation 'io.netty:netty-tcnative-boringssl-static:2.0.61.Final'
 }
 
 test {
     useJUnitPlatform()
-    finalizedBy jacocoTestReport
     maxParallelForks = 1
     timeout = Duration.ofMinutes(60)
     minHeapSize = "128m" // initial heap size
@@ -112,10 +94,6 @@ test {
         excludeTestsMatching("cloud.filibuster.functional.python.*")
         excludeTestsMatching("cloud.filibuster.functional.shouldFails.*")
     }
-}
-
-jacocoTestReport {
-    dependsOn test
 }
 
 tasks.withType(JavaCompile) {
@@ -171,7 +149,7 @@ javadoc {
 
 group = "cloud.filibuster"
 archivesBaseName = "instrumentation"
-version = "3.0.2"
+version = "3.0.3"
 
 java {
     withJavadocJar()
@@ -341,3 +319,6 @@ task testWithFaultInjectionDocker(type: Test) {
         includeTestsMatching('cloud.filibuster.functional.docker.*')
     }
 }
+
+project.setProperty("mainClassName", "cloud.filibuster.instrumentation.Main")
+

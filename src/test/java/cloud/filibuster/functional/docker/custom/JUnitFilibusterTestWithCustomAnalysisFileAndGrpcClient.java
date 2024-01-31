@@ -1,4 +1,4 @@
-package cloud.filibuster.functional.python.custom;
+package cloud.filibuster.functional.docker.custom;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
@@ -8,6 +8,7 @@ import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.configuration.FilibusterAnalysisConfiguration;
 import cloud.filibuster.junit.configuration.FilibusterCustomAnalysisConfigurationFile;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
+import cloud.filibuster.junit.server.backends.FilibusterDockerServerBackend;
 import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
 import cloud.filibuster.functional.JUnitBaseTest;
 import com.linecorp.armeria.client.grpc.GrpcClientBuilder;
@@ -81,7 +82,7 @@ public class JUnitFilibusterTestWithCustomAnalysisFileAndGrpcClient extends JUni
      * @throws InterruptedException thrown when the gRPC channel fails to terminate.
      */
     @DisplayName("Test partial hello server grpc route with Filibuster with instrumented test client. (MyHelloService, MyWorldService)")
-    @TestWithFilibuster(analysisFile=analysisFilePath, serverBackend=FilibusterLocalProcessServerBackend.class)
+    @TestWithFilibuster(analysisFile=analysisFilePath, serverBackend= FilibusterDockerServerBackend.class)
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {

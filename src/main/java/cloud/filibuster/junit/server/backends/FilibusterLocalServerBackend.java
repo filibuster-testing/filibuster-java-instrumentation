@@ -19,23 +19,11 @@ import static cloud.filibuster.instrumentation.helpers.Property.setServerBackend
 public class FilibusterLocalServerBackend implements FilibusterServerBackend {
     private static final Logger logger = Logger.getLogger(FilibusterLocalServerBackend.class.getName());
 
-    @Nullable
-    private static Server filibusterServer;
-
     @Override
     public synchronized boolean start(FilibusterConfiguration filibusterConfiguration) throws InterruptedException {
         // Even though the value of the new appears unused. It is necessary since this FilibusterCore
         // object can be accessed via FilibusterCore.getCurrentInstance
         new FilibusterCore(filibusterConfiguration);
-
-        if (filibusterServer == null) {
-            filibusterServer = FilibusterServer.serve();
-        }
-        if(filibusterServer == null)
-        {
-            throw new FilibusterServerNullException("The Filibuster Server should not be null at this point.");
-        }
-        filibusterServer.start();
 
         setServerBackendCanInvokeDirectlyProperty(true);
 
@@ -44,10 +32,6 @@ public class FilibusterLocalServerBackend implements FilibusterServerBackend {
 
     @Override
     public synchronized boolean stop(FilibusterConfiguration filibusterConfiguration) {
-        if (filibusterServer != null) {
-            filibusterServer.stop();
-        }
-
         FilibusterCore.removeCurrentInstance();
 
         // Poke the GC once we dereference the FilibusterCore object (via FilibusterServer.)

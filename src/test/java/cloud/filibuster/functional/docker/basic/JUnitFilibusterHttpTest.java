@@ -1,9 +1,10 @@
-package cloud.filibuster.functional.python.basic;
+package cloud.filibuster.functional.docker.basic;
 
 import cloud.filibuster.integration.instrumentation.TestHelper;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.TestWithFilibuster;
 import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
+import cloud.filibuster.junit.server.backends.FilibusterDockerServerBackend;
 import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
 import cloud.filibuster.functional.JUnitBaseTest;
 import com.linecorp.armeria.client.WebClient;
@@ -25,34 +26,33 @@ import java.util.List;
 import java.util.Set;
 
 import static cloud.filibuster.junit.assertions.protocols.GenericAssertions.wasFaultInjected;
+import static cloud.filibuster.junit.assertions.protocols.HttpAssertions.wasFaultInjectedOnService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterExternalHttpTest extends JUnitBaseTest {
+public class JUnitFilibusterHttpTest extends JUnitBaseTest {
     private final static Set<String> testErrorCodesReceived = new HashSet<>();
 
     private static int numberOfTestsExecuted = 0;
 
-    private final List<String> validErrorCodes = Arrays.asList("424", "500");
+    private final List<String> validErrorCodes = Arrays.asList("404", "503");
 
     /**
      * Inject faults between Hello and World using Filibuster and assert proper faults are injected.
      */
     @DisplayName("Test world route with Filibuster.")
     @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
-    @TestWithFilibuster(serverBackend=FilibusterLocalProcessServerBackend.class)
+    @TestWithFilibuster(serverBackend=FilibusterDockerServerBackend.class)
     @Order(1)
-    public void testHelloAndExternalServiceWithFilibuster() {
+    public void testHelloAndWorldServiceWithFilibuster() {
         numberOfTestsExecuted++;
-
-        boolean expected = false;
 
         try {
             String baseURI = "http://" + Networking.getHost("hello") + ":" + Networking.getPort("hello") + "/";
             WebClient webClient = TestHelper.getTestWebClient(baseURI);
-            RequestHeaders getHeaders = RequestHeaders.of(HttpMethod.GET, "/external", HttpHeaderNames.ACCEPT, "application/json");
+            RequestHeaders getHeaders = RequestHeaders.of(HttpMethod.GET, "/world", HttpHeaderNames.ACCEPT, "application/json");
             AggregatedHttpResponse response = webClient.execute(getHeaders).aggregate().join();
             ResponseHeaders headers = response.headers();
             String statusCode = headers.get(HttpHeaderNames.STATUS);
@@ -60,6 +60,7 @@ public class JUnitFilibusterExternalHttpTest extends JUnitBaseTest {
             if (wasFaultInjected()) {
                 testErrorCodesReceived.add(statusCode);
                 assertTrue(validErrorCodes.contains(statusCode));
+                assertTrue(wasFaultInjectedOnService("world"));
             } else {
                 assertEquals("200", statusCode);
             }
@@ -81,6 +82,6 @@ public class JUnitFilibusterExternalHttpTest extends JUnitBaseTest {
     @Test
     @Order(3)
     public void testNumberOfTestsExecuted() {
-        assertEquals(5, numberOfTestsExecuted);
+        assertEquals(6, numberOfTestsExecuted);
     }
 }

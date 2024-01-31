@@ -1,22 +1,20 @@
-package cloud.filibuster.functional.python.basic;
+package cloud.filibuster.functional.docker.basic;
 
 import cloud.filibuster.examples.Hello;
 import cloud.filibuster.examples.HelloServiceGrpc;
 import cloud.filibuster.examples.WorldServiceGrpc;
 import cloud.filibuster.instrumentation.helpers.Networking;
 import cloud.filibuster.junit.TestWithFilibuster;
-import cloud.filibuster.junit.interceptors.GitHubActionsSkipInvocationInterceptor;
+import cloud.filibuster.junit.server.backends.FilibusterDockerServerBackend;
 import cloud.filibuster.junit.server.backends.FilibusterLocalProcessServerBackend;
 import cloud.filibuster.functional.JUnitBaseTest;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -33,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test simple annotation usage.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JUnitFilibusterFailingTest extends JUnitBaseTest {
+public class JUnitFilibusterTest extends JUnitBaseTest {
     private final static Set<String> testExceptionsThrown = new HashSet<>();
 
     /**
@@ -42,13 +40,11 @@ public class JUnitFilibusterFailingTest extends JUnitBaseTest {
      * @throws InterruptedException if teardown of gRPC channel fails.
      */
     @DisplayName("Test partial hello server grpc route with Filibuster. (MyHelloService, MyWorldService)")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
-    @TestWithFilibuster(serverBackend=FilibusterLocalProcessServerBackend.class, expected=StatusRuntimeException.class)
+    @TestWithFilibuster(serverBackend=FilibusterDockerServerBackend.class)
     @Order(1)
     public void testMyHelloAndMyWorldServiceWithFilibuster() throws InterruptedException {
-        // Intentionally use a bad port.
         ManagedChannel helloChannel = ManagedChannelBuilder
-                .forAddress(Networking.getHost("hello"), 9999)
+                .forAddress(Networking.getHost("hello"), Networking.getPort("hello"))
                 .usePlaintext()
                 .build();
 
@@ -82,7 +78,11 @@ public class JUnitFilibusterFailingTest extends JUnitBaseTest {
                     expected = true;
                 }
 
-                boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("World");
+                if (t.getMessage().equals("DATA_LOSS: io.grpc.StatusRuntimeException: UNKNOWN")) {
+                    expected = true;
+                }
+
+                boolean wasFaultInjectedOnWorldService = wasFaultInjectedOnService("world");
                 assertTrue(wasFaultInjectedOnWorldService);
 
                 boolean wasFaultInjectedOnWorldMethod = wasFaultInjectedOnMethod(WorldServiceGrpc.getWorldMethod());
@@ -104,10 +104,9 @@ public class JUnitFilibusterFailingTest extends JUnitBaseTest {
      * Verify that Filibuster generated the correct number of fault injections.
      */
     @DisplayName("Verify correct number of generated Filibuster tests.")
-    @ExtendWith(GitHubActionsSkipInvocationInterceptor.class)
     @Test
     @Order(2)
     public void testNumAssertions() {
-        assertEquals(0, testExceptionsThrown.size());
+        assertEquals(5, testExceptionsThrown.size());
     }
 }

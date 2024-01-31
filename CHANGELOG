@@ -1,3 +1,9 @@
+3.0.3:
+    - (cmeiklejohn) Remove jacoco.
+    - (cmeiklejohn) Bump gradle.
+    - (cmeiklejohn) Remove support for Python backend, streamline Docker backend, switch Py tests to Docker.
+    - (cmeiklejohn) Address possibly flaky test.
+    - (cmeiklejohn) Bump armeria version.
 3.0.2:
     - (cmeiklejohn) Minor UX refactoring.
 3.0.1:

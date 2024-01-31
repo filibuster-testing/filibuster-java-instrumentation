@@ -118,7 +118,7 @@ public class SerializersTest {
     }
 
     @Test
-    public void testMessagesToJsonWithOnlyGsonPayload() {
+    public void testMessagesToJsonWithOnlyPayload() {
         ServerInvocationAndResponse sir = generateServerInvocationAndResponse();
 
         JSONObject expectedRequestMessageJSONObject = new JSONObject();
@@ -138,24 +138,24 @@ public class SerializersTest {
     public void testMessagesToJsonWithClassIncluded() {
         ServerInvocationAndResponse sir = generateServerInvocationAndResponse();
 
-        JSONObject expectedRequestMessageJSONObjectGson = new JSONObject();
-        expectedRequestMessageJSONObjectGson.put("name", "Chris");
+        JSONObject expectedRequestMessageJSONObjectPayload = new JSONObject();
+        expectedRequestMessageJSONObjectPayload.put("name", "Chris");
 
         JSONObject expectedRequestMessageJSONObject = new JSONObject();
         expectedRequestMessageJSONObject.put("class", "cloud.filibuster.examples.Hello$HelloRequest");
-        expectedRequestMessageJSONObject.put("gson", expectedRequestMessageJSONObjectGson);
+        expectedRequestMessageJSONObject.put("payload", expectedRequestMessageJSONObjectPayload);
         expectedRequestMessageJSONObject.put("toString", sir.getRequestMessage().toString());
 
         JSONObject requestMessageJSONObject = GeneratedMessageV3Serializer.toJsonObjectWithClassIncluded(sir.getRequestMessage());
         assertTrue(requestMessageJSONObject.similar(expectedRequestMessageJSONObject));
         assertTrue(GeneratedMessageV3Serializer.toJsonObject(sir.getRequestMessage()).similar(expectedRequestMessageJSONObject));
 
-        JSONObject expectedResponseMessageJSONObjectGson = new JSONObject();
-        expectedResponseMessageJSONObjectGson.put("message", "Hi, Chris!");
+        JSONObject expectedResponseMessageJSONObjectPayload = new JSONObject();
+        expectedResponseMessageJSONObjectPayload.put("message", "Hi, Chris!");
 
         JSONObject expectedResponseMessageJSONObject = new JSONObject();
         expectedResponseMessageJSONObject.put("class", "cloud.filibuster.examples.Hello$HelloReply");
-        expectedResponseMessageJSONObject.put("gson", expectedResponseMessageJSONObjectGson);
+        expectedResponseMessageJSONObject.put("payload", expectedResponseMessageJSONObjectPayload);
         expectedResponseMessageJSONObject.put("toString", sir.getResponseMessage().toString());
 
         JSONObject responseMessageJSONObject = GeneratedMessageV3Serializer.toJsonObjectWithClassIncluded(sir.getResponseMessage());
@@ -167,22 +167,22 @@ public class SerializersTest {
     public void testMessagesToJSONObject() {
         ServerInvocationAndResponse sir = generateServerInvocationAndResponse();
 
-        JSONObject expectedRequestMessageJSONObjectGson = new JSONObject();
-        expectedRequestMessageJSONObjectGson.put("name", "Chris");
+        JSONObject expectedRequestMessageJSONObjectPayload = new JSONObject();
+        expectedRequestMessageJSONObjectPayload.put("name", "Chris");
 
         JSONObject expectedRequestMessageJSONObject = new JSONObject();
         expectedRequestMessageJSONObject.put("class", "cloud.filibuster.examples.Hello$HelloRequest");
-        expectedRequestMessageJSONObject.put("gson", expectedRequestMessageJSONObjectGson);
+        expectedRequestMessageJSONObject.put("payload", expectedRequestMessageJSONObjectPayload);
         expectedRequestMessageJSONObject.put("toString", sir.getRequestMessage().toString());
 
         assertTrue(GeneratedMessageV3Serializer.toJsonObject(sir.getRequestMessage()).similar(expectedRequestMessageJSONObject));
 
-        JSONObject expectedResponseMessageJSONObjectGson = new JSONObject();
-        expectedResponseMessageJSONObjectGson.put("message", "Hi, Chris!");
+        JSONObject expectedResponseMessageJSONObjectPayload = new JSONObject();
+        expectedResponseMessageJSONObjectPayload.put("message", "Hi, Chris!");
 
         JSONObject expectedResponseMessageJSONObject = new JSONObject();
         expectedResponseMessageJSONObject.put("class", "cloud.filibuster.examples.Hello$HelloReply");
-        expectedResponseMessageJSONObject.put("gson", expectedResponseMessageJSONObjectGson);
+        expectedResponseMessageJSONObject.put("payload", expectedResponseMessageJSONObjectPayload);
         expectedResponseMessageJSONObject.put("toString", sir.getResponseMessage().toString());
 
         assertTrue(GeneratedMessageV3Serializer.toJsonObject(sir.getResponseMessage()).similar(expectedResponseMessageJSONObject));
@@ -192,12 +192,12 @@ public class SerializersTest {
     public void testMessagesFromJSONObject() {
         ServerInvocationAndResponse sir = generateServerInvocationAndResponse();
 
-        JSONObject expectedRequestMessageJSONObjectGson = new JSONObject();
-        expectedRequestMessageJSONObjectGson.put("name", "Chris");
+        JSONObject expectedRequestMessageJSONObjectPayload = new JSONObject();
+        expectedRequestMessageJSONObjectPayload.put("name", "Chris");
 
         JSONObject expectedRequestMessageJSONObject = new JSONObject();
         expectedRequestMessageJSONObject.put("class", "cloud.filibuster.examples.Hello$HelloRequest");
-        expectedRequestMessageJSONObject.put("gson", expectedRequestMessageJSONObjectGson);
+        expectedRequestMessageJSONObject.put("payload", expectedRequestMessageJSONObjectPayload);
         expectedRequestMessageJSONObject.put("toString", sir.getRequestMessage().toString());
 
         JSONObject serializedRequestMessageToJSONObject = GeneratedMessageV3Serializer.toJsonObject(sir.getRequestMessage());
@@ -206,12 +206,12 @@ public class SerializersTest {
         GeneratedMessageV3 requestMessageFromJSONObject = GeneratedMessageV3Serializer.fromJsonObject(serializedRequestMessageToJSONObject);
         assertEquals(sir.getRequestMessage(), requestMessageFromJSONObject);
 
-        JSONObject expectedResponseMessageJSONObjectGson = new JSONObject();
-        expectedResponseMessageJSONObjectGson.put("message", "Hi, Chris!");
+        JSONObject expectedResponseMessageJSONObjectPayload = new JSONObject();
+        expectedResponseMessageJSONObjectPayload.put("message", "Hi, Chris!");
 
         JSONObject expectedResponseMessageJSONObject = new JSONObject();
         expectedResponseMessageJSONObject.put("class", "cloud.filibuster.examples.Hello$HelloReply");
-        expectedResponseMessageJSONObject.put("gson", expectedResponseMessageJSONObjectGson);
+        expectedResponseMessageJSONObject.put("payload", expectedResponseMessageJSONObjectPayload);
         expectedResponseMessageJSONObject.put("toString", sir.getResponseMessage().toString());
 
         JSONObject serializedResponseMessageToJSONObject = GeneratedMessageV3Serializer.toJsonObject(sir.getResponseMessage());

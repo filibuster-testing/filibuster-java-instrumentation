@@ -1,3 +1,12 @@
+3.0.2:
+    - (cmeiklejohn) Minor UX refactoring.
+3.0.0:
+    - (cmeiklejohn) Bad release, same as 2.2.3.
+2.3.0:
+    - (cmeiklejohn) Switch to jackson for GRPC value serialization.
+    - (cmeiklejohn) Remove errorprone.
+    - (cmeiklejohn) Remove dependency locking.
+    - (cmeiklejohn) Disabled two flaky tests.
 2.2.3:
     - (cmeiklejohn) Add Daikon instrumentors.
 2.2.2:

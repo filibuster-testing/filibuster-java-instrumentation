@@ -18,8 +18,12 @@ import cloud.filibuster.junit.server.core.FilibusterCore;
 import cloud.filibuster.junit.server.core.serializers.GeneratedMessageV3Serializer;
 import cloud.filibuster.junit.server.core.serializers.StatusSerializer;
 import cloud.filibuster.junit.server.core.transformers.Accumulator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.protobuf.GeneratedMessageV3;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.util.JsonFormat;
 import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.HttpMethod;
 import com.linecorp.armeria.common.ResponseHeaders;
@@ -38,6 +42,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static cloud.filibuster.RpcType.GRPC;
 import static cloud.filibuster.instrumentation.helpers.Counterexample.canLoadCounterexample;
 import static cloud.filibuster.instrumentation.helpers.Counterexample.loadCounterexampleAsJsonObjectFromEnvironment;
 import static cloud.filibuster.instrumentation.helpers.Counterexample.loadTestExecutionFromCounterexample;
@@ -964,8 +969,20 @@ final public class FilibusterClientInstrumentor {
             returnValueJsonObject.put("__class__", className);
             if (returnValue != null && returnValue != JSONObject.NULL && returnValue != "") {  // Only serialise if return value is not null or empty.
                 try {
-                    returnValueJsonObject.put("value", new Gson().toJson(returnValue));
-                } catch (RuntimeException e) {
+                    String serializedReturnValue;
+
+                    if (rpcType != null && rpcType.equals(GRPC)) {
+                        if (returnValue instanceof GeneratedMessageV3) {
+                            GeneratedMessageV3 returnValueAsGrpcMessage = (GeneratedMessageV3) returnValue;
+                            serializedReturnValue = JsonFormat.printer().preservingProtoFieldNames().includingDefaultValueFields().print(returnValueAsGrpcMessage);
+                        } else {
+                            serializedReturnValue = new ObjectMapper().writeValueAsString(returnValue);
+                        }
+                    } else {
+                        serializedReturnValue = new Gson().toJson(returnValue);
+                    }
+                    returnValueJsonObject.put("value", serializedReturnValue);
+                } catch (RuntimeException | InvalidProtocolBufferException | JsonProcessingException e) {
                     logger.log(Level.WARNING, "Could not serialise return value to JSON: " + e);
                 }
             } else {

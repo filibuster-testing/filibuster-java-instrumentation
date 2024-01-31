@@ -357,7 +357,7 @@
                         if (Object.keys(sample.response).length === 0) {
                             row += "<td class='fault'>";
                             row += "<div class='class_name'>" + sample.request.class + "</div>";
-                            row += "<textarea class='arguments'>" + JSON.stringify(sample.request.gson, null, 4) + "</textarea>";
+                            row += "<textarea class='arguments'>" + JSON.stringify(sample.request.payload, null, 4) + "</textarea>";
                             row += "</td>";
 
                             row += "<td class='fault'>";
@@ -367,12 +367,12 @@
                         } else {
                             row += "<td class='success'>";
                             row += "<div class='class_name'>" + sample.request.class + "</div>";
-                            row += "<textarea class='arguments'>" + JSON.stringify(sample.request.gson, null, 4) + "</textarea>";
+                            row += "<textarea class='arguments'>" + JSON.stringify(sample.request.payload, null, 4) + "</textarea>";
                             row += "</td>";
 
                             row += "<td class='success'>";
                             row += "<div class='class_name'>" + sample.response.class + "</div>";
-                            row += "<textarea class='arguments'>" + JSON.stringify(sample.response.gson, null, 4) + "</textarea>";
+                            row += "<textarea class='arguments'>" + JSON.stringify(sample.response.payload, null, 4) + "</textarea>";
                             row += "</td>";
                         }
 

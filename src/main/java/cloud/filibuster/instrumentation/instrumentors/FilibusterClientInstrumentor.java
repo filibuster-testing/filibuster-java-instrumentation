@@ -33,7 +33,6 @@ import com.linecorp.armeria.common.RequestHeaders;
 import io.grpc.Status;
 import org.json.JSONObject;
 
-import javax.annotation.Generated;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;

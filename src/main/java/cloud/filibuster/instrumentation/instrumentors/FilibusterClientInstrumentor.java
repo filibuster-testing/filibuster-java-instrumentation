@@ -20,8 +20,11 @@ import cloud.filibuster.junit.server.core.serializers.GeneratedMessageV3Serializ
 import cloud.filibuster.junit.server.core.serializers.StatusSerializer;
 import cloud.filibuster.junit.server.core.transformers.Accumulator;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.protobuf.GeneratedMessageV3;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.util.JsonFormat;
 import com.linecorp.armeria.client.WebClient;
 import com.linecorp.armeria.common.HttpMethod;
 import com.linecorp.armeria.common.ResponseHeaders;
@@ -31,6 +34,7 @@ import com.linecorp.armeria.common.RequestHeaders;
 import io.grpc.Status;
 import org.json.JSONObject;
 
+import javax.annotation.Generated;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
@@ -967,15 +971,20 @@ final public class FilibusterClientInstrumentor {
             returnValueJsonObject.put("__class__", className);
             if (returnValue != null && returnValue != JSONObject.NULL && returnValue != "") {  // Only serialise if return value is not null or empty.
                 try {
-                    String returnValueSerialized;
+                    String serializedReturnValue;
 
                     if (rpcType != null && rpcType.equals(GRPC)) {
-                        returnValueSerialized = FilibusterJsonSerializer.toJson(returnValue);
+                        if (returnValue instanceof GeneratedMessageV3) {
+                            GeneratedMessageV3 returnValueAsGrpcMessage = (GeneratedMessageV3) returnValue;
+                            serializedReturnValue = JsonFormat.printer().preservingProtoFieldNames().includingDefaultValueFields().print(returnValueAsGrpcMessage);
+                        } else {
+                            serializedReturnValue = new ObjectMapper().writeValueAsString(returnValue);
+                        }
                     } else {
-                        returnValueSerialized = new Gson().toJson(returnValue);
+                        serializedReturnValue = new Gson().toJson(returnValue);
                     }
-                    returnValueJsonObject.put("value", returnValueSerialized);
-                } catch (RuntimeException | JsonProcessingException e) {
+                    returnValueJsonObject.put("value", serializedReturnValue);
+                } catch (RuntimeException | InvalidProtocolBufferException | JsonProcessingException e) {
                     logger.log(Level.WARNING, "Could not serialise return value to JSON: " + e);
                 }
             } else {

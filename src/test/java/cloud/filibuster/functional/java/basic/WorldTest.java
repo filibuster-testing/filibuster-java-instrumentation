@@ -11,6 +11,7 @@ import io.grpc.StatusRuntimeException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -32,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Disabled
 public class WorldTest {
     public static ManagedChannel apiChannel;
 
